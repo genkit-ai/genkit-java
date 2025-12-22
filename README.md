@@ -2,7 +2,7 @@
 
 Genkit for Java is the Java implementation of the Genkit framework for building AI-powered applications.
 
-See: https://firebase.google.com/docs/genkit
+See: https://genkit.dev
 
 > **Status**: Currently in active development (1.0.0-SNAPSHOT). Requires Java 17+.
 > 
