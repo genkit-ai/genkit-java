@@ -23,36 +23,38 @@
  * <p>
  * The session package provides a stateful layer on top of Genkit's generation
  * capabilities, enabling:
+ *
  * <ul>
- * <li>Persistent conversation history across multiple interactions</li>
- * <li>Custom session state management</li>
- * <li>Multiple named conversation threads within a session</li>
+ * <li>Persistent conversation history across multiple interactions
+ * <li>Custom session state management
+ * <li>Multiple named conversation threads within a session
  * <li>Pluggable storage backends via
- * {@link com.google.genkit.ai.session.SessionStore}</li>
+ * {@link com.google.genkit.ai.session.SessionStore}
  * </ul>
  *
  * <h2>Key Components</h2>
+ *
  * <ul>
  * <li>{@link com.google.genkit.ai.session.Session} - The main entry point for
- * session management</li>
+ * session management
  * <li>{@link com.google.genkit.ai.session.Chat} - Manages conversations within
- * a session thread</li>
+ * a session thread
  * <li>{@link com.google.genkit.ai.session.SessionStore} - Interface for session
- * persistence</li>
+ * persistence
  * <li>{@link com.google.genkit.ai.session.InMemorySessionStore} - Default
- * in-memory implementation</li>
+ * in-memory implementation
  * </ul>
  *
  * <h2>Example Usage</h2>
- * 
- * <pre>{@code
- * // Create a session with custom state
- * Session<MyState> session = genkit
- * 		.createSession(SessionOptions.<MyState>builder().initialState(new MyState("John")).build());
  *
- * // Create a chat with system prompt
- * Chat<MyState> chat = session
- * 		.chat(ChatOptions.<MyState>builder().model("openai/gpt-4o").system("You are a helpful assistant.").build());
+ * <p>
+ * Create a session with custom state:
+ *
+ * <pre>
+ * Session session = genkit.createSession(SessionOptions.builder().initialState(new MyState("John")).build());
+ *
+ * Chat chat = session
+ * 		.chat(ChatOptions.builder().model("openai/gpt-4o").system("You are a helpful assistant.").build());
  *
  * // Multi-turn conversation (history is preserved automatically)
  * chat.send("What is the capital of France?");
@@ -62,27 +64,14 @@
  * MyState state = session.getState();
  *
  * // Load an existing session
- * Session<MyState> loadedSession = genkit.loadSession(sessionId, options).get();
- * }</pre>
+ * Session loadedSession = genkit.loadSession(sessionId, options).get();
+ * </pre>
  *
  * <h2>Custom Session Stores</h2>
+ *
  * <p>
  * Implement {@link com.google.genkit.ai.session.SessionStore} to provide custom
- * persistence backends (e.g., database, Redis, file system):
- * 
- * <pre>{@code
- * public class RedisSessionStore<S> implements SessionStore<S> {
- *     @Override
- *     public CompletableFuture<SessionData<S>> get(String sessionId) {
- *         // Load from Redis
- *     }
- *
- *     @Override
- *     public CompletableFuture<Void> save(String sessionId, SessionData<S> data) {
- *         // Save to Redis
- *     }
- * }
- * }</pre>
+ * persistence backends (e.g., database, Redis, file system).
  *
  * @see com.google.genkit.ai.session.Session
  * @see com.google.genkit.ai.session.Chat
