@@ -18,11 +18,9 @@ name: Java tests and checks
 
 on:
   pull_request:
-    paths:
-      - "java/**"
-      - "genkit-tools/**"
-      - ".github/workflows/java.yml"
-
+  push:
+    branches:
+      - main
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -42,11 +40,9 @@ jobs:
 
       - name: Build with Maven
         run: mvn -B clean compile -q
-        working-directory: ./java
 
       - name: Run tests
         run: mvn -B test
-        working-directory: ./java
 
   lint:
     runs-on: ubuntu-latest
@@ -63,8 +59,6 @@ jobs:
 
       - name: Check code formatting with Spotless
         run: mvn -B spotless:check
-        working-directory: ./java
 
       - name: Run Checkstyle
         run: mvn -B checkstyle:check
-        working-directory: ./java

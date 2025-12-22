@@ -28,7 +28,7 @@
 
     <name>Genkit for Java</name>
     <description>Genkit - A framework for building AI-powered applications in Java</description>
-    <url>https://github.com/firebase/genkit</url>
+    <url>https://github.com/genkit-ai/genkit-java</url>
 
     <licenses>
         <license>
@@ -47,10 +47,23 @@
     </developers>
 
     <scm>
-        <connection>scm:git:git://github.com/firebase/genkit.git</connection>
-        <developerConnection>scm:git:ssh://github.com:firebase/genkit.git</developerConnection>
-        <url>https://github.com/firebase/genkit/tree/main</url>
+        <connection>scm:git:git://github.com/genkit-ai/genkit-java.git</connection>
+        <developerConnection>scm:git:ssh://github.com:genkit-ai/genkit-java.git</developerConnection>
+        <url>https://github.com/genkit-ai/genkit-java/tree/main</url>
     </scm>
+
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/genkit-ai/genkit-java</url>
+        </repository>
+        <snapshotRepository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/genkit-ai/genkit-java</url>
+        </snapshotRepository>
+    </distributionManagement>
 
     <modules>
         <module>core</module>
@@ -347,4 +360,22 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>github-packages</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

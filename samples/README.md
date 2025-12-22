@@ -262,4 +262,4 @@ mvn clean install -DskipTests
 
 - [Genkit Java README](../README.md) - Main documentation
 - [Genkit Documentation](https://firebase.google.com/docs/genkit) - Official docs
-- [Genkit GitHub](https://github.com/firebase/genkit) - Source code
+- [Genkit GitHub](https://github.com/genkit-ai/genkit-java) - Source code

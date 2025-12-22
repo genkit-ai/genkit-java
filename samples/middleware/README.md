@@ -164,5 +164,5 @@ Response <- [MW1] <- [MW2] <- [MW3] <----
 
 ## See Also
 
-- [Genkit Documentation](https://github.com/firebase/genkit)
+- [Genkit Documentation](https://github.com/genkit-ai/genkit-java)
 - [JavaScript Middleware Documentation](../../../js/ai/src/model/middleware.ts)
