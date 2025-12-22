@@ -1,0 +1,27 @@
+# General build + OS files
+!samples/**/package-lock.json
+*.eld
+*.tgz
+.DS_Store
+.angular
+.next
+.pnpm-store
+.vscode
+dist
+lib
+node_modules
+package-lock.json
+# Java
+/**/target/
+/**/*.class
+/**/*.jar
+/**/*.war
+/**/*.ear
+/**/.classpath
+/**/.project
+/**/.settings/
+/**/*.iml
+/**/.genkit
+*.log
+hs_err_pid*
+samples/google-genai/generated_media/
