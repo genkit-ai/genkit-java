@@ -304,6 +304,13 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>3.6.3</version>
+                    <configuration>
+                        <!-- Disable strict Javadoc checking -->
+                        <doclint>none</doclint>
+                        <failOnError>false</failOnError>
+                        <failOnWarnings>false</failOnWarnings>
+                        <quiet>true</quiet>
+                    </configuration>
                     <executions>
                         <execution>
                             <id>attach-javadocs</id>

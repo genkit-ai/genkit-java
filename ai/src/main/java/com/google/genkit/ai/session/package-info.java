@@ -70,22 +70,19 @@
  * Implement {@link com.google.genkit.ai.session.SessionStore} to provide custom
  * persistence backends (e.g., database, Redis, file system):
  * 
- * <pre>
- * {
- * 	&#64;code
- * 	public class RedisSessionStore<S> implements SessionStore<S> {
- * 		&#64;Override
- * 		public CompletableFuture<SessionData<S>> get(String sessionId) {
- * 			// Load from Redis
- * 		}
+ * <pre>{@code
+ * public class RedisSessionStore<S> implements SessionStore<S> {
+ *     @Override
+ *     public CompletableFuture<SessionData<S>> get(String sessionId) {
+ *         // Load from Redis
+ *     }
  *
- * 		@Override
- * 		public CompletableFuture<Void> save(String sessionId, SessionData<S> data) {
- * 			// Save to Redis
- * 		}
- * 	}
+ *     @Override
+ *     public CompletableFuture<Void> save(String sessionId, SessionData<S> data) {
+ *         // Save to Redis
+ *     }
  * }
- * </pre>
+ * }</pre>
  *
  * @see com.google.genkit.ai.session.Session
  * @see com.google.genkit.ai.session.Chat
