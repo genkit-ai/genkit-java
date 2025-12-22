@@ -34,6 +34,10 @@
     <name>Genkit</name>
     <description>Genkit main module with Genkit class and reflection server</description>
 
+    <properties>
+        <maven.deploy.skip>false</maven.deploy.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.google.genkit</groupId>

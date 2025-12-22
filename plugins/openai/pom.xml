@@ -34,6 +34,10 @@
     <name>Genkit OpenAI Plugin</name>
     <description>OpenAI model plugin for Genkit</description>
 
+    <properties>
+        <maven.deploy.skip>false</maven.deploy.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.google.genkit</groupId>

@@ -34,6 +34,11 @@
     <name>Genkit Google GenAI Sample</name>
     <description>Sample application demonstrating Google GenAI (Gemini) integration with Genkit</description>
 
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <maven.install.skip>true</maven.install.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.google.genkit</groupId>

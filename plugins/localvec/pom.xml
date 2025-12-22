@@ -34,6 +34,10 @@
     <name>Genkit Local Vector Store Plugin</name>
     <description>Local file-based vector store for development and testing</description>
 
+    <properties>
+        <maven.deploy.skip>false</maven.deploy.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.google.genkit</groupId>

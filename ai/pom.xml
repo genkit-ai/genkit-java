@@ -33,6 +33,10 @@
     <name>Genkit AI</name>
     <description>AI features for Genkit including models, embedders, tools, retrievers, and prompts</description>
 
+    <properties>
+        <maven.deploy.skip>false</maven.deploy.skip>
+    </properties>
+
     <dependencies>
         <!-- Internal dependencies -->
         <dependency>

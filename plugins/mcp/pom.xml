@@ -36,6 +36,7 @@
 
     <properties>
         <mcp.sdk.version>0.17.0</mcp.sdk.version>
+        <maven.deploy.skip>false</maven.deploy.skip>
     </properties>
 
     <dependencies>

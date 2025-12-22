@@ -33,6 +33,10 @@
     <name>Genkit Core</name>
     <description>Core functionality for Genkit including actions, flows, tracing, and registry</description>
 
+    <properties>
+        <maven.deploy.skip>false</maven.deploy.skip>
+    </properties>
+
     <dependencies>
         <!-- JSON processing -->
         <dependency>
