@@ -1,0 +1,16 @@
+com.google.genkit
+com.google.genkit.ai
+com.google.genkit.ai.evaluation
+com.google.genkit.ai.session
+com.google.genkit.ai.telemetry
+com.google.genkit.core
+com.google.genkit.core.middleware
+com.google.genkit.core.tracing
+com.google.genkit.plugins.googlegenai
+com.google.genkit.plugins.jetty
+com.google.genkit.plugins.localvec
+com.google.genkit.plugins.mcp
+com.google.genkit.plugins.openai
+com.google.genkit.prompt
+com.google.genkit.samples
+com.google.genkit.samples.types
