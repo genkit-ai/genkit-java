@@ -6,7 +6,7 @@ See: https://genkit.dev
 
 > **Status**: Currently in active development (1.0.0-SNAPSHOT). Requires Java 21+.
 > 
-> **Note**: The Java SDK supports OpenAI, Google GenAI (Gemini), and Firebase (Firestore vector search, Cloud Functions, telemetry). Additional plugins (Anthropic, Ollama, etc.) are planned for future releases. See [Plugin Availability](#plugin-availability) for details.
+> **Note**: The Java SDK supports OpenAI, Google GenAI (Gemini), Anthropic (Claude), Ollama (local models), and Firebase (Firestore vector search, Cloud Functions, telemetry). See [Plugin Availability](#plugin-availability) for details.
 
 ## Installation
 
@@ -31,6 +31,20 @@ Add the following dependencies to your Maven `pom.xml`:
 <dependency>
     <groupId>com.google.genkit</groupId>
     <artifactId>genkit-plugin-google-genai</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+
+<!-- Anthropic plugin (Claude models) -->
+<dependency>
+    <groupId>com.google.genkit</groupId>
+    <artifactId>genkit-plugin-anthropic</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+
+<!-- Ollama plugin (local models) -->
+<dependency>
+    <groupId>com.google.genkit</groupId>
+    <artifactId>genkit-plugin-ollama</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 </dependency>
 
@@ -368,6 +382,8 @@ EmbedResponse response = genkit.embed("openai/text-embedding-3-small", documents
 | **genkit** | Main entry point combining core and AI with reflection server |
 | **plugins/openai** | OpenAI models (GPT-4o, GPT-4o-mini, etc.) and embeddings |
 | **plugins/google-genai** | Google Gemini models and Imagen image generation |
+| **plugins/anthropic** | Anthropic Claude models (Claude 4.5, Claude 4, Claude 3) |
+| **plugins/ollama** | Local Ollama models (Gemma, Llama, Mistral, etc.) |
 | **plugins/jetty** | HTTP server plugin using Jetty 12 |
 | **plugins/spring** | HTTP server plugin using Spring Boot |
 | **plugins/localvec** | Local file-based vector store for development |
@@ -454,6 +470,8 @@ The following samples are available in `java/samples/`. See the [samples README]
 |--------|-------------|
 | **openai** | Basic OpenAI integration with flows and tools |
 | **google-genai** | Google Gemini integration with image generation |
+| **anthropic** | Anthropic Claude integration with streaming |
+| **ollama** | Local Ollama models with Gemma 3n |
 | **dotprompt** | DotPrompt files with complex inputs/outputs, variants, and partials |
 | **rag** | RAG application with local vector store |
 | **chat-session** | Multi-turn chat with session persistence |
@@ -590,6 +608,8 @@ com.google.genkit
 └── plugins/                 # Plugin implementations
     ├── openai/              # OpenAI models & embeddings
     ├── google-genai/        # Google Gemini models & Imagen
+    ├── anthropic/           # Anthropic Claude models
+    ├── ollama/              # Local Ollama models
     ├── jetty/               # Jetty HTTP server
     ├── spring/              # Spring Boot HTTP server
     ├── localvec/            # Local vector store

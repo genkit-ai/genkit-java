@@ -73,11 +73,15 @@
         <module>plugins/spring</module>
         <module>plugins/openai</module>
         <module>plugins/google-genai</module>
+        <module>plugins/anthropic</module>
+        <module>plugins/ollama</module>
         <module>plugins/localvec</module>
         <module>plugins/mcp</module>
         <module>plugins/firebase</module>
         <module>samples/openai</module>
         <module>samples/google-genai</module>
+        <module>samples/anthropic</module>
+        <module>samples/ollama</module>
         <module>samples/rag</module>
         <module>samples/evaluations</module>
         <module>samples/complex-io</module>
@@ -333,6 +337,8 @@
                         <windowtitle>Genkit for Java API</windowtitle>
                         <source>${java.version}</source>
                         <encoding>UTF-8</encoding>
+                        <!-- Exclude samples from javadoc -->
+                        <excludePackageNames>com.google.genkit.samples:com.google.genkit.samples.*</excludePackageNames>
                     </configuration>
                     <executions>
                         <execution>
@@ -350,6 +356,7 @@
                             <configuration>
                                 <outputDirectory>${project.basedir}/target/javadoc</outputDirectory>
                                 <reportOutputDirectory>${project.basedir}/target/javadoc</reportOutputDirectory>
+                                <excludePackageNames>com.google.genkit.samples:com.google.genkit.samples.*</excludePackageNames>
                             </configuration>
                         </execution>
                     </executions>
