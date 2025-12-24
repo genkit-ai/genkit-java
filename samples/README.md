@@ -64,6 +64,7 @@ The Dev UI will be available at `http://localhost:4000` and allows you to:
 | [multi-agent](./multi-agent) | Multi-agent orchestration patterns | `OPENAI_API_KEY` |
 | [interrupts](./interrupts) | Flow interrupts and human-in-the-loop patterns | `OPENAI_API_KEY` |
 | [mcp](./mcp) | Model Context Protocol (MCP) integration | `OPENAI_API_KEY` |
+| [spring](./spring) | Spring Boot HTTP server integration | `GOOGLE_GENAI_API_KEY` (optional) |
 
 ## Sample Details
 
@@ -216,6 +217,20 @@ Model Context Protocol integration demonstrating:
 ```bash
 cd java/samples/mcp
 export OPENAI_API_KEY=your-key
+./run.sh
+```
+
+### Spring Sample
+
+Spring Boot HTTP server integration demonstrating:
+- REST endpoint generation for flows
+- Health check and flow listing endpoints
+- Spring Boot ecosystem integration
+- Configurable port, host, and base path
+
+```bash
+cd java/samples/spring
+# Optional: export GOOGLE_GENAI_API_KEY=your-key
 ./run.sh
 ```
 

@@ -41,6 +41,13 @@ Add the following dependencies to your Maven `pom.xml`:
     <version>1.0.0-SNAPSHOT</version>
 </dependency>
 
+<!-- HTTP server plugin with Spring Boot -->
+<dependency>
+    <groupId>com.google.genkit</groupId>
+    <artifactId>genkit-plugin-spring</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+
 <!-- Local vector store plugin (for RAG development) -->
 <dependency>
     <groupId>com.google.genkit</groupId>
@@ -272,6 +279,7 @@ EmbedResponse response = genkit.embed("openai/text-embedding-3-small", documents
 | **plugins/openai** | OpenAI models (GPT-4o, GPT-4o-mini, etc.) and embeddings |
 | **plugins/google-genai** | Google Gemini models and Imagen image generation |
 | **plugins/jetty** | HTTP server plugin using Jetty 12 |
+| **plugins/spring** | HTTP server plugin using Spring Boot |
 | **plugins/localvec** | Local file-based vector store for development |
 | **plugins/mcp** | Model Context Protocol (MCP) client integration |
 
@@ -364,6 +372,7 @@ The following samples are available in `java/samples/`. See the [samples README]
 | **multi-agent** | Multi-agent orchestration patterns |
 | **interrupts** | Flow interrupts and human-in-the-loop patterns |
 | **mcp** | Model Context Protocol (MCP) integration |
+| **spring** | Spring Boot HTTP server integration |
 
 ### Running Samples
 
@@ -488,8 +497,11 @@ com.google.genkit
 │       └── ExecutablePrompt # Prompt execution
 └── plugins/                 # Plugin implementations
     ├── openai/              # OpenAI models & embeddings
+    ├── google-genai/        # Google Gemini models & Imagen
     ├── jetty/               # Jetty HTTP server
-    └── localvec/            # Local vector store
+    ├── spring/              # Spring Boot HTTP server
+    ├── localvec/            # Local vector store
+    └── mcp/                 # Model Context Protocol client
 ```
 
 ## License

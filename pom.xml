@@ -70,6 +70,7 @@
         <module>ai</module>
         <module>genkit</module>
         <module>plugins/jetty</module>
+        <module>plugins/spring</module>
         <module>plugins/openai</module>
         <module>plugins/google-genai</module>
         <module>plugins/localvec</module>
@@ -84,6 +85,7 @@
         <module>samples/chat-session</module>
         <module>samples/multi-agent</module>
         <module>samples/interrupts</module>
+        <module>samples/spring</module>
     </modules>
 
     <properties>
