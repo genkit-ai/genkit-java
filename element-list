@@ -11,6 +11,7 @@ com.google.genkit.plugins.jetty
 com.google.genkit.plugins.localvec
 com.google.genkit.plugins.mcp
 com.google.genkit.plugins.openai
+com.google.genkit.plugins.spring
 com.google.genkit.prompt
 com.google.genkit.samples
 com.google.genkit.samples.types
