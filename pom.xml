@@ -310,6 +310,15 @@
                         <failOnError>false</failOnError>
                         <failOnWarnings>false</failOnWarnings>
                         <quiet>true</quiet>
+                        <show>public</show>
+                        <nohelp>true</nohelp>
+                        <outputDirectory>${project.build.directory}/javadoc</outputDirectory>
+                        <reportOutputDirectory>${project.build.directory}/javadoc</reportOutputDirectory>
+                        <destDir>javadoc</destDir>
+                        <doctitle>Genkit for Java ${project.version} API</doctitle>
+                        <windowtitle>Genkit for Java API</windowtitle>
+                        <source>${java.version}</source>
+                        <encoding>UTF-8</encoding>
                     </configuration>
                     <executions>
                         <execution>
@@ -317,6 +326,17 @@
                             <goals>
                                 <goal>jar</goal>
                             </goals>
+                        </execution>
+                        <execution>
+                            <id>aggregate</id>
+                            <goals>
+                                <goal>aggregate</goal>
+                            </goals>
+                            <phase>site</phase>
+                            <configuration>
+                                <outputDirectory>${project.basedir}/target/javadoc</outputDirectory>
+                                <reportOutputDirectory>${project.basedir}/target/javadoc</reportOutputDirectory>
+                            </configuration>
                         </execution>
                     </executions>
                 </plugin>
