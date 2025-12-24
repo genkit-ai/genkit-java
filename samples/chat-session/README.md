@@ -12,13 +12,13 @@ This sample demonstrates session-based multi-turn chat with persistence in Genki
 
 ## Prerequisites
 
-1. Java 17 or later
+1. Java 21 or later
 2. Maven
 3. OpenAI API key
 
 ## Prerequisites
 
-- Java 17+
+- Java 21+
 - Maven 3.6+
 - OpenAI API key
 

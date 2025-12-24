@@ -49,7 +49,7 @@ Demonstrates validation output with:
 
 ## Prerequisites
 
-- Java 17+
+- Java 21+
 - Maven 3.6+
 - OpenAI API key
 

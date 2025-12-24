@@ -12,7 +12,7 @@ This sample demonstrates multi-agent orchestration patterns using Genkit Java, w
 
 ## Prerequisites
 
-- Java 17+
+- Java 21+
 - Maven 3.6+
 - OpenAI API key
 

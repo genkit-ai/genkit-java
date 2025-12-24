@@ -14,7 +14,7 @@ This sample demonstrates integration with Google GenAI (Gemini) models using Gen
 
 ## Prerequisites
 
-- Java 17+
+- Java 21+
 - Maven 3.6+
 - Google GenAI API key (get one at https://aistudio.google.com/)
 

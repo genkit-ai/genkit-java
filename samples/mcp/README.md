@@ -4,7 +4,7 @@ This sample demonstrates how to use the Genkit MCP (Model Context Protocol) plug
 
 ## Prerequisites
 
-- Java 17+
+- Java 21+
 - Maven 3.6+
 - Node.js and npm (required for running MCP servers via `npx`)
 - OpenAI API key

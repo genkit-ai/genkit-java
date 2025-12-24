@@ -6,7 +6,7 @@ This directory contains sample applications demonstrating various features of Ge
 
 All samples require:
 
-- **Java 17+**
+- **Java 21+**
 - **Maven 3.6+**
 - **API Key** for the model provider (OpenAI or Google GenAI)
 

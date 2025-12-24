@@ -14,7 +14,7 @@ This sample demonstrates basic integration with OpenAI models using Genkit Java.
 
 ## Prerequisites
 
-- Java 17+
+- Java 21+
 - Maven 3.6+
 - OpenAI API key
 

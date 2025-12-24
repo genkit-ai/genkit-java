@@ -218,7 +218,7 @@ The plugin uses SLF4J for logging. Configure your logging framework to see MCP-r
 
 ## Requirements
 
-- Java 17 or later
+- Java 21 or later
 - Node.js and npm (for running MCP server packages via npx)
 - Network access for HTTP-based MCP servers
 

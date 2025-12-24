@@ -35,7 +35,7 @@ The sample includes three pre-configured knowledge bases:
 
 ## Prerequisites
 
-- Java 17+
+- Java 21+
 - Maven 3.6+
 - OpenAI API key
 

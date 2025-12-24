@@ -4,7 +4,7 @@ This sample demonstrates how to use middleware in Genkit Java to implement cross
 
 ## Prerequisites
 
-- Java 17+
+- Java 21+
 - Maven 3.6+
 - OpenAI API key
 

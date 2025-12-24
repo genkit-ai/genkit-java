@@ -82,7 +82,7 @@ Common scopes for this project:
 ## Development Setup
 
 1. Clone the repository
-2. Ensure you have JDK 17+ installed
+2. Ensure you have JDK 21+ installed
 3. Build the project: `mvn clean install`
 
 ## Pull Request Process

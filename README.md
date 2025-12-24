@@ -4,7 +4,7 @@ Genkit for Java is the Java implementation of the Genkit framework for building 
 
 See: https://genkit.dev
 
-> **Status**: Currently in active development (1.0.0-SNAPSHOT). Requires Java 17+.
+> **Status**: Currently in active development (1.0.0-SNAPSHOT). Requires Java 21+.
 > 
 > **Note**: The Java SDK supports OpenAI and Google GenAI (Gemini) models. Additional plugins (Vertex AI, Anthropic, Ollama, Firebase, etc.) are planned for future releases. See [Plugin Availability](#plugin-availability) for details.
 
@@ -384,7 +384,7 @@ genkit start -- ./run.sh
 
 ### Prerequisites
 
-- Java 17+
+- Java 21+
 - Maven 3.6+
 - OpenAI API key or Google GenAI API key (for samples)
 - Genkit CLI (optional, for Dev UI)

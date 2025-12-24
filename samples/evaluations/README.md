@@ -12,7 +12,7 @@ This sample demonstrates how to use Genkit's evaluation framework to assess AI o
 
 ## Prerequisites
 
-- Java 17+
+- Java 21+
 - Maven 3.6+
 - OpenAI API key
 
