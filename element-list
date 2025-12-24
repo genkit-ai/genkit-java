@@ -5,7 +5,12 @@ com.google.genkit.ai.session
 com.google.genkit.ai.telemetry
 com.google.genkit.core
 com.google.genkit.core.middleware
+com.google.genkit.core.telemetry
 com.google.genkit.core.tracing
+com.google.genkit.plugins.firebase
+com.google.genkit.plugins.firebase.functions
+com.google.genkit.plugins.firebase.retriever
+com.google.genkit.plugins.firebase.telemetry
 com.google.genkit.plugins.googlegenai
 com.google.genkit.plugins.jetty
 com.google.genkit.plugins.localvec
@@ -14,4 +19,6 @@ com.google.genkit.plugins.openai
 com.google.genkit.plugins.spring
 com.google.genkit.prompt
 com.google.genkit.samples
+com.google.genkit.samples.firebase
+com.google.genkit.samples.firebase.functions
 com.google.genkit.samples.types
