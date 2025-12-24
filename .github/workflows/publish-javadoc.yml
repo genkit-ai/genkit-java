@@ -28,12 +28,22 @@ jobs:
       contents: write
 
     steps:
-      - name: Deploy JavaDoc 🚀
-        uses: MathieuSoysal/Javadoc-publisher.yml@v3.0.2
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          javadoc-branch: gh-pages
-          java-version: 21
-          target-folder: javadoc
-          project: maven
-          custom-command: mvn javadoc:aggregate
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Generate Javadoc
+        run: mvn javadoc:aggregate
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./target/site/apidocs
+          destination_dir: javadoc
