@@ -396,6 +396,10 @@ public class GeminiModel implements Model {
   private List<Content> buildContents(ModelRequest request) {
     List<Content> contents = new ArrayList<>();
 
+    // Build context prefix from documents if provided
+    String contextPrefix = buildContextPrefix(request);
+    boolean contextPrefixAdded = false;
+
     for (Message message : request.getMessages()) {
       // Skip system messages (handled separately in config)
       if (message.getRole() == Role.SYSTEM) {
@@ -403,6 +407,12 @@ public class GeminiModel implements Model {
       }
 
       List<com.google.genai.types.Part> parts = new ArrayList<>();
+
+      // Add context prefix to the first user message
+      if (!contextPrefixAdded && contextPrefix != null && message.getRole() == Role.USER) {
+        parts.add(com.google.genai.types.Part.fromText(contextPrefix));
+        contextPrefixAdded = true;
+      }
 
       for (com.google.genkit.ai.Part part : message.getContent()) {
         if (part.getText() != null) {
@@ -456,7 +466,40 @@ public class GeminiModel implements Model {
       contents.add(content);
     }
 
+    // If we have context but no user messages were found, add it as a separate user
+    // message
+    if (!contextPrefixAdded && contextPrefix != null) {
+      Content contextContent = Content.builder().role("user")
+          .parts(com.google.genai.types.Part.fromText(contextPrefix)).build();
+      contents.add(0, contextContent);
+    }
+
     return contents;
+  }
+
+  /**
+   * Builds a context prefix string from the documents in the request. Returns
+   * null if no context documents are present.
+   */
+  private String buildContextPrefix(ModelRequest request) {
+    List<com.google.genkit.ai.Document> contextDocs = request.getContext();
+    if (contextDocs == null || contextDocs.isEmpty()) {
+      return null;
+    }
+
+    StringBuilder sb = new StringBuilder();
+    sb.append("Context:\n\n");
+    for (int i = 0; i < contextDocs.size(); i++) {
+      com.google.genkit.ai.Document doc = contextDocs.get(i);
+      sb.append("[").append(i + 1).append("] ");
+      // Get text content from the document
+      String text = doc.text();
+      if (text != null && !text.isEmpty()) {
+        sb.append(text);
+      }
+      sb.append("\n\n");
+    }
+    return sb.toString();
   }
 
   /**

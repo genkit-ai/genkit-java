@@ -74,8 +74,10 @@ Common scopes for this project:
 - `google-genai` - Google GenAI plugin
 - `openai` - OpenAI plugin
 - `jetty` - Jetty server plugin
+- `spring` - Spring Boot plugin
 - `localvec` - Local vector plugin
 - `mcp` - MCP plugin
+- `firebase` - Firebase plugin
 - `samples` - Sample applications
 - `deps` - Dependency updates
 

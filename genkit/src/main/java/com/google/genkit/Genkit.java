@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import com.google.genkit.ai.*;
 import com.google.genkit.ai.evaluation.*;
 import com.google.genkit.ai.session.*;
+import com.google.genkit.ai.telemetry.ModelTelemetryHelper;
 import com.google.genkit.core.*;
 import com.google.genkit.core.middleware.Middleware;
 import com.google.genkit.core.tracing.SpanMetadata;
@@ -588,8 +589,12 @@ public class Genkit {
       }
 
       final ModelRequest currentRequest = request;
+      final String flowNameForTelemetry = flowName;
+      final String spanPath = "/generate/" + options.getModel();
       ModelResponse response = Tracer.runInNewSpan(ctx, modelSpanMetadata, request, (spanCtx, req) -> {
-        return model.run(ctx.withSpanContext(spanCtx), currentRequest);
+        // Wrap model execution with telemetry to record generate metrics
+        return ModelTelemetryHelper.runWithTelemetry(options.getModel(), flowNameForTelemetry, spanPath,
+            currentRequest, r -> model.run(ctx.withSpanContext(spanCtx), r));
       });
 
       // Check if the model requested tool calls
@@ -1038,8 +1043,12 @@ public class Genkit {
       }
 
       final ModelRequest currentRequest = request;
+      final String flowNameForTelemetry = flowName;
+      final String spanPath = "/generateStream/" + options.getModel();
       ModelResponse response = Tracer.runInNewSpan(ctx, modelSpanMetadata, request, (spanCtx, req) -> {
-        return model.run(ctx.withSpanContext(spanCtx), currentRequest, streamCallback);
+        // Wrap model execution with telemetry to record generate metrics
+        return ModelTelemetryHelper.runWithTelemetryStreaming(options.getModel(), flowNameForTelemetry,
+            spanPath, currentRequest, r -> model.run(ctx.withSpanContext(spanCtx), r, streamCallback));
       });
 
       // Check if the model requested tool calls

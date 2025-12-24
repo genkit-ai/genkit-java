@@ -31,6 +31,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.genkit.ai.telemetry.ModelTelemetryHelper;
 import com.google.genkit.core.*;
 import com.google.genkit.core.tracing.SpanMetadata;
 import com.google.genkit.core.tracing.Tracer;
@@ -130,10 +131,13 @@ public class GenerateAction implements Action<GenerateAction.GenerateActionOptio
     // Run the model wrapped in a span
     return Tracer.runInNewSpan(ctx, spanMetadata, request, (spanCtx, req) -> {
       ActionContext newCtx = ctx.withSpanContext(spanCtx);
+      String spanPath = "/generate/" + modelName;
       if (streamCallback != null && model.supportsStreaming()) {
-        return model.run(newCtx, req, streamCallback);
+        return ModelTelemetryHelper.runWithTelemetryStreaming(modelName, flowName, spanPath, req,
+            r -> model.run(newCtx, r, streamCallback));
       } else {
-        return model.run(newCtx, req);
+        return ModelTelemetryHelper.runWithTelemetry(modelName, flowName, spanPath, req,
+            r -> model.run(newCtx, r));
       }
     });
   }

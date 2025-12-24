@@ -18,6 +18,8 @@
 
 package com.google.genkit.core.tracing;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -31,12 +33,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.GenkitException;
 
+import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
+import io.opentelemetry.sdk.trace.SpanProcessor;
+import io.opentelemetry.semconv.ServiceAttributes;
 
 /**
  * Tracer provides tracing utilities for Genkit operations. It integrates with
@@ -46,12 +53,16 @@ public final class Tracer {
 
   private static final Logger logger = LoggerFactory.getLogger(Tracer.class);
   private static final String INSTRUMENTATION_NAME = "genkit-java";
+  private static final String SERVICE_NAME = "genkit";
+  private static final String SERVICE_VERSION = "1.0.0";
   private static final AtomicBoolean initialized = new AtomicBoolean(false);
   private static final ObjectMapper objectMapper = new ObjectMapper();
   private static volatile io.opentelemetry.api.trace.Tracer otelTracer;
   private static volatile TelemetryServerExporter telemetryExporter;
   private static volatile SdkTracerProvider tracerProvider;
   private static volatile String configuredTelemetryServerUrl;
+  private static final List<SpanProcessor> additionalProcessors = new ArrayList<>();
+  private static final Object reinitLock = new Object();
 
   static {
     initializeTracer();
@@ -70,19 +81,19 @@ public final class Tracer {
         // Create the telemetry exporter
         telemetryExporter = new TelemetryServerExporter();
 
-        // Create SDK tracer provider with our exporter
-        tracerProvider = SdkTracerProvider.builder().addSpanProcessor(telemetryExporter).build();
+        // Create resource with service info
+        Resource resource = Resource.getDefault()
+            .merge(Resource.create(Attributes.builder().put(ServiceAttributes.SERVICE_NAME, SERVICE_NAME)
+                .put(ServiceAttributes.SERVICE_VERSION, SERVICE_VERSION).build()));
 
-        // Build the OpenTelemetry SDK - try to register globally
-        OpenTelemetrySdk openTelemetry;
-        try {
-          openTelemetry = OpenTelemetrySdk.builder().setTracerProvider(tracerProvider)
-              .buildAndRegisterGlobal();
-        } catch (IllegalStateException e) {
-          // GlobalOpenTelemetry was already set - just build without registering
-          logger.debug("GlobalOpenTelemetry already set, building local SDK: {}", e.getMessage());
-          openTelemetry = OpenTelemetrySdk.builder().setTracerProvider(tracerProvider).build();
-        }
+        // Create SDK tracer provider with our exporter and resource
+        tracerProvider = SdkTracerProvider.builder().addSpanProcessor(telemetryExporter).setResource(resource)
+            .build();
+
+        // Build the OpenTelemetry SDK - DON'T register globally
+        // This allows plugins (like Firebase) to set up a global SDK with both
+        // TracerProvider and MeterProvider for metrics export
+        OpenTelemetrySdk openTelemetry = OpenTelemetrySdk.builder().setTracerProvider(tracerProvider).build();
 
         otelTracer = openTelemetry.getTracer(INSTRUMENTATION_NAME);
 
@@ -115,6 +126,68 @@ public final class Tracer {
       telemetryExporter.setClient(new HttpTelemetryClient(serverUrl));
       configuredTelemetryServerUrl = serverUrl;
       logger.info("Connected to telemetry server: {}", serverUrl);
+    }
+  }
+
+  /**
+   * Registers an additional span processor for exporting traces. This allows
+   * plugins (like Firebase) to add their own exporters to send traces to external
+   * services like Google Cloud Trace.
+   *
+   * @param processor
+   *            the span processor to add
+   */
+  public static void registerSpanProcessor(SpanProcessor processor) {
+    if (processor == null) {
+      return;
+    }
+
+    synchronized (reinitLock) {
+      additionalProcessors.add(processor);
+      reinitializeTracer();
+    }
+
+    logger.info("Registered additional span processor: {}", processor.getClass().getSimpleName());
+  }
+
+  /**
+   * Reinitializes the tracer with all registered span processors. Called when
+   * additional processors are registered.
+   */
+  private static void reinitializeTracer() {
+    try {
+      // Create resource with service info
+      Resource resource = Resource.getDefault()
+          .merge(Resource.create(Attributes.builder().put(ServiceAttributes.SERVICE_NAME, SERVICE_NAME)
+              .put(ServiceAttributes.SERVICE_VERSION, SERVICE_VERSION).build()));
+
+      // Build new tracer provider with all processors and resource
+      SdkTracerProviderBuilder builder = SdkTracerProvider.builder();
+      builder.addSpanProcessor(telemetryExporter);
+      builder.setResource(resource);
+
+      for (SpanProcessor processor : additionalProcessors) {
+        builder.addSpanProcessor(processor);
+      }
+
+      SdkTracerProvider newProvider = builder.build();
+
+      // Build new OpenTelemetry SDK
+      OpenTelemetrySdk openTelemetry = OpenTelemetrySdk.builder().setTracerProvider(newProvider).build();
+
+      // Update the tracer
+      otelTracer = openTelemetry.getTracer(INSTRUMENTATION_NAME);
+
+      // Close old provider if exists
+      if (tracerProvider != null) {
+        tracerProvider.close();
+      }
+
+      tracerProvider = newProvider;
+
+      logger.debug("Tracer reinitialized with {} additional processors", additionalProcessors.size());
+    } catch (Exception e) {
+      logger.error("Failed to reinitialize tracer", e);
     }
   }
 

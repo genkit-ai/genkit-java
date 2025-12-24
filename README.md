@@ -6,7 +6,7 @@ See: https://genkit.dev
 
 > **Status**: Currently in active development (1.0.0-SNAPSHOT). Requires Java 21+.
 > 
-> **Note**: The Java SDK supports OpenAI and Google GenAI (Gemini) models. Additional plugins (Vertex AI, Anthropic, Ollama, Firebase, etc.) are planned for future releases. See [Plugin Availability](#plugin-availability) for details.
+> **Note**: The Java SDK supports OpenAI, Google GenAI (Gemini), and Firebase (Firestore vector search, Cloud Functions, telemetry). Additional plugins (Anthropic, Ollama, etc.) are planned for future releases. See [Plugin Availability](#plugin-availability) for details.
 
 ## Installation
 
@@ -59,6 +59,13 @@ Add the following dependencies to your Maven `pom.xml`:
 <dependency>
     <groupId>com.google.genkit</groupId>
     <artifactId>genkit-plugin-mcp</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+
+<!-- Firebase plugin (Firestore vector search, Cloud Functions, telemetry) -->
+<dependency>
+    <groupId>com.google.genkit</groupId>
+    <artifactId>genkit-plugin-firebase</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 </dependency>
 ```
@@ -218,6 +225,89 @@ ModelResponse response = genkit.generate(GenerateOptions.builder()
     .build());
 ```
 
+## Firebase Integration
+
+The Firebase plugin provides Firestore vector search, Cloud Functions integration, and Google Cloud telemetry:
+
+### Firestore Vector Search
+
+```java
+import com.google.genkit.plugins.firebase.FirebasePlugin;
+import com.google.genkit.plugins.firebase.retriever.FirestoreRetrieverConfig;
+
+Genkit genkit = Genkit.builder()
+    .plugin(GoogleGenAIPlugin.create(apiKey))
+    .plugin(FirebasePlugin.builder()
+        .projectId("my-project")
+        .enableTelemetry(true)
+        .addRetriever(FirestoreRetrieverConfig.builder()
+            .name("my-docs")
+            .collection("documents")
+            .embedderName("googleai/text-embedding-004")
+            .vectorField("embedding")
+            .contentField("content")
+            .distanceMeasure(FirestoreRetrieverConfig.DistanceMeasure.COSINE)
+            .defaultLimit(5)
+            .build())
+        .build())
+    .build();
+
+// Index documents (embeddings generated automatically)
+List<Document> docs = List.of(
+    Document.fromText("Genkit is a framework for building AI apps"),
+    Document.fromText("Firebase provides cloud services for apps")
+);
+genkit.index("firebase/my-docs", docs);
+
+// Retrieve with vector similarity search
+List<Document> results = genkit.retrieve("firebase/my-docs", "What is Genkit?");
+```
+
+### Cloud Functions
+
+Expose Genkit flows as Firebase Cloud Functions. The `FirebasePlugin` is optional for simple functions that don't need Firestore:
+
+```java
+import com.google.genkit.plugins.firebase.functions.OnCallGenkit;
+
+public class MyFunction implements HttpFunction {
+    private final OnCallGenkit genkitFunction;
+
+    public MyFunction() {
+        Genkit genkit = Genkit.builder()
+            .plugin(GoogleGenAIPlugin.create(System.getenv("GEMINI_API_KEY")))
+            .plugin(FirebasePlugin.builder().build())  // Optional - no project ID needed
+            .build();
+
+        genkit.defineFlow("generatePoem", String.class, String.class, (ctx, topic) -> {
+            return genkit.generate(GenerateOptions.builder()
+                .model("googleai/gemini-2.0-flash")
+                .prompt("Write a poem about: " + topic)
+                .build()).getText();
+        });
+
+        this.genkitFunction = OnCallGenkit.fromFlow(genkit, "generatePoem");
+    }
+
+    @Override
+    public void service(HttpRequest request, HttpResponse response) throws IOException {
+        genkitFunction.service(request, response);
+    }
+}
+```
+
+### Firebase Telemetry
+
+Enable automatic export to Google Cloud observability:
+
+```java
+FirebasePlugin.builder()
+    .projectId("my-project")
+    .enableTelemetry(true)      // Export to Cloud Trace, Monitoring, Logging
+    .forceDevExport(true)       // Also export in dev mode
+    .build()
+```
+
 ## Evaluations
 
 Define custom evaluators to assess AI output quality:
@@ -282,6 +372,7 @@ EmbedResponse response = genkit.embed("openai/text-embedding-3-small", documents
 | **plugins/spring** | HTTP server plugin using Spring Boot |
 | **plugins/localvec** | Local file-based vector store for development |
 | **plugins/mcp** | Model Context Protocol (MCP) client integration |
+| **plugins/firebase** | Firebase integration: Firestore vector search, Cloud Functions, telemetry |
 
 
 ## Observability
@@ -372,6 +463,7 @@ The following samples are available in `java/samples/`. See the [samples README]
 | **multi-agent** | Multi-agent orchestration patterns |
 | **interrupts** | Flow interrupts and human-in-the-loop patterns |
 | **mcp** | Model Context Protocol (MCP) integration |
+| **firebase** | Firebase integration with Firestore RAG and Cloud Functions |
 | **spring** | Spring Boot HTTP server integration |
 
 ### Running Samples
@@ -501,7 +593,8 @@ com.google.genkit
     ├── jetty/               # Jetty HTTP server
     ├── spring/              # Spring Boot HTTP server
     ├── localvec/            # Local vector store
-    └── mcp/                 # Model Context Protocol client
+    ├── mcp/                 # Model Context Protocol client
+    └── firebase/            # Firebase: Firestore RAG, Cloud Functions, telemetry
 ```
 
 ## License

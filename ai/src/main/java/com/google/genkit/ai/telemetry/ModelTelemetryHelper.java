@@ -161,12 +161,87 @@ public class ModelTelemetryHelper {
   }
 
   /**
+   * Executes a streaming model call with automatic telemetry recording.
+   *
+   * @param modelName
+   *            the model name
+   * @param featureName
+   *            the feature/flow name
+   * @param path
+   *            the span path
+   * @param request
+   *            the model request
+   * @param modelFn
+   *            the function that executes the model with streaming
+   * @return the model response
+   * @throws GenkitException
+   *             if model execution fails
+   */
+  public static ModelResponse runWithTelemetryStreaming(String modelName, String featureName, String path,
+      ModelRequest request, StreamingModelExecutor modelFn) throws GenkitException {
+    long startTime = System.currentTimeMillis();
+    String error = null;
+    ModelResponse response = null;
+
+    try {
+      response = modelFn.execute(request);
+
+      // Calculate usage statistics if not provided by the model
+      if (response != null && response.getUsage() == null) {
+        Usage calculatedUsage = calculateBasicUsage(request, response);
+        response.setUsage(calculatedUsage);
+      }
+
+      // Set latency if not already set
+      if (response != null && response.getLatencyMs() == null) {
+        response.setLatencyMs(System.currentTimeMillis() - startTime);
+      }
+
+      return response;
+    } catch (GenkitException e) {
+      error = e.getClass().getSimpleName();
+      throw e;
+    } catch (Exception e) {
+      error = e.getClass().getSimpleName();
+      throw new GenkitException("Model execution failed: " + e.getMessage(), e);
+    } finally {
+      long latencyMs = System.currentTimeMillis() - startTime;
+
+      // Record telemetry metrics
+      try {
+        GenerateTelemetry.getInstance().recordGenerateMetrics(modelName,
+            featureName != null ? featureName : "generate", path != null ? path : "", response, latencyMs,
+            error);
+      } catch (Exception e) {
+        logger.warn("Failed to record model telemetry: {}", e.getMessage());
+      }
+    }
+  }
+
+  /**
    * Functional interface for model execution.
    */
   @FunctionalInterface
   public interface ModelExecutor {
     /**
      * Executes the model with the given request.
+     *
+     * @param request
+     *            the model request
+     * @return the model response
+     * @throws GenkitException
+     *             if execution fails
+     */
+    ModelResponse execute(ModelRequest request) throws GenkitException;
+  }
+
+  /**
+   * Functional interface for streaming model execution.
+   */
+  @FunctionalInterface
+  public interface StreamingModelExecutor {
+    /**
+     * Executes the model with the given request (streaming mode).
      *
      * @param request
      *            the model request

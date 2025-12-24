@@ -75,6 +75,7 @@
         <module>plugins/google-genai</module>
         <module>plugins/localvec</module>
         <module>plugins/mcp</module>
+        <module>plugins/firebase</module>
         <module>samples/openai</module>
         <module>samples/google-genai</module>
         <module>samples/rag</module>
@@ -86,6 +87,7 @@
         <module>samples/multi-agent</module>
         <module>samples/interrupts</module>
         <module>samples/spring</module>
+        <module>samples/firebase</module>
     </modules>
 
     <properties>
@@ -183,8 +185,18 @@
             </dependency>
             <dependency>
                 <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-sdk-metrics</artifactId>
+                <version>${opentelemetry.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
                 <artifactId>opentelemetry-exporter-otlp</artifactId>
                 <version>${opentelemetry.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry.semconv</groupId>
+                <artifactId>opentelemetry-semconv</artifactId>
+                <version>1.37.0</version>
             </dependency>
 
             <!-- Jetty -->

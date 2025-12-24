@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright 2025 Google LLC
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+  SPDX-License-Identifier: Apache-2.0
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.google.genkit</groupId>
+        <artifactId>genkit-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+
+    <groupId>com.google.genkit.samples</groupId>
+    <artifactId>genkit-sample-firebase</artifactId>
+    <packaging>jar</packaging>
+    <name>Genkit Firebase Sample</name>
+    <description>Sample applications demonstrating Firebase plugin features</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <genkit.version>1.0.0-SNAPSHOT</genkit.version>
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <maven.install.skip>true</maven.install.skip>
+        <functions-framework.version>1.1.0</functions-framework.version>
+    </properties>
+
+    <dependencies>
+        <!-- Genkit -->
+        <dependency>
+            <groupId>com.google.genkit</groupId>
+            <artifactId>genkit</artifactId>
+            <version>${genkit.version}</version>
+        </dependency>
+        
+        <!-- Firebase Plugin -->
+        <dependency>
+            <groupId>com.google.genkit</groupId>
+            <artifactId>genkit-plugin-firebase</artifactId>
+            <version>${genkit.version}</version>
+        </dependency>
+        
+        <!-- Google GenAI Plugin for embeddings and generation -->
+        <dependency>
+            <groupId>com.google.genkit</groupId>
+            <artifactId>genkit-plugin-google-genai</artifactId>
+            <version>${genkit.version}</version>
+        </dependency>
+        
+        <!-- Jetty Plugin for local development server -->
+        <dependency>
+            <groupId>com.google.genkit</groupId>
+            <artifactId>genkit-plugin-jetty</artifactId>
+            <version>${genkit.version}</version>
+        </dependency>
+        
+        <!-- Cloud Functions Framework -->
+        <dependency>
+            <groupId>com.google.cloud.functions</groupId>
+            <artifactId>functions-framework-api</artifactId>
+            <version>${functions-framework.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Logging -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <mainClass>com.google.genkit.samples.firebase.FirestoreRAGSample</mainClass>
+                </configuration>
+            </plugin>
+            <!-- Function Framework plugin for local testing -->
+            <plugin>
+                <groupId>com.google.cloud.functions</groupId>
+                <artifactId>function-maven-plugin</artifactId>
+                <version>0.11.0</version>
+                <configuration>
+                    <functionTarget>com.google.genkit.samples.firebase.functions.GeneratePoemFunction</functionTarget>
+                </configuration>
+            </plugin>
+            <!-- Shade plugin to create uber-JAR for Cloud Functions deployment -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.google.genkit.samples.firebase.functions.GeneratePoemFunction</mainClass>
+                                </transformer>
+                            </transformers>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -23,8 +23,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.genkit.ai.ModelResponse;
 import com.google.genkit.ai.Usage;
+import com.google.genkit.core.telemetry.TelemetryConfig;
 
-import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.LongHistogram;
@@ -46,6 +46,10 @@ import io.opentelemetry.api.metrics.Meter;
  * <p>
  * The metrics follow the same naming conventions as the JS and Go SDKs for
  * consistency across the Genkit ecosystem.
+ * 
+ * <p>
+ * Meters are obtained lazily from GlobalOpenTelemetry to ensure they use the
+ * correct MeterProvider when telemetry plugins (like Firebase) are initialized.
  */
 public class GenerateTelemetry {
 
@@ -64,15 +68,18 @@ public class GenerateTelemetry {
   private static final String METRIC_OUTPUT_IMAGES = "genkit/ai/generate/output/images";
   private static final String METRIC_THINKING_TOKENS = "genkit/ai/generate/thinking/tokens";
 
-  private final LongCounter requestCounter;
-  private final LongHistogram latencyHistogram;
-  private final LongCounter inputTokensCounter;
-  private final LongCounter outputTokensCounter;
-  private final LongCounter inputCharsCounter;
-  private final LongCounter outputCharsCounter;
-  private final LongCounter inputImagesCounter;
-  private final LongCounter outputImagesCounter;
-  private final LongCounter thinkingTokensCounter;
+  // Lazy-initialized meters - initialized on first use to ensure
+  // GlobalOpenTelemetry is set up
+  private volatile LongCounter requestCounter;
+  private volatile LongHistogram latencyHistogram;
+  private volatile LongCounter inputTokensCounter;
+  private volatile LongCounter outputTokensCounter;
+  private volatile LongCounter inputCharsCounter;
+  private volatile LongCounter outputCharsCounter;
+  private volatile LongCounter inputImagesCounter;
+  private volatile LongCounter outputImagesCounter;
+  private volatile LongCounter thinkingTokensCounter;
+  private volatile boolean metersInitialized = false;
 
   private static GenerateTelemetry instance;
 
@@ -89,7 +96,21 @@ public class GenerateTelemetry {
   }
 
   private GenerateTelemetry() {
-    Meter meter = GlobalOpenTelemetry.getMeter(METER_NAME);
+    // Meters are initialized lazily on first use
+    logger.debug("GenerateTelemetry created - meters will be initialized on first use");
+  }
+
+  /**
+   * Initializes meters lazily. This ensures that the meters are created after
+   * telemetry plugins (like Firebase) have configured the MeterProvider via
+   * TelemetryConfig.
+   */
+  private synchronized void ensureMetersInitialized() {
+    if (metersInitialized) {
+      return;
+    }
+
+    Meter meter = TelemetryConfig.getMeter(METER_NAME);
 
     requestCounter = meter.counterBuilder(METRIC_REQUESTS)
         .setDescription("Counts calls to genkit generate actions.").setUnit("1").build();
@@ -118,7 +139,8 @@ public class GenerateTelemetry {
     thinkingTokensCounter = meter.counterBuilder(METRIC_THINKING_TOKENS)
         .setDescription("Counts thinking tokens from a Genkit model.").setUnit("1").build();
 
-    logger.debug("GenerateTelemetry initialized with OpenTelemetry metrics");
+    metersInitialized = true;
+    logger.debug("GenerateTelemetry meters initialized with OpenTelemetry");
   }
 
   /**
@@ -139,6 +161,9 @@ public class GenerateTelemetry {
    */
   public void recordGenerateMetrics(String modelName, String featureName, String path, ModelResponse response,
       long latencyMs, String error) {
+    // Ensure meters are initialized (lazy initialization)
+    ensureMetersInitialized();
+
     String status = error != null ? "failure" : "success";
 
     Attributes baseAttrs = Attributes.builder().put("modelName", truncate(modelName, 1024))

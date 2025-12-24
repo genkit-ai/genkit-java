@@ -64,6 +64,7 @@ The Dev UI will be available at `http://localhost:4000` and allows you to:
 | [multi-agent](./multi-agent) | Multi-agent orchestration patterns | `OPENAI_API_KEY` |
 | [interrupts](./interrupts) | Flow interrupts and human-in-the-loop patterns | `OPENAI_API_KEY` |
 | [mcp](./mcp) | Model Context Protocol (MCP) integration | `OPENAI_API_KEY` |
+| [firebase](./firebase) | Firebase Firestore RAG and Cloud Functions | `GEMINI_API_KEY` + `GCLOUD_PROJECT` |
 | [spring](./spring) | Spring Boot HTTP server integration | `GOOGLE_GENAI_API_KEY` (optional) |
 
 ## Sample Details
@@ -217,6 +218,21 @@ Model Context Protocol integration demonstrating:
 ```bash
 cd java/samples/mcp
 export OPENAI_API_KEY=your-key
+./run.sh
+```
+
+### Firebase Sample
+
+Firebase integration demonstrating:
+- Firestore vector search for RAG
+- Document indexing with embeddings
+- Exposing flows as Cloud Functions
+- Firebase telemetry (Cloud Trace, Monitoring, Logging)
+
+```bash
+cd java/samples/firebase
+export GEMINI_API_KEY=your-key
+export GCLOUD_PROJECT=your-project-id
 ./run.sh
 ```
 

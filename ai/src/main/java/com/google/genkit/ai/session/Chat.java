@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import com.google.genkit.ai.*;
+import com.google.genkit.ai.telemetry.ModelTelemetryHelper;
 import com.google.genkit.core.Action;
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.ActionType;
@@ -264,9 +265,13 @@ public class Chat<S> {
     while (turn < maxTurns) {
       // Make request effectively final for lambda
       final ModelRequest finalRequest = request;
+      final String flowName = ctx.getFlowName();
       ModelResponse response;
       try {
-        response = SessionContext.runWithSession(session, () -> model.run(ctx, finalRequest));
+        response = SessionContext.runWithSession(session,
+            () -> ModelTelemetryHelper.runWithTelemetry(modelName, flowName != null ? flowName : "chat",
+                "/chat/" + (threadName != null ? threadName : "default"), finalRequest,
+                r -> model.run(ctx, r)));
       } catch (GenkitException e) {
         throw e;
       } catch (Exception e) {
@@ -362,7 +367,10 @@ public class Chat<S> {
     }
 
     ActionContext ctx = new ActionContext(registry);
-    ModelResponse response = model.run(ctx, request, streamCallback);
+    final String flowName = ctx.getFlowName();
+    ModelResponse response = ModelTelemetryHelper.runWithTelemetryStreaming(modelName,
+        flowName != null ? flowName : "chat", "/chat/" + (threadName != null ? threadName : "default"), request,
+        r -> model.run(ctx, r, streamCallback));
 
     // Add response to history and persist
     Message responseMessage = response.getMessage();

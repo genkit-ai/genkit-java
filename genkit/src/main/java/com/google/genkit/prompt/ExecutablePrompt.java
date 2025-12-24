@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import com.google.genkit.ai.*;
+import com.google.genkit.ai.telemetry.ModelTelemetryHelper;
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.GenkitException;
 import com.google.genkit.core.Registry;
@@ -174,7 +175,9 @@ public class ExecutablePrompt<I> {
       request = mergeConfig(request, options);
     }
 
-    return model.run(ctx, request);
+    final ModelRequest finalRequest = request;
+    return ModelTelemetryHelper.runWithTelemetry(modelName, dotPrompt.getName(), "/prompt/" + dotPrompt.getName(),
+        finalRequest, r -> model.run(ctx, r));
   }
 
   /**
@@ -217,7 +220,9 @@ public class ExecutablePrompt<I> {
       request = mergeConfig(request, options);
     }
 
-    return model.run(ctx, request, streamCallback);
+    final ModelRequest finalRequest = request;
+    return ModelTelemetryHelper.runWithTelemetryStreaming(modelName, dotPrompt.getName(),
+        "/prompt/" + dotPrompt.getName(), finalRequest, r -> model.run(ctx, r, streamCallback));
   }
 
   /**

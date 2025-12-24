@@ -356,6 +356,10 @@ public class OpenAIModel implements Model {
     ObjectNode body = objectMapper.createObjectNode();
     body.put("model", modelName);
 
+    // Build context prefix from documents if provided
+    String contextPrefix = buildContextPrefix(request);
+    boolean contextPrefixAdded = false;
+
     // Convert messages
     ArrayNode messages = body.putArray("messages");
     for (Message message : request.getMessages()) {
@@ -370,6 +374,16 @@ public class OpenAIModel implements Model {
       boolean hasToolRequests = content.stream().anyMatch(p -> p.getToolRequest() != null);
       // Check if this message contains tool responses
       boolean hasToolResponses = content.stream().anyMatch(p -> p.getToolResponse() != null);
+
+      // Add context prefix to the first user message
+      if (!contextPrefixAdded && contextPrefix != null && message.getRole() == Role.USER && !hasToolResponses) {
+        contextPrefixAdded = true;
+        // Prepend context to the message content
+        if (content.size() == 1 && content.get(0).getText() != null) {
+          msg.put("content", contextPrefix + content.get(0).getText());
+          continue; // Skip the rest of processing for this message
+        }
+      }
 
       if (hasToolRequests) {
         // Assistant message with tool calls
@@ -520,6 +534,31 @@ public class OpenAIModel implements Model {
       default :
         return "user";
     }
+  }
+
+  /**
+   * Builds a context prefix string from the documents in the request. Returns
+   * null if no context documents are present.
+   */
+  private String buildContextPrefix(ModelRequest request) {
+    List<Document> contextDocs = request.getContext();
+    if (contextDocs == null || contextDocs.isEmpty()) {
+      return null;
+    }
+
+    StringBuilder sb = new StringBuilder();
+    sb.append("Context:\n\n");
+    for (int i = 0; i < contextDocs.size(); i++) {
+      Document doc = contextDocs.get(i);
+      sb.append("[").append(i + 1).append("] ");
+      // Get text content from the document
+      String text = doc.text();
+      if (text != null && !text.isEmpty()) {
+        sb.append(text);
+      }
+      sb.append("\n\n");
+    }
+    return sb.toString();
   }
 
   private ModelResponse parseResponse(String responseBody) throws IOException {
