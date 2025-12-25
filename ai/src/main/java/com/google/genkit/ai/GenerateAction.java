@@ -18,10 +18,10 @@
 
 package com.google.genkit.ai;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.function.Consumer;
 
 import org.slf4j.Logger;
@@ -119,27 +119,178 @@ public class GenerateAction implements Action<GenerateAction.GenerateActionOptio
 
     logger.debug("Generating with model: {}", modelKey);
 
-    // Create span metadata for the model call
-    SpanMetadata spanMetadata = SpanMetadata.builder().name(modelName).type(ActionType.MODEL.getValue())
-        .subtype("model").build();
+    // Determine if we should return tool requests without executing them
+    boolean returnToolRequests = Boolean.TRUE.equals(options.getReturnToolRequests());
+
+    // Get max turns for tool loop (default to 5)
+    int maxTurns = options.getMaxTurns() != null ? options.getMaxTurns() : 5;
+    int turn = 0;
 
     String flowName = ctx.getFlowName();
-    if (flowName != null) {
-      spanMetadata.getAttributes().put("genkit:metadata:flow:name", flowName);
+
+    while (turn < maxTurns) {
+      // Create span metadata for the model call
+      SpanMetadata spanMetadata = SpanMetadata.builder().name(modelName).type(ActionType.MODEL.getValue())
+          .subtype("model").build();
+
+      if (flowName != null) {
+        spanMetadata.getAttributes().put("genkit:metadata:flow:name", flowName);
+      }
+
+      final ModelRequest currentRequest = request;
+      final String spanPath = "/generate/" + modelName;
+
+      // Run the model wrapped in a span
+      ModelResponse response = Tracer.runInNewSpan(ctx, spanMetadata, request, (spanCtx, req) -> {
+        ActionContext newCtx = ctx.withSpanContext(spanCtx);
+        if (streamCallback != null && model.supportsStreaming()) {
+          return ModelTelemetryHelper.runWithTelemetryStreaming(modelName, flowName, spanPath, currentRequest,
+              r -> model.run(newCtx, r, streamCallback));
+        } else {
+          return ModelTelemetryHelper.runWithTelemetry(modelName, flowName, spanPath, currentRequest,
+              r -> model.run(newCtx, r));
+        }
+      });
+
+      // Check if the model requested tool calls
+      List<Part> toolRequestParts = extractToolRequestParts(response);
+
+      // If no tool requests or we should return them without executing, return
+      // response
+      if (toolRequestParts.isEmpty() || returnToolRequests) {
+        return response;
+      }
+
+      // Check if we have tools to execute
+      if (options.getTools() == null || options.getTools().isEmpty()) {
+        // No tools available, return response with tool requests
+        return response;
+      }
+
+      // Execute tools
+      List<Part> toolResponseParts = executeTools(ctx, toolRequestParts, options.getTools());
+
+      // Add the assistant message with tool requests
+      Message assistantMessage = response.getMessage();
+      List<Message> updatedMessages = new ArrayList<>(request.getMessages());
+      updatedMessages.add(assistantMessage);
+
+      // Add tool response message
+      Message toolResponseMessage = new Message();
+      toolResponseMessage.setRole(Role.TOOL);
+      toolResponseMessage.setContent(toolResponseParts);
+      updatedMessages.add(toolResponseMessage);
+
+      // Update request with new messages for next turn
+      request = ModelRequest.builder().messages(updatedMessages).config(request.getConfig())
+          .tools(request.getTools()).output(request.getOutput()).build();
+
+      turn++;
     }
 
-    // Run the model wrapped in a span
-    return Tracer.runInNewSpan(ctx, spanMetadata, request, (spanCtx, req) -> {
-      ActionContext newCtx = ctx.withSpanContext(spanCtx);
-      String spanPath = "/generate/" + modelName;
-      if (streamCallback != null && model.supportsStreaming()) {
-        return ModelTelemetryHelper.runWithTelemetryStreaming(modelName, flowName, spanPath, req,
-            r -> model.run(newCtx, r, streamCallback));
-      } else {
-        return ModelTelemetryHelper.runWithTelemetry(modelName, flowName, spanPath, req,
-            r -> model.run(newCtx, r));
+    throw new GenkitException("Max tool execution turns (" + maxTurns + ") exceeded");
+  }
+
+  /**
+   * Extracts tool request parts from a model response.
+   */
+  private List<Part> extractToolRequestParts(ModelResponse response) {
+    List<Part> toolRequestParts = new ArrayList<>();
+
+    if (response.getMessage() != null && response.getMessage().getContent() != null) {
+      for (Part part : response.getMessage().getContent()) {
+        if (part.getToolRequest() != null) {
+          toolRequestParts.add(part);
+        }
       }
-    });
+    }
+
+    return toolRequestParts;
+  }
+
+  /**
+   * Executes tools and returns the response parts.
+   */
+  private List<Part> executeTools(ActionContext ctx, List<Part> toolRequestParts, List<String> toolNames) {
+    List<Part> responseParts = new ArrayList<>();
+
+    for (Part toolRequestPart : toolRequestParts) {
+      ToolRequest toolRequest = toolRequestPart.getToolRequest();
+      String toolName = toolRequest.getName();
+      Object toolInput = toolRequest.getInput();
+
+      // Find the tool
+      Tool<?, ?> tool = findTool(toolName, toolNames);
+      if (tool == null) {
+        // Tool not found, create an error response
+        Part errorPart = new Part();
+        ToolResponse errorResponse = new ToolResponse(toolRequest.getRef(), toolName,
+            Map.of("error", "Tool not found: " + toolName));
+        errorPart.setToolResponse(errorResponse);
+        responseParts.add(errorPart);
+        logger.warn("Tool not found: {}", toolName);
+        continue;
+      }
+
+      try {
+        // Execute the tool
+        @SuppressWarnings("unchecked")
+        Tool<Object, Object> typedTool = (Tool<Object, Object>) tool;
+
+        // Convert input if necessary
+        Object convertedInput = toolInput;
+        if (toolInput instanceof Map && tool.getInputClass() != null
+            && !Map.class.isAssignableFrom(tool.getInputClass())) {
+          convertedInput = objectMapper.convertValue(toolInput, tool.getInputClass());
+        }
+
+        Object result = typedTool.run(ctx, convertedInput);
+
+        // Create tool response part
+        Part responsePart = new Part();
+        ToolResponse toolResponse = new ToolResponse(toolRequest.getRef(), toolName, result);
+        responsePart.setToolResponse(toolResponse);
+        responseParts.add(responsePart);
+
+        logger.debug("Executed tool '{}' successfully", toolName);
+      } catch (Exception e) {
+        logger.error("Tool execution failed for '{}': {}", toolName, e.getMessage());
+        Part errorPart = new Part();
+        ToolResponse errorResponse = new ToolResponse(toolRequest.getRef(), toolName,
+            Map.of("error", "Tool execution failed: " + e.getMessage()));
+        errorPart.setToolResponse(errorResponse);
+        responseParts.add(errorPart);
+      }
+    }
+
+    return responseParts;
+  }
+
+  /**
+   * Finds a tool by name from the list of tool names or registry.
+   */
+  private Tool<?, ?> findTool(String toolName, List<String> toolNames) {
+    // First try to find in registry by name
+    String toolKey = toolName.startsWith("/tool/") ? toolName : "/tool/" + toolName;
+    Action<?, ?, ?> action = registry.lookupAction(toolKey);
+    if (action instanceof Tool) {
+      return (Tool<?, ?>) action;
+    }
+
+    // Also try without prefix if the toolNames list includes it
+    if (toolNames != null) {
+      for (String name : toolNames) {
+        String key = name.startsWith("/tool/") ? name : "/tool/" + name;
+        if (key.equals(toolKey) || name.equals(toolName)) {
+          action = registry.lookupAction(key);
+          if (action instanceof Tool) {
+            return (Tool<?, ?>) action;
+          }
+        }
+      }
+    }
+
+    return null;
   }
 
   @Override
@@ -169,9 +320,27 @@ public class GenerateAction implements Action<GenerateAction.GenerateActionOptio
   @Override
   public ActionRunResult<JsonNode> runJsonWithTelemetry(ActionContext ctx, JsonNode input,
       Consumer<JsonNode> streamCallback) throws GenkitException {
-    String traceId = UUID.randomUUID().toString();
-    JsonNode result = runJson(ctx, input, streamCallback);
-    return new ActionRunResult<>(result, traceId, null);
+    // Capture trace info from within the span
+    final String[] capturedTraceInfo = new String[2]; // [traceId, spanId]
+
+    SpanMetadata spanMetadata = SpanMetadata.builder().name("generate").type("util").build();
+
+    try {
+      JsonNode result = Tracer.runInNewSpan(ctx, spanMetadata, input, (spanCtx, in) -> {
+        // Capture the span context
+        capturedTraceInfo[0] = spanCtx.getTraceId();
+        capturedTraceInfo[1] = spanCtx.getSpanId();
+
+        return runJson(ctx.withSpanContext(spanCtx), in, streamCallback);
+      });
+
+      return new ActionRunResult<>(result, capturedTraceInfo[0], capturedTraceInfo[1]);
+    } catch (Exception e) {
+      if (e instanceof GenkitException) {
+        throw (GenkitException) e;
+      }
+      throw new GenkitException("Generate action failed: " + e.getMessage(), e);
+    }
   }
 
   @Override

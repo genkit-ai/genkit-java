@@ -6,7 +6,7 @@ See: https://genkit.dev
 
 > **Status**: Currently in active development (1.0.0-SNAPSHOT). Requires Java 21+.
 > 
-> **Note**: The Java SDK supports OpenAI, Google GenAI (Gemini), Anthropic (Claude), Ollama (local models), and Firebase (Firestore vector search, Cloud Functions, telemetry). See [Plugin Availability](#plugin-availability) for details.
+> **Note**: The Java SDK supports OpenAI, Google GenAI (Gemini), Anthropic (Claude), Ollama (local models), Firebase (Firestore vector search, Cloud Functions, telemetry), vector databases (Weaviate, PostgreSQL, Pinecone), MCP, and pre-built evaluators. See [Modules](#modules) for the full list.
 
 ## Installation
 
@@ -80,6 +80,34 @@ Add the following dependencies to your Maven `pom.xml`:
 <dependency>
     <groupId>com.google.genkit</groupId>
     <artifactId>genkit-plugin-firebase</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+
+<!-- Weaviate plugin (vector database) -->
+<dependency>
+    <groupId>com.google.genkit</groupId>
+    <artifactId>genkit-plugin-weaviate</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+
+<!-- PostgreSQL plugin (pgvector) -->
+<dependency>
+    <groupId>com.google.genkit</groupId>
+    <artifactId>genkit-plugin-postgresql</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+
+<!-- Pinecone plugin (vector database) -->
+<dependency>
+    <groupId>com.google.genkit</groupId>
+    <artifactId>genkit-plugin-pinecone</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+
+<!-- Evaluators plugin (RAGAS-style metrics) -->
+<dependency>
+    <groupId>com.google.genkit</groupId>
+    <artifactId>genkit-plugin-evaluators</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 </dependency>
 ```
@@ -344,6 +372,33 @@ EvalRunKey result = genkit.evaluate(RunEvaluationRequest.builder()
     .build());
 ```
 
+### Pre-built Evaluators Plugin
+
+Use the evaluators plugin for RAGAS-style metrics without writing custom evaluators:
+
+```java
+import com.google.genkit.plugins.evaluators.EvaluatorsPlugin;
+import com.google.genkit.plugins.evaluators.EvaluatorsPluginOptions;
+import com.google.genkit.plugins.evaluators.GenkitMetric;
+
+Genkit genkit = Genkit.builder()
+    .plugin(OpenAIPlugin.create())
+    .plugin(EvaluatorsPlugin.create(
+        EvaluatorsPluginOptions.builder()
+            .judge("openai/gpt-4o-mini")  // LLM for judging
+            .metrics(List.of(
+                GenkitMetric.FAITHFULNESS,      // Factual accuracy against context
+                GenkitMetric.ANSWER_RELEVANCY,  // Answer pertains to question
+                GenkitMetric.ANSWER_ACCURACY,   // Matches reference answer
+                GenkitMetric.MALICIOUSNESS,     // Detects harmful content
+                GenkitMetric.REGEX,             // Pattern matching
+                GenkitMetric.DEEP_EQUAL,        // JSON deep equality
+                GenkitMetric.JSONATA            // JSONata expressions
+            ))
+            .build()))
+    .build();
+```
+
 ## Streaming
 
 Generate responses with streaming for real-time output:
@@ -389,6 +444,10 @@ EmbedResponse response = genkit.embed("openai/text-embedding-3-small", documents
 | **plugins/localvec** | Local file-based vector store for development |
 | **plugins/mcp** | Model Context Protocol (MCP) client integration |
 | **plugins/firebase** | Firebase integration: Firestore vector search, Cloud Functions, telemetry |
+| **plugins/weaviate** | Weaviate vector database for RAG applications |
+| **plugins/postgresql** | PostgreSQL with pgvector for vector similarity search |
+| **plugins/pinecone** | Pinecone managed vector database for RAG applications |
+| **plugins/evaluators** | Pre-built RAGAS-style evaluators (faithfulness, relevancy, etc.) |
 
 
 ## Observability
@@ -476,6 +535,7 @@ The following samples are available in `java/samples/`. See the [samples README]
 | **rag** | RAG application with local vector store |
 | **chat-session** | Multi-turn chat with session persistence |
 | **evaluations** | Custom evaluators and evaluation workflows |
+| **evaluators-plugin** | Pre-built RAGAS-style evaluators plugin demo |
 | **complex-io** | Complex nested types, arrays, maps in flow inputs/outputs |
 | **middleware** | Middleware patterns for logging, caching, rate limiting |
 | **multi-agent** | Multi-agent orchestration patterns |
@@ -483,6 +543,9 @@ The following samples are available in `java/samples/`. See the [samples README]
 | **mcp** | Model Context Protocol (MCP) integration |
 | **firebase** | Firebase integration with Firestore RAG and Cloud Functions |
 | **spring** | Spring Boot HTTP server integration |
+| **weaviate** | Weaviate vector database RAG sample |
+| **postgresql** | PostgreSQL pgvector RAG sample |
+| **pinecone** | Pinecone vector database RAG sample |
 
 ### Running Samples
 
@@ -614,7 +677,11 @@ com.google.genkit
     ├── spring/              # Spring Boot HTTP server
     ├── localvec/            # Local vector store
     ├── mcp/                 # Model Context Protocol client
-    └── firebase/            # Firebase: Firestore RAG, Cloud Functions, telemetry
+    ├── firebase/            # Firebase: Firestore RAG, Cloud Functions, telemetry
+    ├── weaviate/            # Weaviate vector database
+    ├── postgresql/          # PostgreSQL with pgvector
+    ├── pinecone/            # Pinecone vector database
+    └── evaluators/          # Pre-built RAGAS-style evaluators
 ```
 
 ## License

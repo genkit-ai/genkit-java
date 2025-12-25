@@ -26,6 +26,8 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.genkit.core.*;
+import com.google.genkit.core.tracing.SpanMetadata;
+import com.google.genkit.core.tracing.Tracer;
 
 /**
  * Evaluator represents an evaluation action that assesses the quality of AI
@@ -74,8 +76,89 @@ public class Evaluator<O> implements Action<EvalRequest, List<EvalResponse>, Voi
     evaluatorMetadata.put(METADATA_KEY_IS_BILLED, builder.isBilled);
     metadata.put("evaluator", evaluatorMetadata);
 
+    // Build input schema for EvalRequest (matches TypeScript EvalRequestSchema)
+    Map<String, Object> inputSchema = buildEvalRequestSchema();
+
     this.desc = ActionDesc.builder().type(ActionType.EVALUATOR).name(name).description(builder.definition)
-        .metadata(metadata).build();
+        .inputSchema(inputSchema).metadata(metadata).build();
+  }
+
+  /**
+   * Builds the input schema for EvalRequest matching TypeScript
+   * EvalRequestSchema.
+   */
+  private static Map<String, Object> buildEvalRequestSchema() {
+    Map<String, Object> schema = new HashMap<>();
+    schema.put("type", "object");
+
+    Map<String, Object> properties = new HashMap<>();
+
+    // dataset property - array of BaseDataPoint objects
+    Map<String, Object> datasetProp = new HashMap<>();
+    datasetProp.put("type", "array");
+    datasetProp.put("description", "Array of data points to evaluate");
+
+    // Define BaseDataPoint schema (matches TypeScript BaseDataPointSchema)
+    Map<String, Object> dataPointSchema = new HashMap<>();
+    dataPointSchema.put("type", "object");
+
+    Map<String, Object> dataPointProps = new HashMap<>();
+
+    // input - required, unknown type
+    Map<String, Object> inputProp = new HashMap<>();
+    inputProp.put("description", "The input provided to the action being evaluated");
+    dataPointProps.put("input", inputProp);
+
+    // output - optional, unknown type
+    Map<String, Object> outputProp = new HashMap<>();
+    outputProp.put("description", "The output from the action being evaluated");
+    dataPointProps.put("output", outputProp);
+
+    // context - optional array
+    Map<String, Object> contextProp = new HashMap<>();
+    contextProp.put("type", "array");
+    contextProp.put("description", "Additional context (e.g., retrieved documents)");
+    dataPointProps.put("context", contextProp);
+
+    // reference - optional, unknown type
+    Map<String, Object> referenceProp = new HashMap<>();
+    referenceProp.put("description", "The expected/reference output for comparison");
+    dataPointProps.put("reference", referenceProp);
+
+    // testCaseId - optional string
+    Map<String, Object> testCaseIdProp = new HashMap<>();
+    testCaseIdProp.put("type", "string");
+    testCaseIdProp.put("description", "Unique identifier for this test case");
+    dataPointProps.put("testCaseId", testCaseIdProp);
+
+    // traceIds - optional array of strings
+    Map<String, Object> traceIdsProp = new HashMap<>();
+    traceIdsProp.put("type", "array");
+    traceIdsProp.put("description", "Trace IDs associated with this evaluation");
+    Map<String, Object> traceIdItem = new HashMap<>();
+    traceIdItem.put("type", "string");
+    traceIdsProp.put("items", traceIdItem);
+    dataPointProps.put("traceIds", traceIdsProp);
+
+    dataPointSchema.put("properties", dataPointProps);
+    datasetProp.put("items", dataPointSchema);
+    properties.put("dataset", datasetProp);
+
+    // evalRunId - required string
+    Map<String, Object> evalRunIdProp = new HashMap<>();
+    evalRunIdProp.put("type", "string");
+    evalRunIdProp.put("description", "Unique identifier for this evaluation run");
+    properties.put("evalRunId", evalRunIdProp);
+
+    // options - optional, unknown type
+    Map<String, Object> optionsProp = new HashMap<>();
+    optionsProp.put("description", "Evaluator-specific options");
+    properties.put("options", optionsProp);
+
+    schema.put("properties", properties);
+    schema.put("required", Arrays.asList("dataset", "evalRunId"));
+
+    return schema;
   }
 
   /**
@@ -225,8 +308,22 @@ public class Evaluator<O> implements Action<EvalRequest, List<EvalResponse>, Voi
   @Override
   public ActionRunResult<JsonNode> runJsonWithTelemetry(ActionContext ctx, JsonNode input,
       Consumer<JsonNode> streamCallback) throws GenkitException {
-    JsonNode result = runJson(ctx, input, streamCallback);
-    return new ActionRunResult<>(result, null, null);
+    // Use an array to capture span info from inside the execution
+    final String[] capturedTraceInfo = new String[2]; // [traceId, spanId]
+
+    SpanMetadata spanMetadata = SpanMetadata.builder().name(name).type("evaluator").subtype("evaluator").build();
+
+    List<EvalResponse> result = Tracer.runInNewSpan(ctx, spanMetadata, input, (spanCtx, in) -> {
+      // Capture the span context
+      capturedTraceInfo[0] = spanCtx.getTraceId();
+      capturedTraceInfo[1] = spanCtx.getSpanId();
+
+      EvalRequest request = JsonUtils.fromJsonNode(in, EvalRequest.class);
+      return run(ctx.withSpanContext(spanCtx), request, null);
+    });
+
+    JsonNode jsonResult = JsonUtils.toJsonNode(result);
+    return new ActionRunResult<>(jsonResult, capturedTraceInfo[0], capturedTraceInfo[1]);
   }
 
   @Override
@@ -238,34 +335,7 @@ public class Evaluator<O> implements Action<EvalRequest, List<EvalResponse>, Voi
 
   @Override
   public Map<String, Object> getInputSchema() {
-    // Define the input schema for EvalRequest
-    Map<String, Object> schema = new HashMap<>();
-    schema.put("type", "object");
-
-    Map<String, Object> properties = new HashMap<>();
-
-    // dataset property
-    Map<String, Object> datasetProp = new HashMap<>();
-    datasetProp.put("type", "array");
-    Map<String, Object> dataPointSchema = new HashMap<>();
-    dataPointSchema.put("type", "object");
-    datasetProp.put("items", dataPointSchema);
-    properties.put("dataset", datasetProp);
-
-    // evalRunId property
-    Map<String, Object> evalRunIdProp = new HashMap<>();
-    evalRunIdProp.put("type", "string");
-    properties.put("evalRunId", evalRunIdProp);
-
-    // batchSize property
-    Map<String, Object> batchSizeProp = new HashMap<>();
-    batchSizeProp.put("type", "integer");
-    properties.put("batchSize", batchSizeProp);
-
-    schema.put("properties", properties);
-    schema.put("required", Arrays.asList("dataset"));
-
-    return schema;
+    return buildEvalRequestSchema();
   }
 
   @Override

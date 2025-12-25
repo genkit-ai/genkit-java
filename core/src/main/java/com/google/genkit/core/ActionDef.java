@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.genkit.core.tracing.SpanContext;
 import com.google.genkit.core.tracing.SpanMetadata;
 import com.google.genkit.core.tracing.Tracer;
 
@@ -285,20 +284,57 @@ public class ActionDef<I, O, S> implements Action<I, O, S> {
   @Override
   public ActionRunResult<JsonNode> runJsonWithTelemetry(ActionContext ctx, JsonNode input,
       Consumer<JsonNode> streamCallback) throws GenkitException {
-    SpanContext spanContext = ctx.getSpanContext();
-    String traceId = spanContext != null ? spanContext.getTraceId() : null;
-    String spanId = spanContext != null ? spanContext.getSpanId() : null;
+    // Use an array to capture span info from inside the execution
+    // (workaround since span context is passed to inner function, not returned)
+    final String[] capturedTraceInfo = new String[2]; // [traceId, spanId]
 
-    JsonNode result = runJson(ctx, input, streamCallback);
+    // Wrap the execution to capture span info
+    SpanMetadata spanMetadata = SpanMetadata.builder().name(desc.getName()).type(desc.getType().getValue())
+        .subtype(getSubtypeForTelemetry(desc.getType())).build();
 
-    // Get updated span info after execution
-    SpanContext currentSpan = ctx.getSpanContext();
-    if (currentSpan != null) {
-      traceId = currentSpan.getTraceId();
-      spanId = currentSpan.getSpanId();
+    try {
+      I typedInput = null;
+      if (inputClass != null && inputClass != Void.class && input != null) {
+        typedInput = objectMapper.treeToValue(input, inputClass);
+      }
+
+      final I finalInput = typedInput;
+      Consumer<S> typedCallback = null;
+      if (streamCallback != null) {
+        typedCallback = chunk -> {
+          try {
+            JsonNode jsonChunk = objectMapper.valueToTree(chunk);
+            streamCallback.accept(jsonChunk);
+          } catch (Exception e) {
+            throw new RuntimeException("Failed to serialize stream chunk", e);
+          }
+        };
+      }
+      final Consumer<S> finalCallback = typedCallback;
+
+      O result = Tracer.runInNewSpan(ctx, spanMetadata, finalInput, (spanCtx, in) -> {
+        // Capture the span context
+        capturedTraceInfo[0] = spanCtx.getTraceId();
+        capturedTraceInfo[1] = spanCtx.getSpanId();
+
+        try {
+          return fn.apply(ctx.withSpanContext(spanCtx), in, finalCallback);
+        } catch (Exception e) {
+          if (e instanceof GenkitException) {
+            throw (GenkitException) e;
+          }
+          throw new GenkitException("Action execution failed: " + e.getMessage(), e);
+        }
+      });
+
+      JsonNode jsonResult = result != null ? objectMapper.valueToTree(result) : null;
+      return new ActionRunResult<>(jsonResult, capturedTraceInfo[0], capturedTraceInfo[1]);
+    } catch (Exception e) {
+      if (e instanceof GenkitException) {
+        throw (GenkitException) e;
+      }
+      throw new GenkitException("JSON action execution failed: " + e.getMessage(), e);
     }
-
-    return new ActionRunResult<>(result, traceId, spanId);
   }
 
   @Override

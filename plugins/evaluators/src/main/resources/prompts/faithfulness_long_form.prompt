@@ -1,0 +1,6 @@
+Given a question and answer, create one or more statements from each sentence in the given answer.
+question: {{question}}
+answer: {{answer}}
+
+Respond with a JSON object with a single key "statements" containing an array of strings.
+Each statement should be a factual claim extracted from the answer.

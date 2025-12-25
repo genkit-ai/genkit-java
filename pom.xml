@@ -78,12 +78,17 @@
         <module>plugins/localvec</module>
         <module>plugins/mcp</module>
         <module>plugins/firebase</module>
+        <module>plugins/weaviate</module>
+        <module>plugins/postgresql</module>
+        <module>plugins/pinecone</module>
+        <module>plugins/evaluators</module>
         <module>samples/openai</module>
         <module>samples/google-genai</module>
         <module>samples/anthropic</module>
         <module>samples/ollama</module>
         <module>samples/rag</module>
         <module>samples/evaluations</module>
+        <module>samples/evaluators-plugin</module>
         <module>samples/complex-io</module>
         <module>samples/middleware</module>
         <module>samples/mcp</module>
@@ -92,6 +97,9 @@
         <module>samples/interrupts</module>
         <module>samples/spring</module>
         <module>samples/firebase</module>
+        <module>samples/weaviate</module>
+        <module>samples/postgresql</module>
+        <module>samples/pinecone</module>
     </modules>
 
     <properties>

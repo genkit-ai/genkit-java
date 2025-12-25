@@ -1,0 +1,14 @@
+Your task is to judge the faithfulness of a series of statements based on a given context.
+For each statement you must return verdict as true if the statement can be directly inferred based on the context or false if the statement can not be directly inferred based on the context.
+
+Context:
+{{context}}
+
+Statements:
+{{statements}}
+
+Respond with a JSON object with a single key "responses" containing an array of objects.
+Each object should have:
+- "statement": the original statement
+- "reason": brief explanation of your verdict
+- "verdict": true if the statement is faithful to the context, false otherwise

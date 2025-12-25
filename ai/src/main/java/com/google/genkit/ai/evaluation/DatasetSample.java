@@ -44,6 +44,13 @@ public class DatasetSample {
   private Object input;
 
   /**
+   * The actual output from the AI system. For evaluation datasets without a
+   * target action, this should be pre-populated.
+   */
+  @JsonProperty("output")
+  private Object output;
+
+  /**
    * The expected/reference output for comparison.
    */
   @JsonProperty("reference")
@@ -55,6 +62,7 @@ public class DatasetSample {
   private DatasetSample(Builder builder) {
     this.testCaseId = builder.testCaseId;
     this.input = builder.input;
+    this.output = builder.output;
     this.reference = builder.reference;
   }
 
@@ -78,6 +86,14 @@ public class DatasetSample {
     this.input = input;
   }
 
+  public Object getOutput() {
+    return output;
+  }
+
+  public void setOutput(Object output) {
+    this.output = output;
+  }
+
   public Object getReference() {
     return reference;
   }
@@ -89,6 +105,7 @@ public class DatasetSample {
   public static class Builder {
     private String testCaseId;
     private Object input;
+    private Object output;
     private Object reference;
 
     public Builder testCaseId(String testCaseId) {
@@ -98,6 +115,11 @@ public class DatasetSample {
 
     public Builder input(Object input) {
       this.input = input;
+      return this;
+    }
+
+    public Builder output(Object output) {
+      this.output = output;
       return this;
     }
 

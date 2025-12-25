@@ -22,9 +22,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
@@ -44,6 +47,7 @@ import com.google.genkit.core.ActionRunResult;
 import com.google.genkit.core.GenkitException;
 import com.google.genkit.core.JsonUtils;
 import com.google.genkit.core.Registry;
+import com.google.genkit.core.tracing.TraceData;
 import com.google.genkit.core.tracing.Tracer;
 
 /**
@@ -63,6 +67,11 @@ public class ReflectionServer {
   private String runtimeId;
   private EvaluationManager evaluationManager;
 
+  // In-memory trace store for Dev UI (keeps last 100 traces)
+  private static final int MAX_TRACES = 100;
+  private static final Map<String, TraceData> traceStore = new ConcurrentHashMap<>();
+  private static final LinkedHashMap<String, Long> traceOrder = new LinkedHashMap<>();
+
   /**
    * Creates a new ReflectionServer.
    *
@@ -76,6 +85,9 @@ public class ReflectionServer {
     this.port = port;
     this.runtimeId = "java-" + ProcessHandle.current().pid() + "-" + System.currentTimeMillis();
     this.evaluationManager = new EvaluationManager(registry);
+
+    // Register local telemetry store for Dev UI trace access
+    Tracer.registerSpanProcessor(new LocalTelemetryStore());
   }
 
   /**
@@ -163,6 +175,68 @@ public class ReflectionServer {
         return true;
       }
 
+      // Handle runAction - check for streaming support via ?stream=true query param
+      if ("/api/runAction".equals(target) && "POST".equals(method)) {
+        String query = request.getHttpURI().getQuery();
+        boolean isStreaming = query != null && query.contains("stream=true");
+        String body = readRequestBody(request);
+
+        if (isStreaming) {
+          try {
+            handleStreamingRunAction(body, response, callback);
+            return true;
+          } catch (Exception e) {
+            logger.error("Error handling streaming runAction request", e);
+            response.setStatus(500);
+            response.getHeaders().add("Content-Type", "application/json");
+            String errorMessage = e.getMessage() != null ? e.getMessage() : "Unknown error";
+            String stacktrace = getStackTraceString(e);
+            String errorJson = createErrorStatus(2, errorMessage, stacktrace);
+            byte[] bytes = errorJson.getBytes(StandardCharsets.UTF_8);
+            response.write(true, ByteBuffer.wrap(bytes), callback);
+            return true;
+          }
+        } else {
+          // Non-streaming runAction - handle here since body is already read
+          response.getHeaders().add("Content-Type", "application/json");
+          try {
+            String result = handleRunAction(body);
+            response.setStatus(200);
+            byte[] bytes = result.getBytes(StandardCharsets.UTF_8);
+            response.write(true, ByteBuffer.wrap(bytes), callback);
+            return true;
+          } catch (Exception e) {
+            logger.error("Error handling runAction request", e);
+            response.setStatus(500);
+            String errorMessage = e.getMessage() != null ? e.getMessage() : "Unknown error";
+            String stacktrace = getStackTraceString(e);
+            String errorJson = createErrorStatus(2, errorMessage, stacktrace);
+            byte[] bytes = errorJson.getBytes(StandardCharsets.UTF_8);
+            response.write(true, ByteBuffer.wrap(bytes), callback);
+            return true;
+          }
+        }
+      }
+
+      // Handle streamAction endpoint (legacy support)
+      if ("/api/streamAction".equals(target) && "POST".equals(method)) {
+        try {
+          String body = readRequestBody(request);
+          handleStreamingRunAction(body, response, callback);
+          return true;
+        } catch (Exception e) {
+          logger.error("Error handling streamAction request", e);
+          response.setStatus(500);
+          response.getHeaders().add("Content-Type", "application/json");
+          String errorMessage = e.getMessage() != null ? e.getMessage() : "Unknown error";
+          String stacktrace = getStackTraceString(e);
+          String errorJson = createErrorStatus(2, errorMessage, stacktrace);
+          byte[] bytes = errorJson.getBytes(StandardCharsets.UTF_8);
+          response.write(true, ByteBuffer.wrap(bytes), callback);
+          return true;
+        }
+      }
+
       response.getHeaders().add("Content-Type", "application/json");
 
       try {
@@ -174,13 +248,16 @@ public class ReflectionServer {
         } else if (target.startsWith("/api/actions/")) {
           String actionKey = target.substring("/api/actions/".length());
           result = handleGetAction(actionKey);
-        } else if ("/api/runAction".equals(target)) {
-          String body = readRequestBody(request);
-          result = handleRunAction(body);
         } else if ("/api/notify".equals(target) && "POST".equals(method)) {
           String body = readRequestBody(request);
           result = handleNotify(body);
-        } else if (target.startsWith("/api/envs/") && target.contains("/traces")) {
+        } else if (target.startsWith("/api/envs/") && target.contains("/traces/")) {
+          // Handle /api/envs/{env}/traces/{traceId}
+          int lastSlash = target.lastIndexOf('/');
+          String traceId = target.substring(lastSlash + 1);
+          result = handleGetTrace(traceId);
+        } else if (target.startsWith("/api/envs/") && target.endsWith("/traces")) {
+          // Handle /api/envs/{env}/traces
           result = handleListTraces();
         }
         // Dataset endpoints
@@ -211,6 +288,11 @@ public class ReflectionServer {
         } else if ("/api/runEvaluation".equals(target) && "POST".equals(method)) {
           String body = readRequestBody(request);
           result = handleRunEvaluation(body);
+        }
+        // Stream trace endpoint for Dev UI "View trace" button
+        else if ("/api/streamTrace".equals(target) && "POST".equals(method)) {
+          String body = readRequestBody(request);
+          result = handleStreamTrace(body);
         } else {
           status = 404;
           result = createErrorResponse(5, "Not found", null); // NOT_FOUND code = 5
@@ -363,16 +445,115 @@ public class ReflectionServer {
 
       ActionRunResult<JsonNode> result = action.runJsonWithTelemetry(context, input, null);
 
+      // Build response according to Genkit reflection API spec:
+      // { result: ..., telemetry: { traceId: "..." } }
       Map<String, Object> response = new HashMap<>();
       response.put("result", result.getResult());
-      response.put("traceId", result.getTraceId());
+
+      // Include telemetry with traceId if available
+      if (result.getTraceId() != null) {
+        Map<String, Object> telemetry = new HashMap<>();
+        telemetry.put("traceId", result.getTraceId());
+        response.put("telemetry", telemetry);
+      }
 
       return JsonUtils.toJson(response);
     }
 
     private String handleListTraces() {
-      // Return empty traces for now - this would need a proper trace store
-      return "{\"traces\":[]}";
+      List<TraceData> traces = new ArrayList<>(traceStore.values());
+      return JsonUtils.toJson(traces);
+    }
+
+    private String handleGetTrace(String traceId) {
+      TraceData trace = traceStore.get(traceId);
+      if (trace == null) {
+        return "null";
+      }
+      return JsonUtils.toJson(trace);
+    }
+
+    /**
+     * Handle the streamTrace endpoint for the Dev UI "View trace" button. This
+     * returns trace data for a specific trace ID.
+     */
+    private String handleStreamTrace(String body) {
+      try {
+        JsonNode requestNode = JsonUtils.parseJson(body);
+        String traceId = requestNode.has("traceId") ? requestNode.get("traceId").asText() : null;
+
+        if (traceId == null || traceId.isEmpty()) {
+          return createErrorResponse(3, "traceId is required", null); // INVALID_ARGUMENT code = 3
+        }
+
+        TraceData trace = traceStore.get(traceId);
+        if (trace == null) {
+          // Return empty trace structure if not found locally
+          Map<String, Object> emptyTrace = new HashMap<>();
+          emptyTrace.put("traceId", traceId);
+          emptyTrace.put("spans", new HashMap<>());
+          return JsonUtils.toJson(emptyTrace);
+        }
+
+        return JsonUtils.toJson(trace);
+      } catch (Exception e) {
+        logger.error("Error handling streamTrace request", e);
+        String errorMessage = e.getMessage() != null ? e.getMessage() : "Unknown error";
+        String stacktrace = getStackTraceString(e);
+        return createErrorResponse(2, errorMessage, stacktrace); // INTERNAL error code = 2
+      }
+    }
+
+    /**
+     * Handle runAction with streaming format (when ?stream=true is set). The Dev UI
+     * expects: 1. Content-Type: text/plain with Content-Length 2. X-Genkit-Trace-Id
+     * and X-Genkit-Version headers 3. JSON response with result and telemetry
+     */
+    private void handleStreamingRunAction(String body, Response response, Callback callback) throws Exception {
+      JsonNode requestNode = JsonUtils.parseJson(body);
+      String actionKey = requestNode.has("key") ? requestNode.get("key").asText() : null;
+      JsonNode input = requestNode.has("input") ? requestNode.get("input") : null;
+
+      if (actionKey == null || actionKey.isEmpty()) {
+        throw new GenkitException("key is required");
+      }
+
+      Action<?, ?, ?> action = registry.lookupAction(actionKey);
+      if (action == null) {
+        throw new GenkitException("Action not found: " + actionKey);
+      }
+
+      ActionContext context = new ActionContext(registry);
+      ActionRunResult<JsonNode> result = action.runJsonWithTelemetry(context, input, null);
+
+      // Build the final response with result and telemetry
+      Map<String, Object> responseData = new HashMap<>();
+      responseData.put("result", result.getResult());
+
+      if (result.getTraceId() != null) {
+        Map<String, Object> telemetry = new HashMap<>();
+        telemetry.put("traceId", result.getTraceId());
+        responseData.put("telemetry", telemetry);
+      }
+
+      responseData.put("genkitVersion", "java/1.0.0");
+
+      // Format response as JSON
+      String jsonResult = JsonUtils.toJson(responseData);
+      byte[] bytes = jsonResult.getBytes(StandardCharsets.UTF_8);
+
+      // Set headers
+      response.setStatus(200);
+      response.getHeaders().add("Content-Type", "text/plain");
+      response.getHeaders().add("Content-Length", String.valueOf(bytes.length));
+      response.getHeaders().add("X-Genkit-Version", "java/1.0.0");
+
+      // Add trace ID header if available
+      if (result.getTraceId() != null) {
+        response.getHeaders().add("X-Genkit-Trace-Id", result.getTraceId());
+      }
+
+      response.write(true, ByteBuffer.wrap(bytes), callback);
     }
 
     /**
@@ -512,5 +693,42 @@ public class ReflectionServer {
         return createErrorResponse(2, e.getMessage(), getStackTraceString(e));
       }
     }
+  }
+
+  /**
+   * Stores a trace in the in-memory trace store for Dev UI access. This is called
+   * by the LocalTelemetryStore span processor.
+   * 
+   * @param trace
+   *            the trace to store
+   */
+  public static void storeTrace(TraceData trace) {
+    if (trace == null || trace.getTraceId() == null) {
+      return;
+    }
+
+    synchronized (traceOrder) {
+      // Remove oldest traces if we exceed the limit
+      while (traceOrder.size() >= MAX_TRACES) {
+        String oldestTraceId = traceOrder.keySet().iterator().next();
+        traceOrder.remove(oldestTraceId);
+        traceStore.remove(oldestTraceId);
+      }
+
+      traceStore.put(trace.getTraceId(), trace);
+      traceOrder.put(trace.getTraceId(), System.currentTimeMillis());
+    }
+    logger.debug("Stored trace: {}", trace.getTraceId());
+  }
+
+  /**
+   * Gets a trace by ID from the in-memory store.
+   * 
+   * @param traceId
+   *            the trace ID
+   * @return the trace data, or null if not found
+   */
+  public static TraceData getTrace(String traceId) {
+    return traceStore.get(traceId);
   }
 }

@@ -1,0 +1,14 @@
+You are an expert evaluator comparing two answers to the same question.
+
+Query: {{query}}
+Output (answer being evaluated): {{output}}
+Reference (ground truth answer): {{reference}}
+
+On a scale of 1 to 5, rate how accurately the output matches the reference answer semantically.
+1 = Completely different or contradictory
+2 = Mostly different with minor overlap
+3 = Partially similar but significant differences
+4 = Mostly similar with minor differences  
+5 = Semantically equivalent
+
+Respond with ONLY a single number (1-5) representing your rating.

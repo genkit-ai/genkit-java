@@ -1,0 +1,10 @@
+Given a question, an answer, and context, analyze if the answer is relevant to the question.
+
+Question: {{question}}
+Answer: {{answer}}
+Context: {{context}}
+
+Respond with a JSON object containing:
+- "question": regenerate a question that this answer could be responding to
+- "answered": true if the answer attempts to address the question, false otherwise
+- "noncommittal": true if the answer is evasive or non-committal (e.g., "I don't know", "I cannot answer"), false otherwise

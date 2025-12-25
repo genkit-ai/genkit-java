@@ -55,10 +55,13 @@ The Dev UI will be available at `http://localhost:4000` and allows you to:
 |--------|-------------|------------------|
 | [openai](./openai) | Basic OpenAI integration with flows and tools | `OPENAI_API_KEY` |
 | [google-genai](./google-genai) | Google Gemini integration with image generation | `GOOGLE_GENAI_API_KEY` |
+| [anthropic](./anthropic) | Anthropic Claude integration with streaming | `ANTHROPIC_API_KEY` |
+| [ollama](./ollama) | Local Ollama models (Gemma, Llama, Mistral) | None (local) |
 | [dotprompt](./dotprompt) | DotPrompt files with complex inputs/outputs, variants, and partials | `OPENAI_API_KEY` |
 | [rag](./rag) | RAG application with local vector store | `OPENAI_API_KEY` |
 | [chat-session](./chat-session) | Multi-turn chat with session persistence | `OPENAI_API_KEY` |
 | [evaluations](./evaluations) | Custom evaluators and evaluation workflows | `OPENAI_API_KEY` |
+| [evaluators-plugin](./evaluators-plugin) | Pre-built RAGAS-style evaluators plugin demo | `OPENAI_API_KEY` |
 | [complex-io](./complex-io) | Complex nested types, arrays, maps in flow inputs/outputs | `OPENAI_API_KEY` |
 | [middleware](./middleware) | Middleware patterns for logging, caching, rate limiting | `OPENAI_API_KEY` |
 | [multi-agent](./multi-agent) | Multi-agent orchestration patterns | `OPENAI_API_KEY` |
@@ -66,6 +69,9 @@ The Dev UI will be available at `http://localhost:4000` and allows you to:
 | [mcp](./mcp) | Model Context Protocol (MCP) integration | `OPENAI_API_KEY` |
 | [firebase](./firebase) | Firebase Firestore RAG and Cloud Functions | `GEMINI_API_KEY` + `GCLOUD_PROJECT` |
 | [spring](./spring) | Spring Boot HTTP server integration | `GOOGLE_GENAI_API_KEY` (optional) |
+| [weaviate](./weaviate) | Weaviate vector database RAG sample | `OPENAI_API_KEY` |
+| [postgresql](./postgresql) | PostgreSQL pgvector RAG sample | `OPENAI_API_KEY` |
+| [pinecone](./pinecone) | Pinecone vector database RAG sample | `OPENAI_API_KEY` + `PINECONE_API_KEY` |
 
 ## Sample Details
 
@@ -148,6 +154,20 @@ AI output evaluation demonstrating:
 
 ```bash
 cd java/samples/evaluations
+export OPENAI_API_KEY=your-key
+./run.sh
+```
+
+### Evaluators Plugin Sample
+
+Pre-built RAGAS-style evaluators demonstrating:
+- LLM-based evaluators (Faithfulness, Answer Relevancy, Answer Accuracy, Maliciousness)
+- Programmatic evaluators (Regex, Deep Equal, JSONata)
+- Configurable judge models per metric
+- Integration with Genkit Dev UI evaluation workflow
+
+```bash
+cd java/samples/evaluators-plugin
 export OPENAI_API_KEY=your-key
 ./run.sh
 ```
@@ -247,6 +267,74 @@ Spring Boot HTTP server integration demonstrating:
 ```bash
 cd java/samples/spring
 # Optional: export GOOGLE_GENAI_API_KEY=your-key
+./run.sh
+```
+
+### Anthropic Sample
+
+Anthropic Claude integration demonstrating:
+- Text generation with Claude models
+- Streaming responses
+- Tool usage with Claude
+
+```bash
+cd java/samples/anthropic
+export ANTHROPIC_API_KEY=your-key
+./run.sh
+```
+
+### Ollama Sample
+
+Local Ollama models demonstrating:
+- Running models locally without API keys
+- Support for Gemma, Llama, Mistral, and other models
+- Local development and testing
+
+```bash
+cd java/samples/ollama
+# Requires Ollama running locally: ollama serve
+./run.sh
+```
+
+### Weaviate Sample
+
+Weaviate vector database RAG demonstrating:
+- Vector similarity search
+- Document indexing with embeddings
+- Retrieval-augmented generation
+
+```bash
+cd java/samples/weaviate
+export OPENAI_API_KEY=your-key
+# Requires Weaviate running (Docker or cloud)
+./run.sh
+```
+
+### PostgreSQL Sample
+
+PostgreSQL with pgvector RAG demonstrating:
+- Vector similarity search with pgvector
+- Document storage and retrieval
+- SQL-based vector operations
+
+```bash
+cd java/samples/postgresql
+export OPENAI_API_KEY=your-key
+# Requires PostgreSQL with pgvector extension
+./run.sh
+```
+
+### Pinecone Sample
+
+Pinecone vector database RAG demonstrating:
+- Managed vector database integration
+- High-performance similarity search
+- Cloud-native vector storage
+
+```bash
+cd java/samples/pinecone
+export OPENAI_API_KEY=your-key
+export PINECONE_API_KEY=your-key
 ./run.sh
 ```
 
