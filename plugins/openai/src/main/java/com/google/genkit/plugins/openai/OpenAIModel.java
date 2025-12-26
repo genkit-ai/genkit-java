@@ -516,6 +516,64 @@ public class OpenAIModel implements Model {
     if (output != null && output.getFormat() == OutputFormat.JSON) {
       ObjectNode responseFormat = body.putObject("response_format");
       responseFormat.put("type", "json_object");
+      
+      // OpenAI requires the word "json" in the messages when using json_object format
+      // Check if any message already contains "json", and if not, add it to the first user message
+      boolean hasJsonKeyword = false;
+      
+      // First, check if any message already contains "json"
+      for (JsonNode message : messages) {
+        JsonNode contentNode = message.get("content");
+        String content = null;
+        
+        if (contentNode.isTextual()) {
+          content = contentNode.asText();
+        } else if (contentNode.isArray() && contentNode.size() > 0) {
+          // For multi-part messages, check the text parts
+          StringBuilder textBuilder = new StringBuilder();
+          for (JsonNode part : contentNode) {
+            if ("text".equals(part.get("type").asText())) {
+              textBuilder.append(part.get("text").asText()).append(" ");
+            }
+          }
+          content = textBuilder.toString();
+        }
+        
+        if (content != null && content.toLowerCase().contains("json")) {
+          hasJsonKeyword = true;
+          break;
+        }
+      }
+      
+      // If no JSON keyword found, add it to the first user message (the original prompt)
+      if (!hasJsonKeyword && messages.size() > 0) {
+        // Find the first user message
+        for (int i = 0; i < messages.size(); i++) {
+          JsonNode message = messages.get(i);
+          if ("user".equals(message.get("role").asText())) {
+            JsonNode contentNode = message.get("content");
+            
+            if (contentNode.isTextual()) {
+              String content = contentNode.asText();
+              ((ObjectNode) message).put("content", content + " Return the response in JSON format.");
+              logger.debug("Auto-injected JSON format instruction for structured output");
+              break;
+            } else if (contentNode.isArray()) {
+              // For multi-part messages, append to the last text part
+              for (int j = contentNode.size() - 1; j >= 0; j--) {
+                JsonNode part = contentNode.get(j);
+                if ("text".equals(part.get("type").asText())) {
+                  String text = part.get("text").asText();
+                  ((ObjectNode) part).put("text", text + " Return the response in JSON format.");
+                  logger.debug("Auto-injected JSON format instruction for structured output");
+                  break;
+                }
+              }
+              break;
+            }
+          }
+        }
+      }
     }
 
     return body;

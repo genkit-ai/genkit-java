@@ -22,6 +22,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.genkit.core.SchemaUtils;
 
 /**
  * OutputConfig contains configuration for model output generation.
@@ -71,6 +72,39 @@ public class OutputConfig {
     OutputConfig config = new OutputConfig();
     config.format = OutputFormat.JSON;
     config.schema = schema;
+    return config;
+  }
+
+  /**
+   * Creates an OutputConfig for JSON output from a class.
+   * 
+   * <p>
+   * The schema is automatically generated from the class using reflection.
+   * You can add descriptions to fields using {@code @JsonPropertyDescription}:
+   * 
+   * <pre>{@code
+   * public class MenuItem {
+   *   @JsonPropertyDescription("The name of the menu item")
+   *   private String name;
+   *   
+   *   @JsonPropertyDescription("The estimated number of calories")
+   *   private int calories;
+   *   
+   *   // getters/setters...
+   * }
+   * 
+   * // Usage:
+   * OutputConfig output = OutputConfig.fromClass(MenuItem.class);
+   * }</pre>
+   *
+   * @param clazz
+   *            the class to generate schema from
+   * @return an OutputConfig configured for JSON with inferred schema
+   */
+  public static OutputConfig fromClass(Class<?> clazz) {
+    OutputConfig config = new OutputConfig();
+    config.format = OutputFormat.JSON;
+    config.schema = SchemaUtils.inferSchema(clazz);
     return config;
   }
 

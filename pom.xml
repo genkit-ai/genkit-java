@@ -100,6 +100,7 @@
         <module>samples/weaviate</module>
         <module>samples/postgresql</module>
         <module>samples/pinecone</module>
+        <module>samples/structured-output</module>
     </modules>
 
     <properties>
@@ -244,6 +245,11 @@
             <dependency>
                 <groupId>com.github.victools</groupId>
                 <artifactId>jsonschema-generator</artifactId>
+                <version>${jsonschema.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.victools</groupId>
+                <artifactId>jsonschema-module-jackson</artifactId>
                 <version>${jsonschema.version}</version>
             </dependency>
 

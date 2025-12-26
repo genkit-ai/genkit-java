@@ -1,0 +1,13 @@
+---
+model: openai/gpt-4o-mini
+config:
+  temperature: 0.7
+input:
+  schema:
+    cuisine: string
+    dietary?: string
+---
+
+Suggest an authentic {{cuisine}} dish that would be perfect for a fine dining restaurant.
+{{#if dietary}}The dish should be {{dietary}}.{{/if}}
+Include details about traditional preparation methods and authentic ingredients.

@@ -257,6 +257,59 @@ public class Genkit {
   }
 
   /**
+   * Defines a tool with typed input and output classes.
+   * 
+   * <p>
+   * This is the preferred way to create tools with structured input/output.
+   * The schemas are automatically generated from the classes using their
+   * {@code @JsonPropertyDescription} and {@code @JsonProperty} annotations.
+   * 
+   * <p>
+   * Example usage:
+   * 
+   * <pre>{@code
+   * Tool<RecipeRequest, MenuItem> tool = genkit.defineTool(
+   *     "generateRecipe",
+   *     "Generates a recipe based on cuisine and dietary preferences",
+   *     (ctx, request) -> {
+   *       // Tool implementation
+   *       return new MenuItem(...);
+   *     },
+   *     RecipeRequest.class,
+   *     MenuItem.class
+   * );
+   * }</pre>
+   *
+   * @param <I>
+   *            the input type
+   * @param <O>
+   *            the output type
+   * @param name
+   *            the tool name
+   * @param description
+   *            the tool description
+   * @param handler
+   *            the tool handler
+   * @param inputClass
+   *            the input class (schema auto-generated)
+   * @param outputClass
+   *            the output class (schema auto-generated)
+   * @return the tool
+   */
+  public <I, O> Tool<I, O> defineTool(String name, String description,
+      BiFunction<ActionContext, I, O> handler, Class<I> inputClass, Class<O> outputClass) {
+    Tool<I, O> tool = Tool.<I, O>builder()
+        .name(name)
+        .description(description)
+        .inputClass(inputClass)
+        .outputClass(outputClass)
+        .handler(handler)
+        .build();
+    tool.register(registry);
+    return tool;
+  }
+
+  /**
    * Loads a prompt by name from the prompts directory.
    * 
    * <p>
@@ -331,7 +384,9 @@ public class Genkit {
       logger.info("Loaded and registered prompt: {} as {} (variant: {})", name, registeredKey, variant);
     }
 
-    return new ExecutablePrompt<>(dotPrompt, registry, inputClass).withGenerateFunction(this::generate);
+    return new ExecutablePrompt<>(dotPrompt, registry, inputClass)
+        .withGenerateFunction(opts -> this.generate(opts))
+        .withGenerateObjectFunction((opts, clazz) -> this.generateObject(opts));
   }
 
   /**
@@ -565,7 +620,81 @@ public class Genkit {
    * @throws GenkitException
    *             if generation fails
    */
-  public ModelResponse generate(GenerateOptions options) throws GenkitException {
+  @SuppressWarnings("unchecked")
+  public <T> T generate(GenerateOptions options) throws GenkitException {
+    // If outputClass is set, return typed object
+    if (options.getOutputClass() != null) {
+      ModelResponse response = generateInternal(options);
+      Class<T> outputClass = (Class<T>) options.getOutputClass();
+      try {
+        String rawOutput = response.getText();
+        String jsonOutput = extractJson(rawOutput);
+        T result = JsonUtils.fromJson(jsonOutput, outputClass);
+        return result;
+      } catch (Exception e) {
+        throw new GenkitException("Failed to deserialize model output to " + outputClass.getSimpleName() + ": " + e.getMessage() + "\nRaw output: " + response.getText(), e);
+      }
+    }
+    // Otherwise return ModelResponse
+    return (T) generateInternal(options);
+  }
+
+  /**
+   * Extracts JSON from model response text that may contain markdown or extra text.
+   *
+   * @param text the response text
+   * @return the extracted JSON string
+   */
+  private String extractJson(String text) {
+    if (text == null) {
+      return "{}";
+    }
+    
+    // Try to find JSON object
+    int start = text.indexOf('{');
+    int end = text.lastIndexOf('}');
+    if (start >= 0 && end > start) {
+      String json = text.substring(start, end + 1);
+      
+      // Unwrap single-key root objects (e.g., {"menu_item": {...}} -> {...})
+      // This handles cases where the model wraps the response in a descriptive key
+      try {
+        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        com.fasterxml.jackson.databind.JsonNode rootNode = mapper.readTree(json);
+        if (rootNode.isObject() && rootNode.size() == 1) {
+          com.fasterxml.jackson.databind.JsonNode unwrapped = rootNode.elements().next();
+          if (unwrapped.isObject() || unwrapped.isArray()) {
+            return mapper.writeValueAsString(unwrapped);
+          }
+        }
+      } catch (Exception e) {
+        // If unwrapping fails, return the original JSON
+      }
+      
+      return json;
+    }
+    
+    // Try to find JSON array
+    start = text.indexOf('[');
+    end = text.lastIndexOf(']');
+    if (start >= 0 && end > start) {
+      return text.substring(start, end + 1);
+    }
+    
+    // Return as-is if no JSON structure found
+    return text;
+  }
+
+  /**
+   * Internal method that performs the actual generation.
+   *
+   * @param options
+   *            the generate options
+   * @return the model response
+   * @throws GenkitException
+   *             if generation fails
+   */
+  private ModelResponse generateInternal(GenerateOptions<?> options) throws GenkitException {
     Model model = getModel(options.getModel());
     ModelRequest request = options.toModelRequest();
     ActionContext ctx = new ActionContext(registry);
@@ -637,7 +766,7 @@ public class Genkit {
   /**
    * Handles resume options by processing respond and restart directives.
    */
-  private ModelRequest handleResumeOption(ModelRequest request, GenerateOptions options) {
+  private ModelRequest handleResumeOption(ModelRequest request, GenerateOptions<?> options) {
     ResumeOptions resume = options.getResume();
     List<Message> messages = new java.util.ArrayList<>(request.getMessages());
 
@@ -1020,7 +1149,7 @@ public class Genkit {
    * @throws GenkitException
    *             if generation fails or model doesn't support streaming
    */
-  public ModelResponse generateStream(GenerateOptions options,
+  public ModelResponse generateStream(GenerateOptions<?> options,
       java.util.function.Consumer<ModelResponseChunk> streamCallback) throws GenkitException {
     Model model = getModel(options.getModel());
     if (!model.supportsStreaming()) {
@@ -1098,6 +1227,145 @@ public class Genkit {
   }
 
   /**
+   * Generates a structured output from the model, returning a typed object.
+   * 
+   * <p>
+   * This method automatically generates a JSON schema from the provided class
+   * and deserializes the model's response into an instance of that class.
+   * You can add descriptions to fields using {@code @JsonPropertyDescription}
+   * and mark fields as required using {@code @JsonProperty(required = true)}:
+   * 
+   * <pre>{@code
+   * public class MenuItem {
+   *   @JsonProperty(required = true)
+   *   @JsonPropertyDescription("The name of the menu item")
+   *   private String name;
+   *   
+   *   @JsonPropertyDescription("A description of the menu item")
+   *   private String description;
+   *   
+   *   @JsonProperty(required = true)
+   *   @JsonPropertyDescription("The estimated number of calories")
+   *   private int calories;
+   *   
+   *   // getters/setters...
+   * }
+   * 
+   * // Usage:
+   * MenuItem item = genkit.generate(
+   *     GenerateOptions.<MenuItem>builder()
+   *         .model("openai/gpt-4o-mini")
+   *         .prompt("Suggest a menu item for a pirate-themed restaurant.")
+   *         .outputClass(MenuItem.class)
+   *         .build()
+   * );
+   * }</pre>
+   *
+   * @param <T>
+   *            the output type
+   * @param options
+   *            the generate options with outputClass set
+   * @return the generated object
+   * @throws GenkitException
+   *             if generation or deserialization fails
+   */
+  @SuppressWarnings("unchecked")
+  public <T> T generateObject(GenerateOptions options) throws GenkitException {
+    if (options.getOutputClass() == null) {
+      throw new GenkitException("outputClass must be set in GenerateOptions for typed generate");
+    }
+    
+    // Call generateInternal to get ModelResponse, then deserialize
+    ModelResponse response = generateInternal(options);
+    Class<T> outputClass = (Class<T>) options.getOutputClass();
+    
+    try {
+      String rawOutput = response.getText();
+      String jsonOutput = extractJson(rawOutput);
+      return JsonUtils.fromJson(jsonOutput, outputClass);
+    } catch (Exception e) {
+      throw new GenkitException("Failed to deserialize model output to " + outputClass.getSimpleName() + ": " + e.getMessage(), e);
+    }
+  }
+
+  /**
+   * Generates a structured output from the model with a simple prompt.
+   * 
+   * <p>
+   * Convenience method that combines model name, prompt, and output class.
+   * 
+   * <pre>{@code
+   * MenuItem item = genkit.generateObject(
+   *     "openai/gpt-4o-mini",
+   *     "Suggest a menu item for a pirate-themed restaurant.",
+   *     MenuItem.class
+   * );
+   * }</pre>
+   *
+   * @param <T>
+   *            the output type
+   * @param modelName
+   *            the model name
+   * @param prompt
+   *            the prompt text
+   * @param outputClass
+   *            the class to deserialize the response into
+   * @return the generated object
+   * @throws GenkitException
+   *             if generation or deserialization fails
+   */
+  public <T> T generateObject(String modelName, String prompt, Class<T> outputClass) throws GenkitException {
+    return generateObject(
+        GenerateOptions.<T>builder()
+            .model(modelName)
+            .prompt(prompt)
+            .outputClass(outputClass)
+            .build()
+    );
+  }
+
+  /**
+   * Generates a structured output from the model, returning a typed object.
+   * 
+   * <p>
+   * Alternative method that takes outputClass as a separate parameter.
+   *
+   * @param <T>
+   *            the output type
+   * @param options
+   *            the generate options
+   * @param outputClass
+   *            the class to deserialize the response into
+   * @return the generated object
+   * @throws GenkitException
+   *             if generation or deserialization fails
+   */
+  public <T> T generateObject(GenerateOptions<?> options, Class<T> outputClass) throws GenkitException {
+    // Build options with output config from class
+    GenerateOptions<T> optionsWithOutput = GenerateOptions.<T>builder()
+        .model(options.getModel())
+        .prompt(options.getPrompt())
+        .messages(options.getMessages())
+        .docs(options.getDocs())
+        .system(options.getSystem())
+        .tools(options.getTools())
+        .toolChoice(options.getToolChoice())
+        .outputClass(outputClass)
+        .config(options.getConfig())
+        .context(options.getContext())
+        .maxTurns(options.getMaxTurns())
+        .resume(options.getResume())
+        .build();
+
+    return generateObject(optionsWithOutput);
+  }
+
+  /**
+   * Generates a structured output from the model with a simple prompt.
+   * 
+   * <p>
+   * Convenience method that combines model name, prompt, and output class.
+   * 
    * Embeds documents using the specified embedder.
    *
    * @param embedderName

@@ -25,8 +25,11 @@ import java.util.stream.Collectors;
 
 /**
  * Options for text generation requests.
+ * 
+ * @param <T>
+ *            the output type for structured output (use Void if not using typed output)
  */
-public class GenerateOptions {
+public class GenerateOptions<T> {
 
   private final String model;
   private final String prompt;
@@ -40,6 +43,7 @@ public class GenerateOptions {
   private final Map<String, Object> context;
   private final Integer maxTurns;
   private final ResumeOptions resume;
+  private final Class<T> outputClass;
 
   /**
    * Creates new GenerateOptions.
@@ -68,10 +72,12 @@ public class GenerateOptions {
    *            maximum conversation turns
    * @param resume
    *            options for resuming after an interrupt
+   * @param outputClass
+   *            the output class for structured output
    */
   public GenerateOptions(String model, String prompt, List<Message> messages, List<Document> docs, String system,
       List<Tool<?, ?>> tools, Object toolChoice, OutputConfig output, GenerationConfig config,
-      Map<String, Object> context, Integer maxTurns, ResumeOptions resume) {
+      Map<String, Object> context, Integer maxTurns, ResumeOptions resume, Class<T> outputClass) {
     this.model = model;
     this.prompt = prompt;
     this.messages = messages;
@@ -84,15 +90,18 @@ public class GenerateOptions {
     this.context = context;
     this.maxTurns = maxTurns;
     this.resume = resume;
+    this.outputClass = outputClass;
   }
 
   /**
    * Creates a builder for GenerateOptions.
    *
+   * @param <T>
+   *            the output type
    * @return a new builder
    */
-  public static Builder builder() {
-    return new Builder();
+  public static <T> Builder<T> builder() {
+    return new Builder<>();
   }
 
   /**
@@ -272,9 +281,21 @@ public class GenerateOptions {
   }
 
   /**
-   * Builder for GenerateOptions.
+   * Gets the output class for structured output.
+   *
+   * @return the output class, or null if not using typed output
    */
-  public static class Builder {
+  public Class<T> getOutputClass() {
+    return outputClass;
+  }
+
+  /**
+   * Builder for GenerateOptions.
+   * 
+   * @param <T>
+   *            the output type for structured output
+   */
+  public static class Builder<T> {
     private String model;
     private String prompt;
     private List<Message> messages;
@@ -287,58 +308,97 @@ public class GenerateOptions {
     private Map<String, Object> context;
     private Integer maxTurns;
     private ResumeOptions resume;
+    private Class<T> outputClass;
 
-    public Builder model(String model) {
+    public Builder<T> model(String model) {
       this.model = model;
       return this;
     }
 
-    public Builder prompt(String prompt) {
+    public Builder<T> prompt(String prompt) {
       this.prompt = prompt;
       return this;
     }
 
-    public Builder messages(List<Message> messages) {
+    public Builder<T> messages(List<Message> messages) {
       this.messages = messages;
       return this;
     }
 
-    public Builder docs(List<Document> docs) {
+    public Builder<T> docs(List<Document> docs) {
       this.docs = docs;
       return this;
     }
 
-    public Builder system(String system) {
+    public Builder<T> system(String system) {
       this.system = system;
       return this;
     }
 
-    public Builder tools(List<Tool<?, ?>> tools) {
+    public Builder<T> tools(List<Tool<?, ?>> tools) {
       this.tools = tools;
       return this;
     }
 
-    public Builder toolChoice(Object toolChoice) {
+    public Builder<T> toolChoice(Object toolChoice) {
       this.toolChoice = toolChoice;
       return this;
     }
 
-    public Builder output(OutputConfig output) {
+    public Builder<T> output(OutputConfig output) {
       this.output = output;
       return this;
     }
 
-    public Builder config(GenerationConfig config) {
+    /**
+     * Sets the output class for typed structured output.
+     * 
+     * <p>
+     * When set, the schema is automatically generated from the class.
+     * Use {@code @JsonPropertyDescription} to add descriptions to fields:
+     * 
+     * <pre>{@code
+     * public class MenuItem {
+     *   @JsonPropertyDescription("The name of the menu item")
+     *   private String name;
+     *   
+     *   @JsonPropertyDescription("The estimated number of calories")
+     *   private int calories;
+     * }
+     * 
+     * // Usage:
+     * MenuItem item = genkit.generate(
+     *     GenerateOptions.<MenuItem>builder()
+     *         .model("openai/gpt-4o-mini")
+     *         .prompt("Suggest a menu item")
+     *         .outputClass(MenuItem.class)
+     *         .build()
+     * );
+     * }</pre>
+     *
+     * @param outputClass
+     *            the output class
+     * @return this builder
+     */
+    @SuppressWarnings("unchecked")
+    public <U> Builder<U> outputClass(Class<U> outputClass) {
+      Builder<U> typedBuilder = (Builder<U>) this;
+      typedBuilder.outputClass = outputClass;
+      typedBuilder.output = OutputConfig.fromClass(outputClass);
+      return typedBuilder;
+    }
+
+    public Builder<T> config(GenerationConfig config) {
       this.config = config;
       return this;
     }
 
-    public Builder context(Map<String, Object> context) {
+    public Builder<T> context(Map<String, Object> context) {
       this.context = context;
       return this;
     }
 
-    public Builder maxTurns(Integer maxTurns) {
+    public Builder<T> maxTurns(Integer maxTurns) {
       this.maxTurns = maxTurns;
       return this;
     }
@@ -350,14 +410,14 @@ public class GenerateOptions {
      *            the resume options
      * @return this builder
      */
-    public Builder resume(ResumeOptions resume) {
+    public Builder<T> resume(ResumeOptions resume) {
       this.resume = resume;
       return this;
     }
 
-    public GenerateOptions build() {
-      return new GenerateOptions(model, prompt, messages, docs, system, tools, toolChoice, output, config,
-          context, maxTurns, resume);
+    public GenerateOptions<T> build() {
+      return new GenerateOptions<>(model, prompt, messages, docs, system, tools, toolChoice, output, config,
+          context, maxTurns, resume, outputClass);
     }
   }
 }

@@ -333,6 +333,23 @@ public class AnthropicModel implements Model {
     }
     body.put("max_tokens", maxTokens);
 
+    // Check if structured output is requested
+    boolean structuredOutputRequested = request.getOutput() != null && request.getOutput().getSchema() != null;
+    
+    // Check if any message already contains "json" keyword
+    boolean hasJsonKeywordInMessages = false;
+    if (structuredOutputRequested) {
+      for (Message msg : request.getMessages()) {
+        for (Part part : msg.getContent()) {
+          if (part.getText() != null && part.getText().toLowerCase().contains("json")) {
+            hasJsonKeywordInMessages = true;
+            break;
+          }
+        }
+        if (hasJsonKeywordInMessages) break;
+      }
+    }
+
     // Extract system message and build messages array
     String systemMessage = extractSystemMessage(request);
     if (systemMessage != null) {
@@ -345,8 +362,10 @@ public class AnthropicModel implements Model {
     // Convert messages (excluding system messages)
     ArrayNode messages = body.putArray("messages");
     boolean contextPrefixAdded = false;
+    boolean jsonInstructionAdded = false;
 
-    for (Message message : request.getMessages()) {
+    for (int messageIndex = 0; messageIndex < request.getMessages().size(); messageIndex++) {
+      Message message = request.getMessages().get(messageIndex);
       if (message.getRole() == Role.SYSTEM) {
         continue; // Skip system messages, handled separately
       }
@@ -433,6 +452,17 @@ public class AnthropicModel implements Model {
               toolUseNode.putObject("input");
             }
           }
+        }
+
+        // For Anthropic: If structured output is requested and this is the first user message
+        // without tool responses, and no JSON keyword exists yet, add the instruction
+        if (structuredOutputRequested && !hasJsonKeywordInMessages && !jsonInstructionAdded 
+            && message.getRole() == Role.USER && !hasToolResponses) {
+          ObjectNode jsonInstruction = contentArray.addObject();
+          jsonInstruction.put("type", "text");
+          jsonInstruction.put("text", "Return the response in JSON format.");
+          jsonInstructionAdded = true;
+          logger.debug("Auto-injected JSON format instruction for structured output");
         }
       }
     }

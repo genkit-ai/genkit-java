@@ -8,6 +8,45 @@ See: https://genkit.dev
 > 
 > **Note**: The Java SDK supports OpenAI, Google GenAI (Gemini), Anthropic (Claude), Ollama (local models), Firebase (Firestore vector search, Cloud Functions, telemetry), vector databases (Weaviate, PostgreSQL, Pinecone), MCP, and pre-built evaluators. See [Modules](#modules) for the full list.
 
+<!-- TOC -->
+
+- [Genkit for Java](#genkit-for-java)
+  - [Installation](#installation)
+  - [Quick Start](#quick-start)
+  - [Defining Flows](#defining-flows)
+  - [Using Tools](#using-tools)
+  - [DotPrompt Support](#dotprompt-support)
+  - [Structured Output](#structured-output)
+  - [RAG (Retrieval Augmented Generation)](#rag-retrieval-augmented-generation)
+  - [Firebase Integration](#firebase-integration)
+    - [Firestore Vector Search](#firestore-vector-search)
+    - [Cloud Functions](#cloud-functions)
+    - [Firebase Telemetry](#firebase-telemetry)
+  - [Evaluations](#evaluations)
+    - [Pre-built Evaluators Plugin](#pre-built-evaluators-plugin)
+  - [Streaming](#streaming)
+  - [Embeddings](#embeddings)
+  - [Modules](#modules)
+  - [Observability](#observability)
+    - [Tracing](#tracing)
+    - [Metrics](#metrics)
+    - [Usage Tracking](#usage-tracking)
+    - [Session Context](#session-context)
+  - [Samples](#samples)
+    - [Running Samples](#running-samples)
+  - [Development](#development)
+    - [Prerequisites](#prerequisites)
+    - [Installing Genkit CLI](#installing-genkit-cli)
+    - [Building](#building)
+    - [Running Tests](#running-tests)
+    - [Running Samples](#running-samples-1)
+  - [CLI Integration](#cli-integration)
+  - [Dev UI](#dev-ui)
+  - [Architecture](#architecture)
+  - [License](#license)
+
+<!-- /TOC -->
+
 ## Installation
 
 Add the following dependencies to your Maven `pom.xml`:
@@ -233,6 +272,75 @@ ModelResponse response = recipePrompt.generate(new RecipeInput("pasta carbonara"
 // Prompts support variants (e.g., recipe.robot.prompt)
 ExecutablePrompt<RecipeInput> robotPrompt = genkit.prompt("recipe", RecipeInput.class, "robot");
 ```
+
+## Structured Output
+
+Generate type-safe outputs with automatic JSON schema generation using Jackson annotations:
+
+```java
+// Define your output class with annotations
+public class MenuItem {
+  @JsonProperty(required = true)
+  @JsonPropertyDescription("The name of the menu item")
+  private String name;
+  
+  @JsonProperty(required = true)
+  @JsonPropertyDescription("A detailed description")
+  private String description;
+  
+  @JsonProperty(required = true)
+  @JsonPropertyDescription("Price in dollars")
+  private double price;
+  
+  @JsonPropertyDescription("Preparation time in minutes")
+  private int prepTimeMinutes;
+  
+  @JsonPropertyDescription("Dietary information (e.g., vegan, gluten-free)")
+  private List<String> dietaryInfo;
+  
+  // getters/setters...
+}
+
+// Generate with structured output - returns typed object
+MenuItem item = genkit.generate(
+    GenerateOptions.<MenuItem>builder()
+        .model("openai/gpt-4o-mini")
+        .prompt("Suggest a fancy French menu item")
+        .outputClass(MenuItem.class)
+        .build()
+);
+
+// Works with flows too - fully type-safe
+genkit.defineFlow(
+    "generateMenuItem",
+    MenuItemRequest.class,
+    MenuItem.class,
+    (ctx, request) -> {
+        return genkit.generate(
+            GenerateOptions.<MenuItem>builder()
+                .model("openai/gpt-4o-mini")
+                .prompt(request.getDescription())
+                .outputClass(MenuItem.class)
+                .build()
+        );
+    }
+);
+
+// Works with DotPrompt
+ExecutablePrompt<DishRequest> prompt = genkit.prompt("italian-dish", DishRequest.class);
+MenuItem dish = prompt.generate(new DishRequest("Italian"), MenuItem.class);
+
+// Works with tools
+Tool<RecipeRequest, MenuItem> recipeGen = genkit.defineTool(
+    "generateRecipe",
+    "Generates a recipe",
+    (ctx, request) -> new MenuItem(...),
+    RecipeRequest.class,
+    MenuItem.class
+);
+```
+
+See [samples/structured-output](samples/structured-output) for complete examples.
 
 ## RAG (Retrieval Augmented Generation)
 

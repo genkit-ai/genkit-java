@@ -22,6 +22,8 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.victools.jsonschema.generator.*;
+import com.github.victools.jsonschema.module.jackson.JacksonModule;
+import com.github.victools.jsonschema.module.jackson.JacksonOption;
 
 /**
  * SchemaUtils provides utilities for JSON Schema generation and validation.
@@ -41,6 +43,10 @@ public final class SchemaUtils {
     // for all fields, which causes issues with the Genkit UI input form generation.
     // Fields should be explicitly marked as nullable using @Nullable annotation if
     // needed.
+
+    // Add Jackson module to support @JsonPropertyDescription and other Jackson annotations
+    JacksonModule jacksonModule = new JacksonModule(JacksonOption.RESPECT_JSONPROPERTY_REQUIRED);
+    configBuilder.with(jacksonModule);
 
     SchemaGeneratorConfig config = configBuilder.build();
     schemaGenerator = new SchemaGenerator(config);

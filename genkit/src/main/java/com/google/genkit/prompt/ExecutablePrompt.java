@@ -59,6 +59,7 @@ public class ExecutablePrompt<I> {
   private final Registry registry;
   private final Class<I> inputClass;
   private GenerateFunction generateFunction;
+  private GenerateObjectFunction generateObjectFunction;
 
   /**
    * Functional interface for the generate function. This allows ExecutablePrompt
@@ -66,7 +67,16 @@ public class ExecutablePrompt<I> {
    */
   @FunctionalInterface
   public interface GenerateFunction {
-    ModelResponse generate(GenerateOptions options) throws GenkitException;
+    ModelResponse generate(GenerateOptions<?> options) throws GenkitException;
+  }
+
+  /**
+   * Functional interface for the generateObject function. This allows ExecutablePrompt
+   * to use Genkit.generateObject() for typed structured output.
+   */
+  @FunctionalInterface
+  public interface GenerateObjectFunction {
+    Object generateObject(GenerateOptions<?> options, Class<?> outputClass) throws GenkitException;
   }
 
   /**
@@ -99,6 +109,19 @@ public class ExecutablePrompt<I> {
   }
 
   /**
+   * Sets the generateObject function to use Genkit.generateObject() for typed
+   * structured output.
+   *
+   * @param generateObjectFunction
+   *            the generateObject function
+   * @return this for chaining
+   */
+  public ExecutablePrompt<I> withGenerateObjectFunction(GenerateObjectFunction generateObjectFunction) {
+    this.generateObjectFunction = generateObjectFunction;
+    return this;
+  }
+
+  /**
    * Generates a response using the default model specified in the prompt.
    *
    * @param input
@@ -108,25 +131,64 @@ public class ExecutablePrompt<I> {
    *             if generation fails
    */
   public ModelResponse generate(I input) throws GenkitException {
-    return generate(input, null);
+    return generate(input, (GenerateOptions<?>) null);
+  }
+
+  /**
+   * Generates a structured output using the default model specified in the prompt.
+   *
+   * @param <T>
+   *            the output type
+   * @param input
+   *            the prompt input
+   * @param outputClass
+   *            the class to deserialize the response into
+   * @return the generated object
+   * @throws GenkitException
+   *             if generation fails
+   */
+  public <T> T generate(I input, Class<T> outputClass) throws GenkitException {
+    ModelRequest request = dotPrompt.toModelRequest(input);
+    String modelName = resolveModel(null);
+
+    if (generateObjectFunction == null) {
+      throw new GenkitException("generateObjectFunction not set. Use genkit.prompt() to create ExecutablePrompt with proper setup.");
+    }
+
+    GenerateOptions.Builder<T> genOptions = GenerateOptions.<T>builder()
+        .model(modelName)
+        .messages(request.getMessages())
+        .outputClass(outputClass);
+
+    // Add config from dotprompt
+    if (dotPrompt.getConfig() != null) {
+      genOptions.config(dotPrompt.getConfig());
+    }
+
+    return (T) generateObjectFunction.generateObject(genOptions.build(), outputClass);
   }
 
   /**
    * Generates a response with custom options.
    *
    * <p>
+   * If outputClass is set in options, returns a typed object.
+   * Otherwise returns ModelResponse.
    * If a generateFunction is set (via Genkit), this uses Genkit.generate() which
    * supports tools and interrupts. Otherwise, it calls the model directly.
    *
+   * @param <T>
+   *            the return type (ModelResponse or typed object)
    * @param input
    *            the prompt input
    * @param options
    *            optional generation options to override prompt defaults
-   * @return the model response
+   * @return the model response or typed object
    * @throws GenkitException
    *             if generation fails
    */
-  public ModelResponse generate(I input, GenerateOptions options) throws GenkitException {
+  @SuppressWarnings("unchecked")
+  public <T> T generate(I input, GenerateOptions options) throws GenkitException {
     ModelRequest request = dotPrompt.toModelRequest(input);
     String modelName = resolveModel(options);
 
@@ -162,7 +224,7 @@ public class ExecutablePrompt<I> {
         genOptions.config(dotPrompt.getConfig());
       }
 
-      return generateFunction.generate(genOptions.build());
+      return (T) generateFunction.generate(genOptions.build());
     }
 
     // Fall back to direct model call (no tool/interrupt support)
@@ -176,9 +238,10 @@ public class ExecutablePrompt<I> {
     }
 
     final ModelRequest finalRequest = request;
-    return ModelTelemetryHelper.runWithTelemetry(modelName, dotPrompt.getName(), "/prompt/" + dotPrompt.getName(),
+    return (T) ModelTelemetryHelper.runWithTelemetry(modelName, dotPrompt.getName(), "/prompt/" + dotPrompt.getName(),
         finalRequest, r -> model.run(ctx, r));
   }
+
 
   /**
    * Generates a response with streaming.

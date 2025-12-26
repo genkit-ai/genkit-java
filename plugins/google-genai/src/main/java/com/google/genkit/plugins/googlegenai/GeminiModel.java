@@ -273,6 +273,17 @@ public class GeminiModel implements Model {
 
     // Generation config from request
     Map<String, Object> config = request.getConfig();
+    
+    // Handle structured output from OutputConfig
+    if (request.getOutput() != null && request.getOutput().getSchema() != null) {
+      // Automatically set responseSchema from OutputConfig
+      if (config == null) {
+        config = new java.util.HashMap<>();
+      } else {
+        config = new java.util.HashMap<>(config); // Create mutable copy
+      }
+      config.put("responseSchema", request.getOutput().getSchema());
+    }
     if (config != null) {
       if (config.containsKey("temperature")) {
         configBuilder.temperature(((Number) config.get("temperature")).floatValue());
