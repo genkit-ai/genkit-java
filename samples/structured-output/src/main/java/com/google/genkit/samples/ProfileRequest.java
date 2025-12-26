@@ -25,7 +25,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyDescription;
  * Input for generating a character profile.
  */
 public class ProfileRequest {
-  
+
   @JsonProperty(required = true)
   @JsonPropertyDescription("Description of the character to generate")
   private String characterDescription;

@@ -79,18 +79,18 @@ public class OutputConfig {
    * Creates an OutputConfig for JSON output from a class.
    * 
    * <p>
-   * The schema is automatically generated from the class using reflection.
-   * You can add descriptions to fields using {@code @JsonPropertyDescription}:
+   * The schema is automatically generated from the class using reflection. You
+   * can add descriptions to fields using {@code @JsonPropertyDescription}:
    * 
    * <pre>{@code
    * public class MenuItem {
-   *   @JsonPropertyDescription("The name of the menu item")
-   *   private String name;
-   *   
-   *   @JsonPropertyDescription("The estimated number of calories")
-   *   private int calories;
-   *   
-   *   // getters/setters...
+   * 	@JsonPropertyDescription("The name of the menu item")
+   * 	private String name;
+   * 
+   * 	@JsonPropertyDescription("The estimated number of calories")
+   * 	private int calories;
+   * 
+   * 	// getters/setters...
    * }
    * 
    * // Usage:

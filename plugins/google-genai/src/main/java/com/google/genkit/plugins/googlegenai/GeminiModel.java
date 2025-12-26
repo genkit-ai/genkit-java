@@ -273,7 +273,7 @@ public class GeminiModel implements Model {
 
     // Generation config from request
     Map<String, Object> config = request.getConfig();
-    
+
     // Handle structured output from OutputConfig
     if (request.getOutput() != null && request.getOutput().getSchema() != null) {
       // Automatically set responseSchema from OutputConfig

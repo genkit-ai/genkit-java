@@ -44,7 +44,8 @@ public final class SchemaUtils {
     // Fields should be explicitly marked as nullable using @Nullable annotation if
     // needed.
 
-    // Add Jackson module to support @JsonPropertyDescription and other Jackson annotations
+    // Add Jackson module to support @JsonPropertyDescription and other Jackson
+    // annotations
     JacksonModule jacksonModule = new JacksonModule(JacksonOption.RESPECT_JSONPROPERTY_REQUIRED);
     configBuilder.with(jacksonModule);
 

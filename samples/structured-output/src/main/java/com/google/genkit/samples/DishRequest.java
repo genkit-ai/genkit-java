@@ -25,11 +25,11 @@ import com.fasterxml.jackson.annotation.JsonPropertyDescription;
  * Input for requesting a dish by cuisine.
  */
 public class DishRequest {
-  
+
   @JsonProperty(required = true)
   @JsonPropertyDescription("The cuisine type (e.g., Italian, French, Japanese)")
   private String cuisine;
-  
+
   @JsonPropertyDescription("Optional dietary restriction (e.g., vegetarian, gluten-free)")
   private String dietary;
 

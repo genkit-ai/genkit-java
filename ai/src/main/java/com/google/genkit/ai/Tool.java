@@ -389,7 +389,8 @@ public class Tool<I, O> implements Action<I, O, Void> {
     /**
      * Sets the output class and automatically generates the output schema.
      * 
-     * @param outputClass the output class
+     * @param outputClass
+     *            the output class
      * @return this builder
      */
     public Builder<I, O> outputClass(Class<O> outputClass) {
@@ -412,12 +413,12 @@ public class Tool<I, O> implements Action<I, O, Void> {
       if (handler == null) {
         throw new IllegalStateException("Tool handler is required");
       }
-      
+
       // Auto-generate input schema from inputClass if not provided
       if (inputSchema == null && inputClass != null) {
         this.inputSchema = com.google.genkit.core.SchemaUtils.inferSchema(inputClass);
       }
-      
+
       return new Tool<>(name, description, inputSchema, outputSchema, inputClass, handler);
     }
   }

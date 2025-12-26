@@ -18,10 +18,10 @@
 
 package com.google.genkit.samples;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-
-import java.util.List;
 
 /**
  * Represents a menu item with structured fields.
@@ -45,7 +45,8 @@ public class MenuItem {
   private List<String> dietaryInfo;
 
   // Constructors
-  public MenuItem() {}
+  public MenuItem() {
+  }
 
   public MenuItem(String name, String description, double price, int prepTimeMinutes, List<String> dietaryInfo) {
     this.name = name;
@@ -56,24 +57,44 @@ public class MenuItem {
   }
 
   // Getters and setters
-  public String getName() { return name; }
-  public void setName(String name) { this.name = name; }
+  public String getName() {
+    return name;
+  }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-  public String getDescription() { return description; }
-  public void setDescription(String description) { this.description = description; }
+  public String getDescription() {
+    return description;
+  }
+  public void setDescription(String description) {
+    this.description = description;
+  }
 
-  public double getPrice() { return price; }
-  public void setPrice(double price) { this.price = price; }
+  public double getPrice() {
+    return price;
+  }
+  public void setPrice(double price) {
+    this.price = price;
+  }
 
-  public int getPrepTimeMinutes() { return prepTimeMinutes; }
-  public void setPrepTimeMinutes(int prepTimeMinutes) { this.prepTimeMinutes = prepTimeMinutes; }
+  public int getPrepTimeMinutes() {
+    return prepTimeMinutes;
+  }
+  public void setPrepTimeMinutes(int prepTimeMinutes) {
+    this.prepTimeMinutes = prepTimeMinutes;
+  }
 
-  public List<String> getDietaryInfo() { return dietaryInfo; }
-  public void setDietaryInfo(List<String> dietaryInfo) { this.dietaryInfo = dietaryInfo; }
+  public List<String> getDietaryInfo() {
+    return dietaryInfo;
+  }
+  public void setDietaryInfo(List<String> dietaryInfo) {
+    this.dietaryInfo = dietaryInfo;
+  }
 
   @Override
   public String toString() {
-    return String.format("MenuItem{name='%s', description='%s', price=$%.2f, prepTime=%dmin, dietary=%s}",
-        name, description, price, prepTimeMinutes, dietaryInfo);
+    return String.format("MenuItem{name='%s', description='%s', price=$%.2f, prepTime=%dmin, dietary=%s}", name,
+        description, price, prepTimeMinutes, dietaryInfo);
   }
 }

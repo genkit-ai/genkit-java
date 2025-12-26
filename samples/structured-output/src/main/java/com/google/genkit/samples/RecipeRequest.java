@@ -18,10 +18,10 @@
 
 package com.google.genkit.samples;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-
-import java.util.List;
 
 /**
  * Request object for recipe generation with dietary preferences.
@@ -37,22 +37,33 @@ public class RecipeRequest {
   @JsonPropertyDescription("Dietary restrictions to consider")
   private List<String> dietaryRestrictions;
 
-  public RecipeRequest() {}
-  
+  public RecipeRequest() {
+  }
+
   public RecipeRequest(String cuisine, Integer maxPrepTime, List<String> dietaryRestrictions) {
     this.cuisine = cuisine;
     this.maxPrepTime = maxPrepTime;
     this.dietaryRestrictions = dietaryRestrictions;
   }
 
-  public String getCuisine() { return cuisine; }
-  public void setCuisine(String cuisine) { this.cuisine = cuisine; }
+  public String getCuisine() {
+    return cuisine;
+  }
+  public void setCuisine(String cuisine) {
+    this.cuisine = cuisine;
+  }
 
-  public Integer getMaxPrepTime() { return maxPrepTime; }
-  public void setMaxPrepTime(Integer maxPrepTime) { this.maxPrepTime = maxPrepTime; }
+  public Integer getMaxPrepTime() {
+    return maxPrepTime;
+  }
+  public void setMaxPrepTime(Integer maxPrepTime) {
+    this.maxPrepTime = maxPrepTime;
+  }
 
-  public List<String> getDietaryRestrictions() { return dietaryRestrictions; }
-  public void setDietaryRestrictions(List<String> dietaryRestrictions) { 
-    this.dietaryRestrictions = dietaryRestrictions; 
+  public List<String> getDietaryRestrictions() {
+    return dietaryRestrictions;
+  }
+  public void setDietaryRestrictions(List<String> dietaryRestrictions) {
+    this.dietaryRestrictions = dietaryRestrictions;
   }
 }

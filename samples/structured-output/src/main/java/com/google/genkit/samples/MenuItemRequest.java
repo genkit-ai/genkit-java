@@ -25,7 +25,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyDescription;
  * Input for generating a menu item.
  */
 public class MenuItemRequest {
-  
+
   @JsonProperty(required = true)
   @JsonPropertyDescription("Description of the desired menu item")
   private String description;

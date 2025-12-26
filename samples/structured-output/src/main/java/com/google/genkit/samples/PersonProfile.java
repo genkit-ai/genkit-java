@@ -18,10 +18,10 @@
 
 package com.google.genkit.samples;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-
-import java.util.List;
 
 /**
  * Profile information for a person.
@@ -41,23 +41,40 @@ public class PersonProfile {
   @JsonPropertyDescription("List of hobbies or interests")
   private List<String> interests;
 
-  public PersonProfile() {}
+  public PersonProfile() {
+  }
 
-  public String getFullName() { return fullName; }
-  public void setFullName(String fullName) { this.fullName = fullName; }
+  public String getFullName() {
+    return fullName;
+  }
+  public void setFullName(String fullName) {
+    this.fullName = fullName;
+  }
 
-  public int getAge() { return age; }
-  public void setAge(int age) { this.age = age; }
+  public int getAge() {
+    return age;
+  }
+  public void setAge(int age) {
+    this.age = age;
+  }
 
-  public String getEmail() { return email; }
-  public void setEmail(String email) { this.email = email; }
+  public String getEmail() {
+    return email;
+  }
+  public void setEmail(String email) {
+    this.email = email;
+  }
 
-  public List<String> getInterests() { return interests; }
-  public void setInterests(List<String> interests) { this.interests = interests; }
+  public List<String> getInterests() {
+    return interests;
+  }
+  public void setInterests(List<String> interests) {
+    this.interests = interests;
+  }
 
   @Override
   public String toString() {
-    return String.format("PersonProfile{name='%s', age=%d, email='%s', interests=%s}",
-        fullName, age, email, interests);
+    return String.format("PersonProfile{name='%s', age=%d, email='%s', interests=%s}", fullName, age, email,
+        interests);
   }
 }

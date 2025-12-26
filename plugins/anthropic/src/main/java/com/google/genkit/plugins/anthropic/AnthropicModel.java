@@ -335,7 +335,7 @@ public class AnthropicModel implements Model {
 
     // Check if structured output is requested
     boolean structuredOutputRequested = request.getOutput() != null && request.getOutput().getSchema() != null;
-    
+
     // Check if any message already contains "json" keyword
     boolean hasJsonKeywordInMessages = false;
     if (structuredOutputRequested) {
@@ -346,7 +346,8 @@ public class AnthropicModel implements Model {
             break;
           }
         }
-        if (hasJsonKeywordInMessages) break;
+        if (hasJsonKeywordInMessages)
+          break;
       }
     }
 
@@ -454,9 +455,10 @@ public class AnthropicModel implements Model {
           }
         }
 
-        // For Anthropic: If structured output is requested and this is the first user message
+        // For Anthropic: If structured output is requested and this is the first user
+        // message
         // without tool responses, and no JSON keyword exists yet, add the instruction
-        if (structuredOutputRequested && !hasJsonKeywordInMessages && !jsonInstructionAdded 
+        if (structuredOutputRequested && !hasJsonKeywordInMessages && !jsonInstructionAdded
             && message.getRole() == Role.USER && !hasToolResponses) {
           ObjectNode jsonInstruction = contentArray.addObject();
           jsonInstruction.put("type", "text");

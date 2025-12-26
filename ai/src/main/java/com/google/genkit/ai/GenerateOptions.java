@@ -27,7 +27,8 @@ import java.util.stream.Collectors;
  * Options for text generation requests.
  * 
  * @param <T>
- *            the output type for structured output (use Void if not using typed output)
+ *            the output type for structured output (use Void if not using typed
+ *            output)
  */
 public class GenerateOptions<T> {
 
@@ -354,26 +355,21 @@ public class GenerateOptions<T> {
      * Sets the output class for typed structured output.
      * 
      * <p>
-     * When set, the schema is automatically generated from the class.
-     * Use {@code @JsonPropertyDescription} to add descriptions to fields:
+     * When set, the schema is automatically generated from the class. Use
+     * {@code @JsonPropertyDescription} to add descriptions to fields:
      * 
      * <pre>{@code
      * public class MenuItem {
-     *   @JsonPropertyDescription("The name of the menu item")
-     *   private String name;
-     *   
-     *   @JsonPropertyDescription("The estimated number of calories")
-     *   private int calories;
+     * 	@JsonPropertyDescription("The name of the menu item")
+     * 	private String name;
+     * 
+     * 	@JsonPropertyDescription("The estimated number of calories")
+     * 	private int calories;
      * }
      * 
      * // Usage:
-     * MenuItem item = genkit.generate(
-     *     GenerateOptions.<MenuItem>builder()
-     *         .model("openai/gpt-4o-mini")
-     *         .prompt("Suggest a menu item")
-     *         .outputClass(MenuItem.class)
-     *         .build()
-     * );
+     * MenuItem item = genkit.generate(GenerateOptions.<MenuItem>builder().model("openai/gpt-4o-mini")
+     * 		.prompt("Suggest a menu item").outputClass(MenuItem.class).build());
      * }</pre>
      *
      * @param outputClass

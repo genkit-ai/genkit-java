@@ -71,8 +71,8 @@ public class ExecutablePrompt<I> {
   }
 
   /**
-   * Functional interface for the generateObject function. This allows ExecutablePrompt
-   * to use Genkit.generateObject() for typed structured output.
+   * Functional interface for the generateObject function. This allows
+   * ExecutablePrompt to use Genkit.generateObject() for typed structured output.
    */
   @FunctionalInterface
   public interface GenerateObjectFunction {
@@ -135,7 +135,8 @@ public class ExecutablePrompt<I> {
   }
 
   /**
-   * Generates a structured output using the default model specified in the prompt.
+   * Generates a structured output using the default model specified in the
+   * prompt.
    *
    * @param <T>
    *            the output type
@@ -152,13 +153,12 @@ public class ExecutablePrompt<I> {
     String modelName = resolveModel(null);
 
     if (generateObjectFunction == null) {
-      throw new GenkitException("generateObjectFunction not set. Use genkit.prompt() to create ExecutablePrompt with proper setup.");
+      throw new GenkitException(
+          "generateObjectFunction not set. Use genkit.prompt() to create ExecutablePrompt with proper setup.");
     }
 
-    GenerateOptions.Builder<T> genOptions = GenerateOptions.<T>builder()
-        .model(modelName)
-        .messages(request.getMessages())
-        .outputClass(outputClass);
+    GenerateOptions.Builder<T> genOptions = GenerateOptions.<T>builder().model(modelName)
+        .messages(request.getMessages()).outputClass(outputClass);
 
     // Add config from dotprompt
     if (dotPrompt.getConfig() != null) {
@@ -172,10 +172,10 @@ public class ExecutablePrompt<I> {
    * Generates a response with custom options.
    *
    * <p>
-   * If outputClass is set in options, returns a typed object.
-   * Otherwise returns ModelResponse.
-   * If a generateFunction is set (via Genkit), this uses Genkit.generate() which
-   * supports tools and interrupts. Otherwise, it calls the model directly.
+   * If outputClass is set in options, returns a typed object. Otherwise returns
+   * ModelResponse. If a generateFunction is set (via Genkit), this uses
+   * Genkit.generate() which supports tools and interrupts. Otherwise, it calls
+   * the model directly.
    *
    * @param <T>
    *            the return type (ModelResponse or typed object)
@@ -238,10 +238,9 @@ public class ExecutablePrompt<I> {
     }
 
     final ModelRequest finalRequest = request;
-    return (T) ModelTelemetryHelper.runWithTelemetry(modelName, dotPrompt.getName(), "/prompt/" + dotPrompt.getName(),
-        finalRequest, r -> model.run(ctx, r));
+    return (T) ModelTelemetryHelper.runWithTelemetry(modelName, dotPrompt.getName(),
+        "/prompt/" + dotPrompt.getName(), finalRequest, r -> model.run(ctx, r));
   }
-
 
   /**
    * Generates a response with streaming.
