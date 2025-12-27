@@ -98,7 +98,9 @@ public class AnthropicPlugin implements Plugin {
   public List<Action<?, ?, ?>> init() {
     List<Action<?, ?, ?>> actions = new ArrayList<>();
 
-    // Register Claude models
+    // Register Claude models (still using native Anthropic API implementation)
+    // Note: Anthropic API has significant differences from OpenAI-compatible APIs
+    // including system message handling, content blocks, and streaming format
     for (String modelName : SUPPORTED_MODELS) {
       AnthropicModel model = new AnthropicModel(modelName, options);
       actions.add(model);

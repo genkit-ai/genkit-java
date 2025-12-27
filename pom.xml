@@ -71,10 +71,16 @@
         <module>genkit</module>
         <module>plugins/jetty</module>
         <module>plugins/spring</module>
+        <module>plugins/compat-oai</module>
         <module>plugins/openai</module>
         <module>plugins/google-genai</module>
         <module>plugins/anthropic</module>
         <module>plugins/ollama</module>
+        <module>plugins/xai</module>
+        <module>plugins/deepseek</module>
+        <module>plugins/mistral</module>
+        <module>plugins/cohere</module>
+        <module>plugins/groq</module>
         <module>plugins/localvec</module>
         <module>plugins/mcp</module>
         <module>plugins/firebase</module>
@@ -86,6 +92,11 @@
         <module>samples/google-genai</module>
         <module>samples/anthropic</module>
         <module>samples/ollama</module>
+        <module>samples/xai</module>
+        <module>samples/deepseek</module>
+        <module>samples/mistral</module>
+        <module>samples/cohere</module>
+        <module>samples/groq</module>
         <module>samples/rag</module>
         <module>samples/evaluations</module>
         <module>samples/evaluators-plugin</module>

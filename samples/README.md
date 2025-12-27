@@ -57,6 +57,11 @@ The Dev UI will be available at `http://localhost:4000` and allows you to:
 | [google-genai](./google-genai) | Google Gemini integration with image generation | `GOOGLE_GENAI_API_KEY` |
 | [anthropic](./anthropic) | Anthropic Claude integration with streaming | `ANTHROPIC_API_KEY` |
 | [ollama](./ollama) | Local Ollama models (Gemma, Llama, Mistral) | None (local) |
+| [xai](./xai) | XAI Grok models with tool calling and streaming | `XAI_API_KEY` |
+| [deepseek](./deepseek) | DeepSeek models with reasoning and code generation | `DEEPSEEK_API_KEY` |
+| [cohere](./cohere) | Cohere Command models with RAG and tool usage | `COHERE_API_KEY` |
+| [mistral](./mistral) | Mistral AI models including Codestral and Ministral | `MISTRAL_API_KEY` |
+| [groq](./groq) | Ultra-fast Groq inference with Llama and GPT-OSS | `GROQ_API_KEY` |
 | [dotprompt](./dotprompt) | DotPrompt files with complex inputs/outputs, variants, and partials | `OPENAI_API_KEY` |
 | [rag](./rag) | RAG application with local vector store | `OPENAI_API_KEY` |
 | [chat-session](./chat-session) | Multi-turn chat with session persistence | `OPENAI_API_KEY` |
@@ -280,6 +285,76 @@ Anthropic Claude integration demonstrating:
 ```bash
 cd java/samples/anthropic
 export ANTHROPIC_API_KEY=your-key
+./run.sh
+```
+
+### XAI Sample
+
+XAI Grok models demonstrating:
+- Latest Grok 4 and Grok 4.1 Fast models
+- Optimized tool calling with 2M context
+- Efficient Grok 3 and 3 Mini models
+- Streaming responses
+
+```bash
+cd java/samples/xai
+export XAI_API_KEY=your-key
+./run.sh
+```
+
+### DeepSeek Sample
+
+DeepSeek models demonstrating:
+- DeepSeek-V3.2 for chat and code generation
+- Advanced reasoning with DeepSeek Reasoner
+- Mathematical problem solving with tools
+- Code review and generation
+
+```bash
+cd java/samples/deepseek
+export DEEPSEEK_API_KEY=your-key
+./run.sh
+```
+
+### Cohere Sample
+
+Cohere Command models demonstrating:
+- Command A flagship model with 256K context
+- Command R7B for fast, efficient processing
+- RAG workflows and tool usage
+- Streaming responses
+
+```bash
+cd java/samples/cohere
+export COHERE_API_KEY=your-key
+./run.sh
+```
+
+### Mistral Sample
+
+Mistral AI models demonstrating:
+- Mistral Large 3 multimodal flagship
+- Ministral 3 compact models (3B/8B/14B)
+- Codestral for code generation
+- Translation and multilingual support
+
+```bash
+cd java/samples/mistral
+export MISTRAL_API_KEY=your-key
+./run.sh
+```
+
+### Groq Sample
+
+Groq ultra-fast inference demonstrating:
+- Llama 3.3 70B and 3.1 8B models
+- OpenAI GPT-OSS models (120B/20B)
+- Speed benchmarking (560+ tokens/sec)
+- Real-time streaming responses
+
+```bash
+cd java/samples/groq
+export GROQ_API_KEY=your-key
 ./run.sh
 ```
 

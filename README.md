@@ -6,7 +6,7 @@ See: https://genkit.dev
 
 > **Status**: Currently in active development (1.0.0-SNAPSHOT). Requires Java 21+.
 > 
-> **Note**: The Java SDK supports OpenAI, Google GenAI (Gemini), Anthropic (Claude), Ollama (local models), Firebase (Firestore vector search, Cloud Functions, telemetry), vector databases (Weaviate, PostgreSQL, Pinecone), MCP, and pre-built evaluators. See [Modules](#modules) for the full list.
+> **Note**: The Java SDK supports OpenAI, Google GenAI (Gemini), Anthropic (Claude), XAI (Grok), DeepSeek, Cohere, Mistral, Groq, Ollama (local models), any OpenAI-compatible endpoint (via compat-oai), Firebase (Firestore vector search, Cloud Functions, telemetry), vector databases (Weaviate, PostgreSQL, Pinecone), MCP, and pre-built evaluators. See [Modules](#modules) for the full list.
 
 <!-- TOC -->
 
@@ -84,6 +84,48 @@ Add the following dependencies to your Maven `pom.xml`:
 <dependency>
     <groupId>com.google.genkit</groupId>
     <artifactId>genkit-plugin-ollama</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+
+<!-- XAI plugin (Grok models) -->
+<dependency>
+    <groupId>com.google.genkit</groupId>
+    <artifactId>genkit-plugin-xai</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+
+<!-- DeepSeek plugin (DeepSeek models) -->
+<dependency>
+    <groupId>com.google.genkit</groupId>
+    <artifactId>genkit-plugin-deepseek</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+
+<!-- Cohere plugin (Command models) -->
+<dependency>
+    <groupId>com.google.genkit</groupId>
+    <artifactId>genkit-plugin-cohere</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+
+<!-- Mistral plugin (Mistral AI models) -->
+<dependency>
+    <groupId>com.google.genkit</groupId>
+    <artifactId>genkit-plugin-mistral</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+
+<!-- Groq plugin (ultra-fast inference) -->
+<dependency>
+    <groupId>com.google.genkit</groupId>
+    <artifactId>genkit-plugin-groq</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+
+<!-- compat-oai plugin (any OpenAI-compatible endpoint) -->
+<dependency>
+    <groupId>com.google.genkit</groupId>
+    <artifactId>genkit-plugin-compat-oai</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 </dependency>
 

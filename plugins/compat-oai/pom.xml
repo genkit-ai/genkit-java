@@ -29,10 +29,10 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>genkit-plugin-openai</artifactId>
+    <artifactId>genkit-plugin-compat-oai</artifactId>
     <packaging>jar</packaging>
-    <name>Genkit OpenAI Plugin</name>
-    <description>OpenAI model plugin for Genkit</description>
+    <name>Genkit OpenAI Compatible API Plugin</name>
+    <description>OpenAI-compatible API implementation for Genkit that can be used by multiple providers</description>
 
     <properties>
         <maven.deploy.skip>false</maven.deploy.skip>
@@ -45,10 +45,22 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- HTTP Client -->
         <dependency>
-            <groupId>com.google.genkit</groupId>
-            <artifactId>genkit-plugin-compat-oai</artifactId>
-            <version>${project.version}</version>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp-jvm</artifactId>
+        </dependency>
+
+        <!-- SSE Support for Streaming -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp-sse</artifactId>
+        </dependency>
+
+        <!-- JSON -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
         </dependency>
 
         <!-- Logging -->

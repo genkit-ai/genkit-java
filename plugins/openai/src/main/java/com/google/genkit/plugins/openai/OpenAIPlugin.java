@@ -27,6 +27,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.genkit.core.Action;
 import com.google.genkit.core.Plugin;
+import com.google.genkit.plugins.compatoai.CompatOAIModel;
+import com.google.genkit.plugins.compatoai.CompatOAIPluginOptions;
 
 /**
  * OpenAIPlugin provides OpenAI model integrations for Genkit.
@@ -57,7 +59,8 @@ public class OpenAIPlugin implements Plugin {
    */
   public static final List<String> SUPPORTED_IMAGE_MODELS = Arrays.asList("dall-e-3", "dall-e-2", "gpt-image-1");
 
-  private final OpenAIPluginOptions options;
+  private final OpenAIPluginOptions legacyOptions;
+  private final CompatOAIPluginOptions compatOptions;
 
   /**
    * Creates an OpenAIPlugin with default options.
@@ -73,7 +76,9 @@ public class OpenAIPlugin implements Plugin {
    *            the plugin options
    */
   public OpenAIPlugin(OpenAIPluginOptions options) {
-    this.options = options;
+    this.legacyOptions = options;
+    this.compatOptions = CompatOAIPluginOptions.builder().apiKey(options.getApiKey()).baseUrl(options.getBaseUrl())
+        .organization(options.getOrganization()).timeout(options.getTimeout()).build();
   }
 
   /**
@@ -105,23 +110,24 @@ public class OpenAIPlugin implements Plugin {
   public List<Action<?, ?, ?>> init() {
     List<Action<?, ?, ?>> actions = new ArrayList<>();
 
-    // Register chat models
+    // Register chat models using compat-oai
     for (String modelName : SUPPORTED_MODELS) {
-      OpenAIModel model = new OpenAIModel(modelName, options);
+      CompatOAIModel model = new CompatOAIModel("openai/" + modelName, modelName, "OpenAI " + modelName,
+          compatOptions);
       actions.add(model);
       logger.debug("Created OpenAI model: {}", modelName);
     }
 
-    // Register embedding models
+    // Register embedding models (still using legacy implementation)
     for (String modelName : SUPPORTED_EMBEDDING_MODELS) {
-      OpenAIEmbedder embedder = new OpenAIEmbedder(modelName, options);
+      OpenAIEmbedder embedder = new OpenAIEmbedder(modelName, legacyOptions);
       actions.add(embedder);
       logger.debug("Created OpenAI embedder: {}", modelName);
     }
 
-    // Register image generation models
+    // Register image generation models (still using legacy implementation)
     for (String modelName : SUPPORTED_IMAGE_MODELS) {
-      OpenAIImageModel imageModel = new OpenAIImageModel(modelName, options);
+      OpenAIImageModel imageModel = new OpenAIImageModel(modelName, legacyOptions);
       actions.add(imageModel);
       logger.debug("Created OpenAI image model: {}", modelName);
     }
@@ -138,6 +144,6 @@ public class OpenAIPlugin implements Plugin {
    * @return the options
    */
   public OpenAIPluginOptions getOptions() {
-    return options;
+    return legacyOptions;
   }
 }
