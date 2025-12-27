@@ -8,6 +8,9 @@ com.google.genkit.core.middleware
 com.google.genkit.core.telemetry
 com.google.genkit.core.tracing
 com.google.genkit.plugins.anthropic
+com.google.genkit.plugins.cohere
+com.google.genkit.plugins.compatoai
+com.google.genkit.plugins.deepseek
 com.google.genkit.plugins.evaluators
 com.google.genkit.plugins.evaluators.metrics
 com.google.genkit.plugins.firebase
@@ -15,13 +18,16 @@ com.google.genkit.plugins.firebase.functions
 com.google.genkit.plugins.firebase.retriever
 com.google.genkit.plugins.firebase.telemetry
 com.google.genkit.plugins.googlegenai
+com.google.genkit.plugins.groq
 com.google.genkit.plugins.jetty
 com.google.genkit.plugins.localvec
 com.google.genkit.plugins.mcp
+com.google.genkit.plugins.mistral
 com.google.genkit.plugins.ollama
 com.google.genkit.plugins.openai
 com.google.genkit.plugins.pinecone
 com.google.genkit.plugins.postgresql
 com.google.genkit.plugins.spring
 com.google.genkit.plugins.weaviate
+com.google.genkit.plugins.xai
 com.google.genkit.prompt
