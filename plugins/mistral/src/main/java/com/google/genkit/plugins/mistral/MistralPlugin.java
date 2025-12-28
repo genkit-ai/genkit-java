@@ -133,8 +133,8 @@ public class MistralPlugin implements Plugin {
 
     // Register custom models added via customModel()
     for (String modelName : customModels) {
-      CompatOAIModel model = new CompatOAIModel("mistral/" + modelName, modelName,
-          "Mistral " + modelName, options);
+      CompatOAIModel model = new CompatOAIModel("mistral/" + modelName, modelName, "Mistral " + modelName,
+          options);
       actions.add(model);
       logger.debug("Created custom Mistral model: {}", modelName);
     }

@@ -158,8 +158,8 @@ public class OpenAIPlugin implements Plugin {
     }
 
     logger.info("OpenAI plugin initialized with {} models, {} embedders, and {} image models",
-        SUPPORTED_MODELS.size() + customModels.size(), 
-        SUPPORTED_EMBEDDING_MODELS.size() + customEmbeddingModels.size(), 
+        SUPPORTED_MODELS.size() + customModels.size(),
+        SUPPORTED_EMBEDDING_MODELS.size() + customEmbeddingModels.size(),
         SUPPORTED_IMAGE_MODELS.size() + customImageModels.size());
 
     return actions;

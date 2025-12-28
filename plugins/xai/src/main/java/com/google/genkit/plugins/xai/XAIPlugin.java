@@ -126,8 +126,7 @@ public class XAIPlugin implements Plugin {
 
     // Register custom models added via customModel()
     for (String modelName : customModels) {
-      CompatOAIModel model = new CompatOAIModel("xai/" + modelName, modelName,
-          "XAI " + modelName, options);
+      CompatOAIModel model = new CompatOAIModel("xai/" + modelName, modelName, "XAI " + modelName, options);
       actions.add(model);
       logger.debug("Created custom XAI model: {}", modelName);
     }

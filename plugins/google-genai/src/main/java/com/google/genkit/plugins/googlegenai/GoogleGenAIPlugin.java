@@ -262,10 +262,10 @@ public class GoogleGenAIPlugin implements Plugin {
     String backend = options.isVertexAI() ? "Vertex AI" : "Gemini Developer API";
     logger.info(
         "Google GenAI plugin initialized with {} models, {} embedders, {} image models, {} TTS models, and {} video models using {}",
-        SUPPORTED_MODELS.size() + customModels.size(), 
-        SUPPORTED_EMBEDDING_MODELS.size() + customEmbeddingModels.size(), 
+        SUPPORTED_MODELS.size() + customModels.size(),
+        SUPPORTED_EMBEDDING_MODELS.size() + customEmbeddingModels.size(),
         SUPPORTED_IMAGE_MODELS.size() + customImageModels.size(),
-        SUPPORTED_TTS_MODELS.size() + customTtsModels.size(), 
+        SUPPORTED_TTS_MODELS.size() + customTtsModels.size(),
         SUPPORTED_VEO_MODELS.size() + customVeoModels.size(), backend);
 
     return actions;

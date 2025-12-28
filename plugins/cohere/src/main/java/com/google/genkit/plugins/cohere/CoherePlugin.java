@@ -117,8 +117,7 @@ public class CoherePlugin implements Plugin {
 
     // Register custom models added via customModel()
     for (String modelName : customModels) {
-      CompatOAIModel model = new CompatOAIModel("cohere/" + modelName, modelName,
-          "Cohere " + modelName, options);
+      CompatOAIModel model = new CompatOAIModel("cohere/" + modelName, modelName, "Cohere " + modelName, options);
       actions.add(model);
       logger.debug("Created custom Cohere model: {}", modelName);
     }

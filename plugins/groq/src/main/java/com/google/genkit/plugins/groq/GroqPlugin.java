@@ -121,8 +121,7 @@ public class GroqPlugin implements Plugin {
 
     // Register custom models added via customModel()
     for (String modelName : customModels) {
-      CompatOAIModel model = new CompatOAIModel("groq/" + modelName, modelName,
-          "Groq " + modelName, options);
+      CompatOAIModel model = new CompatOAIModel("groq/" + modelName, modelName, "Groq " + modelName, options);
       actions.add(model);
       logger.debug("Created custom Groq model: {}", modelName);
     }

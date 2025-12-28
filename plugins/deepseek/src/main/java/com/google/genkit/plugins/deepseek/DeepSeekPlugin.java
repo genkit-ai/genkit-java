@@ -117,8 +117,8 @@ public class DeepSeekPlugin implements Plugin {
 
     // Register custom models added via customModel()
     for (String modelName : customModels) {
-      CompatOAIModel model = new CompatOAIModel("deepseek/" + modelName, modelName,
-          "DeepSeek " + modelName, options);
+      CompatOAIModel model = new CompatOAIModel("deepseek/" + modelName, modelName, "DeepSeek " + modelName,
+          options);
       actions.add(model);
       logger.debug("Created custom DeepSeek model: {}", modelName);
     }
