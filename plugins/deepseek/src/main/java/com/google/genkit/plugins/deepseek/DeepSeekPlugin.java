@@ -46,6 +46,7 @@ public class DeepSeekPlugin implements Plugin {
   public static final List<String> SUPPORTED_MODELS = Arrays.asList("deepseek-chat", "deepseek-reasoner");
 
   private final CompatOAIPluginOptions options;
+  private final List<String> customModels = new ArrayList<>();
 
   /**
    * Creates a DeepSeekPlugin with default options (using DEEPSEEK_API_KEY
@@ -114,9 +115,31 @@ public class DeepSeekPlugin implements Plugin {
       logger.debug("Created DeepSeek model: {}", modelName);
     }
 
-    logger.info("DeepSeek plugin initialized with {} models", SUPPORTED_MODELS.size());
+    // Register custom models added via customModel()
+    for (String modelName : customModels) {
+      CompatOAIModel model = new CompatOAIModel("deepseek/" + modelName, modelName,
+          "DeepSeek " + modelName, options);
+      actions.add(model);
+      logger.debug("Created custom DeepSeek model: {}", modelName);
+    }
+
+    logger.info("DeepSeek plugin initialized with {} models", SUPPORTED_MODELS.size() + customModels.size());
 
     return actions;
+  }
+
+  /**
+   * Registers a custom model name. Use this to work with models not in the
+   * default list. Call this method before passing the plugin to Genkit.builder().
+   * 
+   * @param modelName
+   *            the model name (e.g., "deepseek-v3")
+   * @return this plugin instance for method chaining
+   */
+  public DeepSeekPlugin customModel(String modelName) {
+    customModels.add(modelName);
+    logger.debug("Added custom model to be registered: {}", modelName);
+    return this;
   }
 
   /**

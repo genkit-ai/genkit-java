@@ -61,6 +61,9 @@ public class OpenAIPlugin implements Plugin {
 
   private final OpenAIPluginOptions legacyOptions;
   private final CompatOAIPluginOptions compatOptions;
+  private final List<String> customModels = new ArrayList<>();
+  private final List<String> customEmbeddingModels = new ArrayList<>();
+  private final List<String> customImageModels = new ArrayList<>();
 
   /**
    * Creates an OpenAIPlugin with default options.
@@ -118,11 +121,26 @@ public class OpenAIPlugin implements Plugin {
       logger.debug("Created OpenAI model: {}", modelName);
     }
 
+    // Register custom chat models
+    for (String modelName : customModels) {
+      CompatOAIModel model = new CompatOAIModel("openai/" + modelName, modelName, "OpenAI " + modelName,
+          compatOptions);
+      actions.add(model);
+      logger.debug("Created custom OpenAI model: {}", modelName);
+    }
+
     // Register embedding models (still using legacy implementation)
     for (String modelName : SUPPORTED_EMBEDDING_MODELS) {
       OpenAIEmbedder embedder = new OpenAIEmbedder(modelName, legacyOptions);
       actions.add(embedder);
       logger.debug("Created OpenAI embedder: {}", modelName);
+    }
+
+    // Register custom embedding models
+    for (String modelName : customEmbeddingModels) {
+      OpenAIEmbedder embedder = new OpenAIEmbedder(modelName, legacyOptions);
+      actions.add(embedder);
+      logger.debug("Created custom OpenAI embedder: {}", modelName);
     }
 
     // Register image generation models (still using legacy implementation)
@@ -132,10 +150,63 @@ public class OpenAIPlugin implements Plugin {
       logger.debug("Created OpenAI image model: {}", modelName);
     }
 
+    // Register custom image generation models
+    for (String modelName : customImageModels) {
+      OpenAIImageModel imageModel = new OpenAIImageModel(modelName, legacyOptions);
+      actions.add(imageModel);
+      logger.debug("Created custom OpenAI image model: {}", modelName);
+    }
+
     logger.info("OpenAI plugin initialized with {} models, {} embedders, and {} image models",
-        SUPPORTED_MODELS.size(), SUPPORTED_EMBEDDING_MODELS.size(), SUPPORTED_IMAGE_MODELS.size());
+        SUPPORTED_MODELS.size() + customModels.size(), 
+        SUPPORTED_EMBEDDING_MODELS.size() + customEmbeddingModels.size(), 
+        SUPPORTED_IMAGE_MODELS.size() + customImageModels.size());
 
     return actions;
+  }
+
+  /**
+   * Registers a custom chat model name. Use this to work with models not in the
+   * default list. Call this method before passing the plugin to Genkit.builder().
+   * 
+   * @param modelName
+   *            the model name (e.g., "gpt-5.3")
+   * @return this plugin instance for method chaining
+   */
+  public OpenAIPlugin customModel(String modelName) {
+    customModels.add(modelName);
+    logger.debug("Added custom model to be registered: {}", modelName);
+    return this;
+  }
+
+  /**
+   * Registers a custom embedding model name. Use this to work with embedding
+   * models not in the default list. Call this method before passing the plugin to
+   * Genkit.builder().
+   * 
+   * @param modelName
+   *            the embedding model name (e.g., "text-embedding-4-large")
+   * @return this plugin instance for method chaining
+   */
+  public OpenAIPlugin customEmbeddingModel(String modelName) {
+    customEmbeddingModels.add(modelName);
+    logger.debug("Added custom embedding model to be registered: {}", modelName);
+    return this;
+  }
+
+  /**
+   * Registers a custom image generation model name. Use this to work with image
+   * models not in the default list. Call this method before passing the plugin to
+   * Genkit.builder().
+   * 
+   * @param modelName
+   *            the image model name (e.g., "dall-e-4")
+   * @return this plugin instance for method chaining
+   */
+  public OpenAIPlugin customImageModel(String modelName) {
+    customImageModels.add(modelName);
+    logger.debug("Added custom image model to be registered: {}", modelName);
+    return this;
   }
 
   /**

@@ -51,6 +51,7 @@ public class AnthropicPlugin implements Plugin {
       "claude-3-haiku-20240307");
 
   private final AnthropicPluginOptions options;
+  private final List<String> customModels = new ArrayList<>();
 
   /**
    * Creates an AnthropicPlugin with default options.
@@ -107,9 +108,30 @@ public class AnthropicPlugin implements Plugin {
       logger.debug("Created Anthropic model: {}", modelName);
     }
 
-    logger.info("Anthropic plugin initialized with {} models", SUPPORTED_MODELS.size());
+    // Register custom models added via customModel()
+    for (String modelName : customModels) {
+      AnthropicModel model = new AnthropicModel(modelName, options);
+      actions.add(model);
+      logger.debug("Created custom Anthropic model: {}", modelName);
+    }
+
+    logger.info("Anthropic plugin initialized with {} models", SUPPORTED_MODELS.size() + customModels.size());
 
     return actions;
+  }
+
+  /**
+   * Registers a custom model name. Use this to work with models not in the
+   * default list. Call this method before passing the plugin to Genkit.builder().
+   * 
+   * @param modelName
+   *            the model name (e.g., "claude-4-opus-20260101")
+   * @return this plugin instance for method chaining
+   */
+  public AnthropicPlugin customModel(String modelName) {
+    customModels.add(modelName);
+    logger.debug("Added custom model to be registered: {}", modelName);
+    return this;
   }
 
   /**

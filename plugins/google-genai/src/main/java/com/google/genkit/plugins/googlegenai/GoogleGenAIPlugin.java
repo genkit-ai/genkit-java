@@ -111,6 +111,11 @@ public class GoogleGenAIPlugin implements Plugin {
       "veo-3.1-fast-generate-preview");
 
   private final GoogleGenAIPluginOptions options;
+  private final List<String> customModels = new ArrayList<>();
+  private final List<String> customEmbeddingModels = new ArrayList<>();
+  private final List<String> customImageModels = new ArrayList<>();
+  private final List<String> customTtsModels = new ArrayList<>();
+  private final List<String> customVeoModels = new ArrayList<>();
 
   /**
    * Creates a GoogleGenAIPlugin with default options. Reads API key from
@@ -191,11 +196,25 @@ public class GoogleGenAIPlugin implements Plugin {
       logger.debug("Created Gemini model: {}", modelName);
     }
 
+    // Register custom chat/generation models
+    for (String modelName : customModels) {
+      GeminiModel model = new GeminiModel(modelName, options);
+      actions.add(model);
+      logger.debug("Created custom Gemini model: {}", modelName);
+    }
+
     // Register embedding models
     for (String modelName : SUPPORTED_EMBEDDING_MODELS) {
       GeminiEmbedder embedder = new GeminiEmbedder(modelName, options);
       actions.add(embedder);
       logger.debug("Created Gemini embedder: {}", modelName);
+    }
+
+    // Register custom embedding models
+    for (String modelName : customEmbeddingModels) {
+      GeminiEmbedder embedder = new GeminiEmbedder(modelName, options);
+      actions.add(embedder);
+      logger.debug("Created custom Gemini embedder: {}", modelName);
     }
 
     // Register image generation (Imagen) models
@@ -205,11 +224,25 @@ public class GoogleGenAIPlugin implements Plugin {
       logger.debug("Created Imagen model: {}", modelName);
     }
 
+    // Register custom image generation models
+    for (String modelName : customImageModels) {
+      ImagenModel model = new ImagenModel(modelName, options);
+      actions.add(model);
+      logger.debug("Created custom Imagen model: {}", modelName);
+    }
+
     // Register TTS models
     for (String modelName : SUPPORTED_TTS_MODELS) {
       TtsModel model = new TtsModel(modelName, options);
       actions.add(model);
       logger.debug("Created TTS model: {}", modelName);
+    }
+
+    // Register custom TTS models
+    for (String modelName : customTtsModels) {
+      TtsModel model = new TtsModel(modelName, options);
+      actions.add(model);
+      logger.debug("Created custom TTS model: {}", modelName);
     }
 
     // Register video generation (Veo) models
@@ -219,13 +252,98 @@ public class GoogleGenAIPlugin implements Plugin {
       logger.debug("Created Veo model: {}", modelName);
     }
 
+    // Register custom video generation models
+    for (String modelName : customVeoModels) {
+      VeoModel model = new VeoModel(modelName, options);
+      actions.add(model);
+      logger.debug("Created custom Veo model: {}", modelName);
+    }
+
     String backend = options.isVertexAI() ? "Vertex AI" : "Gemini Developer API";
     logger.info(
         "Google GenAI plugin initialized with {} models, {} embedders, {} image models, {} TTS models, and {} video models using {}",
-        SUPPORTED_MODELS.size(), SUPPORTED_EMBEDDING_MODELS.size(), SUPPORTED_IMAGE_MODELS.size(),
-        SUPPORTED_TTS_MODELS.size(), SUPPORTED_VEO_MODELS.size(), backend);
+        SUPPORTED_MODELS.size() + customModels.size(), 
+        SUPPORTED_EMBEDDING_MODELS.size() + customEmbeddingModels.size(), 
+        SUPPORTED_IMAGE_MODELS.size() + customImageModels.size(),
+        SUPPORTED_TTS_MODELS.size() + customTtsModels.size(), 
+        SUPPORTED_VEO_MODELS.size() + customVeoModels.size(), backend);
 
     return actions;
+  }
+
+  /**
+   * Registers a custom chat/generation model name. Use this to work with models
+   * not in the default list. Call this method before passing the plugin to
+   * Genkit.builder().
+   * 
+   * @param modelName
+   *            the model name (e.g., "gemini-3-flash")
+   * @return this plugin instance for method chaining
+   */
+  public GoogleGenAIPlugin customModel(String modelName) {
+    customModels.add(modelName);
+    logger.debug("Added custom model to be registered: {}", modelName);
+    return this;
+  }
+
+  /**
+   * Registers a custom embedding model name. Use this to work with embedding
+   * models not in the default list. Call this method before passing the plugin to
+   * Genkit.builder().
+   * 
+   * @param modelName
+   *            the embedding model name (e.g., "text-embedding-006")
+   * @return this plugin instance for method chaining
+   */
+  public GoogleGenAIPlugin customEmbeddingModel(String modelName) {
+    customEmbeddingModels.add(modelName);
+    logger.debug("Added custom embedding model to be registered: {}", modelName);
+    return this;
+  }
+
+  /**
+   * Registers a custom image generation model name. Use this to work with Imagen
+   * models not in the default list. Call this method before passing the plugin to
+   * Genkit.builder().
+   * 
+   * @param modelName
+   *            the image model name (e.g., "imagen-5.0-generate-001")
+   * @return this plugin instance for method chaining
+   */
+  public GoogleGenAIPlugin customImageModel(String modelName) {
+    customImageModels.add(modelName);
+    logger.debug("Added custom image model to be registered: {}", modelName);
+    return this;
+  }
+
+  /**
+   * Registers a custom TTS model name. Use this to work with TTS models not in
+   * the default list. Call this method before passing the plugin to
+   * Genkit.builder().
+   * 
+   * @param modelName
+   *            the TTS model name (e.g., "gemini-3-preview-tts")
+   * @return this plugin instance for method chaining
+   */
+  public GoogleGenAIPlugin customTtsModel(String modelName) {
+    customTtsModels.add(modelName);
+    logger.debug("Added custom TTS model to be registered: {}", modelName);
+    return this;
+  }
+
+  /**
+   * Registers a custom video generation model name. Use this to work with Veo
+   * models not in the default list. Call this method before passing the plugin to
+   * Genkit.builder().
+   * 
+   * @param modelName
+   *            the video model name (e.g., "veo-4.0-generate-001")
+   * @return this plugin instance for method chaining
+   */
+  public GoogleGenAIPlugin customVeoModel(String modelName) {
+    customVeoModels.add(modelName);
+    logger.debug("Added custom Veo model to be registered: {}", modelName);
+    return this;
   }
 
   /**

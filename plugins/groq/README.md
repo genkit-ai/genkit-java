@@ -20,6 +20,30 @@ This plugin provides Groq model integrations for Genkit.
 ### Content Moderation
 - `meta-llama/llama-guard-4-12b` - Content moderation model (~1200 tokens/sec)
 
+## Using Custom Models
+
+If you need to use a model not in the default list (e.g., a newer model release), register it using `customModel()`:
+
+```java
+import com.google.genkit.Genkit;
+import com.google.genkit.plugins.groq.GroqPlugin;
+
+// Register custom model
+Genkit genkit = Genkit.builder()
+    .plugin(GroqPlugin.create()
+        .customModel("llama-4-90b-preview"))  // Future model example
+    .build();
+
+// Use your custom model
+ModelResponse response = genkit.generate(
+    GenerateOptions.builder()
+        .model("groq/llama-4-90b-preview")
+        .prompt("Hello from custom model!")
+        .build());
+```
+
+> **Note**: The model name must be a valid Groq model identifier. Check the [Groq Models documentation](https://console.groq.com/docs/models) for available models.
+
 ## Usage
 
 ```java

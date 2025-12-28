@@ -90,6 +90,30 @@ AnthropicPlugin plugin = new AnthropicPlugin(
 - `anthropic/claude-3-opus-20240229` - Claude Opus 3
 - `anthropic/claude-3-haiku-20240307` - Claude Haiku 3
 
+## Using Custom Models
+
+If you need to use a model not in the default list (e.g., a newer model release), register it using `customModel()`:
+
+```java
+import com.google.genkit.Genkit;
+import com.google.genkit.plugins.anthropic.AnthropicPlugin;
+
+// Register custom model
+Genkit genkit = Genkit.builder()
+    .plugin(AnthropicPlugin.create()
+        .customModel("claude-opus-5-20260101"))  // Future model example
+    .build();
+
+// Use your custom model
+ModelResponse response = genkit.generate(
+    GenerateOptions.builder()
+        .model("anthropic/claude-opus-5-20260101")
+        .prompt("Hello from custom model!")
+        .build());
+```
+
+> **Note**: The model name must be a valid Anthropic model identifier. Check the [Anthropic Models documentation](https://docs.anthropic.com/claude/docs/models-overview) for available models.
+
 ## Features
 
 ### Text Generation

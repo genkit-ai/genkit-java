@@ -58,6 +58,7 @@ public class XAIPlugin implements Plugin {
       "grok-4-0709", "grok-3", "grok-3-mini");
 
   private final CompatOAIPluginOptions options;
+  private final List<String> customModels = new ArrayList<>();
 
   /**
    * Creates an XAIPlugin with default options (using XAI_API_KEY environment
@@ -123,9 +124,31 @@ public class XAIPlugin implements Plugin {
       logger.debug("Created XAI model: {}", modelName);
     }
 
-    logger.info("XAI plugin initialized with {} models", SUPPORTED_MODELS.size());
+    // Register custom models added via customModel()
+    for (String modelName : customModels) {
+      CompatOAIModel model = new CompatOAIModel("xai/" + modelName, modelName,
+          "XAI " + modelName, options);
+      actions.add(model);
+      logger.debug("Created custom XAI model: {}", modelName);
+    }
+
+    logger.info("XAI plugin initialized with {} models", SUPPORTED_MODELS.size() + customModels.size());
 
     return actions;
+  }
+
+  /**
+   * Registers a custom model name. Use this to work with models not in the
+   * default list. Call this method before passing the plugin to Genkit.builder().
+   * 
+   * @param modelName
+   *            the model name (e.g., "grok-5")
+   * @return this plugin instance for method chaining
+   */
+  public XAIPlugin customModel(String modelName) {
+    customModels.add(modelName);
+    logger.debug("Added custom model to be registered: {}", modelName);
+    return this;
   }
 
   /**

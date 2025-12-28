@@ -47,6 +47,7 @@ public class CoherePlugin implements Plugin {
       "command-r-08-2024", "command-r-plus-08-2024");
 
   private final CompatOAIPluginOptions options;
+  private final List<String> customModels = new ArrayList<>();
 
   /**
    * Creates a CoherePlugin with default options (using COHERE_API_KEY environment
@@ -114,9 +115,31 @@ public class CoherePlugin implements Plugin {
       logger.debug("Created Cohere model: {}", modelName);
     }
 
-    logger.info("Cohere plugin initialized with {} models", SUPPORTED_MODELS.size());
+    // Register custom models added via customModel()
+    for (String modelName : customModels) {
+      CompatOAIModel model = new CompatOAIModel("cohere/" + modelName, modelName,
+          "Cohere " + modelName, options);
+      actions.add(model);
+      logger.debug("Created custom Cohere model: {}", modelName);
+    }
+
+    logger.info("Cohere plugin initialized with {} models", SUPPORTED_MODELS.size() + customModels.size());
 
     return actions;
+  }
+
+  /**
+   * Registers a custom model name. Use this to work with models not in the
+   * default list. Call this method before passing the plugin to Genkit.builder().
+   * 
+   * @param modelName
+   *            the model name (e.g., "command-r-v2")
+   * @return this plugin instance for method chaining
+   */
+  public CoherePlugin customModel(String modelName) {
+    customModels.add(modelName);
+    logger.debug("Added custom model to be registered: {}", modelName);
+    return this;
   }
 
   /**

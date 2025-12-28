@@ -20,6 +20,30 @@ This plugin provides Mistral AI model integrations for Genkit.
 - `codestral-25-08` - Code generation specialist (256K context)
 - `devstral-2-25-12` - Developer-focused model
 
+## Using Custom Models
+
+If you need to use a model not in the default list (e.g., a newer model release), register it using `customModel()`:
+
+```java
+import com.google.genkit.Genkit;
+import com.google.genkit.plugins.mistral.MistralPlugin;
+
+// Register custom model
+Genkit genkit = Genkit.builder()
+    .plugin(MistralPlugin.create()
+        .customModel("mistral-large-2601"))  // Future model example
+    .build();
+
+// Use your custom model
+ModelResponse response = genkit.generate(
+    GenerateOptions.builder()
+        .model("mistral/mistral-large-2601")
+        .prompt("Hello from custom model!")
+        .build());
+```
+
+> **Note**: The model name must be a valid Mistral model identifier. Check the [Mistral Models documentation](https://docs.mistral.ai/getting-started/models/) for available models.
+
 ## Usage
 
 ```java

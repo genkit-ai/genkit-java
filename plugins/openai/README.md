@@ -109,6 +109,80 @@ Genkit genkit = Genkit.builder()
 - `dall-e-2`
 - `gpt-image-1`
 
+## Using Custom Models
+
+If you need to use models not in the default list (e.g., newer model releases or fine-tuned models), register them using the custom model methods:
+
+### Custom Chat Models
+
+```java
+import com.google.genkit.Genkit;
+import com.google.genkit.plugins.openai.OpenAIPlugin;
+
+// Register custom chat model
+Genkit genkit = Genkit.builder()
+    .plugin(OpenAIPlugin.create()
+        .customModel("gpt-5.3"))  // Future model example
+    .build();
+
+// Use your custom model
+ModelResponse response = genkit.generate(
+    GenerateOptions.builder()
+        .model("openai/gpt-5.3")
+        .prompt("Hello from custom model!")
+        .build());
+```
+
+### Custom Embedding Models
+
+```java
+// Register custom embedding model
+Genkit genkit = Genkit.builder()
+    .plugin(OpenAIPlugin.create()
+        .customEmbeddingModel("text-embedding-4-large"))  // Future model example
+    .build();
+
+// Use your custom embedding model
+EmbeddingResponse embeddings = genkit.embed(
+    EmbedOptions.builder()
+        .embedder("openai/text-embedding-4-large")
+        .content("Text to embed")
+        .build());
+```
+
+### Custom Image Generation Models
+
+```java
+// Register custom image model
+Genkit genkit = Genkit.builder()
+    .plugin(OpenAIPlugin.create()
+        .customImageModel("dall-e-4"))  // Future model example
+    .build();
+
+// Use your custom image model
+ImageResponse image = genkit.generateImage(
+    ImageOptions.builder()
+        .model("openai/dall-e-4")
+        .prompt("A futuristic city")
+        .build());
+```
+
+### Multiple Custom Models
+
+You can chain multiple custom model registrations:
+
+```java
+Genkit genkit = Genkit.builder()
+    .plugin(OpenAIPlugin.create()
+        .customModel("gpt-5.3")
+        .customModel("my-fine-tuned-model")
+        .customEmbeddingModel("text-embedding-4-large")
+        .customImageModel("dall-e-4"))
+    .build();
+```
+
+> **Note**: The model name must be a valid OpenAI model identifier or a fine-tuned model ID. Check the [OpenAI Models documentation](https://platform.openai.com/docs/models) for available models.
+
 ## Examples
 
 ### Text Generation

@@ -63,6 +63,7 @@ public class MistralPlugin implements Plugin {
       "open-mistral-nemo");
 
   private final CompatOAIPluginOptions options;
+  private final List<String> customModels = new ArrayList<>();
 
   /**
    * Creates a MistralPlugin with default options (using MISTRAL_API_KEY
@@ -130,9 +131,31 @@ public class MistralPlugin implements Plugin {
       logger.debug("Created Mistral model: {}", modelName);
     }
 
-    logger.info("Mistral plugin initialized with {} models", SUPPORTED_MODELS.size());
+    // Register custom models added via customModel()
+    for (String modelName : customModels) {
+      CompatOAIModel model = new CompatOAIModel("mistral/" + modelName, modelName,
+          "Mistral " + modelName, options);
+      actions.add(model);
+      logger.debug("Created custom Mistral model: {}", modelName);
+    }
+
+    logger.info("Mistral plugin initialized with {} models", SUPPORTED_MODELS.size() + customModels.size());
 
     return actions;
+  }
+
+  /**
+   * Registers a custom model name. Use this to work with models not in the
+   * default list. Call this method before passing the plugin to Genkit.builder().
+   * 
+   * @param modelName
+   *            the model name (e.g., "mistral-large-2601")
+   * @return this plugin instance for method chaining
+   */
+  public MistralPlugin customModel(String modelName) {
+    customModels.add(modelName);
+    logger.debug("Added custom model to be registered: {}", modelName);
+    return this;
   }
 
   /**

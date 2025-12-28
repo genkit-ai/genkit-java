@@ -16,6 +16,30 @@ This plugin provides Cohere model integrations for Genkit.
 - `command-r-08-2024` - Balanced model for complex workflows (128K context)
 - `command-r-plus-08-2024` - Enhanced model for complex RAG and multi-step tool use (128K context)
 
+## Using Custom Models
+
+If you need to use a model not in the default list (e.g., a newer model release), register it using `customModel()`:
+
+```java
+import com.google.genkit.Genkit;
+import com.google.genkit.plugins.cohere.CoherePlugin;
+
+// Register custom model
+Genkit genkit = Genkit.builder()
+    .plugin(CoherePlugin.create()
+        .customModel("command-r-v2"))  // Future model example
+    .build();
+
+// Use your custom model
+ModelResponse response = genkit.generate(
+    GenerateOptions.builder()
+        .model("cohere/command-r-v2")
+        .prompt("Hello from custom model!")
+        .build());
+```
+
+> **Note**: The model name must be a valid Cohere model identifier. Check the [Cohere Models documentation](https://docs.cohere.com/docs/models) for available models.
+
 ## Usage
 
 ```java

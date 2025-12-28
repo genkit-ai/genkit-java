@@ -16,6 +16,30 @@ This plugin provides XAI (x.ai / Grok) model integrations for Genkit.
 - `grok-3` - Previous generation (131K context)
 - `grok-3-mini` - Efficient small model (131K context)
 
+## Using Custom Models
+
+If you need to use a model not in the default list (e.g., a newer model release), register it using `customModel()`:
+
+```java
+import com.google.genkit.Genkit;
+import com.google.genkit.plugins.xai.XAIPlugin;
+
+// Register custom model
+Genkit genkit = Genkit.builder()
+    .plugin(XAIPlugin.create()
+        .customModel("grok-5"))  // Future model example
+    .build();
+
+// Use your custom model
+ModelResponse response = genkit.generate(
+    GenerateOptions.builder()
+        .model("xai/grok-5")
+        .prompt("Hello from custom model!")
+        .build());
+```
+
+> **Note**: The model name must be a valid XAI model identifier. Check the [XAI documentation](https://docs.x.ai/) for available models.
+
 ## Usage
 
 ```java
