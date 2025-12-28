@@ -96,8 +96,8 @@ public class GoogleGenAIApp {
     System.out.println("\nGenerated media files will be saved to: " + new File(OUTPUT_DIR).getAbsolutePath());
     System.out.println("\nPress Ctrl+C to stop the server.");
 
-    // Keep the application running
-    Thread.currentThread().join();
+    // Start the server and block
+    jetty.start();
   }
 
   private static void createOutputDirectory() {

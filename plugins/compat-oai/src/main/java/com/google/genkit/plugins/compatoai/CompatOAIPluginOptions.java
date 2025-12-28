@@ -18,6 +18,8 @@
 
 package com.google.genkit.plugins.compatoai;
 
+import java.util.Map;
+
 /**
  * Options for configuring OpenAI-compatible API plugins.
  */
@@ -26,12 +28,14 @@ public class CompatOAIPluginOptions {
   private final String baseUrl;
   private final String organization;
   private final int timeout;
+  private final Map<String, String> queryParams;
 
   private CompatOAIPluginOptions(Builder builder) {
     this.apiKey = builder.apiKey;
     this.baseUrl = builder.baseUrl;
     this.organization = builder.organization;
     this.timeout = builder.timeout;
+    this.queryParams = builder.queryParams;
   }
 
   /**
@@ -80,6 +84,15 @@ public class CompatOAIPluginOptions {
   }
 
   /**
+   * Gets the query parameters to append to API requests.
+   *
+   * @return the query parameters map, or null if none
+   */
+  public Map<String, String> getQueryParams() {
+    return queryParams;
+  }
+
+  /**
    * Builder for CompatOAIPluginOptions.
    */
   public static class Builder {
@@ -87,6 +100,7 @@ public class CompatOAIPluginOptions {
     private String baseUrl;
     private String organization;
     private int timeout = 60;
+    private Map<String, String> queryParams;
 
     /**
      * Sets the API key.
@@ -133,6 +147,18 @@ public class CompatOAIPluginOptions {
      */
     public Builder timeout(int timeout) {
       this.timeout = timeout;
+      return this;
+    }
+
+    /**
+     * Sets query parameters to append to API requests.
+     *
+     * @param queryParams
+     *            the query parameters map
+     * @return this builder
+     */
+    public Builder queryParams(Map<String, String> queryParams) {
+      this.queryParams = queryParams;
       return this;
     }
 

@@ -61,6 +61,9 @@ CompatOAIPlugin plugin = CompatOAIPlugin.builder()
     .baseUrl("https://my-llm-api.example.com/v1")
     .organization("my-org-id")  // Optional
     .timeout(120)               // Optional, default 60s
+    .queryParams(Map.of(        // Optional, for adding query parameters to API requests
+        "api-version", "2024-10-01",
+        "custom-param", "value"))
     .addModel("model-1", "My LLM Model 1")  // With custom label
     .addModel("model-2", "My LLM Model 2")
     .addModels("model-3", "model-4")        // Multiple at once
@@ -70,6 +73,27 @@ Genkit genkit = Genkit.builder()
     .plugin(plugin)
     .build();
 ```
+
+#### Query Parameters
+
+The `queryParams` option allows you to add custom query parameters to all API requests. This is useful for:
+- **API Versioning**: Some providers (like Azure OpenAI) require `api-version` query parameters
+- **Custom Authentication**: Additional authentication parameters beyond API keys
+- **Feature Flags**: Provider-specific feature toggles
+- **Routing**: Custom routing parameters for multi-tenant deployments
+
+Example with Azure OpenAI:
+```java
+CompatOAIPlugin.builder()
+    .pluginName("azure-openai")
+    .apiKey(System.getenv("AZURE_OPENAI_KEY"))
+    .baseUrl("https://my-resource.openai.azure.com/openai/deployments/gpt-4")
+    .queryParams(Map.of("api-version", "2024-10-01-preview"))
+    .addModel("gpt-4")
+    .build();
+```
+
+The final URL will be: `{baseUrl}/chat/completions?api-version=2024-10-01-preview`
 
 ### Use Cases
 

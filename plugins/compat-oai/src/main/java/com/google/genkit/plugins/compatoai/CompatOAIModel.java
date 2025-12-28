@@ -149,10 +149,31 @@ public class CompatOAIModel implements Model {
     }
   }
 
+  private String buildUrl() {
+    StringBuilder url = new StringBuilder(options.getBaseUrl());
+    url.append("/chat/completions");
+
+    // Append query parameters if any
+    if (options.getQueryParams() != null && !options.getQueryParams().isEmpty()) {
+      url.append("?");
+      boolean first = true;
+      for (java.util.Map.Entry<String, String> entry : options.getQueryParams().entrySet()) {
+        if (!first) {
+          url.append("&");
+        }
+        url.append(entry.getKey()).append("=").append(entry.getValue());
+        first = false;
+      }
+    }
+
+    return url.toString();
+  }
+
   private ModelResponse callAPI(ModelRequest request) throws IOException {
     ObjectNode requestBody = buildRequestBody(request);
 
-    Request.Builder requestBuilder = new Request.Builder().url(options.getBaseUrl() + "/chat/completions")
+    String url = buildUrl();
+    Request.Builder requestBuilder = new Request.Builder().url(url)
         .header("Authorization", "Bearer " + options.getApiKey()).header("Content-Type", "application/json")
         .post(RequestBody.create(requestBody.toString(), JSON_MEDIA_TYPE));
 
@@ -178,7 +199,8 @@ public class CompatOAIModel implements Model {
     ObjectNode requestBody = buildRequestBody(request);
     requestBody.put("stream", true);
 
-    Request.Builder requestBuilder = new Request.Builder().url(options.getBaseUrl() + "/chat/completions")
+    String url = buildUrl();
+    Request.Builder requestBuilder = new Request.Builder().url(url)
         .header("Authorization", "Bearer " + options.getApiKey()).header("Content-Type", "application/json")
         .header("Accept", "text/event-stream")
         .post(RequestBody.create(requestBody.toString(), JSON_MEDIA_TYPE));

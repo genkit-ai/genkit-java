@@ -6,7 +6,7 @@ See: https://genkit.dev
 
 > **Status**: Currently in active development (1.0.0-SNAPSHOT). Requires Java 21+.
 > 
-> **Note**: The Java SDK supports OpenAI, Google GenAI (Gemini), Anthropic (Claude), XAI (Grok), DeepSeek, Cohere, Mistral, Groq, Ollama (local models), any OpenAI-compatible endpoint (via compat-oai), Firebase (Firestore vector search, Cloud Functions, telemetry), vector databases (Weaviate, PostgreSQL, Pinecone), MCP, and pre-built evaluators. See [Modules](#modules) for the full list.
+> **Note**: The Java SDK supports OpenAI, Google GenAI (Gemini), Anthropic (Claude), AWS Bedrock, Azure AI Foundry, XAI (Grok), DeepSeek, Cohere, Mistral, Groq, Ollama (local models), any OpenAI-compatible endpoint (via compat-oai), Firebase (Firestore vector search, Cloud Functions, telemetry), vector databases (Weaviate, PostgreSQL, Pinecone), MCP, and pre-built evaluators. See [Modules](#modules) for the full list.
 
 <!-- TOC -->
 
@@ -588,6 +588,8 @@ EmbedResponse response = genkit.embed("openai/text-embedding-3-small", documents
 | **plugins/openai** | OpenAI models (GPT-4o, GPT-4o-mini, etc.) and embeddings |
 | **plugins/google-genai** | Google Gemini models and Imagen image generation |
 | **plugins/anthropic** | Anthropic Claude models (Claude 4.5, Claude 4, Claude 3) |
+| **plugins/aws-bedrock** | AWS Bedrock models (Amazon Nova, Claude, Llama, Mistral, etc.) |
+| **plugins/azure-foundry** | Azure AI Foundry models (GPT-4, Llama, Mistral, Cohere, etc.) |
 | **plugins/ollama** | Local Ollama models (Gemma, Llama, Mistral, etc.) |
 | **plugins/jetty** | HTTP server plugin using Jetty 12 |
 | **plugins/spring** | HTTP server plugin using Spring Boot |

@@ -88,6 +88,8 @@
         <module>plugins/postgresql</module>
         <module>plugins/pinecone</module>
         <module>plugins/evaluators</module>
+        <module>plugins/aws-bedrock</module>
+        <module>plugins/azure-foundry</module>
         <module>samples/openai</module>
         <module>samples/google-genai</module>
         <module>samples/anthropic</module>
@@ -112,6 +114,8 @@
         <module>samples/postgresql</module>
         <module>samples/pinecone</module>
         <module>samples/structured-output</module>
+        <module>samples/aws-bedrock</module>
+        <module>samples/azure-foundry</module>
     </modules>
 
     <properties>
