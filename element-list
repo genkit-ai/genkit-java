@@ -8,6 +8,8 @@ com.google.genkit.core.middleware
 com.google.genkit.core.telemetry
 com.google.genkit.core.tracing
 com.google.genkit.plugins.anthropic
+com.google.genkit.plugins.awsbedrock
+com.google.genkit.plugins.azurefoundry
 com.google.genkit.plugins.cohere
 com.google.genkit.plugins.compatoai
 com.google.genkit.plugins.deepseek
