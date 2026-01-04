@@ -19,7 +19,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
-        <version>3.1.0</version>
+        <version>3.6.3</version>
         <configuration>
           <mainClass>com.google.genkit.samples.firebase.FirestoreRAGSample</mainClass>
         </configuration>
@@ -27,14 +27,14 @@
       <plugin>
         <groupId>com.google.cloud.functions</groupId>
         <artifactId>function-maven-plugin</artifactId>
-        <version>0.11.0</version>
+        <version>1.0.0</version>
         <configuration>
           <functionTarget>com.google.genkit.samples.firebase.functions.GeneratePoemFunction</functionTarget>
         </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>3.5.1</version>
+        <version>3.6.1</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -68,12 +68,12 @@
     <dependency>
       <groupId>com.google.cloud.functions</groupId>
       <artifactId>functions-framework-api</artifactId>
-      <version>1.1.0</version>
+      <version>2.0.0</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>
   <properties>
-    <functions-framework.version>1.1.0</functions-framework.version>
+    <functions-framework.version>2.0.0</functions-framework.version>
     <maven.compiler.target>21</maven.compiler.target>
     <maven.compiler.source>21</maven.compiler.source>
     <genkit.version>1.0.0-SNAPSHOT</genkit.version>
