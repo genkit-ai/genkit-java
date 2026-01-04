@@ -30,7 +30,8 @@ class OpenAIPluginTest {
 
   @Test
   void testDefaultConstruction() {
-    OpenAIPlugin plugin = new OpenAIPlugin();
+    OpenAIPluginOptions options = OpenAIPluginOptions.builder().apiKey("test-key").build();
+    OpenAIPlugin plugin = new OpenAIPlugin(options);
 
     assertNotNull(plugin);
     assertEquals("openai", plugin.getName());
@@ -57,7 +58,7 @@ class OpenAIPluginTest {
 
   @Test
   void testCreateDefault() {
-    OpenAIPlugin plugin = OpenAIPlugin.create();
+    OpenAIPlugin plugin = OpenAIPlugin.create("test-api-key");
 
     assertNotNull(plugin);
     assertEquals("openai", plugin.getName());

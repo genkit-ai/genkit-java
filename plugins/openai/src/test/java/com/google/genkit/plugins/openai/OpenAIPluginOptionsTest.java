@@ -26,7 +26,7 @@ class OpenAIPluginOptionsTest {
 
   @Test
   void testDefaultBuilder() {
-    OpenAIPluginOptions options = OpenAIPluginOptions.builder().build();
+    OpenAIPluginOptions options = OpenAIPluginOptions.builder().apiKey("test-key").build();
 
     assertNotNull(options);
     assertEquals("https://api.openai.com/v1", options.getBaseUrl());
@@ -42,21 +42,23 @@ class OpenAIPluginOptionsTest {
 
   @Test
   void testBuilderWithBaseUrl() {
-    OpenAIPluginOptions options = OpenAIPluginOptions.builder().baseUrl("https://custom.openai.com/v1").build();
+    OpenAIPluginOptions options = OpenAIPluginOptions.builder().apiKey("test-key")
+        .baseUrl("https://custom.openai.com/v1").build();
 
     assertEquals("https://custom.openai.com/v1", options.getBaseUrl());
   }
 
   @Test
   void testBuilderWithOrganization() {
-    OpenAIPluginOptions options = OpenAIPluginOptions.builder().organization("org-test-123").build();
+    OpenAIPluginOptions options = OpenAIPluginOptions.builder().apiKey("test-key").organization("org-test-123")
+        .build();
 
     assertEquals("org-test-123", options.getOrganization());
   }
 
   @Test
   void testBuilderWithTimeout() {
-    OpenAIPluginOptions options = OpenAIPluginOptions.builder().timeout(120).build();
+    OpenAIPluginOptions options = OpenAIPluginOptions.builder().apiKey("test-key").timeout(120).build();
 
     assertEquals(120, options.getTimeout());
   }
