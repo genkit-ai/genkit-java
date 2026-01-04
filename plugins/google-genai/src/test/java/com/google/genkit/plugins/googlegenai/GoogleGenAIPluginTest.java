@@ -30,7 +30,8 @@ class GoogleGenAIPluginTest {
 
   @Test
   void testDefaultConstruction() {
-    GoogleGenAIPlugin plugin = new GoogleGenAIPlugin();
+    GoogleGenAIPluginOptions options = GoogleGenAIPluginOptions.builder().apiKey("test-key").build();
+    GoogleGenAIPlugin plugin = new GoogleGenAIPlugin(options);
 
     assertNotNull(plugin);
     assertEquals("googleai", plugin.getName());
@@ -56,7 +57,7 @@ class GoogleGenAIPluginTest {
 
   @Test
   void testCreateDefault() {
-    GoogleGenAIPlugin plugin = GoogleGenAIPlugin.create();
+    GoogleGenAIPlugin plugin = GoogleGenAIPlugin.create("test-api-key");
 
     assertNotNull(plugin);
     assertEquals("googleai", plugin.getName());

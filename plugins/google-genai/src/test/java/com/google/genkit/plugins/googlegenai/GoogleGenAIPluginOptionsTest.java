@@ -26,7 +26,7 @@ class GoogleGenAIPluginOptionsTest {
 
   @Test
   void testDefaultBuilder() {
-    GoogleGenAIPluginOptions options = GoogleGenAIPluginOptions.builder().build();
+    GoogleGenAIPluginOptions options = GoogleGenAIPluginOptions.builder().apiKey("test-key").build();
 
     assertNotNull(options);
   }
@@ -40,8 +40,8 @@ class GoogleGenAIPluginOptionsTest {
 
   @Test
   void testBuilderWithBaseUrl() {
-    GoogleGenAIPluginOptions options = GoogleGenAIPluginOptions.builder().baseUrl("https://custom.google.com")
-        .build();
+    GoogleGenAIPluginOptions options = GoogleGenAIPluginOptions.builder().apiKey("test-key")
+        .baseUrl("https://custom.google.com").build();
 
     assertEquals("https://custom.google.com", options.getBaseUrl());
   }
