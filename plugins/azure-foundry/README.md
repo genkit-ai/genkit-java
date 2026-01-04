@@ -1,6 +1,6 @@
 # Genkit Azure AI Foundry Plugin
 
-Azure AI Foundry model plugin for [Genkit Java](https://github.com/firebase/genkit).
+Azure AI Foundry model plugin for [Genkit Java](https://genkit.dev).
 
 This plugin provides integration with Azure AI Foundry models, including GPT-5, o1, o3-mini, GPT-4o, Grok, Llama, DeepSeek, Claude 4.x, and other models deployed in Azure AI Foundry.
 

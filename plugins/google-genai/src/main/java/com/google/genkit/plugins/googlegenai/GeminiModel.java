@@ -21,10 +21,6 @@ package com.google.genkit.plugins.googlegenai;
 import java.util.*;
 import java.util.function.Consumer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.genai.Client;
 import com.google.genai.ResponseStream;
 import com.google.genai.types.Content;
@@ -60,12 +56,9 @@ import com.google.genkit.core.GenkitException;
  */
 public class GeminiModel implements Model {
 
-  private static final Logger logger = LoggerFactory.getLogger(GeminiModel.class);
-
   private final String modelName;
   private final GoogleGenAIPluginOptions options;
-  private final Client client;
-  private final ObjectMapper objectMapper;
+  private volatile Client client;
   private final ModelInfo info;
 
   /**
@@ -79,9 +72,20 @@ public class GeminiModel implements Model {
   public GeminiModel(String modelName, GoogleGenAIPluginOptions options) {
     this.modelName = modelName;
     this.options = options;
-    this.objectMapper = new ObjectMapper();
-    this.client = createClient();
     this.info = createModelInfo();
+  }
+
+  private Client client() {
+    Client existing = client;
+    if (existing != null) {
+      return existing;
+    }
+    synchronized (this) {
+      if (client == null) {
+        client = createClient();
+      }
+      return client;
+    }
   }
 
   private Client createClient() {
@@ -131,10 +135,6 @@ public class GeminiModel implements Model {
     return modelName.endsWith("-tts");
   }
 
-  private boolean isImageModel() {
-    return modelName.contains("-image");
-  }
-
   @Override
   public String getName() {
     return "googleai/" + modelName;
@@ -175,7 +175,7 @@ public class GeminiModel implements Model {
     GenerateContentConfig config = buildConfig(request);
     List<Content> contents = buildContents(request);
 
-    GenerateContentResponse response = client.models.generateContent(modelName, contents, config);
+    GenerateContentResponse response = client().models.generateContent(modelName, contents, config);
 
     return parseResponse(response);
   }
@@ -188,7 +188,7 @@ public class GeminiModel implements Model {
     List<ToolRequest> toolRequests = new ArrayList<>();
     String finishReason = null;
 
-    ResponseStream<GenerateContentResponse> responseStream = client.models.generateContentStream(modelName,
+    ResponseStream<GenerateContentResponse> responseStream = client().models.generateContentStream(modelName,
         contents, config);
 
     try {

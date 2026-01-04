@@ -45,7 +45,7 @@ public class GeminiEmbedder extends Embedder {
 
   private final String modelName;
   private final GoogleGenAIPluginOptions options;
-  private final Client client;
+  private volatile Client client;
 
   /**
    * Creates a new GeminiEmbedder.
@@ -62,7 +62,19 @@ public class GeminiEmbedder extends Embedder {
     });
     this.modelName = modelName;
     this.options = options;
-    this.client = createClient();
+  }
+
+  private Client client() {
+    Client existing = client;
+    if (existing != null) {
+      return existing;
+    }
+    synchronized (this) {
+      if (client == null) {
+        client = createClient();
+      }
+      return client;
+    }
   }
 
   private Client createClient() {
@@ -158,7 +170,7 @@ public class GeminiEmbedder extends Embedder {
         }
       }
 
-      EmbedContentResponse response = client.models.embedContent(modelName, text, configBuilder.build());
+      EmbedContentResponse response = client().models.embedContent(modelName, text, configBuilder.build());
 
       if (response.embeddings().isPresent() && !response.embeddings().get().isEmpty()) {
         ContentEmbedding embedding = response.embeddings().get().get(0);

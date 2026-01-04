@@ -87,7 +87,7 @@ public class TtsModel implements Model {
 
   private final String modelName;
   private final GoogleGenAIPluginOptions options;
-  private final Client client;
+  private volatile Client client;
   private final ModelInfo info;
 
   /**
@@ -101,9 +101,21 @@ public class TtsModel implements Model {
   public TtsModel(String modelName, GoogleGenAIPluginOptions options) {
     this.modelName = modelName;
     this.options = options;
-    this.client = createClient();
     this.info = createModelInfo();
     logger.debug("Initialized TTS model: {}", modelName);
+  }
+
+  private Client client() {
+    Client existing = client;
+    if (existing != null) {
+      return existing;
+    }
+    synchronized (this) {
+      if (client == null) {
+        client = createClient();
+      }
+      return client;
+    }
   }
 
   private Client createClient() {
@@ -183,7 +195,7 @@ public class TtsModel implements Model {
 
     logger.debug("Calling TTS model {} with prompt length: {}", modelName, prompt.length());
 
-    GenerateContentResponse response = client.models.generateContent(modelName, prompt, config);
+    GenerateContentResponse response = client().models.generateContent(modelName, prompt, config);
 
     return parseResponse(response);
   }
@@ -209,7 +221,6 @@ public class TtsModel implements Model {
     return prompt.toString();
   }
 
-  @SuppressWarnings("unchecked")
   private GenerateContentConfig buildConfig(ModelRequest request) {
     GenerateContentConfig.Builder configBuilder = GenerateContentConfig.builder();
 

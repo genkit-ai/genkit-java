@@ -99,7 +99,7 @@ public class VeoModel implements Model {
 
   private final String modelName;
   private final GoogleGenAIPluginOptions options;
-  private final Client client;
+  private volatile Client client;
   private final ModelInfo info;
 
   /**
@@ -113,9 +113,21 @@ public class VeoModel implements Model {
   public VeoModel(String modelName, GoogleGenAIPluginOptions options) {
     this.modelName = modelName;
     this.options = options;
-    this.client = createClient();
     this.info = createModelInfo();
     logger.debug("Initialized Veo model: {}", modelName);
+  }
+
+  private Client client() {
+    Client existing = client;
+    if (existing != null) {
+      return existing;
+    }
+    synchronized (this) {
+      if (client == null) {
+        client = createClient();
+      }
+      return client;
+    }
   }
 
   private Client createClient() {
@@ -136,19 +148,13 @@ public class VeoModel implements Model {
       builder.apiKey(options.getApiKey());
     }
 
-    // Use a longer timeout for video generation operations (10 minutes)
-    // Video generation involves long-polling operations that can take several
-    // minutes
-    HttpOptions.Builder httpBuilder = HttpOptions.builder();
-    if (options.getApiVersion() != null) {
-      httpBuilder.apiVersion(options.getApiVersion());
+    HttpOptions httpOptions = options.toHttpOptions();
+    if (httpOptions != null) {
+      // Video generation involves long-polling operations that can take several
+      // minutes.
+      // Ensure a 10-minute timeout regardless of the global/default setting.
+      builder.httpOptions(httpOptions.toBuilder().timeout(600000).build());
     }
-    if (options.getBaseUrl() != null) {
-      httpBuilder.baseUrl(options.getBaseUrl());
-    }
-    // Set a 10-minute timeout for HTTP operations
-    httpBuilder.timeout(600000);
-    builder.httpOptions(httpBuilder.build());
 
     return builder.build();
   }
@@ -207,7 +213,7 @@ public class VeoModel implements Model {
         prompt.substring(0, Math.min(100, prompt.length())));
 
     // Start video generation operation
-    GenerateVideosOperation operation = client.models.generateVideos(modelName, source, config);
+    GenerateVideosOperation operation = client().models.generateVideos(modelName, source, config);
 
     // Poll for completion
     Map<String, Object> customConfig = request.getConfig();
@@ -341,7 +347,6 @@ public class VeoModel implements Model {
     return builder.build();
   }
 
-  @SuppressWarnings("unchecked")
   private GenerateVideosConfig buildConfig(ModelRequest request) {
     GenerateVideosConfig.Builder configBuilder = GenerateVideosConfig.builder();
 

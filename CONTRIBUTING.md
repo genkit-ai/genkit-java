@@ -2,6 +2,19 @@
 
 Thank you for contributing to Genkit for Java! This document provides guidelines for contributing.
 
+## Code of Conduct
+
+This project follows the [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold it.
+
+## Security
+
+If you discover a security vulnerability, please follow our [Security Policy](.github/SECURITY.md). Please do not file public issues for security reports.
+
+## Issues
+
+- For bugs, feature requests, and documentation improvements, please use the repository’s issue templates.
+- For questions or general discussion, please use GitHub Discussions if enabled for the repository.
+
 ## Conventional Commits
 
 This project uses [Conventional Commits](https://www.conventionalcommits.org/) for automated versioning and changelog generation.
@@ -94,6 +107,8 @@ Common scopes for this project:
 3. Ensure all tests pass: `mvn test`
 4. Check code formatting: `mvn spotless:check`
 5. Submit a pull request
+
+When opening a pull request, please follow the PR template and fill out the checklist as applicable.
 
 ## Release Process
 

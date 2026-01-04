@@ -1,6 +1,6 @@
 # Genkit Pinecone Plugin
 
-A [Genkit](https://github.com/firebase/genkit) plugin that provides vector database functionality using [Pinecone](https://www.pinecone.io/).
+A [Genkit](https://genkit.dev) plugin that provides vector database functionality using [Pinecone](https://www.pinecone.io/).
 
 ## Features
 

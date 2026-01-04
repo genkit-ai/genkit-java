@@ -1,6 +1,6 @@
 # Genkit PostgreSQL Plugin
 
-A [Genkit](https://github.com/firebase/genkit) plugin that provides vector database functionality using PostgreSQL with the [pgvector](https://github.com/pgvector/pgvector) extension.
+A [Genkit](https://genkit.dev) plugin that provides vector database functionality using PostgreSQL with the [pgvector](https://github.com/pgvector/pgvector) extension.
 
 ## Features
 

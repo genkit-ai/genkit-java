@@ -1,6 +1,6 @@
 # Genkit Anthropic Plugin
 
-Anthropic Claude model plugin for [Genkit Java](https://github.com/firebase/genkit).
+Anthropic Claude model plugin for [Genkit Java](https://genkit.dev).
 
 This plugin provides integration with Anthropic's Claude models, including Claude 4.5 Opus/Sonnet/Haiku, Claude 4, and Claude 3 variants.
 

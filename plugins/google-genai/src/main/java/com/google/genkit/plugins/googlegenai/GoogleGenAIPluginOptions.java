@@ -18,6 +18,8 @@
 
 package com.google.genkit.plugins.googlegenai;
 
+import java.util.Map;
+
 import com.google.genai.types.HttpOptions;
 
 /**
@@ -138,6 +140,8 @@ public class GoogleGenAIPluginOptions {
     if (timeout > 0) {
       builder.timeout(timeout);
     }
+
+    builder.headers(Map.of(GenkitClientHeaders.X_GOOG_API_CLIENT_HEADER, GenkitClientHeaders.GENKIT_CLIENT_HEADER));
     return builder.build();
   }
 

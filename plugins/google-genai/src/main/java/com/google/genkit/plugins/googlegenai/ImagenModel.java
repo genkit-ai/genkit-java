@@ -74,7 +74,7 @@ public class ImagenModel implements Model {
 
   private final String modelName;
   private final GoogleGenAIPluginOptions options;
-  private final Client client;
+  private volatile Client client;
   private final ModelInfo info;
 
   /**
@@ -88,8 +88,20 @@ public class ImagenModel implements Model {
   public ImagenModel(String modelName, GoogleGenAIPluginOptions options) {
     this.modelName = modelName;
     this.options = options;
-    this.client = createClient();
     this.info = createModelInfo();
+  }
+
+  private Client client() {
+    Client existing = client;
+    if (existing != null) {
+      return existing;
+    }
+    synchronized (this) {
+      if (client == null) {
+        client = createClient();
+      }
+      return client;
+    }
   }
 
   private Client createClient() {
@@ -173,7 +185,7 @@ public class ImagenModel implements Model {
 
     logger.debug("Generating images with model {} and prompt: {}", modelName, prompt);
 
-    GenerateImagesResponse response = client.models.generateImages(modelName, prompt, config);
+    GenerateImagesResponse response = client().models.generateImages(modelName, prompt, config);
 
     return parseResponse(response);
   }

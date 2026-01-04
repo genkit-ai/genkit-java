@@ -1,6 +1,6 @@
 # Genkit Ollama Plugin
 
-Ollama local model plugin for [Genkit Java](https://github.com/firebase/genkit).
+Ollama local model plugin for [Genkit Java](https://genkit.dev).
 
 This plugin provides integration with [Ollama](https://ollama.ai), allowing you to run open-source LLMs locally without any API keys.
 

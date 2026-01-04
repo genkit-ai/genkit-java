@@ -1,6 +1,6 @@
 # Genkit OpenAI Plugin
 
-OpenAI model plugin for [Genkit Java](https://github.com/firebase/genkit).
+OpenAI model plugin for [Genkit Java](https://genkit.dev).
 
 This plugin provides integration with OpenAI's GPT models, embeddings, and DALL-E image generation.
 

@@ -1,6 +1,6 @@
 # Genkit AWS Bedrock Plugin
 
-AWS Bedrock model plugin for [Genkit Java](https://github.com/firebase/genkit).
+AWS Bedrock model plugin for [Genkit Java](https://genkit.dev).
 
 This plugin provides integration with 90+ AWS Bedrock text generation models from multiple providers including Amazon, Anthropic, Meta, Mistral AI, Cohere, AI21 Labs, DeepSeek, Google, Qwen, NVIDIA, OpenAI, Writer, MiniMax, Moonshot, and TwelveLabs.
 
