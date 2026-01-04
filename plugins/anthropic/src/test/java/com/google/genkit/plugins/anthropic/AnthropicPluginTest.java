@@ -30,7 +30,8 @@ class AnthropicPluginTest {
 
   @Test
   void testDefaultConstruction() {
-    AnthropicPlugin plugin = new AnthropicPlugin();
+    AnthropicPluginOptions options = AnthropicPluginOptions.builder().apiKey("test-key").build();
+    AnthropicPlugin plugin = new AnthropicPlugin(options);
 
     assertNotNull(plugin);
     assertEquals("anthropic", plugin.getName());
@@ -57,7 +58,7 @@ class AnthropicPluginTest {
 
   @Test
   void testCreateDefault() {
-    AnthropicPlugin plugin = AnthropicPlugin.create();
+    AnthropicPlugin plugin = AnthropicPlugin.create("test-api-key");
 
     assertNotNull(plugin);
     assertEquals("anthropic", plugin.getName());
