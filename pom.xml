@@ -139,7 +139,7 @@
         <handlebars.version>4.5.0</handlebars.version>
         <okhttp.version>5.3.2</okhttp.version>
         <spotless.version>3.1.0</spotless.version>
-        <checkstyle.version>12.3.0</checkstyle.version>
+        <checkstyle.version>12.3.1</checkstyle.version>
     </properties>
 
     <dependencyManagement>
