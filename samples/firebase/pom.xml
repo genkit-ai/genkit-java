@@ -42,7 +42,7 @@
         <genkit.version>1.0.0-SNAPSHOT</genkit.version>
         <maven.deploy.skip>true</maven.deploy.skip>
         <maven.install.skip>true</maven.install.skip>
-        <functions-framework.version>1.1.0</functions-framework.version>
+        <functions-framework.version>2.0.0</functions-framework.version>
     </properties>
 
     <dependencies>
