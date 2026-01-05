@@ -1,6 +1,8 @@
 # Genkit DeepSeek Plugin
 
-This plugin provides DeepSeek model integrations for Genkit.
+DeepSeek model plugin for [Genkit Java](https://genkit.dev).
+
+This plugin provides integration with DeepSeek models.
 
 ## Features
 

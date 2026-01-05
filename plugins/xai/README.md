@@ -1,6 +1,8 @@
 # Genkit XAI Plugin
 
-This plugin provides XAI (x.ai / Grok) model integrations for Genkit.
+XAI (x.ai / Grok) model plugin for [Genkit Java](https://genkit.dev).
+
+This plugin provides integration with XAI (x.ai / Grok) models.
 
 ## Features
 

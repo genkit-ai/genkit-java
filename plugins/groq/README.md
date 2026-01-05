@@ -1,6 +1,8 @@
 # Genkit Groq Plugin
 
-This plugin provides Groq model integrations for Genkit.
+Groq model plugin for [Genkit Java](https://genkit.dev).
+
+This plugin provides integration with Groq's ultra-fast LLM inference.
 
 ## Features
 

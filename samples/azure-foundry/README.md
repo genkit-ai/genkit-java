@@ -259,7 +259,7 @@ azure-foundry/
 
 - [Azure AI Foundry Documentation](https://learn.microsoft.com/en-us/azure/ai-foundry/)
 - [Azure AI Foundry Portal](https://ai.azure.com)
-- [Genkit Documentation](https://firebase.google.com/docs/genkit)
+- [Genkit Documentation](https://genkit.dev/)
 - [Azure Identity Documentation](https://learn.microsoft.com/en-us/java/api/overview/azure/identity-readme)
 
 ## Common Issues

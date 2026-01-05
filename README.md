@@ -589,8 +589,14 @@ EmbedResponse response = genkit.embed("openai/text-embedding-3-small", documents
 | **plugins/google-genai** | Google Gemini models and Imagen image generation |
 | **plugins/anthropic** | Anthropic Claude models (Claude 4.5, Claude 4, Claude 3) |
 | **plugins/aws-bedrock** | AWS Bedrock models (Amazon Nova, Claude, Llama, Mistral, etc.) |
-| **plugins/azure-foundry** | Azure AI Foundry models (GPT-4, Llama, Mistral, Cohere, etc.) |
+| **plugins/azure-foundry** | Azure AI Foundry models (GPT-5, GPT-4, Llama, Mistral, Claude, etc.) |
+| **plugins/xai** | XAI (x.ai) Grok models (Grok-4, Grok-3, Grok-3-mini) |
+| **plugins/deepseek** | DeepSeek models (deepseek-chat, deepseek-reasoner) |
+| **plugins/cohere** | Cohere Command models (Command A, Command R, Command R+) |
+| **plugins/mistral** | Mistral AI models (Mistral Large, Medium, Small, Ministral, Codestral) |
+| **plugins/groq** | Groq ultra-fast inference (Llama, Mixtral, Gemma) |
 | **plugins/ollama** | Local Ollama models (Gemma, Llama, Mistral, etc.) |
+| **plugins/compat-oai** | OpenAI-compatible API base implementation for custom endpoints |
 | **plugins/jetty** | HTTP server plugin using Jetty 12 |
 | **plugins/spring** | HTTP server plugin using Spring Boot |
 | **plugins/localvec** | Local file-based vector store for development |
@@ -645,8 +651,12 @@ The SDK exposes OpenTelemetry metrics for monitoring:
 | `genkit/tool/latency` | Tool execution latency (ms) |
 | `genkit/feature/requests` | Feature (flow) request count |
 | `genkit/feature/latency` | Feature (flow) latency (ms) |
+| `genkit/feature/path/requests` | Feature path-level request count |
+| `genkit/feature/path/latency` | Feature path-level latency (ms) |
 | `genkit/action/requests` | General action request count |
 | `genkit/action/latency` | General action latency (ms) |
+
+All metrics include relevant attributes such as `modelName`, `featureName`, `path`, `status` (success/failure), and `source` (java) for comprehensive observability and filtering.
 
 ### Usage Tracking
 
@@ -682,8 +692,16 @@ The following samples are available in `java/samples/`. See the [samples README]
 | **openai** | Basic OpenAI integration with flows and tools |
 | **google-genai** | Google Gemini integration with image generation |
 | **anthropic** | Anthropic Claude integration with streaming |
+| **aws-bedrock** | AWS Bedrock models integration |
+| **azure-foundry** | Azure AI Foundry models integration |
+| **xai** | XAI (x.ai) Grok models integration |
+| **deepseek** | DeepSeek models integration |
+| **cohere** | Cohere Command models integration |
+| **mistral** | Mistral AI models integration |
+| **groq** | Groq ultra-fast inference integration |
 | **ollama** | Local Ollama models with Gemma 3n |
 | **dotprompt** | DotPrompt files with complex inputs/outputs, variants, and partials |
+| **structured-output** | Type-safe structured output generation |
 | **rag** | RAG application with local vector store |
 | **chat-session** | Multi-turn chat with session persistence |
 | **evaluations** | Custom evaluators and evaluation workflows |
@@ -824,7 +842,15 @@ com.google.genkit
     ├── openai/              # OpenAI models & embeddings
     ├── google-genai/        # Google Gemini models & Imagen
     ├── anthropic/           # Anthropic Claude models
+    ├── aws-bedrock/         # AWS Bedrock models
+    ├── azure-foundry/       # Azure AI Foundry models
+    ├── xai/                 # XAI (x.ai) Grok models
+    ├── deepseek/            # DeepSeek models
+    ├── cohere/              # Cohere Command models
+    ├── mistral/             # Mistral AI models
+    ├── groq/                # Groq ultra-fast inference
     ├── ollama/              # Local Ollama models
+    ├── compat-oai/          # OpenAI-compatible API base
     ├── jetty/               # Jetty HTTP server
     ├── spring/              # Spring Boot HTTP server
     ├── localvec/            # Local vector store

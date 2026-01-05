@@ -174,4 +174,4 @@ Evaluation results include:
 ## See Also
 
 - [Genkit Java README](../../README.md)
-- [Genkit Evaluation Documentation](https://firebase.google.com/docs/genkit/evaluation)
+- [Genkit Evaluation Documentation](https://genkit.dev//evaluation)

@@ -1,6 +1,8 @@
 # Genkit Mistral Plugin
 
-This plugin provides Mistral AI model integrations for Genkit.
+Mistral AI model plugin for [Genkit Java](https://genkit.dev).
+
+This plugin provides integration with Mistral AI models.
 
 ## Features
 

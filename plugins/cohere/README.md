@@ -1,6 +1,8 @@
 # Genkit Cohere Plugin
 
-This plugin provides Cohere model integrations for Genkit.
+Cohere model plugin for [Genkit Java](https://genkit.dev).
+
+This plugin provides integration with Cohere models.
 
 ## Features
 

@@ -473,7 +473,7 @@ While both plugins can work with OpenAI models on Azure, they serve different pu
 
 - [Azure AI Foundry Documentation](https://learn.microsoft.com/en-us/azure/ai-foundry/)
 - [Azure AI Foundry SDK for Java](https://learn.microsoft.com/en-us/java/api/overview/azure/ai-projects-readme)
-- [Genkit Documentation](https://firebase.google.com/docs/genkit)
+- [Genkit Documentation](https://genkit.dev/)
 - [Azure Identity Documentation](https://learn.microsoft.com/en-us/java/api/overview/azure/identity-readme)
 
 ## License

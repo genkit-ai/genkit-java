@@ -181,5 +181,5 @@ Configure your AWS credentials using one of the methods described above.
 ## Learn More
 
 - [AWS Bedrock Documentation](https://docs.aws.amazon.com/bedrock/)
-- [Genkit Documentation](https://firebase.google.com/docs/genkit)
+- [Genkit Documentation](https://genkit.dev/)
 - [AWS SDK for Java](https://aws.amazon.com/sdk-for-java/)
