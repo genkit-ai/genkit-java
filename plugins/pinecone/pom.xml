@@ -36,7 +36,7 @@
 
     <properties>
         <maven.deploy.skip>false</maven.deploy.skip>
-        <pinecone.version>6.0.0</pinecone.version>
+        <pinecone.version>6.1.0</pinecone.version>
     </properties>
 
     <dependencies>
