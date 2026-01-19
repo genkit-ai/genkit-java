@@ -36,7 +36,7 @@
 
     <properties>
         <maven.deploy.skip>false</maven.deploy.skip>
-        <postgresql.version>42.7.8</postgresql.version>
+        <postgresql.version>42.7.9</postgresql.version>
         <pgvector.version>0.1.6</pgvector.version>
         <hikari.version>7.0.2</hikari.version>
     </properties>
