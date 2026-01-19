@@ -18,24 +18,22 @@
 
 package com.google.genkit.ai.evaluation;
 
+import com.google.genkit.core.*;
 import java.time.Instant;
 import java.util.*;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.genkit.core.*;
-
 /**
  * Manages the execution of evaluations.
- * 
- * <p>
- * The EvaluationManager coordinates running evaluations by:
+ *
+ * <p>The EvaluationManager coordinates running evaluations by:
+ *
  * <ul>
- * <li>Loading datasets from the dataset store</li>
- * <li>Running inference on the target action</li>
- * <li>Executing evaluators on the results</li>
- * <li>Storing evaluation results</li>
+ *   <li>Loading datasets from the dataset store
+ *   <li>Running inference on the target action
+ *   <li>Executing evaluators on the results
+ *   <li>Storing evaluation results
  * </ul>
  */
 public class EvaluationManager {
@@ -49,8 +47,7 @@ public class EvaluationManager {
   /**
    * Creates a new EvaluationManager.
    *
-   * @param registry
-   *            the Genkit registry
+   * @param registry the Genkit registry
    */
   public EvaluationManager(Registry registry) {
     this(registry, LocalFileDatasetStore.getInstance(), LocalFileEvalStore.getInstance());
@@ -59,12 +56,9 @@ public class EvaluationManager {
   /**
    * Creates a new EvaluationManager with custom stores.
    *
-   * @param registry
-   *            the Genkit registry
-   * @param datasetStore
-   *            the dataset store
-   * @param evalStore
-   *            the eval store
+   * @param registry the Genkit registry
+   * @param datasetStore the dataset store
+   * @param evalStore the eval store
    */
   public EvaluationManager(Registry registry, DatasetStore datasetStore, EvalStore evalStore) {
     this.registry = registry;
@@ -75,11 +69,9 @@ public class EvaluationManager {
   /**
    * Runs a new evaluation.
    *
-   * @param request
-   *            the evaluation request
+   * @param request the evaluation request
    * @return the evaluation run key
-   * @throws Exception
-   *             if evaluation fails
+   * @throws Exception if evaluation fails
    */
   public EvalRunKey runEvaluation(RunEvaluationRequest request) throws Exception {
     String evalRunId = UUID.randomUUID().toString();
@@ -128,9 +120,10 @@ public class EvaluationManager {
 
     // 4. Run evaluation
     Map<String, List<EvalResponse>> allScores = new HashMap<>();
-    int batchSize = request.getOptions() != null && request.getOptions().getBatchSize() != null
-        ? request.getOptions().getBatchSize()
-        : 10;
+    int batchSize =
+        request.getOptions() != null && request.getOptions().getBatchSize() != null
+            ? request.getOptions().getBatchSize()
+            : 10;
 
     for (String evaluatorName : evaluatorNames) {
       String evalKey = ActionType.EVALUATOR.keyFromName(evaluatorName);
@@ -150,13 +143,17 @@ public class EvaluationManager {
           }
         }
 
-        EvalRequest evalRequest = EvalRequest.builder().dataset(validDataPoints).evalRunId(evalRunId)
-            .batchSize(batchSize).build();
+        EvalRequest evalRequest =
+            EvalRequest.builder()
+                .dataset(validDataPoints)
+                .evalRunId(evalRunId)
+                .batchSize(batchSize)
+                .build();
 
         ActionContext ctx = new ActionContext(registry);
         @SuppressWarnings("unchecked")
-        List<EvalResponse> responses = ((Action<EvalRequest, List<EvalResponse>, ?>) evaluatorAction).run(ctx,
-            evalRequest);
+        List<EvalResponse> responses =
+            ((Action<EvalRequest, List<EvalResponse>, ?>) evaluatorAction).run(ctx, evalRequest);
 
         allScores.put(evaluatorName, responses);
       } catch (Exception e) {
@@ -168,9 +165,16 @@ public class EvaluationManager {
     List<EvalResult> results = combineResults(evalDataset, allScores);
 
     // 6. Create and save eval run
-    EvalRunKey key = EvalRunKey.builder().evalRunId(evalRunId).actionRef(actionRef).datasetId(datasetId)
-        .datasetVersion(datasetVersion).createdAt(Instant.now().toString())
-        .actionConfig(request.getOptions() != null ? request.getOptions().getActionConfig() : null).build();
+    EvalRunKey key =
+        EvalRunKey.builder()
+            .evalRunId(evalRunId)
+            .actionRef(actionRef)
+            .datasetId(datasetId)
+            .datasetVersion(datasetVersion)
+            .createdAt(Instant.now().toString())
+            .actionConfig(
+                request.getOptions() != null ? request.getOptions().getActionConfig() : null)
+            .build();
 
     EvalRun evalRun = EvalRun.builder().key(key).results(results).build();
 
@@ -180,18 +184,22 @@ public class EvaluationManager {
     return key;
   }
 
-  /**
-   * Runs inference on the target action for all dataset samples.
-   */
-  private List<EvalDataPoint> runInference(String actionRef, List<DatasetSample> dataset,
+  /** Runs inference on the target action for all dataset samples. */
+  private List<EvalDataPoint> runInference(
+      String actionRef,
+      List<DatasetSample> dataset,
       RunEvaluationRequest.EvaluationOptions options) {
 
     List<EvalDataPoint> evalDataset = new ArrayList<>();
     Action<?, ?, ?> action = registry.lookupAction(actionRef);
 
     for (DatasetSample sample : dataset) {
-      EvalDataPoint.Builder dpBuilder = EvalDataPoint.builder().testCaseId(sample.getTestCaseId())
-          .input(sample.getInput()).reference(sample.getReference()).traceIds(new ArrayList<>());
+      EvalDataPoint.Builder dpBuilder =
+          EvalDataPoint.builder()
+              .testCaseId(sample.getTestCaseId())
+              .input(sample.getInput())
+              .reference(sample.getReference())
+              .traceIds(new ArrayList<>());
 
       if (action != null) {
         try {
@@ -216,9 +224,7 @@ public class EvaluationManager {
     return evalDataset;
   }
 
-  /**
-   * Gets all registered evaluator names.
-   */
+  /** Gets all registered evaluator names. */
   private List<String> getAllEvaluatorNames() {
     List<String> names = new ArrayList<>();
     for (Action<?, ?, ?> action : registry.listActions()) {
@@ -229,20 +235,25 @@ public class EvaluationManager {
     return names;
   }
 
-  /**
-   * Combines evaluation results with scores from all evaluators.
-   */
-  private List<EvalResult> combineResults(List<EvalDataPoint> evalDataset,
-      Map<String, List<EvalResponse>> allScores) {
+  /** Combines evaluation results with scores from all evaluators. */
+  private List<EvalResult> combineResults(
+      List<EvalDataPoint> evalDataset, Map<String, List<EvalResponse>> allScores) {
 
     // Create a map of testCaseId to EvalResult
     Map<String, EvalResult.Builder> resultBuilders = new LinkedHashMap<>();
 
     for (EvalDataPoint dp : evalDataset) {
-      resultBuilders.put(dp.getTestCaseId(),
-          EvalResult.builder().testCaseId(dp.getTestCaseId()).input(dp.getInput()).output(dp.getOutput())
-              .error(dp.getError()).context(dp.getContext()).reference(dp.getReference())
-              .traceIds(dp.getTraceIds()).metrics(new ArrayList<>()));
+      resultBuilders.put(
+          dp.getTestCaseId(),
+          EvalResult.builder()
+              .testCaseId(dp.getTestCaseId())
+              .input(dp.getInput())
+              .output(dp.getOutput())
+              .error(dp.getError())
+              .context(dp.getContext())
+              .reference(dp.getReference())
+              .traceIds(dp.getTraceIds())
+              .metrics(new ArrayList<>()));
     }
 
     // Add scores from each evaluator
@@ -287,21 +298,24 @@ public class EvaluationManager {
       rationale = score.getDetails().getReasoning();
     }
 
-    return EvalMetric.builder().evaluator(evaluatorName).scoreId(score.getId()).score(score.getScore())
-        .status(score.getStatus()).rationale(rationale).error(score.getError()).traceId(response.getTraceId())
-        .spanId(response.getSpanId()).build();
+    return EvalMetric.builder()
+        .evaluator(evaluatorName)
+        .scoreId(score.getId())
+        .score(score.getScore())
+        .status(score.getStatus())
+        .rationale(rationale)
+        .error(score.getError())
+        .traceId(response.getTraceId())
+        .spanId(response.getSpanId())
+        .build();
   }
 
-  /**
-   * Gets the dataset store.
-   */
+  /** Gets the dataset store. */
   public DatasetStore getDatasetStore() {
     return datasetStore;
   }
 
-  /**
-   * Gets the eval store.
-   */
+  /** Gets the eval store. */
   public EvalStore getEvalStore() {
     return evalStore;
   }

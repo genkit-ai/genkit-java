@@ -18,18 +18,14 @@
 
 package com.google.genkit.core.tracing;
 
-/**
- * TelemetryClient interface for sending traces to a telemetry server.
- */
+/** TelemetryClient interface for sending traces to a telemetry server. */
 public interface TelemetryClient {
 
   /**
    * Saves trace data to the telemetry server.
    *
-   * @param trace
-   *            the trace data to save
-   * @throws Exception
-   *             if the save operation fails
+   * @param trace the trace data to save
+   * @throws Exception if the save operation fails
    */
   void save(TraceData trace) throws Exception;
 }

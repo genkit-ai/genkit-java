@@ -18,23 +18,20 @@
 
 package com.google.genkit.core;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.victools.jsonschema.generator.*;
 import com.github.victools.jsonschema.module.jackson.JacksonModule;
 import com.github.victools.jsonschema.module.jackson.JacksonOption;
+import java.util.Map;
 
-/**
- * SchemaUtils provides utilities for JSON Schema generation and validation.
- */
+/** SchemaUtils provides utilities for JSON Schema generation and validation. */
 public final class SchemaUtils {
 
   private static final SchemaGenerator schemaGenerator;
 
   static {
-    SchemaGeneratorConfigBuilder configBuilder = new SchemaGeneratorConfigBuilder(SchemaVersion.DRAFT_7,
-        OptionPreset.PLAIN_JSON);
+    SchemaGeneratorConfigBuilder configBuilder =
+        new SchemaGeneratorConfigBuilder(SchemaVersion.DRAFT_7, OptionPreset.PLAIN_JSON);
 
     configBuilder.with(Option.EXTRA_OPEN_API_FORMAT_VALUES);
     configBuilder.with(Option.FLATTENED_ENUMS);
@@ -60,8 +57,7 @@ public final class SchemaUtils {
   /**
    * Generates a JSON Schema for the given class.
    *
-   * @param clazz
-   *            the class to generate schema for
+   * @param clazz the class to generate schema for
    * @return the JSON schema as a map
    */
   @SuppressWarnings("unchecked")
@@ -82,8 +78,7 @@ public final class SchemaUtils {
   /**
    * Generates a JSON Schema for a primitive type.
    *
-   * @param typeName
-   *            the type name (string, number, integer, boolean, array, object)
+   * @param typeName the type name (string, number, integer, boolean, array, object)
    * @return the JSON schema as a map
    */
   public static Map<String, Object> simpleSchema(String typeName) {
@@ -129,8 +124,7 @@ public final class SchemaUtils {
   /**
    * Creates a schema for an array type with the given items schema.
    *
-   * @param itemsSchema
-   *            the schema for array items
+   * @param itemsSchema the schema for array items
    * @return the array schema
    */
   public static Map<String, Object> arraySchema(Map<String, Object> itemsSchema) {
@@ -140,8 +134,7 @@ public final class SchemaUtils {
   /**
    * Creates a schema for an object type with the given properties.
    *
-   * @param properties
-   *            the property schemas
+   * @param properties the property schemas
    * @return the object schema
    */
   public static Map<String, Object> objectSchema(Map<String, Object> properties) {

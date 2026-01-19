@@ -18,33 +18,29 @@
 
 package com.google.genkit.ai.evaluation;
 
-import java.util.*;
-import java.util.function.Consumer;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.genkit.core.*;
 import com.google.genkit.core.tracing.SpanMetadata;
 import com.google.genkit.core.tracing.Tracer;
+import java.util.*;
+import java.util.function.Consumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Evaluator represents an evaluation action that assesses the quality of AI
- * outputs.
- * 
- * <p>
- * Evaluators are a core primitive in Genkit that allow you to measure and track
- * the quality of your AI applications. They can be used to:
+ * Evaluator represents an evaluation action that assesses the quality of AI outputs.
+ *
+ * <p>Evaluators are a core primitive in Genkit that allow you to measure and track the quality of
+ * your AI applications. They can be used to:
+ *
  * <ul>
- * <li>Score outputs based on various criteria (accuracy, relevance, etc.)</li>
- * <li>Compare outputs against reference data</li>
- * <li>Run automated quality checks in CI/CD pipelines</li>
- * <li>Monitor production quality over time</li>
+ *   <li>Score outputs based on various criteria (accuracy, relevance, etc.)
+ *   <li>Compare outputs against reference data
+ *   <li>Run automated quality checks in CI/CD pipelines
+ *   <li>Monitor production quality over time
  * </ul>
  *
- * @param <O>
- *            the type of evaluator-specific options
+ * @param <O> the type of evaluator-specific options
  */
 public class Evaluator<O> implements Action<EvalRequest, List<EvalResponse>, Void> {
 
@@ -62,8 +58,12 @@ public class Evaluator<O> implements Action<EvalRequest, List<EvalResponse>, Voi
 
   private Evaluator(Builder<O> builder) {
     this.name = builder.name;
-    this.info = EvaluatorInfo.builder().displayName(builder.displayName).definition(builder.definition)
-        .isBilled(builder.isBilled).build();
+    this.info =
+        EvaluatorInfo.builder()
+            .displayName(builder.displayName)
+            .definition(builder.definition)
+            .isBilled(builder.isBilled)
+            .build();
     this.evaluatorFn = builder.evaluatorFn;
     this.optionsClass = builder.optionsClass;
 
@@ -79,14 +79,17 @@ public class Evaluator<O> implements Action<EvalRequest, List<EvalResponse>, Voi
     // Build input schema for EvalRequest (matches TypeScript EvalRequestSchema)
     Map<String, Object> inputSchema = buildEvalRequestSchema();
 
-    this.desc = ActionDesc.builder().type(ActionType.EVALUATOR).name(name).description(builder.definition)
-        .inputSchema(inputSchema).metadata(metadata).build();
+    this.desc =
+        ActionDesc.builder()
+            .type(ActionType.EVALUATOR)
+            .name(name)
+            .description(builder.definition)
+            .inputSchema(inputSchema)
+            .metadata(metadata)
+            .build();
   }
 
-  /**
-   * Builds the input schema for EvalRequest matching TypeScript
-   * EvalRequestSchema.
-   */
+  /** Builds the input schema for EvalRequest matching TypeScript EvalRequestSchema. */
   private static Map<String, Object> buildEvalRequestSchema() {
     Map<String, Object> schema = new HashMap<>();
     schema.put("type", "object");
@@ -164,8 +167,7 @@ public class Evaluator<O> implements Action<EvalRequest, List<EvalResponse>, Voi
   /**
    * Creates a new Evaluator builder.
    *
-   * @param <O>
-   *            the options type
+   * @param <O> the options type
    * @return a new builder
    */
   public static <O> Builder<O> builder() {
@@ -175,21 +177,19 @@ public class Evaluator<O> implements Action<EvalRequest, List<EvalResponse>, Voi
   /**
    * Defines a new evaluator and registers it with the registry.
    *
-   * @param <O>
-   *            the options type
-   * @param registry
-   *            the registry to register with
-   * @param name
-   *            the evaluator name
-   * @param displayName
-   *            the display name shown in the UI
-   * @param definition
-   *            description of what the evaluator measures
-   * @param evaluatorFn
-   *            the evaluation function
+   * @param <O> the options type
+   * @param registry the registry to register with
+   * @param name the evaluator name
+   * @param displayName the display name shown in the UI
+   * @param definition description of what the evaluator measures
+   * @param evaluatorFn the evaluation function
    * @return the created evaluator
    */
-  public static <O> Evaluator<O> define(Registry registry, String name, String displayName, String definition,
+  public static <O> Evaluator<O> define(
+      Registry registry,
+      String name,
+      String displayName,
+      String definition,
       EvaluatorFn<O> evaluatorFn) {
     return define(registry, name, displayName, definition, true, null, evaluatorFn);
   }
@@ -197,29 +197,34 @@ public class Evaluator<O> implements Action<EvalRequest, List<EvalResponse>, Voi
   /**
    * Defines a new evaluator with full options and registers it with the registry.
    *
-   * @param <O>
-   *            the options type
-   * @param registry
-   *            the registry to register with
-   * @param name
-   *            the evaluator name
-   * @param displayName
-   *            the display name shown in the UI
-   * @param definition
-   *            description of what the evaluator measures
-   * @param isBilled
-   *            whether using this evaluator incurs costs
-   * @param optionsClass
-   *            the class for evaluator-specific options
-   * @param evaluatorFn
-   *            the evaluation function
+   * @param <O> the options type
+   * @param registry the registry to register with
+   * @param name the evaluator name
+   * @param displayName the display name shown in the UI
+   * @param definition description of what the evaluator measures
+   * @param isBilled whether using this evaluator incurs costs
+   * @param optionsClass the class for evaluator-specific options
+   * @param evaluatorFn the evaluation function
    * @return the created evaluator
    */
-  public static <O> Evaluator<O> define(Registry registry, String name, String displayName, String definition,
-      boolean isBilled, Class<O> optionsClass, EvaluatorFn<O> evaluatorFn) {
+  public static <O> Evaluator<O> define(
+      Registry registry,
+      String name,
+      String displayName,
+      String definition,
+      boolean isBilled,
+      Class<O> optionsClass,
+      EvaluatorFn<O> evaluatorFn) {
 
-    Evaluator<O> evaluator = Evaluator.<O>builder().name(name).displayName(displayName).definition(definition)
-        .isBilled(isBilled).optionsClass(optionsClass).evaluatorFn(evaluatorFn).build();
+    Evaluator<O> evaluator =
+        Evaluator.<O>builder()
+            .name(name)
+            .displayName(displayName)
+            .definition(definition)
+            .isBilled(isBilled)
+            .optionsClass(optionsClass)
+            .evaluatorFn(evaluatorFn)
+            .build();
 
     evaluator.register(registry);
     return evaluator;
@@ -274,9 +279,10 @@ public class Evaluator<O> implements Action<EvalRequest, List<EvalResponse>, Voi
       for (EvalDataPoint dataPoint : batch) {
         try {
           @SuppressWarnings("unchecked")
-          O options = input.getOptions() != null && optionsClass != null
-              ? JsonUtils.getObjectMapper().convertValue(input.getOptions(), optionsClass)
-              : null;
+          O options =
+              input.getOptions() != null && optionsClass != null
+                  ? JsonUtils.getObjectMapper().convertValue(input.getOptions(), optionsClass)
+                  : null;
 
           EvalResponse response = evaluatorFn.evaluate(dataPoint, options);
           if (response.getSampleIndex() == null) {
@@ -286,9 +292,14 @@ public class Evaluator<O> implements Action<EvalRequest, List<EvalResponse>, Voi
         } catch (Exception e) {
           logger.error("Error evaluating data point: {}", dataPoint.getTestCaseId(), e);
           // Create an error response
-          Score errorScore = Score.builder().error(e.getMessage()).status(EvalStatus.UNKNOWN).build();
-          responses.add(EvalResponse.builder().testCaseId(dataPoint.getTestCaseId()).sampleIndex(sampleIndex)
-              .evaluation(errorScore).build());
+          Score errorScore =
+              Score.builder().error(e.getMessage()).status(EvalStatus.UNKNOWN).build();
+          responses.add(
+              EvalResponse.builder()
+                  .testCaseId(dataPoint.getTestCaseId())
+                  .sampleIndex(sampleIndex)
+                  .evaluation(errorScore)
+                  .build());
         }
         sampleIndex++;
       }
@@ -306,21 +317,27 @@ public class Evaluator<O> implements Action<EvalRequest, List<EvalResponse>, Voi
   }
 
   @Override
-  public ActionRunResult<JsonNode> runJsonWithTelemetry(ActionContext ctx, JsonNode input,
-      Consumer<JsonNode> streamCallback) throws GenkitException {
+  public ActionRunResult<JsonNode> runJsonWithTelemetry(
+      ActionContext ctx, JsonNode input, Consumer<JsonNode> streamCallback) throws GenkitException {
     // Use an array to capture span info from inside the execution
     final String[] capturedTraceInfo = new String[2]; // [traceId, spanId]
 
-    SpanMetadata spanMetadata = SpanMetadata.builder().name(name).type("evaluator").subtype("evaluator").build();
+    SpanMetadata spanMetadata =
+        SpanMetadata.builder().name(name).type("evaluator").subtype("evaluator").build();
 
-    List<EvalResponse> result = Tracer.runInNewSpan(ctx, spanMetadata, input, (spanCtx, in) -> {
-      // Capture the span context
-      capturedTraceInfo[0] = spanCtx.getTraceId();
-      capturedTraceInfo[1] = spanCtx.getSpanId();
+    List<EvalResponse> result =
+        Tracer.runInNewSpan(
+            ctx,
+            spanMetadata,
+            input,
+            (spanCtx, in) -> {
+              // Capture the span context
+              capturedTraceInfo[0] = spanCtx.getTraceId();
+              capturedTraceInfo[1] = spanCtx.getSpanId();
 
-      EvalRequest request = JsonUtils.fromJsonNode(in, EvalRequest.class);
-      return run(ctx.withSpanContext(spanCtx), request, null);
-    });
+              EvalRequest request = JsonUtils.fromJsonNode(in, EvalRequest.class);
+              return run(ctx.withSpanContext(spanCtx), request, null);
+            });
 
     JsonNode jsonResult = JsonUtils.toJsonNode(result);
     return new ActionRunResult<>(jsonResult, capturedTraceInfo[0], capturedTraceInfo[1]);
@@ -370,9 +387,7 @@ public class Evaluator<O> implements Action<EvalRequest, List<EvalResponse>, Voi
     return desc.getMetadata();
   }
 
-  /**
-   * Splits a list into batches.
-   */
+  /** Splits a list into batches. */
   private static <T> List<List<T>> batchList(List<T> list, int batchSize) {
     List<List<T>> batches = new ArrayList<>();
     for (int i = 0; i < list.size(); i += batchSize) {
@@ -384,8 +399,7 @@ public class Evaluator<O> implements Action<EvalRequest, List<EvalResponse>, Voi
   /**
    * Builder for creating Evaluator instances.
    *
-   * @param <O>
-   *            the options type
+   * @param <O> the options type
    */
   public static class Builder<O> {
     private String name;

@@ -18,21 +18,19 @@
 
 package com.google.genkit.plugins.evaluators.metrics;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
- * Response schema for the long-form answer extraction in faithfulness
- * evaluation. Extracts individual statements from a generated answer.
+ * Response schema for the long-form answer extraction in faithfulness evaluation. Extracts
+ * individual statements from a generated answer.
  */
 public class LongFormResponse {
 
   @JsonProperty("statements")
   private List<String> statements;
 
-  public LongFormResponse() {
-  }
+  public LongFormResponse() {}
 
   public LongFormResponse(List<String> statements) {
     this.statements = statements;

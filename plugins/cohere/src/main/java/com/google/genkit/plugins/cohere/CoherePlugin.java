@@ -18,51 +18,49 @@
 
 package com.google.genkit.plugins.cohere;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.genkit.core.Action;
 import com.google.genkit.core.Plugin;
 import com.google.genkit.plugins.compatoai.CompatOAIModel;
 import com.google.genkit.plugins.compatoai.CompatOAIPluginOptions;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * CoherePlugin provides Cohere model integrations for Genkit.
  *
- * This plugin registers Cohere models as Genkit actions using the
- * OpenAI-compatible API.
+ * <p>This plugin registers Cohere models as Genkit actions using the OpenAI-compatible API.
  */
 public class CoherePlugin implements Plugin {
 
   private static final Logger logger = LoggerFactory.getLogger(CoherePlugin.class);
 
-  /**
-   * Supported Cohere models.
-   */
-  public static final List<String> SUPPORTED_MODELS = Arrays.asList("command-a-03-2025", "command-r7b-12-2024",
-      "command-r-08-2024", "command-r-plus-08-2024");
+  /** Supported Cohere models. */
+  public static final List<String> SUPPORTED_MODELS =
+      Arrays.asList(
+          "command-a-03-2025",
+          "command-r7b-12-2024",
+          "command-r-08-2024",
+          "command-r-plus-08-2024");
 
   private final CompatOAIPluginOptions options;
   private final List<String> customModels = new ArrayList<>();
 
-  /**
-   * Creates a CoherePlugin with default options (using COHERE_API_KEY environment
-   * variable).
-   */
+  /** Creates a CoherePlugin with default options (using COHERE_API_KEY environment variable). */
   public CoherePlugin() {
-    this(CompatOAIPluginOptions.builder().apiKey(getApiKeyFromEnv())
-        .baseUrl("https://api.cohere.ai/compatibility/v1").build());
+    this(
+        CompatOAIPluginOptions.builder()
+            .apiKey(getApiKeyFromEnv())
+            .baseUrl("https://api.cohere.ai/compatibility/v1")
+            .build());
   }
 
   /**
    * Creates a CoherePlugin with the specified options.
    *
-   * @param options
-   *            the plugin options
+   * @param options the plugin options
    */
   public CoherePlugin(CompatOAIPluginOptions options) {
     this.options = options;
@@ -71,13 +69,15 @@ public class CoherePlugin implements Plugin {
   /**
    * Creates a CoherePlugin with the specified API key.
    *
-   * @param apiKey
-   *            the Cohere API key
+   * @param apiKey the Cohere API key
    * @return a new CoherePlugin
    */
   public static CoherePlugin create(String apiKey) {
-    return new CoherePlugin(CompatOAIPluginOptions.builder().apiKey(apiKey)
-        .baseUrl("https://api.cohere.ai/compatibility/v1").build());
+    return new CoherePlugin(
+        CompatOAIPluginOptions.builder()
+            .apiKey(apiKey)
+            .baseUrl("https://api.cohere.ai/compatibility/v1")
+            .build());
   }
 
   /**
@@ -109,30 +109,36 @@ public class CoherePlugin implements Plugin {
 
     // Register Cohere models
     for (String modelName : SUPPORTED_MODELS) {
-      CompatOAIModel model = new CompatOAIModel("cohere/" + modelName, modelName, // API model name without prefix
-          "Cohere " + modelName, options);
+      CompatOAIModel model =
+          new CompatOAIModel(
+              "cohere/" + modelName,
+              modelName, // API model name
+              // without prefix
+              "Cohere " + modelName,
+              options);
       actions.add(model);
       logger.debug("Created Cohere model: {}", modelName);
     }
 
     // Register custom models added via customModel()
     for (String modelName : customModels) {
-      CompatOAIModel model = new CompatOAIModel("cohere/" + modelName, modelName, "Cohere " + modelName, options);
+      CompatOAIModel model =
+          new CompatOAIModel("cohere/" + modelName, modelName, "Cohere " + modelName, options);
       actions.add(model);
       logger.debug("Created custom Cohere model: {}", modelName);
     }
 
-    logger.info("Cohere plugin initialized with {} models", SUPPORTED_MODELS.size() + customModels.size());
+    logger.info(
+        "Cohere plugin initialized with {} models", SUPPORTED_MODELS.size() + customModels.size());
 
     return actions;
   }
 
   /**
-   * Registers a custom model name. Use this to work with models not in the
-   * default list. Call this method before passing the plugin to Genkit.builder().
-   * 
-   * @param modelName
-   *            the model name (e.g., "command-r-v2")
+   * Registers a custom model name. Use this to work with models not in the default list. Call this
+   * method before passing the plugin to Genkit.builder().
+   *
+   * @param modelName the model name (e.g., "command-r-v2")
    * @return this plugin instance for method chaining
    */
   public CoherePlugin customModel(String modelName) {

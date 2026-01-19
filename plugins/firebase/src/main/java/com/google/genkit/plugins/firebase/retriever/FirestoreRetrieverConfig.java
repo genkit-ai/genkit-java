@@ -18,31 +18,32 @@
 
 package com.google.genkit.plugins.firebase.retriever;
 
+import com.google.cloud.firestore.QueryDocumentSnapshot;
+import com.google.genkit.ai.Embedder;
+import com.google.genkit.ai.Part;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import com.google.cloud.firestore.QueryDocumentSnapshot;
-import com.google.genkit.ai.Embedder;
-import com.google.genkit.ai.Part;
-
 /**
  * Configuration for a Firestore vector search retriever.
- * 
- * <p>
- * Example:
- * 
+ *
+ * <p>Example:
+ *
  * <pre>{@code
- * FirestoreRetrieverConfig config = FirestoreRetrieverConfig.builder().name("my-docs").collection("documents")
- * 		.embedderName("googleai/text-embedding-004").vectorField("embedding").contentField("content")
- * 		.distanceMeasure(DistanceMeasure.COSINE).build();
+ * FirestoreRetrieverConfig config = FirestoreRetrieverConfig.builder()
+ *     .name("my-docs")
+ *     .collection("documents")
+ *     .embedderName("googleai/text-embedding-004")
+ *     .vectorField("embedding")
+ *     .contentField("content")
+ *     .distanceMeasure(DistanceMeasure.COSINE)
+ *     .build();
  * }</pre>
  */
 public class FirestoreRetrieverConfig {
 
-  /**
-   * Distance measure options for vector similarity search.
-   */
+  /** Distance measure options for vector similarity search. */
   public enum DistanceMeasure {
     /** Cosine similarity (default). */
     COSINE,
@@ -193,9 +194,7 @@ public class FirestoreRetrieverConfig {
     return embedderDimension > 0 ? embedderDimension : 768;
   }
 
-  /**
-   * Builder for FirestoreRetrieverConfig.
-   */
+  /** Builder for FirestoreRetrieverConfig. */
   public static class Builder {
     private String name;
     private String label;
@@ -219,8 +218,7 @@ public class FirestoreRetrieverConfig {
     /**
      * Sets the name of the retriever (required).
      *
-     * @param name
-     *            the retriever name
+     * @param name the retriever name
      * @return this builder
      */
     public Builder name(String name) {
@@ -231,8 +229,7 @@ public class FirestoreRetrieverConfig {
     /**
      * Sets the display label for the Developer UI.
      *
-     * @param label
-     *            the display label
+     * @param label the display label
      * @return this builder
      */
     public Builder label(String label) {
@@ -243,8 +240,7 @@ public class FirestoreRetrieverConfig {
     /**
      * Sets the Firestore collection name.
      *
-     * @param collection
-     *            the collection name
+     * @param collection the collection name
      * @return this builder
      */
     public Builder collection(String collection) {
@@ -255,8 +251,7 @@ public class FirestoreRetrieverConfig {
     /**
      * Sets the field name containing vector embeddings.
      *
-     * @param vectorField
-     *            the vector field name
+     * @param vectorField the vector field name
      * @return this builder
      */
     public Builder vectorField(String vectorField) {
@@ -267,8 +262,7 @@ public class FirestoreRetrieverConfig {
     /**
      * Sets the field name containing document content.
      *
-     * @param contentField
-     *            the content field name
+     * @param contentField the content field name
      * @return this builder
      */
     public Builder contentField(String contentField) {
@@ -279,8 +273,7 @@ public class FirestoreRetrieverConfig {
     /**
      * Sets a custom content extractor function.
      *
-     * @param contentExtractor
-     *            the content extractor function
+     * @param contentExtractor the content extractor function
      * @return this builder
      */
     public Builder contentExtractor(Function<QueryDocumentSnapshot, List<Part>> contentExtractor) {
@@ -291,8 +284,7 @@ public class FirestoreRetrieverConfig {
     /**
      * Sets the distance measure for vector similarity.
      *
-     * @param distanceMeasure
-     *            the distance measure
+     * @param distanceMeasure the distance measure
      * @return this builder
      */
     public Builder distanceMeasure(DistanceMeasure distanceMeasure) {
@@ -303,8 +295,7 @@ public class FirestoreRetrieverConfig {
     /**
      * Sets the distance threshold for filtering results.
      *
-     * @param distanceThreshold
-     *            the distance threshold
+     * @param distanceThreshold the distance threshold
      * @return this builder
      */
     public Builder distanceThreshold(Double distanceThreshold) {
@@ -315,8 +306,7 @@ public class FirestoreRetrieverConfig {
     /**
      * Sets the field name to store the distance in result metadata.
      *
-     * @param distanceResultField
-     *            the distance result field name
+     * @param distanceResultField the distance result field name
      * @return this builder
      */
     public Builder distanceResultField(String distanceResultField) {
@@ -327,8 +317,7 @@ public class FirestoreRetrieverConfig {
     /**
      * Sets the embedder instance to use.
      *
-     * @param embedder
-     *            the embedder
+     * @param embedder the embedder
      * @return this builder
      */
     public Builder embedder(Embedder embedder) {
@@ -339,8 +328,7 @@ public class FirestoreRetrieverConfig {
     /**
      * Sets the embedder name for resolution from registry.
      *
-     * @param embedderName
-     *            the embedder name (e.g., "googleai/text-embedding-004")
+     * @param embedderName the embedder name (e.g., "googleai/text-embedding-004")
      * @return this builder
      */
     public Builder embedderName(String embedderName) {
@@ -351,8 +339,7 @@ public class FirestoreRetrieverConfig {
     /**
      * Sets the metadata fields to include in results.
      *
-     * @param metadataFields
-     *            the list of metadata field names
+     * @param metadataFields the list of metadata field names
      * @return this builder
      */
     public Builder metadataFields(List<String> metadataFields) {
@@ -363,11 +350,11 @@ public class FirestoreRetrieverConfig {
     /**
      * Sets a custom metadata extractor function.
      *
-     * @param metadataExtractor
-     *            the metadata extractor function
+     * @param metadataExtractor the metadata extractor function
      * @return this builder
      */
-    public Builder metadataExtractor(Function<QueryDocumentSnapshot, Map<String, Object>> metadataExtractor) {
+    public Builder metadataExtractor(
+        Function<QueryDocumentSnapshot, Map<String, Object>> metadataExtractor) {
       this.metadataExtractor = metadataExtractor;
       return this;
     }
@@ -375,8 +362,7 @@ public class FirestoreRetrieverConfig {
     /**
      * Sets the default limit for retrieval results.
      *
-     * @param defaultLimit
-     *            the default limit
+     * @param defaultLimit the default limit
      * @return this builder
      */
     public Builder defaultLimit(int defaultLimit) {
@@ -386,13 +372,11 @@ public class FirestoreRetrieverConfig {
 
     /**
      * Sets whether to create the Firestore database if it doesn't exist.
-     * 
-     * <p>
-     * When enabled, the plugin will automatically create the database on first use
-     * if it doesn't exist. If the database already exists, this flag has no effect.
      *
-     * @param createDatabaseIfNotExists
-     *            true to create database automatically
+     * <p>When enabled, the plugin will automatically create the database on first use if it doesn't
+     * exist. If the database already exists, this flag has no effect.
+     *
+     * @param createDatabaseIfNotExists true to create database automatically
      * @return this builder
      */
     public Builder createDatabaseIfNotExists(boolean createDatabaseIfNotExists) {
@@ -402,12 +386,10 @@ public class FirestoreRetrieverConfig {
 
     /**
      * Sets the Firestore database ID to use.
-     * 
-     * <p>
-     * Defaults to "(default)" if not specified.
      *
-     * @param databaseId
-     *            the database ID
+     * <p>Defaults to "(default)" if not specified.
+     *
+     * @param databaseId the database ID
      * @return this builder
      */
     public Builder databaseId(String databaseId) {
@@ -417,14 +399,12 @@ public class FirestoreRetrieverConfig {
 
     /**
      * Sets whether to create the Firestore vector index if it doesn't exist.
-     * 
-     * <p>
-     * When enabled, the plugin will automatically create the vector index on the
-     * configured collection and vector field if it doesn't exist. This uses a flat
-     * index type suitable for smaller collections.
      *
-     * @param createVectorIndexIfNotExists
-     *            true to create vector index automatically
+     * <p>When enabled, the plugin will automatically create the vector index on the configured
+     * collection and vector field if it doesn't exist. This uses a flat index type suitable for
+     * smaller collections.
+     *
+     * @param createVectorIndexIfNotExists true to create vector index automatically
      * @return this builder
      */
     public Builder createVectorIndexIfNotExists(boolean createVectorIndexIfNotExists) {
@@ -434,14 +414,11 @@ public class FirestoreRetrieverConfig {
 
     /**
      * Sets the dimension of the embeddings for vector index creation.
-     * 
-     * <p>
-     * This should match the output dimension of your embedder. Common values: 768
-     * (text-embedding-004), 1536 (OpenAI ada-002). Defaults to 768 if not
-     * specified.
      *
-     * @param embedderDimension
-     *            the embedding dimension
+     * <p>This should match the output dimension of your embedder. Common values: 768
+     * (text-embedding-004), 1536 (OpenAI ada-002). Defaults to 768 if not specified.
+     *
+     * @param embedderDimension the embedding dimension
      * @return this builder
      */
     public Builder embedderDimension(int embedderDimension) {
@@ -453,8 +430,7 @@ public class FirestoreRetrieverConfig {
      * Builds the configuration.
      *
      * @return the configured FirestoreRetrieverConfig
-     * @throws IllegalStateException
-     *             if required fields are missing
+     * @throws IllegalStateException if required fields are missing
      */
     public FirestoreRetrieverConfig build() {
       if (name == null || name.isEmpty()) {

@@ -20,17 +20,13 @@ package com.google.genkit.ai;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.Arrays;
-import java.util.Map;
-
-import org.junit.jupiter.api.Test;
-
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Arrays;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
 
-/**
- * Unit tests for JSON serialization and deserialization of AI types.
- */
+/** Unit tests for JSON serialization and deserialization of AI types. */
 class JsonSerializationTest {
 
   private final ObjectMapper objectMapper;
@@ -199,8 +195,12 @@ class JsonSerializationTest {
 
   @Test
   void testComplexMessageSerialization() throws Exception {
-    Message message = new Message(Role.USER, Arrays.asList(Part.text("Look at this image: "),
-        Part.media("image/png", "http://example.com/img.png")));
+    Message message =
+        new Message(
+            Role.USER,
+            Arrays.asList(
+                Part.text("Look at this image: "),
+                Part.media("image/png", "http://example.com/img.png")));
     message.setMetadata(Map.of("timestamp", "2025-01-01T12:00:00Z"));
 
     String json = objectMapper.writeValueAsString(message);

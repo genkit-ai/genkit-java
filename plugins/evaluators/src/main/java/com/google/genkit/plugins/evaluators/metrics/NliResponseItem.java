@@ -21,8 +21,8 @@ package com.google.genkit.plugins.evaluators.metrics;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * A single NLI (Natural Language Inference) response item. Used in faithfulness
- * evaluation to check if statements can be inferred from context.
+ * A single NLI (Natural Language Inference) response item. Used in faithfulness evaluation to check
+ * if statements can be inferred from context.
  */
 public class NliResponseItem {
 
@@ -35,8 +35,7 @@ public class NliResponseItem {
   @JsonProperty("verdict")
   private boolean verdict;
 
-  public NliResponseItem() {
-  }
+  public NliResponseItem() {}
 
   public NliResponseItem(String statement, String reason, boolean verdict) {
     this.statement = statement;

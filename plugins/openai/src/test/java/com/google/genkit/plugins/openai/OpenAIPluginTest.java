@@ -20,11 +20,9 @@ package com.google.genkit.plugins.openai;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.List;
-
-import org.junit.jupiter.api.Test;
-
 import com.google.genkit.core.Action;
+import java.util.List;
+import org.junit.jupiter.api.Test;
 
 class OpenAIPluginTest {
 
@@ -39,8 +37,12 @@ class OpenAIPluginTest {
 
   @Test
   void testConstructionWithOptions() {
-    OpenAIPluginOptions options = OpenAIPluginOptions.builder().apiKey("test-key").baseUrl("https://test.api.com")
-        .timeout(30).build();
+    OpenAIPluginOptions options =
+        OpenAIPluginOptions.builder()
+            .apiKey("test-key")
+            .baseUrl("https://test.api.com")
+            .timeout(30)
+            .build();
 
     OpenAIPlugin plugin = new OpenAIPlugin(options);
 
@@ -66,7 +68,8 @@ class OpenAIPluginTest {
 
   @Test
   void testInitializesActions() {
-    OpenAIPlugin plugin = new OpenAIPlugin(OpenAIPluginOptions.builder().apiKey("test-key").build());
+    OpenAIPlugin plugin =
+        new OpenAIPlugin(OpenAIPluginOptions.builder().apiKey("test-key").build());
 
     List<Action<?, ?, ?>> actions = plugin.init();
 
@@ -100,7 +103,8 @@ class OpenAIPluginTest {
 
   @Test
   void testCustomModel() {
-    OpenAIPlugin plugin = new OpenAIPlugin(OpenAIPluginOptions.builder().apiKey("test-key").build());
+    OpenAIPlugin plugin =
+        new OpenAIPlugin(OpenAIPluginOptions.builder().apiKey("test-key").build());
 
     plugin.customModel("custom-model");
 
@@ -110,7 +114,8 @@ class OpenAIPluginTest {
 
   @Test
   void testCustomEmbeddingModel() {
-    OpenAIPlugin plugin = new OpenAIPlugin(OpenAIPluginOptions.builder().apiKey("test-key").build());
+    OpenAIPlugin plugin =
+        new OpenAIPlugin(OpenAIPluginOptions.builder().apiKey("test-key").build());
 
     plugin.customEmbeddingModel("custom-embedding");
 
@@ -119,7 +124,8 @@ class OpenAIPluginTest {
 
   @Test
   void testCustomImageModel() {
-    OpenAIPlugin plugin = new OpenAIPlugin(OpenAIPluginOptions.builder().apiKey("test-key").build());
+    OpenAIPlugin plugin =
+        new OpenAIPlugin(OpenAIPluginOptions.builder().apiKey("test-key").build());
 
     plugin.customImageModel("custom-image-model");
 
@@ -128,7 +134,8 @@ class OpenAIPluginTest {
 
   @Test
   void testGetOptions() {
-    OpenAIPluginOptions options = OpenAIPluginOptions.builder().apiKey("test-key").organization("org-123").build();
+    OpenAIPluginOptions options =
+        OpenAIPluginOptions.builder().apiKey("test-key").organization("org-123").build();
 
     OpenAIPlugin plugin = new OpenAIPlugin(options);
     OpenAIPluginOptions retrievedOptions = plugin.getOptions();

@@ -18,50 +18,47 @@
 
 package com.google.genkit.plugins.deepseek;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.genkit.core.Action;
 import com.google.genkit.core.Plugin;
 import com.google.genkit.plugins.compatoai.CompatOAIModel;
 import com.google.genkit.plugins.compatoai.CompatOAIPluginOptions;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * DeepSeekPlugin provides DeepSeek model integrations for Genkit.
  *
- * This plugin registers DeepSeek models as Genkit actions using the
- * OpenAI-compatible API.
+ * <p>This plugin registers DeepSeek models as Genkit actions using the OpenAI-compatible API.
  */
 public class DeepSeekPlugin implements Plugin {
 
   private static final Logger logger = LoggerFactory.getLogger(DeepSeekPlugin.class);
 
-  /**
-   * Supported DeepSeek models.
-   */
-  public static final List<String> SUPPORTED_MODELS = Arrays.asList("deepseek-chat", "deepseek-reasoner");
+  /** Supported DeepSeek models. */
+  public static final List<String> SUPPORTED_MODELS =
+      Arrays.asList("deepseek-chat", "deepseek-reasoner");
 
   private final CompatOAIPluginOptions options;
   private final List<String> customModels = new ArrayList<>();
 
   /**
-   * Creates a DeepSeekPlugin with default options (using DEEPSEEK_API_KEY
-   * environment variable).
+   * Creates a DeepSeekPlugin with default options (using DEEPSEEK_API_KEY environment variable).
    */
   public DeepSeekPlugin() {
-    this(CompatOAIPluginOptions.builder().apiKey(getApiKeyFromEnv()).baseUrl("https://api.deepseek.com/v1")
-        .build());
+    this(
+        CompatOAIPluginOptions.builder()
+            .apiKey(getApiKeyFromEnv())
+            .baseUrl("https://api.deepseek.com/v1")
+            .build());
   }
 
   /**
    * Creates a DeepSeekPlugin with the specified options.
    *
-   * @param options
-   *            the plugin options
+   * @param options the plugin options
    */
   public DeepSeekPlugin(CompatOAIPluginOptions options) {
     this.options = options;
@@ -70,13 +67,15 @@ public class DeepSeekPlugin implements Plugin {
   /**
    * Creates a DeepSeekPlugin with the specified API key.
    *
-   * @param apiKey
-   *            the DeepSeek API key
+   * @param apiKey the DeepSeek API key
    * @return a new DeepSeekPlugin
    */
   public static DeepSeekPlugin create(String apiKey) {
     return new DeepSeekPlugin(
-        CompatOAIPluginOptions.builder().apiKey(apiKey).baseUrl("https://api.deepseek.com/v1").build());
+        CompatOAIPluginOptions.builder()
+            .apiKey(apiKey)
+            .baseUrl("https://api.deepseek.com/v1")
+            .build());
   }
 
   /**
@@ -108,32 +107,38 @@ public class DeepSeekPlugin implements Plugin {
 
     // Register DeepSeek models
     for (String modelName : SUPPORTED_MODELS) {
-      CompatOAIModel model = new CompatOAIModel("deepseek/" + modelName, modelName, // API model name without
-          // prefix
-          "DeepSeek " + modelName, options);
+      CompatOAIModel model =
+          new CompatOAIModel(
+              "deepseek/" + modelName,
+              modelName, // API model
+              // name without
+              // prefix
+              "DeepSeek " + modelName,
+              options);
       actions.add(model);
       logger.debug("Created DeepSeek model: {}", modelName);
     }
 
     // Register custom models added via customModel()
     for (String modelName : customModels) {
-      CompatOAIModel model = new CompatOAIModel("deepseek/" + modelName, modelName, "DeepSeek " + modelName,
-          options);
+      CompatOAIModel model =
+          new CompatOAIModel("deepseek/" + modelName, modelName, "DeepSeek " + modelName, options);
       actions.add(model);
       logger.debug("Created custom DeepSeek model: {}", modelName);
     }
 
-    logger.info("DeepSeek plugin initialized with {} models", SUPPORTED_MODELS.size() + customModels.size());
+    logger.info(
+        "DeepSeek plugin initialized with {} models",
+        SUPPORTED_MODELS.size() + customModels.size());
 
     return actions;
   }
 
   /**
-   * Registers a custom model name. Use this to work with models not in the
-   * default list. Call this method before passing the plugin to Genkit.builder().
-   * 
-   * @param modelName
-   *            the model name (e.g., "deepseek-v3")
+   * Registers a custom model name. Use this to work with models not in the default list. Call this
+   * method before passing the plugin to Genkit.builder().
+   *
+   * @param modelName the model name (e.g., "deepseek-v3")
    * @return this plugin instance for method chaining
    */
   public DeepSeekPlugin customModel(String modelName) {

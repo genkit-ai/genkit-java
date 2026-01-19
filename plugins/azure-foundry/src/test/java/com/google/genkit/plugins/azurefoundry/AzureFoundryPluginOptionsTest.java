@@ -26,40 +26,50 @@ class AzureFoundryPluginOptionsTest {
 
   @Test
   void testDefaultBuilder() {
-    AzureFoundryPluginOptions options = AzureFoundryPluginOptions.builder().endpoint("https://test.azure.com")
-        .build();
+    AzureFoundryPluginOptions options =
+        AzureFoundryPluginOptions.builder().endpoint("https://test.azure.com").build();
 
     assertNotNull(options);
   }
 
   @Test
   void testBuilderWithEndpoint() {
-    AzureFoundryPluginOptions options = AzureFoundryPluginOptions.builder()
-        .endpoint("https://test.openai.azure.com").build();
+    AzureFoundryPluginOptions options =
+        AzureFoundryPluginOptions.builder().endpoint("https://test.openai.azure.com").build();
 
     assertEquals("https://test.openai.azure.com", options.getEndpoint());
   }
 
   @Test
   void testBuilderWithApiKey() {
-    AzureFoundryPluginOptions options = AzureFoundryPluginOptions.builder().endpoint("https://test.azure.com")
-        .apiKey("test-key-123").build();
+    AzureFoundryPluginOptions options =
+        AzureFoundryPluginOptions.builder()
+            .endpoint("https://test.azure.com")
+            .apiKey("test-key-123")
+            .build();
 
     assertEquals("test-key-123", options.getApiKey());
   }
 
   @Test
   void testBuilderWithDeploymentId() {
-    AzureFoundryPluginOptions options = AzureFoundryPluginOptions.builder().endpoint("https://test.azure.com")
-        .deployment("my-deployment").build();
+    AzureFoundryPluginOptions options =
+        AzureFoundryPluginOptions.builder()
+            .endpoint("https://test.azure.com")
+            .deployment("my-deployment")
+            .build();
 
     assertEquals("my-deployment", options.getDeployment());
   }
 
   @Test
   void testBuilderWithAllOptions() {
-    AzureFoundryPluginOptions options = AzureFoundryPluginOptions.builder().endpoint("https://test.azure.com")
-        .apiKey("test-key").deployment("my-deployment").build();
+    AzureFoundryPluginOptions options =
+        AzureFoundryPluginOptions.builder()
+            .endpoint("https://test.azure.com")
+            .apiKey("test-key")
+            .deployment("my-deployment")
+            .build();
 
     assertEquals("https://test.azure.com", options.getEndpoint());
     assertEquals("test-key", options.getApiKey());

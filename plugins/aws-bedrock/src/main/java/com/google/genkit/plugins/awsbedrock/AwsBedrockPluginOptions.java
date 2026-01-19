@@ -22,9 +22,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 
-/**
- * Configuration options for the AWS Bedrock plugin.
- */
+/** Configuration options for the AWS Bedrock plugin. */
 public class AwsBedrockPluginOptions {
 
   private final Region region;
@@ -62,9 +60,7 @@ public class AwsBedrockPluginOptions {
     return new Builder();
   }
 
-  /**
-   * Builder for AwsBedrockPluginOptions.
-   */
+  /** Builder for AwsBedrockPluginOptions. */
   public static class Builder {
 
     private Region region = Region.US_EAST_1;
@@ -73,8 +69,7 @@ public class AwsBedrockPluginOptions {
     /**
      * Sets the AWS region.
      *
-     * @param region
-     *            the region
+     * @param region the region
      * @return this builder
      */
     public Builder region(Region region) {
@@ -85,8 +80,7 @@ public class AwsBedrockPluginOptions {
     /**
      * Sets the AWS region by region string.
      *
-     * @param regionString
-     *            the region string (e.g., "us-east-1")
+     * @param regionString the region string (e.g., "us-east-1")
      * @return this builder
      */
     public Builder region(String regionString) {
@@ -97,8 +91,7 @@ public class AwsBedrockPluginOptions {
     /**
      * Sets the AWS credentials provider.
      *
-     * @param credentialsProvider
-     *            the credentials provider
+     * @param credentialsProvider the credentials provider
      * @return this builder
      */
     public Builder credentialsProvider(AwsCredentialsProvider credentialsProvider) {

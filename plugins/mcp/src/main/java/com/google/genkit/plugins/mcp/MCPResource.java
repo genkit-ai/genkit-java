@@ -21,9 +21,8 @@ package com.google.genkit.plugins.mcp;
 /**
  * Represents an MCP resource.
  *
- * <p>
- * Resources in MCP are data sources that can be read by clients. They have a
- * URI, name, optional description, and MIME type.
+ * <p>Resources in MCP are data sources that can be read by clients. They have a URI, name, optional
+ * description, and MIME type.
  */
 public class MCPResource {
 
@@ -35,14 +34,10 @@ public class MCPResource {
   /**
    * Creates a new MCP resource.
    *
-   * @param uri
-   *            the resource URI
-   * @param name
-   *            the resource name
-   * @param description
-   *            the resource description
-   * @param mimeType
-   *            the MIME type
+   * @param uri the resource URI
+   * @param name the resource name
+   * @param description the resource description
+   * @param mimeType the MIME type
    */
   public MCPResource(String uri, String name, String description, String mimeType) {
     this.uri = uri;
@@ -89,7 +84,19 @@ public class MCPResource {
 
   @Override
   public String toString() {
-    return "MCPResource{" + "uri='" + uri + '\'' + ", name='" + name + '\'' + ", description='" + description + '\''
-        + ", mimeType='" + mimeType + '\'' + '}';
+    return "MCPResource{"
+        + "uri='"
+        + uri
+        + '\''
+        + ", name='"
+        + name
+        + '\''
+        + ", description='"
+        + description
+        + '\''
+        + ", mimeType='"
+        + mimeType
+        + '\''
+        + '}';
   }
 }

@@ -18,12 +18,6 @@
 
 package com.google.genkit.plugins.googlegenai;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.genai.Client;
 import com.google.genai.types.ContentEmbedding;
 import com.google.genai.types.EmbedContentConfig;
@@ -35,10 +29,12 @@ import com.google.genkit.ai.Embedder;
 import com.google.genkit.ai.EmbedderInfo;
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.GenkitException;
+import java.util.ArrayList;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * Gemini embedder implementation using the official Google GenAI SDK.
- */
+/** Gemini embedder implementation using the official Google GenAI SDK. */
 public class GeminiEmbedder extends Embedder {
 
   private static final Logger logger = LoggerFactory.getLogger(GeminiEmbedder.class);
@@ -50,16 +46,16 @@ public class GeminiEmbedder extends Embedder {
   /**
    * Creates a new GeminiEmbedder.
    *
-   * @param modelName
-   *            the embedding model name (e.g., "text-embedding-004",
-   *            "gemini-embedding-001")
-   * @param options
-   *            the plugin options
+   * @param modelName the embedding model name (e.g., "text-embedding-004", "gemini-embedding-001")
+   * @param options the plugin options
    */
   public GeminiEmbedder(String modelName, GoogleGenAIPluginOptions options) {
-    super("googleai/" + modelName, createEmbedderInfo(modelName), (ctx, req) -> {
-      throw new GenkitException("Handler not initialized");
-    });
+    super(
+        "googleai/" + modelName,
+        createEmbedderInfo(modelName),
+        (ctx, req) -> {
+          throw new GenkitException("Handler not initialized");
+        });
     this.modelName = modelName;
     this.options = options;
   }
@@ -109,17 +105,17 @@ public class GeminiEmbedder extends Embedder {
 
     // Default dimensions for Gemini embedding models
     switch (modelName) {
-      case "text-embedding-004" :
-      case "text-embedding-005" :
+      case "text-embedding-004":
+      case "text-embedding-005":
         info.setDimensions(768);
         break;
-      case "gemini-embedding-001" :
+      case "gemini-embedding-001":
         info.setDimensions(768);
         break;
-      case "text-multilingual-embedding-002" :
+      case "text-multilingual-embedding-002":
         info.setDimensions(768);
         break;
-      default :
+      default:
         info.setDimensions(768); // Default
     }
 
@@ -170,7 +166,8 @@ public class GeminiEmbedder extends Embedder {
         }
       }
 
-      EmbedContentResponse response = client().models.embedContent(modelName, text, configBuilder.build());
+      EmbedContentResponse response =
+          client().models.embedContent(modelName, text, configBuilder.build());
 
       if (response.embeddings().isPresent() && !response.embeddings().get().isEmpty()) {
         ContentEmbedding embedding = response.embeddings().get().get(0);

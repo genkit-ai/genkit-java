@@ -18,15 +18,12 @@
 
 package com.google.genkit.plugins.firebase;
 
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.genkit.plugins.firebase.retriever.FirestoreRetrieverConfig;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.auth.oauth2.GoogleCredentials;
-import com.google.genkit.plugins.firebase.retriever.FirestoreRetrieverConfig;
-
-/**
- * Configuration for the Firebase plugin.
- */
+/** Configuration for the Firebase plugin. */
 public class FirebasePluginConfig {
 
   private final String projectId;
@@ -84,9 +81,7 @@ public class FirebasePluginConfig {
     return retrieverConfigs;
   }
 
-  /**
-   * Builder for FirebasePluginConfig.
-   */
+  /** Builder for FirebasePluginConfig. */
   public static class Builder {
     private String projectId;
     private GoogleCredentials credentials;

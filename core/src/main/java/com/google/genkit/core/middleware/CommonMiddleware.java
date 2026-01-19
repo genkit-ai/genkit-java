@@ -18,23 +18,18 @@
 
 package com.google.genkit.core.middleware;
 
+import com.google.genkit.core.ActionContext;
+import com.google.genkit.core.GenkitException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.genkit.core.ActionContext;
-import com.google.genkit.core.GenkitException;
-
-/**
- * CommonMiddleware provides factory methods for creating commonly-used
- * middleware functions.
- */
+/** CommonMiddleware provides factory methods for creating commonly-used middleware functions. */
 public final class CommonMiddleware {
 
   private static final Logger logger = LoggerFactory.getLogger(CommonMiddleware.class);
@@ -46,12 +41,9 @@ public final class CommonMiddleware {
   /**
    * Creates a logging middleware that logs requests and responses.
    *
-   * @param name
-   *            the name to use in log messages
-   * @param <I>
-   *            input type
-   * @param <O>
-   *            output type
+   * @param name the name to use in log messages
+   * @param <I> input type
+   * @param <O> output type
    * @return a logging middleware
    */
   public static <I, O> Middleware<I, O> logging(String name) {
@@ -74,14 +66,10 @@ public final class CommonMiddleware {
   /**
    * Creates a logging middleware with a custom logger.
    *
-   * @param name
-   *            the name to use in log messages
-   * @param customLogger
-   *            the logger to use
-   * @param <I>
-   *            input type
-   * @param <O>
-   *            output type
+   * @param name the name to use in log messages
+   * @param customLogger the logger to use
+   * @param <I> input type
+   * @param <O> output type
    * @return a logging middleware
    */
   public static <I, O> Middleware<I, O> logging(String name, Logger customLogger) {
@@ -104,12 +92,9 @@ public final class CommonMiddleware {
   /**
    * Creates a timing middleware that measures execution time.
    *
-   * @param callback
-   *            callback to receive timing information (duration in milliseconds)
-   * @param <I>
-   *            input type
-   * @param <O>
-   *            output type
+   * @param callback callback to receive timing information (duration in milliseconds)
+   * @param <I> input type
+   * @param <O> output type
    * @return a timing middleware
    */
   public static <I, O> Middleware<I, O> timing(Consumer<Long> callback) {
@@ -127,14 +112,10 @@ public final class CommonMiddleware {
   /**
    * Creates a retry middleware with exponential backoff.
    *
-   * @param maxRetries
-   *            maximum number of retry attempts
-   * @param initialDelayMs
-   *            initial delay between retries in milliseconds
-   * @param <I>
-   *            input type
-   * @param <O>
-   *            output type
+   * @param maxRetries maximum number of retry attempts
+   * @param initialDelayMs initial delay between retries in milliseconds
+   * @param <I> input type
+   * @param <O> output type
    * @return a retry middleware
    */
   public static <I, O> Middleware<I, O> retry(int maxRetries, long initialDelayMs) {
@@ -142,23 +123,17 @@ public final class CommonMiddleware {
   }
 
   /**
-   * Creates a retry middleware with exponential backoff and custom retry
-   * predicate.
+   * Creates a retry middleware with exponential backoff and custom retry predicate.
    *
-   * @param maxRetries
-   *            maximum number of retry attempts
-   * @param initialDelayMs
-   *            initial delay between retries in milliseconds
-   * @param shouldRetry
-   *            predicate to determine if an exception should trigger a retry
-   * @param <I>
-   *            input type
-   * @param <O>
-   *            output type
+   * @param maxRetries maximum number of retry attempts
+   * @param initialDelayMs initial delay between retries in milliseconds
+   * @param shouldRetry predicate to determine if an exception should trigger a retry
+   * @param <I> input type
+   * @param <O> output type
    * @return a retry middleware
    */
-  public static <I, O> Middleware<I, O> retry(int maxRetries, long initialDelayMs,
-      Function<GenkitException, Boolean> shouldRetry) {
+  public static <I, O> Middleware<I, O> retry(
+      int maxRetries, long initialDelayMs, Function<GenkitException, Boolean> shouldRetry) {
     return (request, context, next) -> {
       int attempt = 0;
       GenkitException lastException = null;
@@ -190,12 +165,9 @@ public final class CommonMiddleware {
   /**
    * Creates a validation middleware that validates the request before processing.
    *
-   * @param validator
-   *            the validation function (throws GenkitException on invalid input)
-   * @param <I>
-   *            input type
-   * @param <O>
-   *            output type
+   * @param validator the validation function (throws GenkitException on invalid input)
+   * @param <I> input type
+   * @param <O> output type
    * @return a validation middleware
    */
   public static <I, O> Middleware<I, O> validate(Consumer<I> validator) {
@@ -206,15 +178,11 @@ public final class CommonMiddleware {
   }
 
   /**
-   * Creates a transformation middleware that transforms the request before
-   * processing.
+   * Creates a transformation middleware that transforms the request before processing.
    *
-   * @param transformer
-   *            the transformation function
-   * @param <I>
-   *            input type
-   * @param <O>
-   *            output type
+   * @param transformer the transformation function
+   * @param <I> input type
+   * @param <O> output type
    * @return a transformation middleware
    */
   public static <I, O> Middleware<I, O> transformRequest(Function<I, I> transformer) {
@@ -225,15 +193,11 @@ public final class CommonMiddleware {
   }
 
   /**
-   * Creates a transformation middleware that transforms the response after
-   * processing.
+   * Creates a transformation middleware that transforms the response after processing.
    *
-   * @param transformer
-   *            the transformation function
-   * @param <I>
-   *            input type
-   * @param <O>
-   *            output type
+   * @param transformer the transformation function
+   * @param <I> input type
+   * @param <O> output type
    * @return a transformation middleware
    */
   public static <I, O> Middleware<I, O> transformResponse(Function<O, O> transformer) {
@@ -246,17 +210,14 @@ public final class CommonMiddleware {
   /**
    * Creates a caching middleware that caches results based on a key.
    *
-   * @param cache
-   *            the cache implementation
-   * @param keyExtractor
-   *            function to extract cache key from request
-   * @param <I>
-   *            input type
-   * @param <O>
-   *            output type
+   * @param cache the cache implementation
+   * @param keyExtractor function to extract cache key from request
+   * @param <I> input type
+   * @param <O> output type
    * @return a caching middleware
    */
-  public static <I, O> Middleware<I, O> cache(MiddlewareCache<O> cache, Function<I, String> keyExtractor) {
+  public static <I, O> Middleware<I, O> cache(
+      MiddlewareCache<O> cache, Function<I, String> keyExtractor) {
     return (request, context, next) -> {
       String key = keyExtractor.apply(request);
       O cached = cache.get(key);
@@ -273,12 +234,9 @@ public final class CommonMiddleware {
   /**
    * Creates an error handling middleware that catches and transforms exceptions.
    *
-   * @param errorHandler
-   *            the error handler function
-   * @param <I>
-   *            input type
-   * @param <O>
-   *            output type
+   * @param errorHandler the error handler function
+   * @param <I> input type
+   * @param <O> output type
    * @return an error handling middleware
    */
   public static <I, O> Middleware<I, O> errorHandler(Function<GenkitException, O> errorHandler) {
@@ -294,18 +252,14 @@ public final class CommonMiddleware {
   /**
    * Creates a conditional middleware that only applies if the predicate is true.
    *
-   * @param predicate
-   *            the condition to check
-   * @param middleware
-   *            the middleware to apply if condition is true
-   * @param <I>
-   *            input type
-   * @param <O>
-   *            output type
+   * @param predicate the condition to check
+   * @param middleware the middleware to apply if condition is true
+   * @param <I> input type
+   * @param <O> output type
    * @return a conditional middleware
    */
-  public static <I, O> Middleware<I, O> conditional(BiPredicate<I, ActionContext> predicate,
-      Middleware<I, O> middleware) {
+  public static <I, O> Middleware<I, O> conditional(
+      BiPredicate<I, ActionContext> predicate, Middleware<I, O> middleware) {
     return (request, context, next) -> {
       if (predicate.test(request, context)) {
         return middleware.handle(request, context, next);
@@ -315,21 +269,16 @@ public final class CommonMiddleware {
   }
 
   /**
-   * Creates a before/after middleware that runs callbacks before and after
-   * execution.
+   * Creates a before/after middleware that runs callbacks before and after execution.
    *
-   * @param before
-   *            callback to run before execution
-   * @param after
-   *            callback to run after execution
-   * @param <I>
-   *            input type
-   * @param <O>
-   *            output type
+   * @param before callback to run before execution
+   * @param after callback to run after execution
+   * @param <I> input type
+   * @param <O> output type
    * @return a before/after middleware
    */
-  public static <I, O> Middleware<I, O> beforeAfter(BiConsumer<I, ActionContext> before,
-      BiConsumer<O, ActionContext> after) {
+  public static <I, O> Middleware<I, O> beforeAfter(
+      BiConsumer<I, ActionContext> before, BiConsumer<O, ActionContext> after) {
     return (request, context, next) -> {
       if (before != null) {
         before.accept(request, context);
@@ -345,14 +294,10 @@ public final class CommonMiddleware {
   /**
    * Creates a rate limiting middleware (simple token bucket implementation).
    *
-   * @param maxRequests
-   *            maximum requests allowed in the time window
-   * @param windowMs
-   *            time window in milliseconds
-   * @param <I>
-   *            input type
-   * @param <O>
-   *            output type
+   * @param maxRequests maximum requests allowed in the time window
+   * @param windowMs time window in milliseconds
+   * @param <I> input type
+   * @param <O> output type
    * @return a rate limiting middleware
    */
   public static <I, O> Middleware<I, O> rateLimit(int maxRequests, long windowMs) {
@@ -360,15 +305,11 @@ public final class CommonMiddleware {
   }
 
   /**
-   * Creates a timeout middleware that throws an exception if execution takes too
-   * long.
+   * Creates a timeout middleware that throws an exception if execution takes too long.
    *
-   * @param timeoutMs
-   *            timeout in milliseconds
-   * @param <I>
-   *            input type
-   * @param <O>
-   *            output type
+   * @param timeoutMs timeout in milliseconds
+   * @param <I> input type
+   * @param <O> output type
    * @return a timeout middleware
    */
   public static <I, O> Middleware<I, O> timeout(long timeoutMs) {
@@ -385,9 +326,7 @@ public final class CommonMiddleware {
     };
   }
 
-  /**
-   * Simple rate limiting middleware implementation.
-   */
+  /** Simple rate limiting middleware implementation. */
   private static class RateLimitMiddleware<I, O> implements Middleware<I, O> {
 
     private final int maxRequests;
@@ -415,7 +354,8 @@ public final class CommonMiddleware {
 
       // Check rate limit
       if (requestCount >= maxRequests) {
-        throw new GenkitException("Rate limit exceeded: " + maxRequests + " requests per " + windowMs + "ms");
+        throw new GenkitException(
+            "Rate limit exceeded: " + maxRequests + " requests per " + windowMs + "ms");
       }
 
       requestCount++;

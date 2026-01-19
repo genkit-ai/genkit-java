@@ -18,6 +18,8 @@
 
 package com.google.genkit.ai.evaluation;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.genkit.core.JsonUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -25,21 +27,17 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.google.genkit.core.JsonUtils;
-
 /**
  * File-based implementation of DatasetStore.
- * 
- * <p>
- * Stores datasets in the .genkit/datasets directory with:
+ *
+ * <p>Stores datasets in the .genkit/datasets directory with:
+ *
  * <ul>
- * <li>index.json - metadata for all datasets</li>
- * <li>{datasetId}.json - actual dataset data</li>
+ *   <li>index.json - metadata for all datasets
+ *   <li>{datasetId}.json - actual dataset data
  * </ul>
  */
 public class LocalFileDatasetStore implements DatasetStore {
@@ -68,9 +66,7 @@ public class LocalFileDatasetStore implements DatasetStore {
     return instance;
   }
 
-  /**
-   * Creates a new LocalFileDatasetStore using the default location.
-   */
+  /** Creates a new LocalFileDatasetStore using the default location. */
   public LocalFileDatasetStore() {
     this(Paths.get(System.getProperty("user.dir"), GENKIT_DIR, DATASETS_DIR));
   }
@@ -78,8 +74,7 @@ public class LocalFileDatasetStore implements DatasetStore {
   /**
    * Creates a new LocalFileDatasetStore with a custom root path.
    *
-   * @param storeRoot
-   *            the root directory for storing datasets
+   * @param storeRoot the root directory for storing datasets
    */
   public LocalFileDatasetStore(Path storeRoot) {
     this.storeRoot = storeRoot;
@@ -104,9 +99,9 @@ public class LocalFileDatasetStore implements DatasetStore {
   private void loadIndex() throws IOException {
     if (Files.exists(indexFile)) {
       String content = Files.readString(indexFile);
-      Map<String, DatasetMetadata> index = JsonUtils.getObjectMapper().readValue(content,
-          new TypeReference<Map<String, DatasetMetadata>>() {
-          });
+      Map<String, DatasetMetadata> index =
+          JsonUtils.getObjectMapper()
+              .readValue(content, new TypeReference<Map<String, DatasetMetadata>>() {});
       indexCache.clear();
       indexCache.putAll(index);
     }
@@ -150,12 +145,20 @@ public class LocalFileDatasetStore implements DatasetStore {
     }
 
     String now = Instant.now().toString();
-    DatasetMetadata metadata = DatasetMetadata.builder().datasetId(datasetId).size(data.size())
-        .schema(request.getSchema())
-        .datasetType(request.getDatasetType() != null ? request.getDatasetType() : DatasetType.UNKNOWN)
-        .targetAction(request.getTargetAction())
-        .metricRefs(request.getMetricRefs() != null ? request.getMetricRefs() : new ArrayList<>()).version(1)
-        .createTime(now).updateTime(now).build();
+    DatasetMetadata metadata =
+        DatasetMetadata.builder()
+            .datasetId(datasetId)
+            .size(data.size())
+            .schema(request.getSchema())
+            .datasetType(
+                request.getDatasetType() != null ? request.getDatasetType() : DatasetType.UNKNOWN)
+            .targetAction(request.getTargetAction())
+            .metricRefs(
+                request.getMetricRefs() != null ? request.getMetricRefs() : new ArrayList<>())
+            .version(1)
+            .createTime(now)
+            .updateTime(now)
+            .build();
 
     // Save the dataset data
     String dataJson = JsonUtils.toJson(data);
@@ -200,13 +203,24 @@ public class LocalFileDatasetStore implements DatasetStore {
     }
 
     String now = Instant.now().toString();
-    DatasetMetadata updated = DatasetMetadata.builder().datasetId(datasetId).size(size)
-        .schema(request.getSchema() != null ? request.getSchema() : existing.getSchema())
-        .datasetType(existing.getDatasetType())
-        .targetAction(
-            request.getTargetAction() != null ? request.getTargetAction() : existing.getTargetAction())
-        .metricRefs(request.getMetricRefs() != null ? request.getMetricRefs() : existing.getMetricRefs())
-        .version(existing.getVersion() + 1).createTime(existing.getCreateTime()).updateTime(now).build();
+    DatasetMetadata updated =
+        DatasetMetadata.builder()
+            .datasetId(datasetId)
+            .size(size)
+            .schema(request.getSchema() != null ? request.getSchema() : existing.getSchema())
+            .datasetType(existing.getDatasetType())
+            .targetAction(
+                request.getTargetAction() != null
+                    ? request.getTargetAction()
+                    : existing.getTargetAction())
+            .metricRefs(
+                request.getMetricRefs() != null
+                    ? request.getMetricRefs()
+                    : existing.getMetricRefs())
+            .version(existing.getVersion() + 1)
+            .createTime(existing.getCreateTime())
+            .updateTime(now)
+            .build();
 
     // Update the index
     indexCache.put(datasetId, updated);
@@ -228,8 +242,8 @@ public class LocalFileDatasetStore implements DatasetStore {
     }
 
     String content = Files.readString(datasetFile);
-    return JsonUtils.getObjectMapper().readValue(content, new TypeReference<List<DatasetSample>>() {
-    });
+    return JsonUtils.getObjectMapper()
+        .readValue(content, new TypeReference<List<DatasetSample>>() {});
   }
 
   @Override

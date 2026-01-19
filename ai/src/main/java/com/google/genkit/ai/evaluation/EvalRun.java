@@ -18,31 +18,23 @@
 
 package com.google.genkit.ai.evaluation;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 
-/**
- * Represents a complete evaluation run with results.
- */
+/** Represents a complete evaluation run with results. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class EvalRun {
 
-  /**
-   * Key identifying this evaluation run.
-   */
+  /** Key identifying this evaluation run. */
   @JsonProperty("key")
   private EvalRunKey key;
 
-  /**
-   * Results for all test cases.
-   */
+  /** Results for all test cases. */
   @JsonProperty("results")
   private List<EvalResult> results;
 
-  public EvalRun() {
-  }
+  public EvalRun() {}
 
   private EvalRun(Builder builder) {
     this.key = builder.key;

@@ -22,26 +22,24 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * SessionStore is an interface for persisting session data.
- * 
- * <p>
- * Implementations can provide different storage backends such as:
+ *
+ * <p>Implementations can provide different storage backends such as:
+ *
  * <ul>
- * <li>In-memory storage (for development/testing)</li>
- * <li>Database storage (for production)</li>
- * <li>Redis or other distributed cache</li>
- * <li>File-based storage</li>
+ *   <li>In-memory storage (for development/testing)
+ *   <li>Database storage (for production)
+ *   <li>Redis or other distributed cache
+ *   <li>File-based storage
  * </ul>
  *
- * @param <S>
- *            the type of the custom session state
+ * @param <S> the type of the custom session state
  */
 public interface SessionStore<S> {
 
   /**
    * Retrieves a session by its ID.
    *
-   * @param sessionId
-   *            the session ID
+   * @param sessionId the session ID
    * @return a CompletableFuture containing the session data, or null if not found
    */
   CompletableFuture<SessionData<S>> get(String sessionId);
@@ -49,10 +47,8 @@ public interface SessionStore<S> {
   /**
    * Saves session data.
    *
-   * @param sessionId
-   *            the session ID
-   * @param data
-   *            the session data to save
+   * @param sessionId the session ID
+   * @param data the session data to save
    * @return a CompletableFuture that completes when the save is done
    */
   CompletableFuture<Void> save(String sessionId, SessionData<S> data);
@@ -60,8 +56,7 @@ public interface SessionStore<S> {
   /**
    * Deletes a session by its ID.
    *
-   * @param sessionId
-   *            the session ID
+   * @param sessionId the session ID
    * @return a CompletableFuture that completes when the deletion is done
    */
   default CompletableFuture<Void> delete(String sessionId) {
@@ -71,8 +66,7 @@ public interface SessionStore<S> {
   /**
    * Checks if a session exists.
    *
-   * @param sessionId
-   *            the session ID
+   * @param sessionId the session ID
    * @return a CompletableFuture containing true if the session exists
    */
   default CompletableFuture<Boolean> exists(String sessionId) {

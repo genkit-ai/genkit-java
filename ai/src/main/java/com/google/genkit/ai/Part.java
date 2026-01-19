@@ -18,14 +18,13 @@
 
 package com.google.genkit.ai;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Map;
 
 /**
- * Part represents a part of a message content, which can be text, media, tool
- * request, or tool response.
+ * Part represents a part of a message content, which can be text, media, tool request, or tool
+ * response.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Part {
@@ -48,17 +47,13 @@ public class Part {
   @JsonProperty("metadata")
   private Map<String, Object> metadata;
 
-  /**
-   * Default constructor.
-   */
-  public Part() {
-  }
+  /** Default constructor. */
+  public Part() {}
 
   /**
    * Creates a text part.
    *
-   * @param text
-   *            the text content
+   * @param text the text content
    * @return a new text part
    */
   public static Part text(String text) {
@@ -70,10 +65,8 @@ public class Part {
   /**
    * Creates a media part.
    *
-   * @param contentType
-   *            the media content type
-   * @param url
-   *            the media URL
+   * @param contentType the media content type
+   * @param url the media URL
    * @return a new media part
    */
   public static Part media(String contentType, String url) {
@@ -85,8 +78,7 @@ public class Part {
   /**
    * Creates a tool request part.
    *
-   * @param toolRequest
-   *            the tool request
+   * @param toolRequest the tool request
    * @return a new tool request part
    */
   public static Part toolRequest(ToolRequest toolRequest) {
@@ -98,8 +90,7 @@ public class Part {
   /**
    * Creates a tool response part.
    *
-   * @param toolResponse
-   *            the tool response
+   * @param toolResponse the tool response
    * @return a new tool response part
    */
   public static Part toolResponse(ToolResponse toolResponse) {
@@ -111,8 +102,7 @@ public class Part {
   /**
    * Creates a data part.
    *
-   * @param data
-   *            the structured data
+   * @param data the structured data
    * @return a new data part
    */
   public static Part data(Object data) {

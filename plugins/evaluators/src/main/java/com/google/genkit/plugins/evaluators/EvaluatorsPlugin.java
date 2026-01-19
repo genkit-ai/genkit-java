@@ -18,13 +18,6 @@
 
 package com.google.genkit.plugins.evaluators;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.genkit.ai.evaluation.Evaluator;
 import com.google.genkit.core.Action;
 import com.google.genkit.core.Plugin;
@@ -36,32 +29,39 @@ import com.google.genkit.plugins.evaluators.metrics.FaithfulnessMetric;
 import com.google.genkit.plugins.evaluators.metrics.JsonataMetric;
 import com.google.genkit.plugins.evaluators.metrics.MaliciousnessMetric;
 import com.google.genkit.plugins.evaluators.metrics.RegexMetric;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Evaluators plugin for Genkit.
- * 
- * <p>
- * This plugin provides a set of pre-defined evaluators for assessing the
- * quality of your LLM outputs. Evaluators include:
+ *
+ * <p>This plugin provides a set of pre-defined evaluators for assessing the quality of your LLM
+ * outputs. Evaluators include:
+ *
  * <ul>
- * <li>FAITHFULNESS - Measures factual accuracy against provided context</li>
- * <li>ANSWER_RELEVANCY - Assesses how well the answer pertains to the
- * question</li>
- * <li>ANSWER_ACCURACY - Compares output against a reference answer</li>
- * <li>MALICIOUSNESS - Detects harmful, misleading, or deceptive content</li>
- * <li>REGEX - Validates output against a regex pattern</li>
- * <li>DEEP_EQUAL - Checks deep equality between output and reference</li>
- * <li>JSONATA - Evaluates output using JSONata expressions</li>
+ *   <li>FAITHFULNESS - Measures factual accuracy against provided context
+ *   <li>ANSWER_RELEVANCY - Assesses how well the answer pertains to the question
+ *   <li>ANSWER_ACCURACY - Compares output against a reference answer
+ *   <li>MALICIOUSNESS - Detects harmful, misleading, or deceptive content
+ *   <li>REGEX - Validates output against a regex pattern
+ *   <li>DEEP_EQUAL - Checks deep equality between output and reference
+ *   <li>JSONATA - Evaluates output using JSONata expressions
  * </ul>
- * 
- * <p>
- * Example usage:
- * 
+ *
+ * <p>Example usage:
+ *
  * <pre>{@code
  * Genkit genkit = Genkit.builder()
- * 		.addPlugin(EvaluatorsPlugin.create(EvaluatorsPluginOptions.builder().judge("googleai/gemini-2.0-flash")
- * 				.metricTypes(List.of(GenkitMetric.FAITHFULNESS, GenkitMetric.ANSWER_RELEVANCY)).build()))
- * 		.build();
+ *     .addPlugin(
+ *         EvaluatorsPlugin.create(
+ *             EvaluatorsPluginOptions.builder()
+ *                 .judge("googleai/gemini-2.0-flash")
+ *                 .metricTypes(List.of(GenkitMetric.FAITHFULNESS, GenkitMetric.ANSWER_RELEVANCY))
+ *                 .build()))
+ *     .build();
  * }</pre>
  */
 public class EvaluatorsPlugin implements Plugin {
@@ -72,9 +72,7 @@ public class EvaluatorsPlugin implements Plugin {
   private final EvaluatorsPluginOptions options;
   private Registry registry;
 
-  /**
-   * Creates an EvaluatorsPlugin with default options.
-   */
+  /** Creates an EvaluatorsPlugin with default options. */
   public EvaluatorsPlugin() {
     this(EvaluatorsPluginOptions.builder().build());
   }
@@ -82,8 +80,7 @@ public class EvaluatorsPlugin implements Plugin {
   /**
    * Creates an EvaluatorsPlugin with the specified options.
    *
-   * @param options
-   *            the plugin options
+   * @param options the plugin options
    */
   public EvaluatorsPlugin(EvaluatorsPluginOptions options) {
     this.options = options;
@@ -101,8 +98,7 @@ public class EvaluatorsPlugin implements Plugin {
   /**
    * Creates an EvaluatorsPlugin with the specified options.
    *
-   * @param options
-   *            the plugin options
+   * @param options the plugin options
    * @return a new EvaluatorsPlugin
    */
   public static EvaluatorsPlugin create(EvaluatorsPluginOptions options) {
@@ -154,120 +150,159 @@ public class EvaluatorsPlugin implements Plugin {
     Map<String, Object> embedderOptions = options.resolveEmbedderOptions(metricConfig);
 
     switch (metricType) {
-      case FAITHFULNESS :
+      case FAITHFULNESS:
         return createFaithfulnessEvaluator(judgeName, judgeConfig);
-      case ANSWER_RELEVANCY :
-        return createAnswerRelevancyEvaluator(judgeName, judgeConfig, embedderName, embedderOptions);
-      case ANSWER_ACCURACY :
+      case ANSWER_RELEVANCY:
+        return createAnswerRelevancyEvaluator(
+            judgeName, judgeConfig, embedderName, embedderOptions);
+      case ANSWER_ACCURACY:
         return createAnswerAccuracyEvaluator(judgeName, judgeConfig);
-      case MALICIOUSNESS :
+      case MALICIOUSNESS:
         return createMaliciousnessEvaluator(judgeName, judgeConfig);
-      case REGEX :
+      case REGEX:
         return createRegexEvaluator();
-      case DEEP_EQUAL :
+      case DEEP_EQUAL:
         return createDeepEqualEvaluator();
-      case JSONATA :
+      case JSONATA:
         return createJsonataEvaluator();
-      default :
+      default:
         logger.warn("Unknown metric type: {}", metricType);
         return null;
     }
   }
 
-  private Evaluator<Void> createFaithfulnessEvaluator(String judgeName, Map<String, Object> judgeConfig) {
+  private Evaluator<Void> createFaithfulnessEvaluator(
+      String judgeName, Map<String, Object> judgeConfig) {
     FaithfulnessMetric metric = new FaithfulnessMetric(registry, judgeName, judgeConfig);
 
-    return Evaluator.<Void>builder().name(PLUGIN_NAME + "/" + GenkitMetric.FAITHFULNESS.name().toLowerCase())
+    return Evaluator.<Void>builder()
+        .name(PLUGIN_NAME + "/" + GenkitMetric.FAITHFULNESS.name().toLowerCase())
         .displayName("Faithfulness")
-        .definition("Measures the factual accuracy of the generated answer against the given context. "
-            + "A higher score indicates better alignment with the context.")
-        .isBilled(true).evaluatorFn((dataPoint, opts) -> {
-          try {
-            return metric.evaluate(dataPoint);
-          } catch (Exception e) {
-            throw new RuntimeException("Faithfulness evaluation failed", e);
-          }
-        }).build();
+        .definition(
+            "Measures the factual accuracy of the generated answer against the given context. "
+                + "A higher score indicates better alignment with the context.")
+        .isBilled(true)
+        .evaluatorFn(
+            (dataPoint, opts) -> {
+              try {
+                return metric.evaluate(dataPoint);
+              } catch (Exception e) {
+                throw new RuntimeException("Faithfulness evaluation failed", e);
+              }
+            })
+        .build();
   }
 
-  private Evaluator<Void> createAnswerRelevancyEvaluator(String judgeName, Map<String, Object> judgeConfig,
-      String embedderName, Map<String, Object> embedderOptions) {
-    AnswerRelevancyMetric metric = new AnswerRelevancyMetric(registry, judgeName, judgeConfig, embedderName,
-        embedderOptions);
+  private Evaluator<Void> createAnswerRelevancyEvaluator(
+      String judgeName,
+      Map<String, Object> judgeConfig,
+      String embedderName,
+      Map<String, Object> embedderOptions) {
+    AnswerRelevancyMetric metric =
+        new AnswerRelevancyMetric(registry, judgeName, judgeConfig, embedderName, embedderOptions);
 
-    return Evaluator.<Void>builder().name(PLUGIN_NAME + "/" + GenkitMetric.ANSWER_RELEVANCY.name().toLowerCase())
+    return Evaluator.<Void>builder()
+        .name(PLUGIN_NAME + "/" + GenkitMetric.ANSWER_RELEVANCY.name().toLowerCase())
         .displayName("Answer Relevancy")
-        .definition("Assesses how well the generated answer pertains to the given question. "
-            + "Higher scores indicate more relevant answers.")
-        .isBilled(true).evaluatorFn((dataPoint, opts) -> {
-          try {
-            return metric.evaluate(dataPoint);
-          } catch (Exception e) {
-            throw new RuntimeException("Answer relevancy evaluation failed", e);
-          }
-        }).build();
+        .definition(
+            "Assesses how well the generated answer pertains to the given question. "
+                + "Higher scores indicate more relevant answers.")
+        .isBilled(true)
+        .evaluatorFn(
+            (dataPoint, opts) -> {
+              try {
+                return metric.evaluate(dataPoint);
+              } catch (Exception e) {
+                throw new RuntimeException("Answer relevancy evaluation failed", e);
+              }
+            })
+        .build();
   }
 
-  private Evaluator<Void> createAnswerAccuracyEvaluator(String judgeName, Map<String, Object> judgeConfig) {
+  private Evaluator<Void> createAnswerAccuracyEvaluator(
+      String judgeName, Map<String, Object> judgeConfig) {
     AnswerAccuracyMetric metric = new AnswerAccuracyMetric(registry, judgeName, judgeConfig);
 
-    return Evaluator.<Void>builder().name(PLUGIN_NAME + "/" + GenkitMetric.ANSWER_ACCURACY.name().toLowerCase())
+    return Evaluator.<Void>builder()
+        .name(PLUGIN_NAME + "/" + GenkitMetric.ANSWER_ACCURACY.name().toLowerCase())
         .displayName("Answer Accuracy")
-        .definition("Measures the accuracy of the generated answer against a reference answer. "
-            + "Uses bidirectional comparison for semantic equivalence.")
-        .isBilled(true).evaluatorFn((dataPoint, opts) -> {
-          try {
-            return metric.evaluate(dataPoint);
-          } catch (Exception e) {
-            throw new RuntimeException("Answer accuracy evaluation failed", e);
-          }
-        }).build();
+        .definition(
+            "Measures the accuracy of the generated answer against a reference answer. "
+                + "Uses bidirectional comparison for semantic equivalence.")
+        .isBilled(true)
+        .evaluatorFn(
+            (dataPoint, opts) -> {
+              try {
+                return metric.evaluate(dataPoint);
+              } catch (Exception e) {
+                throw new RuntimeException("Answer accuracy evaluation failed", e);
+              }
+            })
+        .build();
   }
 
-  private Evaluator<Void> createMaliciousnessEvaluator(String judgeName, Map<String, Object> judgeConfig) {
+  private Evaluator<Void> createMaliciousnessEvaluator(
+      String judgeName, Map<String, Object> judgeConfig) {
     MaliciousnessMetric metric = new MaliciousnessMetric(registry, judgeName, judgeConfig);
 
-    return Evaluator.<Void>builder().name(PLUGIN_NAME + "/" + GenkitMetric.MALICIOUSNESS.name().toLowerCase())
+    return Evaluator.<Void>builder()
+        .name(PLUGIN_NAME + "/" + GenkitMetric.MALICIOUSNESS.name().toLowerCase())
         .displayName("Maliciousness")
-        .definition("Detects whether the output contains harmful, misleading, or deceptive content. "
-            + "Returns FAIL if malicious content is detected.")
-        .isBilled(true).evaluatorFn((dataPoint, opts) -> {
-          try {
-            return metric.evaluate(dataPoint);
-          } catch (Exception e) {
-            throw new RuntimeException("Maliciousness evaluation failed", e);
-          }
-        }).build();
+        .definition(
+            "Detects whether the output contains harmful, misleading, or deceptive content. "
+                + "Returns FAIL if malicious content is detected.")
+        .isBilled(true)
+        .evaluatorFn(
+            (dataPoint, opts) -> {
+              try {
+                return metric.evaluate(dataPoint);
+              } catch (Exception e) {
+                throw new RuntimeException("Maliciousness evaluation failed", e);
+              }
+            })
+        .build();
   }
 
   private Evaluator<Void> createRegexEvaluator() {
     RegexMetric metric = new RegexMetric();
 
-    return Evaluator.<Void>builder().name(PLUGIN_NAME + "/" + GenkitMetric.REGEX.name().toLowerCase())
+    return Evaluator.<Void>builder()
+        .name(PLUGIN_NAME + "/" + GenkitMetric.REGEX.name().toLowerCase())
         .displayName("Regex Match")
-        .definition("Evaluates whether the output matches a regular expression pattern "
-            + "provided in the reference field.")
-        .isBilled(false).evaluatorFn((dataPoint, opts) -> metric.evaluate(dataPoint)).build();
+        .definition(
+            "Evaluates whether the output matches a regular expression pattern "
+                + "provided in the reference field.")
+        .isBilled(false)
+        .evaluatorFn((dataPoint, opts) -> metric.evaluate(dataPoint))
+        .build();
   }
 
   private Evaluator<Void> createDeepEqualEvaluator() {
     DeepEqualMetric metric = new DeepEqualMetric();
 
-    return Evaluator.<Void>builder().name(PLUGIN_NAME + "/" + GenkitMetric.DEEP_EQUAL.name().toLowerCase())
+    return Evaluator.<Void>builder()
+        .name(PLUGIN_NAME + "/" + GenkitMetric.DEEP_EQUAL.name().toLowerCase())
         .displayName("Deep Equal")
-        .definition("Checks if the output is deeply equal to the reference. "
-            + "Supports JSON comparison for structured data.")
-        .isBilled(false).evaluatorFn((dataPoint, opts) -> metric.evaluate(dataPoint)).build();
+        .definition(
+            "Checks if the output is deeply equal to the reference. "
+                + "Supports JSON comparison for structured data.")
+        .isBilled(false)
+        .evaluatorFn((dataPoint, opts) -> metric.evaluate(dataPoint))
+        .build();
   }
 
   private Evaluator<Void> createJsonataEvaluator() {
     JsonataMetric metric = new JsonataMetric();
 
-    return Evaluator.<Void>builder().name(PLUGIN_NAME + "/" + GenkitMetric.JSONATA.name().toLowerCase())
+    return Evaluator.<Void>builder()
+        .name(PLUGIN_NAME + "/" + GenkitMetric.JSONATA.name().toLowerCase())
         .displayName("JSONata")
-        .definition("Evaluates the output using a JSONata expression provided in the reference. "
-            + "The expression should return a truthy value for pass, falsy for fail.")
-        .isBilled(false).evaluatorFn((dataPoint, opts) -> metric.evaluate(dataPoint)).build();
+        .definition(
+            "Evaluates the output using a JSONata expression provided in the reference. "
+                + "The expression should return a truthy value for pass, falsy for fail.")
+        .isBilled(false)
+        .evaluatorFn((dataPoint, opts) -> metric.evaluate(dataPoint))
+        .build();
   }
 
   /**

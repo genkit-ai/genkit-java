@@ -18,9 +18,7 @@
 
 package com.google.genkit;
 
-/**
- * GenkitOptions contains configuration options for Genkit.
- */
+/** GenkitOptions contains configuration options for Genkit. */
 public class GenkitOptions {
 
   private final boolean devMode;
@@ -72,8 +70,8 @@ public class GenkitOptions {
   }
 
   /**
-   * Returns the prompt directory path (relative to resources or absolute).
-   * Defaults to "/prompts" for loading from classpath resources.
+   * Returns the prompt directory path (relative to resources or absolute). Defaults to "/prompts"
+   * for loading from classpath resources.
    *
    * @return the prompt directory path
    */
@@ -81,9 +79,7 @@ public class GenkitOptions {
     return promptDir;
   }
 
-  /**
-   * Builder for GenkitOptions.
-   */
+  /** Builder for GenkitOptions. */
   public static class Builder {
     private boolean devMode = isDevModeFromEnv();
     private int reflectionPort = getReflectionPortFromEnv();

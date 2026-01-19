@@ -33,11 +33,16 @@ class PostgresPluginTest {
 
   @Test
   void testBuilderWithConnectionString() {
-    PostgresTableConfig tableConfig = PostgresTableConfig.builder().tableName("test_table")
-        .embedderName("test-embedder").build();
+    PostgresTableConfig tableConfig =
+        PostgresTableConfig.builder().tableName("test_table").embedderName("test-embedder").build();
 
-    PostgresPlugin plugin = PostgresPlugin.builder().connectionString("jdbc:postgresql://localhost:5432/testdb")
-        .username("testuser").password("testpass").addTable(tableConfig).build();
+    PostgresPlugin plugin =
+        PostgresPlugin.builder()
+            .connectionString("jdbc:postgresql://localhost:5432/testdb")
+            .username("testuser")
+            .password("testpass")
+            .addTable(tableConfig)
+            .build();
 
     assertNotNull(plugin);
     assertEquals("postgresql", plugin.getName());
@@ -45,22 +50,32 @@ class PostgresPluginTest {
 
   @Test
   void testGetName() {
-    PostgresTableConfig tableConfig = PostgresTableConfig.builder().tableName("test_table")
-        .embedderName("test-embedder").build();
+    PostgresTableConfig tableConfig =
+        PostgresTableConfig.builder().tableName("test_table").embedderName("test-embedder").build();
 
-    PostgresPlugin plugin = PostgresPlugin.builder().connectionString("jdbc:postgresql://localhost:5432/testdb")
-        .username("testuser").password("testpass").addTable(tableConfig).build();
+    PostgresPlugin plugin =
+        PostgresPlugin.builder()
+            .connectionString("jdbc:postgresql://localhost:5432/testdb")
+            .username("testuser")
+            .password("testpass")
+            .addTable(tableConfig)
+            .build();
 
     assertEquals("postgresql", plugin.getName());
   }
 
   @Test
   void testBuilderChaining() {
-    PostgresTableConfig tableConfig = PostgresTableConfig.builder().tableName("test_table")
-        .embedderName("test-embedder").build();
+    PostgresTableConfig tableConfig =
+        PostgresTableConfig.builder().tableName("test_table").embedderName("test-embedder").build();
 
-    PostgresPlugin plugin = PostgresPlugin.builder().connectionString("jdbc:postgresql://localhost:5432/testdb")
-        .username("user").password("pass").addTable(tableConfig).build();
+    PostgresPlugin plugin =
+        PostgresPlugin.builder()
+            .connectionString("jdbc:postgresql://localhost:5432/testdb")
+            .username("user")
+            .password("pass")
+            .addTable(tableConfig)
+            .build();
 
     assertNotNull(plugin);
   }

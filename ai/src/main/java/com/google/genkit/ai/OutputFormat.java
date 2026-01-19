@@ -20,11 +20,8 @@ package com.google.genkit.ai;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * OutputFormat specifies the format for model output.
- */
+/** OutputFormat specifies the format for model output. */
 public enum OutputFormat {
-
   @JsonProperty("text")
   TEXT,
 

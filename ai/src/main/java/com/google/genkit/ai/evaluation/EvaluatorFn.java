@@ -20,13 +20,11 @@ package com.google.genkit.ai.evaluation;
 
 /**
  * Functional interface for evaluator functions.
- * 
- * <p>
- * An evaluator function takes a data point and optional options, and returns an
- * evaluation response containing scores.
  *
- * @param <O>
- *            the type of evaluator-specific options
+ * <p>An evaluator function takes a data point and optional options, and returns an evaluation
+ * response containing scores.
+ *
+ * @param <O> the type of evaluator-specific options
  */
 @FunctionalInterface
 public interface EvaluatorFn<O> {
@@ -34,13 +32,10 @@ public interface EvaluatorFn<O> {
   /**
    * Evaluates a single data point.
    *
-   * @param dataPoint
-   *            the data point to evaluate
-   * @param options
-   *            optional evaluator-specific options
+   * @param dataPoint the data point to evaluate
+   * @param options optional evaluator-specific options
    * @return the evaluation response
-   * @throws Exception
-   *             if evaluation fails
+   * @throws Exception if evaluation fails
    */
   EvalResponse evaluate(EvalDataPoint dataPoint, O options) throws Exception;
 }

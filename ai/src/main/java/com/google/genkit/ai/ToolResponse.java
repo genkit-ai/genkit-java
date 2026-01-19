@@ -18,14 +18,11 @@
 
 package com.google.genkit.ai;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Map;
 
-/**
- * ToolResponse represents a response from a tool invocation.
- */
+/** ToolResponse represents a response from a tool invocation. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ToolResponse {
 
@@ -41,19 +38,14 @@ public class ToolResponse {
   @JsonProperty("metadata")
   private Map<String, Object> metadata;
 
-  /**
-   * Default constructor.
-   */
-  public ToolResponse() {
-  }
+  /** Default constructor. */
+  public ToolResponse() {}
 
   /**
    * Creates a ToolResponse with the given name and output.
    *
-   * @param name
-   *            the tool name
-   * @param output
-   *            the tool output
+   * @param name the tool name
+   * @param output the tool output
    */
   public ToolResponse(String name, Object output) {
     this.name = name;
@@ -63,12 +55,9 @@ public class ToolResponse {
   /**
    * Creates a ToolResponse with the given ref, name and output.
    *
-   * @param ref
-   *            the reference ID
-   * @param name
-   *            the tool name
-   * @param output
-   *            the tool output
+   * @param ref the reference ID
+   * @param name the tool name
+   * @param output the tool output
    */
   public ToolResponse(String ref, String name, Object output) {
     this.ref = ref;

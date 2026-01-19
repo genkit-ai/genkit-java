@@ -23,28 +23,30 @@ import java.util.List;
 /**
  * Configuration for defining an agent (prompt as tool).
  *
- * <p>
- * An agent is a specialized prompt that can be used as a tool, enabling
- * multi-agent systems where one agent can delegate tasks to other specialized
- * agents.
+ * <p>An agent is a specialized prompt that can be used as a tool, enabling multi-agent systems
+ * where one agent can delegate tasks to other specialized agents.
  *
- * <p>
- * Example usage:
+ * <p>Example usage:
  *
  * <pre>{@code
  * // Define a specialized agent
- * AgentConfig reservationAgent = AgentConfig.builder().name("reservationAgent")
- * 		.description("Handles restaurant reservations")
- * 		.system("You are a reservation specialist. Help users make and manage reservations.").model("openai/gpt-4o")
- * 		.tools(List.of(reservationTool, cancelTool)).build();
+ * AgentConfig reservationAgent = AgentConfig.builder()
+ *     .name("reservationAgent")
+ *     .description("Handles restaurant reservations")
+ *     .system("You are a reservation specialist. Help users make and manage reservations.")
+ *     .model("openai/gpt-4o")
+ *     .tools(List.of(reservationTool, cancelTool))
+ *     .build();
  *
  * // Use as a tool in a triage agent
- * AgentConfig triageAgent = AgentConfig.builder().name("triageAgent")
- * 		.description("Routes customer requests to appropriate specialists")
- * 		.system("You are a customer service triage agent...").agents(List.of(reservationAgent, menuAgent)) // Sub-agents
- * 																											// as
- * 																											// tools
- * 		.build();
+ * AgentConfig triageAgent = AgentConfig.builder()
+ *     .name("triageAgent")
+ *     .description("Routes customer requests to appropriate specialists")
+ *     .system("You are a customer service triage agent...")
+ *     .agents(List.of(reservationAgent, menuAgent)) // Sub-agents
+ *     // as
+ *     // tools
+ *     .build();
  * }</pre>
  */
 public class AgentConfig {
@@ -59,8 +61,7 @@ public class AgentConfig {
   private OutputConfig output;
 
   /** Default constructor. */
-  public AgentConfig() {
-  }
+  public AgentConfig() {}
 
   /**
    * Gets the agent name.
@@ -74,8 +75,7 @@ public class AgentConfig {
   /**
    * Sets the agent name.
    *
-   * @param name
-   *            the name
+   * @param name the name
    */
   public void setName(String name) {
     this.name = name;
@@ -93,8 +93,7 @@ public class AgentConfig {
   /**
    * Sets the description (used when agent is called as a tool).
    *
-   * @param description
-   *            the description
+   * @param description the description
    */
   public void setDescription(String description) {
     this.description = description;
@@ -112,8 +111,7 @@ public class AgentConfig {
   /**
    * Sets the system prompt.
    *
-   * @param system
-   *            the system prompt
+   * @param system the system prompt
    */
   public void setSystem(String system) {
     this.system = system;
@@ -131,8 +129,7 @@ public class AgentConfig {
   /**
    * Sets the model name.
    *
-   * @param model
-   *            the model name
+   * @param model the model name
    */
   public void setModel(String model) {
     this.model = model;
@@ -150,8 +147,7 @@ public class AgentConfig {
   /**
    * Sets the tools available to this agent.
    *
-   * @param tools
-   *            the tools
+   * @param tools the tools
    */
   public void setTools(List<Tool<?, ?>> tools) {
     this.tools = tools;
@@ -169,8 +165,7 @@ public class AgentConfig {
   /**
    * Sets the sub-agents.
    *
-   * @param agents
-   *            the sub-agents
+   * @param agents the sub-agents
    */
   public void setAgents(List<AgentConfig> agents) {
     this.agents = agents;
@@ -188,8 +183,7 @@ public class AgentConfig {
   /**
    * Sets the generation config.
    *
-   * @param config
-   *            the generation config
+   * @param config the generation config
    */
   public void setConfig(GenerationConfig config) {
     this.config = config;
@@ -207,8 +201,7 @@ public class AgentConfig {
   /**
    * Sets the output config.
    *
-   * @param output
-   *            the output config
+   * @param output the output config
    */
   public void setOutput(OutputConfig output) {
     this.output = output;
@@ -237,8 +230,7 @@ public class AgentConfig {
     /**
      * Sets the agent name.
      *
-     * @param name
-     *            the name
+     * @param name the name
      * @return this builder
      */
     public Builder name(String name) {
@@ -249,8 +241,7 @@ public class AgentConfig {
     /**
      * Sets the description.
      *
-     * @param description
-     *            the description
+     * @param description the description
      * @return this builder
      */
     public Builder description(String description) {
@@ -261,8 +252,7 @@ public class AgentConfig {
     /**
      * Sets the system prompt.
      *
-     * @param system
-     *            the system prompt
+     * @param system the system prompt
      * @return this builder
      */
     public Builder system(String system) {
@@ -273,8 +263,7 @@ public class AgentConfig {
     /**
      * Sets the model name.
      *
-     * @param model
-     *            the model name
+     * @param model the model name
      * @return this builder
      */
     public Builder model(String model) {
@@ -285,8 +274,7 @@ public class AgentConfig {
     /**
      * Sets the tools available to this agent.
      *
-     * @param tools
-     *            the tools
+     * @param tools the tools
      * @return this builder
      */
     public Builder tools(List<Tool<?, ?>> tools) {
@@ -297,8 +285,7 @@ public class AgentConfig {
     /**
      * Sets the sub-agents.
      *
-     * @param agents
-     *            the sub-agents
+     * @param agents the sub-agents
      * @return this builder
      */
     public Builder agents(List<AgentConfig> agents) {
@@ -309,8 +296,7 @@ public class AgentConfig {
     /**
      * Sets the generation config.
      *
-     * @param config
-     *            the generation config
+     * @param config the generation config
      * @return this builder
      */
     public Builder config(GenerationConfig config) {
@@ -321,8 +307,7 @@ public class AgentConfig {
     /**
      * Sets the output config.
      *
-     * @param output
-     *            the output config
+     * @param output the output config
      * @return this builder
      */
     public Builder output(OutputConfig output) {

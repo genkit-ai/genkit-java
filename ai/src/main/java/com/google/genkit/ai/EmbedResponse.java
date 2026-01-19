@@ -18,31 +18,24 @@
 
 package com.google.genkit.ai;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 
-/**
- * EmbedResponse contains the embeddings generated from documents.
- */
+/** EmbedResponse contains the embeddings generated from documents. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class EmbedResponse {
 
   @JsonProperty("embeddings")
   private List<Embedding> embeddings;
 
-  /**
-   * Default constructor.
-   */
-  public EmbedResponse() {
-  }
+  /** Default constructor. */
+  public EmbedResponse() {}
 
   /**
    * Creates an EmbedResponse with embeddings.
    *
-   * @param embeddings
-   *            the embeddings
+   * @param embeddings the embeddings
    */
   public EmbedResponse(List<Embedding> embeddings) {
     this.embeddings = embeddings;
@@ -58,26 +51,20 @@ public class EmbedResponse {
     this.embeddings = embeddings;
   }
 
-  /**
-   * Embedding represents a single embedding vector.
-   */
+  /** Embedding represents a single embedding vector. */
   @JsonInclude(JsonInclude.Include.NON_NULL)
   public static class Embedding {
 
     @JsonProperty("values")
     private float[] values;
 
-    /**
-     * Default constructor.
-     */
-    public Embedding() {
-    }
+    /** Default constructor. */
+    public Embedding() {}
 
     /**
      * Creates an Embedding with the given values.
      *
-     * @param values
-     *            the embedding values
+     * @param values the embedding values
      */
     public Embedding(float[] values) {
       this.values = values;

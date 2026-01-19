@@ -23,15 +23,12 @@ import java.util.Map;
 /**
  * Exception thrown when an agent tool is called to signal a handoff.
  *
- * <p>
- * When the model calls an agent-as-tool, this exception is thrown to signal
- * that the chat should switch context to the target agent. The Chat class
- * catches this exception and updates its system prompt, tools, and model to
- * those of the target agent.
+ * <p>When the model calls an agent-as-tool, this exception is thrown to signal that the chat should
+ * switch context to the target agent. The Chat class catches this exception and updates its system
+ * prompt, tools, and model to those of the target agent.
  *
- * <p>
- * This enables the "handoff" pattern where conversations can be transferred
- * between specialized agents.
+ * <p>This enables the "handoff" pattern where conversations can be transferred between specialized
+ * agents.
  */
 public class AgentHandoffException extends RuntimeException {
 
@@ -42,15 +39,12 @@ public class AgentHandoffException extends RuntimeException {
   /**
    * Creates a new AgentHandoffException.
    *
-   * @param targetAgentName
-   *            the name of the agent to hand off to
-   * @param targetAgentConfig
-   *            the configuration of the target agent
-   * @param handoffInput
-   *            the input passed to the agent tool (can be used for context)
+   * @param targetAgentName the name of the agent to hand off to
+   * @param targetAgentConfig the configuration of the target agent
+   * @param handoffInput the input passed to the agent tool (can be used for context)
    */
-  public AgentHandoffException(String targetAgentName, AgentConfig targetAgentConfig,
-      Map<String, Object> handoffInput) {
+  public AgentHandoffException(
+      String targetAgentName, AgentConfig targetAgentConfig, Map<String, Object> handoffInput) {
     super("Handoff to agent: " + targetAgentName);
     this.targetAgentName = targetAgentName;
     this.targetAgentConfig = targetAgentConfig;

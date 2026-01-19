@@ -25,10 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-/**
- * JsonUtils provides JSON serialization and deserialization utilities for
- * Genkit.
- */
+/** JsonUtils provides JSON serialization and deserialization utilities for Genkit. */
 public final class JsonUtils {
 
   private static final ObjectMapper objectMapper;
@@ -57,11 +54,9 @@ public final class JsonUtils {
   /**
    * Converts an object to JSON string.
    *
-   * @param value
-   *            the object to convert
+   * @param value the object to convert
    * @return the JSON string
-   * @throws GenkitException
-   *             if serialization fails
+   * @throws GenkitException if serialization fails
    */
   public static String toJson(Object value) throws GenkitException {
     try {
@@ -74,8 +69,7 @@ public final class JsonUtils {
   /**
    * Converts an object to a JsonNode.
    *
-   * @param value
-   *            the object to convert
+   * @param value the object to convert
    * @return the JsonNode
    */
   public static JsonNode toJsonNode(Object value) {
@@ -85,15 +79,11 @@ public final class JsonUtils {
   /**
    * Parses a JSON string to the specified type.
    *
-   * @param json
-   *            the JSON string
-   * @param clazz
-   *            the target class
-   * @param <T>
-   *            the target type
+   * @param json the JSON string
+   * @param clazz the target class
+   * @param <T> the target type
    * @return the parsed object
-   * @throws GenkitException
-   *             if parsing fails
+   * @throws GenkitException if parsing fails
    */
   public static <T> T fromJson(String json, Class<T> clazz) throws GenkitException {
     try {
@@ -106,15 +96,11 @@ public final class JsonUtils {
   /**
    * Converts a JsonNode to the specified type.
    *
-   * @param node
-   *            the JsonNode
-   * @param clazz
-   *            the target class
-   * @param <T>
-   *            the target type
+   * @param node the JsonNode
+   * @param clazz the target class
+   * @param <T> the target type
    * @return the converted object
-   * @throws GenkitException
-   *             if conversion fails
+   * @throws GenkitException if conversion fails
    */
   public static <T> T fromJsonNode(JsonNode node, Class<T> clazz) throws GenkitException {
     try {
@@ -127,11 +113,9 @@ public final class JsonUtils {
   /**
    * Parses a JSON string to a JsonNode.
    *
-   * @param json
-   *            the JSON string
+   * @param json the JSON string
    * @return the JsonNode
-   * @throws GenkitException
-   *             if parsing fails
+   * @throws GenkitException if parsing fails
    */
   public static JsonNode parseJson(String json) throws GenkitException {
     try {
@@ -143,36 +127,30 @@ public final class JsonUtils {
 
   /**
    * Converts an object to the specified type.
-   * 
-   * <p>
-   * This is useful for converting Maps (from JSON parsing) to typed objects.
    *
-   * @param value
-   *            the object to convert (typically a Map from JSON parsing)
-   * @param clazz
-   *            the target class
-   * @param <T>
-   *            the target type
+   * <p>This is useful for converting Maps (from JSON parsing) to typed objects.
+   *
+   * @param value the object to convert (typically a Map from JSON parsing)
+   * @param clazz the target class
+   * @param <T> the target type
    * @return the converted object
-   * @throws GenkitException
-   *             if conversion fails
+   * @throws GenkitException if conversion fails
    */
   public static <T> T convert(Object value, Class<T> clazz) throws GenkitException {
     try {
       return objectMapper.convertValue(value, clazz);
     } catch (IllegalArgumentException e) {
-      throw new GenkitException("Failed to convert object to " + clazz.getName() + ": " + e.getMessage(), e);
+      throw new GenkitException(
+          "Failed to convert object to " + clazz.getName() + ": " + e.getMessage(), e);
     }
   }
 
   /**
    * Pretty prints a JSON object.
    *
-   * @param value
-   *            the object to print
+   * @param value the object to print
    * @return the pretty-printed JSON string
-   * @throws GenkitException
-   *             if serialization fails
+   * @throws GenkitException if serialization fails
    */
   public static String toPrettyJson(Object value) throws GenkitException {
     try {

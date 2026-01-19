@@ -18,55 +18,53 @@
 
 package com.google.genkit.plugins.groq;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.genkit.core.Action;
 import com.google.genkit.core.Plugin;
 import com.google.genkit.plugins.compatoai.CompatOAIModel;
 import com.google.genkit.plugins.compatoai.CompatOAIPluginOptions;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * GroqPlugin provides Groq model integrations for Genkit.
  *
- * This plugin registers Groq models as Genkit actions using the
- * OpenAI-compatible API.
+ * <p>This plugin registers Groq models as Genkit actions using the OpenAI-compatible API.
  */
 public class GroqPlugin implements Plugin {
 
   private static final Logger logger = LoggerFactory.getLogger(GroqPlugin.class);
 
-  /**
-   * Supported Groq production models.
-   */
-  public static final List<String> SUPPORTED_MODELS = Arrays.asList(
-      // Meta Llama models
-      "llama-3.1-8b-instant", "llama-3.3-70b-versatile", "meta-llama/llama-guard-4-12b",
+  /** Supported Groq production models. */
+  public static final List<String> SUPPORTED_MODELS =
+      Arrays.asList(
+          // Meta Llama models
+          "llama-3.1-8b-instant",
+          "llama-3.3-70b-versatile",
+          "meta-llama/llama-guard-4-12b",
 
-      // OpenAI GPT-OSS models
-      "openai/gpt-oss-120b", "openai/gpt-oss-20b");
+          // OpenAI GPT-OSS models
+          "openai/gpt-oss-120b",
+          "openai/gpt-oss-20b");
 
   private final CompatOAIPluginOptions options;
   private final List<String> customModels = new ArrayList<>();
 
-  /**
-   * Creates a GroqPlugin with default options (using GROQ_API_KEY environment
-   * variable).
-   */
+  /** Creates a GroqPlugin with default options (using GROQ_API_KEY environment variable). */
   public GroqPlugin() {
-    this(CompatOAIPluginOptions.builder().apiKey(getApiKeyFromEnv()).baseUrl("https://api.groq.com/openai/v1")
-        .build());
+    this(
+        CompatOAIPluginOptions.builder()
+            .apiKey(getApiKeyFromEnv())
+            .baseUrl("https://api.groq.com/openai/v1")
+            .build());
   }
 
   /**
    * Creates a GroqPlugin with the specified options.
    *
-   * @param options
-   *            the plugin options
+   * @param options the plugin options
    */
   public GroqPlugin(CompatOAIPluginOptions options) {
     this.options = options;
@@ -75,13 +73,15 @@ public class GroqPlugin implements Plugin {
   /**
    * Creates a GroqPlugin with the specified API key.
    *
-   * @param apiKey
-   *            the Groq API key
+   * @param apiKey the Groq API key
    * @return a new GroqPlugin
    */
   public static GroqPlugin create(String apiKey) {
     return new GroqPlugin(
-        CompatOAIPluginOptions.builder().apiKey(apiKey).baseUrl("https://api.groq.com/openai/v1").build());
+        CompatOAIPluginOptions.builder()
+            .apiKey(apiKey)
+            .baseUrl("https://api.groq.com/openai/v1")
+            .build());
   }
 
   /**
@@ -113,30 +113,36 @@ public class GroqPlugin implements Plugin {
 
     // Register Groq models
     for (String modelName : SUPPORTED_MODELS) {
-      CompatOAIModel model = new CompatOAIModel("groq/" + modelName, modelName, // API model name without prefix
-          "Groq " + modelName, options);
+      CompatOAIModel model =
+          new CompatOAIModel(
+              "groq/" + modelName,
+              modelName, // API model name
+              // without prefix
+              "Groq " + modelName,
+              options);
       actions.add(model);
       logger.debug("Created Groq model: {}", modelName);
     }
 
     // Register custom models added via customModel()
     for (String modelName : customModels) {
-      CompatOAIModel model = new CompatOAIModel("groq/" + modelName, modelName, "Groq " + modelName, options);
+      CompatOAIModel model =
+          new CompatOAIModel("groq/" + modelName, modelName, "Groq " + modelName, options);
       actions.add(model);
       logger.debug("Created custom Groq model: {}", modelName);
     }
 
-    logger.info("Groq plugin initialized with {} models", SUPPORTED_MODELS.size() + customModels.size());
+    logger.info(
+        "Groq plugin initialized with {} models", SUPPORTED_MODELS.size() + customModels.size());
 
     return actions;
   }
 
   /**
-   * Registers a custom model name. Use this to work with models not in the
-   * default list. Call this method before passing the plugin to Genkit.builder().
-   * 
-   * @param modelName
-   *            the model name (e.g., "llama-4-90b-preview")
+   * Registers a custom model name. Use this to work with models not in the default list. Call this
+   * method before passing the plugin to Genkit.builder().
+   *
+   * @param modelName the model name (e.g., "llama-4-90b-preview")
    * @return this plugin instance for method chaining
    */
   public GroqPlugin customModel(String modelName) {

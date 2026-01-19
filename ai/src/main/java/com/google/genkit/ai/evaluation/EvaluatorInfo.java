@@ -21,32 +21,23 @@ package com.google.genkit.ai.evaluation;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * Information about an evaluator including display metadata and metrics.
- */
+/** Information about an evaluator including display metadata and metrics. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class EvaluatorInfo {
 
-  /**
-   * Display name for the evaluator.
-   */
+  /** Display name for the evaluator. */
   @JsonProperty("displayName")
   private String displayName;
 
-  /**
-   * Description of what the evaluator measures.
-   */
+  /** Description of what the evaluator measures. */
   @JsonProperty("definition")
   private String definition;
 
-  /**
-   * Whether using this evaluator incurs costs (e.g., LLM API calls).
-   */
+  /** Whether using this evaluator incurs costs (e.g., LLM API calls). */
   @JsonProperty("isBilled")
   private Boolean isBilled;
 
-  public EvaluatorInfo() {
-  }
+  public EvaluatorInfo() {}
 
   private EvaluatorInfo(Builder builder) {
     this.displayName = builder.displayName;

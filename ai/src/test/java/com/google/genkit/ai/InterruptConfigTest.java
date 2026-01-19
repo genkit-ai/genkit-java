@@ -22,12 +22,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.junit.jupiter.api.Test;
 
-/**
- * Unit tests for InterruptConfig.
- */
+/** Unit tests for InterruptConfig. */
 class InterruptConfigTest {
 
   @Test
@@ -35,10 +32,16 @@ class InterruptConfigTest {
     Map<String, Object> inputSchema = Map.of("type", "object", "properties", Map.of());
     Map<String, Object> outputSchema = Map.of("type", "string");
 
-    InterruptConfig<TestInput, TestOutput> config = InterruptConfig.<TestInput, TestOutput>builder().name("confirm")
-        .description("Asks for confirmation").inputType(TestInput.class).outputType(TestOutput.class)
-        .inputSchema(inputSchema).outputSchema(outputSchema)
-        .requestMetadata(input -> Map.of("action", input.action)).build();
+    InterruptConfig<TestInput, TestOutput> config =
+        InterruptConfig.<TestInput, TestOutput>builder()
+            .name("confirm")
+            .description("Asks for confirmation")
+            .inputType(TestInput.class)
+            .outputType(TestOutput.class)
+            .inputSchema(inputSchema)
+            .outputSchema(outputSchema)
+            .requestMetadata(input -> Map.of("action", input.action))
+            .build();
 
     assertEquals("confirm", config.getName());
     assertEquals("Asks for confirmation", config.getDescription());
@@ -51,8 +54,13 @@ class InterruptConfigTest {
 
   @Test
   void testBuilderWithMinimalFields() {
-    InterruptConfig<TestInput, TestOutput> config = InterruptConfig.<TestInput, TestOutput>builder().name("simple")
-        .description("Simple interrupt").inputType(TestInput.class).outputType(TestOutput.class).build();
+    InterruptConfig<TestInput, TestOutput> config =
+        InterruptConfig.<TestInput, TestOutput>builder()
+            .name("simple")
+            .description("Simple interrupt")
+            .inputType(TestInput.class)
+            .outputType(TestOutput.class)
+            .build();
 
     assertEquals("simple", config.getName());
     assertEquals("Simple interrupt", config.getDescription());
@@ -65,14 +73,20 @@ class InterruptConfigTest {
 
   @Test
   void testRequestMetadataFunction() {
-    InterruptConfig<TestInput, TestOutput> config = InterruptConfig.<TestInput, TestOutput>builder().name("confirm")
-        .description("Confirm action").inputType(TestInput.class).outputType(TestOutput.class)
-        .requestMetadata(input -> {
-          Map<String, Object> metadata = new HashMap<>();
-          metadata.put("action", input.action);
-          metadata.put("amount", input.amount);
-          return metadata;
-        }).build();
+    InterruptConfig<TestInput, TestOutput> config =
+        InterruptConfig.<TestInput, TestOutput>builder()
+            .name("confirm")
+            .description("Confirm action")
+            .inputType(TestInput.class)
+            .outputType(TestOutput.class)
+            .requestMetadata(
+                input -> {
+                  Map<String, Object> metadata = new HashMap<>();
+                  metadata.put("action", input.action);
+                  metadata.put("amount", input.amount);
+                  return metadata;
+                })
+            .build();
 
     TestInput input = new TestInput();
     input.action = "purchase";

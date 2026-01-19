@@ -23,9 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/**
- * Unit tests for Flow.
- */
+/** Unit tests for Flow. */
 class FlowTest {
 
   private Registry registry;
@@ -37,8 +35,9 @@ class FlowTest {
 
   @Test
   void testDefineFlow() {
-    Flow<String, String, Void> flow = Flow.define(registry, "echoFlow", String.class, String.class,
-        (ctx, input) -> "Echo: " + input);
+    Flow<String, String, Void> flow =
+        Flow.define(
+            registry, "echoFlow", String.class, String.class, (ctx, input) -> "Echo: " + input);
 
     assertNotNull(flow);
     assertEquals("echoFlow", flow.getName());
@@ -47,8 +46,9 @@ class FlowTest {
 
   @Test
   void testFlowIsRegistered() {
-    Flow<String, String, Void> flow = Flow.define(registry, "testFlow", String.class, String.class,
-        (ctx, input) -> input.toUpperCase());
+    Flow<String, String, Void> flow =
+        Flow.define(
+            registry, "testFlow", String.class, String.class, (ctx, input) -> input.toUpperCase());
 
     String key = ActionType.FLOW.keyFromName("testFlow");
     Action<?, ?, ?> registered = registry.lookupAction(key);
@@ -60,8 +60,13 @@ class FlowTest {
 
   @Test
   void testFlowRun() {
-    Flow<String, String, Void> flow = Flow.define(registry, "transformFlow", String.class, String.class,
-        (ctx, input) -> input.toLowerCase());
+    Flow<String, String, Void> flow =
+        Flow.define(
+            registry,
+            "transformFlow",
+            String.class,
+            String.class,
+            (ctx, input) -> input.toLowerCase());
 
     ActionContext ctx = new ActionContext(registry);
     String result = flow.run(ctx, "HELLO WORLD");
@@ -71,12 +76,17 @@ class FlowTest {
 
   @Test
   void testFlowWithContext() {
-    Flow<String, String, Void> flow = Flow.define(registry, "contextFlow", String.class, String.class,
-        (ctx, input) -> {
-          // Flow should set the flow name in context
-          assertEquals("contextFlow", ctx.getFlowName());
-          return input;
-        });
+    Flow<String, String, Void> flow =
+        Flow.define(
+            registry,
+            "contextFlow",
+            String.class,
+            String.class,
+            (ctx, input) -> {
+              // Flow should set the flow name in context
+              assertEquals("contextFlow", ctx.getFlowName());
+              return input;
+            });
 
     ActionContext ctx = new ActionContext(registry);
     flow.run(ctx, "test");
@@ -84,8 +94,9 @@ class FlowTest {
 
   @Test
   void testFlowDesc() {
-    Flow<String, Integer, Void> flow = Flow.define(registry, "countFlow", String.class, Integer.class,
-        (ctx, input) -> input.length());
+    Flow<String, Integer, Void> flow =
+        Flow.define(
+            registry, "countFlow", String.class, Integer.class, (ctx, input) -> input.length());
 
     ActionDesc desc = flow.getDesc();
 
@@ -95,14 +106,19 @@ class FlowTest {
 
   @Test
   void testDefineStreamingFlow() {
-    Flow<String, String, String> flow = Flow.defineStreaming(registry, "streamingFlow", String.class, String.class,
-        (ctx, input, cb) -> {
-          if (cb != null) {
-            cb.accept("chunk1");
-            cb.accept("chunk2");
-          }
-          return "final result";
-        });
+    Flow<String, String, String> flow =
+        Flow.defineStreaming(
+            registry,
+            "streamingFlow",
+            String.class,
+            String.class,
+            (ctx, input, cb) -> {
+              if (cb != null) {
+                cb.accept("chunk1");
+                cb.accept("chunk2");
+              }
+              return "final result";
+            });
 
     assertNotNull(flow);
     assertEquals("streamingFlow", flow.getName());
@@ -113,16 +129,21 @@ class FlowTest {
   void testStreamingFlowWithCallback() {
     StringBuilder chunks = new StringBuilder();
 
-    Flow<String, String, String> flow = Flow.defineStreaming(registry, "chunkingFlow", String.class, String.class,
-        (ctx, input, cb) -> {
-          String[] words = input.split(" ");
-          for (String word : words) {
-            if (cb != null) {
-              cb.accept(word);
-            }
-          }
-          return input;
-        });
+    Flow<String, String, String> flow =
+        Flow.defineStreaming(
+            registry,
+            "chunkingFlow",
+            String.class,
+            String.class,
+            (ctx, input, cb) -> {
+              String[] words = input.split(" ");
+              for (String word : words) {
+                if (cb != null) {
+                  cb.accept(word);
+                }
+              }
+              return input;
+            });
 
     ActionContext ctx = new ActionContext(registry);
     java.util.function.Consumer<String> streamCallback = chunks::append;
@@ -134,10 +155,15 @@ class FlowTest {
 
   @Test
   void testFlowRunThrowsGenkitException() {
-    Flow<String, String, Void> flow = Flow.define(registry, "errorFlow", String.class, String.class,
-        (ctx, input) -> {
-          throw new GenkitException("Intentional error");
-        });
+    Flow<String, String, Void> flow =
+        Flow.define(
+            registry,
+            "errorFlow",
+            String.class,
+            String.class,
+            (ctx, input) -> {
+              throw new GenkitException("Intentional error");
+            });
 
     ActionContext ctx = new ActionContext(registry);
 
@@ -148,7 +174,8 @@ class FlowTest {
   void testMultipleFlowsInRegistry() {
     Flow.define(registry, "flow1", String.class, String.class, (ctx, input) -> input);
     Flow.define(registry, "flow2", String.class, Integer.class, (ctx, input) -> input.length());
-    Flow.define(registry, "flow3", Integer.class, String.class, (ctx, input) -> String.valueOf(input));
+    Flow.define(
+        registry, "flow3", Integer.class, String.class, (ctx, input) -> String.valueOf(input));
 
     assertNotNull(registry.lookupAction(ActionType.FLOW.keyFromName("flow1")));
     assertNotNull(registry.lookupAction(ActionType.FLOW.keyFromName("flow2")));

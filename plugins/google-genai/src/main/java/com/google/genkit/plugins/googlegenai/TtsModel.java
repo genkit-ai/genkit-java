@@ -18,16 +18,6 @@
 
 package com.google.genkit.plugins.googlegenai;
 
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Consumer;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.genai.Client;
 import com.google.genai.types.Content;
 import com.google.genai.types.GenerateContentConfig;
@@ -49,41 +39,45 @@ import com.google.genkit.ai.Part;
 import com.google.genkit.ai.Role;
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.GenkitException;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Text-to-Speech model using Gemini TTS models.
  *
- * <p>
- * This model uses Gemini's TTS capabilities via responseModalities=AUDIO and
- * speechConfig for voice configuration.
+ * <p>This model uses Gemini's TTS capabilities via responseModalities=AUDIO and speechConfig for
+ * voice configuration.
  *
- * <p>
- * Supported models:
+ * <p>Supported models:
+ *
  * <ul>
- * <li>gemini-2.5-flash-preview-tts</li>
- * <li>gemini-2.5-pro-preview-tts</li>
+ *   <li>gemini-2.5-flash-preview-tts
+ *   <li>gemini-2.5-pro-preview-tts
  * </ul>
  *
- * <p>
- * Configuration options (via custom config):
+ * <p>Configuration options (via custom config):
+ *
  * <ul>
- * <li>voiceName - Name of the voice to use (e.g., "Zephyr", "Puck", "Charon",
- * "Kore", etc.)</li>
+ *   <li>voiceName - Name of the voice to use (e.g., "Zephyr", "Puck", "Charon", "Kore", etc.)
  * </ul>
  *
- * <p>
- * Available voices: Zephyr, Puck, Charon, Kore, Fenrir, Leda, Orus, Aoede,
- * Callirrhoe, Autonoe, Enceladus, Iapetus, Umbriel, Algieba, Despina, Erinome,
- * Algenib, Rasalgethi, Laomedeia, Achernar, Alnilam, Schedar, Gacrux,
- * Pulcherrima, Achird, Zubenelgenubi, Vindemiatrix, Sadachbia, Sadaltager,
- * Sulafat
+ * <p>Available voices: Zephyr, Puck, Charon, Kore, Fenrir, Leda, Orus, Aoede, Callirrhoe, Autonoe,
+ * Enceladus, Iapetus, Umbriel, Algieba, Despina, Erinome, Algenib, Rasalgethi, Laomedeia, Achernar,
+ * Alnilam, Schedar, Gacrux, Pulcherrima, Achird, Zubenelgenubi, Vindemiatrix, Sadachbia,
+ * Sadaltager, Sulafat
  */
 public class TtsModel implements Model {
 
   private static final Logger logger = LoggerFactory.getLogger(TtsModel.class);
 
-  private static final Set<String> SUPPORTED_TTS_MODELS = Set.of("gemini-2.5-flash-preview-tts",
-      "gemini-2.5-pro-preview-tts");
+  private static final Set<String> SUPPORTED_TTS_MODELS =
+      Set.of("gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts");
 
   private final String modelName;
   private final GoogleGenAIPluginOptions options;
@@ -93,10 +87,8 @@ public class TtsModel implements Model {
   /**
    * Creates a TtsModel for the specified model.
    *
-   * @param modelName
-   *            the TTS model name
-   * @param options
-   *            the plugin options
+   * @param modelName the TTS model name
+   * @param options the plugin options
    */
   public TtsModel(String modelName, GoogleGenAIPluginOptions options) {
     this.modelName = modelName;
@@ -184,7 +176,8 @@ public class TtsModel implements Model {
   }
 
   @Override
-  public ModelResponse run(ActionContext context, ModelRequest request, Consumer<ModelResponseChunk> streamCallback) {
+  public ModelResponse run(
+      ActionContext context, ModelRequest request, Consumer<ModelResponseChunk> streamCallback) {
     // TTS doesn't support streaming - just return final audio
     return run(context, request);
   }
@@ -239,8 +232,10 @@ public class TtsModel implements Model {
       }
 
       if (voiceName != null) {
-        VoiceConfig voiceConfig = VoiceConfig.builder()
-            .prebuiltVoiceConfig(PrebuiltVoiceConfig.builder().voiceName(voiceName).build()).build();
+        VoiceConfig voiceConfig =
+            VoiceConfig.builder()
+                .prebuiltVoiceConfig(PrebuiltVoiceConfig.builder().voiceName(voiceName).build())
+                .build();
         speechConfigBuilder.voiceConfig(voiceConfig);
       }
     }
@@ -321,8 +316,7 @@ public class TtsModel implements Model {
   /**
    * Checks if the given model name is a supported TTS model.
    *
-   * @param modelName
-   *            the model name to check
+   * @param modelName the model name to check
    * @return true if the model is a TTS model
    */
   public static boolean isTtsModel(String modelName) {

@@ -19,16 +19,15 @@
 package com.google.genkit.core;
 
 /**
- * Registerable allows a primitive to be registered with a registry. All Genkit
- * primitives (actions, flows, models, tools, etc.) implement this interface.
+ * Registerable allows a primitive to be registered with a registry. All Genkit primitives (actions,
+ * flows, models, tools, etc.) implement this interface.
  */
 public interface Registerable {
 
   /**
    * Registers this primitive with the given registry.
    *
-   * @param registry
-   *            the registry to register with
+   * @param registry the registry to register with
    */
   void register(Registry registry);
 }

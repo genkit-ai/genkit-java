@@ -18,28 +18,23 @@
 
 package com.google.genkit.core;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Consumer;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.genkit.core.tracing.SpanMetadata;
 import com.google.genkit.core.tracing.Tracer;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Consumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * ActionDef is the default implementation of an Action. It provides a named,
- * observable operation that can be executed and traced.
+ * ActionDef is the default implementation of an Action. It provides a named, observable operation
+ * that can be executed and traced.
  *
- * @param <I>
- *            The input type for the action
- * @param <O>
- *            The output type for the action
- * @param <S>
- *            The streaming chunk type (use Void for non-streaming actions)
+ * @param <I> The input type for the action
+ * @param <O> The output type for the action
+ * @param <S> The streaming chunk type (use Void for non-streaming actions)
  */
 public class ActionDef<I, O, S> implements Action<I, O, S> {
 
@@ -55,12 +50,9 @@ public class ActionDef<I, O, S> implements Action<I, O, S> {
   /**
    * Function interface for streaming actions.
    *
-   * @param <I>
-   *            input type
-   * @param <O>
-   *            output type
-   * @param <S>
-   *            stream chunk type
+   * @param <I> input type
+   * @param <O> output type
+   * @param <S> stream chunk type
    */
   @FunctionalInterface
   public interface StreamingFunction<I, O, S> {
@@ -70,10 +62,8 @@ public class ActionDef<I, O, S> implements Action<I, O, S> {
   /**
    * Function interface for non-streaming actions.
    *
-   * @param <I>
-   *            input type
-   * @param <O>
-   *            output type
+   * @param <I> input type
+   * @param <O> output type
    */
   @FunctionalInterface
   public interface ActionFunction<I, O> {
@@ -83,23 +73,22 @@ public class ActionDef<I, O, S> implements Action<I, O, S> {
   /**
    * Creates a new ActionDef.
    *
-   * @param name
-   *            the action name
-   * @param type
-   *            the action type
-   * @param metadata
-   *            additional metadata
-   * @param inputSchema
-   *            the input JSON schema
-   * @param inputClass
-   *            the input class
-   * @param outputClass
-   *            the output class
-   * @param fn
-   *            the action function
+   * @param name the action name
+   * @param type the action type
+   * @param metadata additional metadata
+   * @param inputSchema the input JSON schema
+   * @param inputClass the input class
+   * @param outputClass the output class
+   * @param fn the action function
    */
-  public ActionDef(String name, ActionType type, Map<String, Object> metadata, Map<String, Object> inputSchema,
-      Class<I> inputClass, Class<O> outputClass, StreamingFunction<I, O, S> fn) {
+  public ActionDef(
+      String name,
+      ActionType type,
+      Map<String, Object> metadata,
+      Map<String, Object> inputSchema,
+      Class<I> inputClass,
+      Class<O> outputClass,
+      StreamingFunction<I, O, S> fn) {
     if (name == null || name.isEmpty()) {
       throw new IllegalArgumentException("Action name is required");
     }
@@ -126,8 +115,15 @@ public class ActionDef<I, O, S> implements Action<I, O, S> {
       outputSchema = SchemaUtils.inferSchema(outputClass);
     }
 
-    this.desc = ActionDesc.builder().type(type).name(name).description(description).inputSchema(actualInputSchema)
-        .outputSchema(outputSchema).metadata(metadata != null ? metadata : new HashMap<>()).build();
+    this.desc =
+        ActionDesc.builder()
+            .type(type)
+            .name(name)
+            .description(description)
+            .inputSchema(actualInputSchema)
+            .outputSchema(outputSchema)
+            .metadata(metadata != null ? metadata : new HashMap<>())
+            .build();
 
     this.fn = fn;
     this.inputClass = inputClass;
@@ -137,59 +133,57 @@ public class ActionDef<I, O, S> implements Action<I, O, S> {
   /**
    * Creates a non-streaming action.
    *
-   * @param name
-   *            the action name
-   * @param type
-   *            the action type
-   * @param metadata
-   *            additional metadata
-   * @param inputSchema
-   *            the input JSON schema
-   * @param inputClass
-   *            the input class
-   * @param outputClass
-   *            the output class
-   * @param fn
-   *            the action function
-   * @param <I>
-   *            input type
-   * @param <O>
-   *            output type
+   * @param name the action name
+   * @param type the action type
+   * @param metadata additional metadata
+   * @param inputSchema the input JSON schema
+   * @param inputClass the input class
+   * @param outputClass the output class
+   * @param fn the action function
+   * @param <I> input type
+   * @param <O> output type
    * @return a new ActionDef
    */
-  public static <I, O> ActionDef<I, O, Void> create(String name, ActionType type, Map<String, Object> metadata,
-      Map<String, Object> inputSchema, Class<I> inputClass, Class<O> outputClass, ActionFunction<I, O> fn) {
-    return new ActionDef<>(name, type, metadata, inputSchema, inputClass, outputClass,
+  public static <I, O> ActionDef<I, O, Void> create(
+      String name,
+      ActionType type,
+      Map<String, Object> metadata,
+      Map<String, Object> inputSchema,
+      Class<I> inputClass,
+      Class<O> outputClass,
+      ActionFunction<I, O> fn) {
+    return new ActionDef<>(
+        name,
+        type,
+        metadata,
+        inputSchema,
+        inputClass,
+        outputClass,
         (ctx, input, cb) -> fn.apply(ctx, input));
   }
 
   /**
    * Creates a streaming action.
    *
-   * @param name
-   *            the action name
-   * @param type
-   *            the action type
-   * @param metadata
-   *            additional metadata
-   * @param inputSchema
-   *            the input JSON schema
-   * @param inputClass
-   *            the input class
-   * @param outputClass
-   *            the output class
-   * @param fn
-   *            the streaming function
-   * @param <I>
-   *            input type
-   * @param <O>
-   *            output type
-   * @param <S>
-   *            stream chunk type
+   * @param name the action name
+   * @param type the action type
+   * @param metadata additional metadata
+   * @param inputSchema the input JSON schema
+   * @param inputClass the input class
+   * @param outputClass the output class
+   * @param fn the streaming function
+   * @param <I> input type
+   * @param <O> output type
+   * @param <S> stream chunk type
    * @return a new ActionDef
    */
-  public static <I, O, S> ActionDef<I, O, S> createStreaming(String name, ActionType type,
-      Map<String, Object> metadata, Map<String, Object> inputSchema, Class<I> inputClass, Class<O> outputClass,
+  public static <I, O, S> ActionDef<I, O, S> createStreaming(
+      String name,
+      ActionType type,
+      Map<String, Object> metadata,
+      Map<String, Object> inputSchema,
+      Class<I> inputClass,
+      Class<O> outputClass,
       StreamingFunction<I, O, S> fn) {
     return new ActionDef<>(name, type, metadata, inputSchema, inputClass, outputClass, fn);
   }
@@ -222,27 +216,35 @@ public class ActionDef<I, O, S> implements Action<I, O, S> {
     // categorization
     String subtype = getSubtypeForTelemetry(desc.getType());
 
-    SpanMetadata spanMetadata = SpanMetadata.builder().name(desc.getName()).type(desc.getType().getValue())
-        .subtype(subtype).build();
+    SpanMetadata spanMetadata =
+        SpanMetadata.builder()
+            .name(desc.getName())
+            .type(desc.getType().getValue())
+            .subtype(subtype)
+            .build();
 
     String flowName = ctx.getFlowName();
     if (flowName != null) {
       spanMetadata.getAttributes().put("genkit:metadata:flow:name", flowName);
     }
 
-    return Tracer.runInNewSpan(ctx, spanMetadata, input, (spanCtx, in) -> {
-      try {
-        O result = fn.apply(ctx.withSpanContext(spanCtx), in, streamCallback);
-        logger.debug("Action.run complete: name={}, result={}", getName(), result);
-        return result;
-      } catch (Exception e) {
-        logger.error("Action.run failed: name={}, error={}", getName(), e.getMessage(), e);
-        if (e instanceof GenkitException) {
-          throw (GenkitException) e;
-        }
-        throw new GenkitException("Action execution failed: " + e.getMessage(), e);
-      }
-    });
+    return Tracer.runInNewSpan(
+        ctx,
+        spanMetadata,
+        input,
+        (spanCtx, in) -> {
+          try {
+            O result = fn.apply(ctx.withSpanContext(spanCtx), in, streamCallback);
+            logger.debug("Action.run complete: name={}, result={}", getName(), result);
+            return result;
+          } catch (Exception e) {
+            logger.error("Action.run failed: name={}, error={}", getName(), e.getMessage(), e);
+            if (e instanceof GenkitException) {
+              throw (GenkitException) e;
+            }
+            throw new GenkitException("Action execution failed: " + e.getMessage(), e);
+          }
+        });
   }
 
   @Override
@@ -257,14 +259,15 @@ public class ActionDef<I, O, S> implements Action<I, O, S> {
 
       Consumer<S> typedCallback = null;
       if (streamCallback != null) {
-        typedCallback = chunk -> {
-          try {
-            JsonNode jsonChunk = objectMapper.valueToTree(chunk);
-            streamCallback.accept(jsonChunk);
-          } catch (Exception e) {
-            throw new RuntimeException("Failed to serialize stream chunk", e);
-          }
-        };
+        typedCallback =
+            chunk -> {
+              try {
+                JsonNode jsonChunk = objectMapper.valueToTree(chunk);
+                streamCallback.accept(jsonChunk);
+              } catch (Exception e) {
+                throw new RuntimeException("Failed to serialize stream chunk", e);
+              }
+            };
       }
 
       O result = run(ctx, typedInput, typedCallback);
@@ -282,15 +285,19 @@ public class ActionDef<I, O, S> implements Action<I, O, S> {
   }
 
   @Override
-  public ActionRunResult<JsonNode> runJsonWithTelemetry(ActionContext ctx, JsonNode input,
-      Consumer<JsonNode> streamCallback) throws GenkitException {
+  public ActionRunResult<JsonNode> runJsonWithTelemetry(
+      ActionContext ctx, JsonNode input, Consumer<JsonNode> streamCallback) throws GenkitException {
     // Use an array to capture span info from inside the execution
     // (workaround since span context is passed to inner function, not returned)
     final String[] capturedTraceInfo = new String[2]; // [traceId, spanId]
 
     // Wrap the execution to capture span info
-    SpanMetadata spanMetadata = SpanMetadata.builder().name(desc.getName()).type(desc.getType().getValue())
-        .subtype(getSubtypeForTelemetry(desc.getType())).build();
+    SpanMetadata spanMetadata =
+        SpanMetadata.builder()
+            .name(desc.getName())
+            .type(desc.getType().getValue())
+            .subtype(getSubtypeForTelemetry(desc.getType()))
+            .build();
 
     try {
       I typedInput = null;
@@ -301,31 +308,37 @@ public class ActionDef<I, O, S> implements Action<I, O, S> {
       final I finalInput = typedInput;
       Consumer<S> typedCallback = null;
       if (streamCallback != null) {
-        typedCallback = chunk -> {
-          try {
-            JsonNode jsonChunk = objectMapper.valueToTree(chunk);
-            streamCallback.accept(jsonChunk);
-          } catch (Exception e) {
-            throw new RuntimeException("Failed to serialize stream chunk", e);
-          }
-        };
+        typedCallback =
+            chunk -> {
+              try {
+                JsonNode jsonChunk = objectMapper.valueToTree(chunk);
+                streamCallback.accept(jsonChunk);
+              } catch (Exception e) {
+                throw new RuntimeException("Failed to serialize stream chunk", e);
+              }
+            };
       }
       final Consumer<S> finalCallback = typedCallback;
 
-      O result = Tracer.runInNewSpan(ctx, spanMetadata, finalInput, (spanCtx, in) -> {
-        // Capture the span context
-        capturedTraceInfo[0] = spanCtx.getTraceId();
-        capturedTraceInfo[1] = spanCtx.getSpanId();
+      O result =
+          Tracer.runInNewSpan(
+              ctx,
+              spanMetadata,
+              finalInput,
+              (spanCtx, in) -> {
+                // Capture the span context
+                capturedTraceInfo[0] = spanCtx.getTraceId();
+                capturedTraceInfo[1] = spanCtx.getSpanId();
 
-        try {
-          return fn.apply(ctx.withSpanContext(spanCtx), in, finalCallback);
-        } catch (Exception e) {
-          if (e instanceof GenkitException) {
-            throw (GenkitException) e;
-          }
-          throw new GenkitException("Action execution failed: " + e.getMessage(), e);
-        }
-      });
+                try {
+                  return fn.apply(ctx.withSpanContext(spanCtx), in, finalCallback);
+                } catch (Exception e) {
+                  if (e instanceof GenkitException) {
+                    throw (GenkitException) e;
+                  }
+                  throw new GenkitException("Action execution failed: " + e.getMessage(), e);
+                }
+              });
 
       JsonNode jsonResult = result != null ? objectMapper.valueToTree(result) : null;
       return new ActionRunResult<>(jsonResult, capturedTraceInfo[0], capturedTraceInfo[1]);
@@ -368,11 +381,10 @@ public class ActionDef<I, O, S> implements Action<I, O, S> {
   }
 
   /**
-   * Returns the subtype for telemetry based on the action type. This matches the
-   * JS/Go SDK format for proper trace categorization.
+   * Returns the subtype for telemetry based on the action type. This matches the JS/Go SDK format
+   * for proper trace categorization.
    *
-   * @param type
-   *            the action type
+   * @param type the action type
    * @return the subtype string for telemetry
    */
   private static String getSubtypeForTelemetry(ActionType type) {
@@ -380,23 +392,23 @@ public class ActionDef<I, O, S> implements Action<I, O, S> {
       return null;
     }
     switch (type) {
-      case MODEL :
+      case MODEL:
         return "model";
-      case TOOL :
+      case TOOL:
         return "tool";
-      case FLOW :
+      case FLOW:
         return "flow";
-      case EMBEDDER :
+      case EMBEDDER:
         return "embedder";
-      case RETRIEVER :
+      case RETRIEVER:
         return "retriever";
-      case INDEXER :
+      case INDEXER:
         return "indexer";
-      case EVALUATOR :
+      case EVALUATOR:
         return "evaluator";
-      case PROMPT :
+      case PROMPT:
         return "prompt";
-      default :
+      default:
         return type.getValue();
     }
   }

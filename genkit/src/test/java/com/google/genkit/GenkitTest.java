@@ -20,15 +20,12 @@ package com.google.genkit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.junit.jupiter.api.Test;
-
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.ActionType;
 import com.google.genkit.core.Flow;
+import org.junit.jupiter.api.Test;
 
-/**
- * Unit tests for Genkit.
- */
+/** Unit tests for Genkit. */
 class GenkitTest {
 
   @Test
@@ -55,8 +52,8 @@ class GenkitTest {
   void testDefineFlowWithBiFunction() {
     Genkit genkit = new Genkit();
 
-    Flow<String, String, Void> flow = genkit.defineFlow("echoFlow", String.class, String.class,
-        (ctx, input) -> "Echo: " + input);
+    Flow<String, String, Void> flow =
+        genkit.defineFlow("echoFlow", String.class, String.class, (ctx, input) -> "Echo: " + input);
 
     assertNotNull(flow);
     assertEquals("echoFlow", flow.getName());
@@ -67,7 +64,8 @@ class GenkitTest {
   void testDefineFlowWithFunction() {
     Genkit genkit = new Genkit();
 
-    Flow<String, Integer, Void> flow = genkit.defineFlow("lengthFlow", String.class, Integer.class, String::length);
+    Flow<String, Integer, Void> flow =
+        genkit.defineFlow("lengthFlow", String.class, Integer.class, String::length);
 
     assertNotNull(flow);
     assertEquals("lengthFlow", flow.getName());
@@ -77,8 +75,9 @@ class GenkitTest {
   void testFlowExecution() {
     Genkit genkit = new Genkit();
 
-    Flow<String, String, Void> flow = genkit.defineFlow("upperCaseFlow", String.class, String.class,
-        input -> input.toUpperCase());
+    Flow<String, String, Void> flow =
+        genkit.defineFlow(
+            "upperCaseFlow", String.class, String.class, input -> input.toUpperCase());
 
     ActionContext ctx = new ActionContext(null, null, null);
     String result = flow.run(ctx, "hello");
@@ -90,9 +89,10 @@ class GenkitTest {
   void testMultipleFlows() {
     Genkit genkit = new Genkit();
 
-    Flow<String, String, Void> flow1 = genkit.defineFlow("flow1", String.class, String.class, s -> s);
-    Flow<Integer, String, Void> flow2 = genkit.defineFlow("flow2", Integer.class, String.class,
-        i -> String.valueOf(i));
+    Flow<String, String, Void> flow1 =
+        genkit.defineFlow("flow1", String.class, String.class, s -> s);
+    Flow<Integer, String, Void> flow2 =
+        genkit.defineFlow("flow2", Integer.class, String.class, i -> String.valueOf(i));
 
     assertNotNull(flow1);
     assertNotNull(flow2);
@@ -104,8 +104,12 @@ class GenkitTest {
   void testFlowWithComplexInput() {
     Genkit genkit = new Genkit();
 
-    Flow<TestInput, TestOutput, Void> flow = genkit.defineFlow("complexFlow", TestInput.class, TestOutput.class,
-        input -> new TestOutput(input.getName(), input.getValue() * 2));
+    Flow<TestInput, TestOutput, Void> flow =
+        genkit.defineFlow(
+            "complexFlow",
+            TestInput.class,
+            TestOutput.class,
+            input -> new TestOutput(input.getName(), input.getValue() * 2));
 
     assertNotNull(flow);
 
@@ -122,15 +126,12 @@ class GenkitTest {
     assertNotNull(genkit.getRegistry());
   }
 
-  /**
-   * Test input class.
-   */
+  /** Test input class. */
   static class TestInput {
     private String name;
     private int value;
 
-    public TestInput() {
-    }
+    public TestInput() {}
 
     public TestInput(String name, int value) {
       this.name = name;
@@ -154,15 +155,12 @@ class GenkitTest {
     }
   }
 
-  /**
-   * Test output class.
-   */
+  /** Test output class. */
   static class TestOutput {
     private String name;
     private int value;
 
-    public TestOutput() {
-    }
+    public TestOutput() {}
 
     public TestOutput(String name, int value) {
       this.name = name;

@@ -18,14 +18,6 @@
 
 package com.google.genkit.plugins.awsbedrock;
 
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -33,8 +25,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.genkit.ai.*;
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.GenkitException;
-
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import okhttp3.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
@@ -43,8 +40,8 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 
 /**
  * AWS Bedrock model implementation for Genkit.
- * 
- * Uses the AWS Bedrock Converse API via HTTP with AWS SigV4 signing.
+ *
+ * <p>Uses the AWS Bedrock Converse API via HTTP with AWS SigV4 signing.
  */
 public class AwsBedrockModel implements Model {
 
@@ -60,18 +57,19 @@ public class AwsBedrockModel implements Model {
   /**
    * Creates a new AwsBedrockModel.
    *
-   * @param modelId
-   *            the AWS Bedrock model ID (e.g.,
-   *            "anthropic.claude-3-5-sonnet-20241022-v2:0")
-   * @param options
-   *            the plugin options
+   * @param modelId the AWS Bedrock model ID (e.g., "anthropic.claude-3-5-sonnet-20241022-v2:0")
+   * @param options the plugin options
    */
   public AwsBedrockModel(String modelId, AwsBedrockPluginOptions options) {
     this.modelId = modelId;
     this.options = options;
     this.objectMapper = new ObjectMapper();
-    this.client = new OkHttpClient.Builder().connectTimeout(120, TimeUnit.SECONDS)
-        .readTimeout(120, TimeUnit.SECONDS).writeTimeout(120, TimeUnit.SECONDS).build();
+    this.client =
+        new OkHttpClient.Builder()
+            .connectTimeout(120, TimeUnit.SECONDS)
+            .readTimeout(120, TimeUnit.SECONDS)
+            .writeTimeout(120, TimeUnit.SECONDS)
+            .build();
     this.info = createModelInfo();
   }
 
@@ -91,12 +89,16 @@ public class AwsBedrockModel implements Model {
   }
 
   private boolean supportsVision(String modelId) {
-    return modelId.contains("claude-3") || modelId.contains("nova") || modelId.contains("titan-text-premier");
+    return modelId.contains("claude-3")
+        || modelId.contains("nova")
+        || modelId.contains("titan-text-premier");
   }
 
   private boolean supportsTools(String modelId) {
-    return !modelId.contains("claude-v2") && !modelId.contains("titan-text-express")
-        && !modelId.contains("titan-text-lite") && !modelId.contains("command-light");
+    return !modelId.contains("claude-v2")
+        && !modelId.contains("titan-text-express")
+        && !modelId.contains("titan-text-lite")
+        && !modelId.contains("command-light");
   }
 
   @Override
@@ -124,7 +126,8 @@ public class AwsBedrockModel implements Model {
   }
 
   @Override
-  public ModelResponse run(ActionContext context, ModelRequest request, Consumer<ModelResponseChunk> streamCallback) {
+  public ModelResponse run(
+      ActionContext context, ModelRequest request, Consumer<ModelResponseChunk> streamCallback) {
     if (streamCallback == null) {
       return run(context, request);
     }
@@ -135,7 +138,8 @@ public class AwsBedrockModel implements Model {
     }
   }
 
-  private ModelResponse callBedrock(ModelRequest request, boolean stream, Consumer<ModelResponseChunk> streamCallback)
+  private ModelResponse callBedrock(
+      ModelRequest request, boolean stream, Consumer<ModelResponseChunk> streamCallback)
       throws IOException {
     ObjectNode requestBody = buildRequestBody(request, stream);
 
@@ -167,25 +171,39 @@ public class AwsBedrockModel implements Model {
       // Build URI and let it handle encoding properly
       java.net.URI uri = java.net.URI.create(String.format("https://%s%s", host, path));
 
-      SdkHttpFullRequest httpRequest = SdkHttpFullRequest.builder().uri(uri).method(SdkHttpMethod.POST)
-          .putHeader("Content-Type", "application/json; charset=utf-8")
-          .contentStreamProvider(() -> new java.io.ByteArrayInputStream(
-              body.getBytes(java.nio.charset.StandardCharsets.UTF_8)))
-          .build();
+      SdkHttpFullRequest httpRequest =
+          SdkHttpFullRequest.builder()
+              .uri(uri)
+              .method(SdkHttpMethod.POST)
+              .putHeader("Content-Type", "application/json; charset=utf-8")
+              .contentStreamProvider(
+                  () ->
+                      new java.io.ByteArrayInputStream(
+                          body.getBytes(java.nio.charset.StandardCharsets.UTF_8)))
+              .build();
 
       Aws4Signer signer = Aws4Signer.create();
-      Aws4SignerParams signerParams = Aws4SignerParams.builder().awsCredentials(credentials)
-          .signingName("bedrock").signingRegion(options.getRegion()).build();
+      Aws4SignerParams signerParams =
+          Aws4SignerParams.builder()
+              .awsCredentials(credentials)
+              .signingName("bedrock")
+              .signingRegion(options.getRegion())
+              .build();
 
       SdkHttpFullRequest signedRequest = signer.sign(httpRequest, signerParams);
 
       // Use the signed request's URI directly
-      Request.Builder okHttpRequestBuilder = new Request.Builder().url(signedRequest.getUri().toURL())
-          .post(RequestBody.create(body, JSON_MEDIA_TYPE));
+      Request.Builder okHttpRequestBuilder =
+          new Request.Builder()
+              .url(signedRequest.getUri().toURL())
+              .post(RequestBody.create(body, JSON_MEDIA_TYPE));
 
-      signedRequest.headers().forEach((key, values) -> {
-        values.forEach(value -> okHttpRequestBuilder.addHeader(key, value));
-      });
+      signedRequest
+          .headers()
+          .forEach(
+              (key, values) -> {
+                values.forEach(value -> okHttpRequestBuilder.addHeader(key, value));
+              });
 
       return okHttpRequestBuilder.build();
     } catch (Exception e) {
@@ -296,8 +314,11 @@ public class AwsBedrockModel implements Model {
         toolSpec.put("name", toolDef.getName());
         toolSpec.put("description", toolDef.getDescription());
         if (toolDef.getInputSchema() != null) {
-          toolSpec.set("inputSchema", objectMapper.createObjectNode().set("json",
-              objectMapper.valueToTree(toolDef.getInputSchema())));
+          toolSpec.set(
+              "inputSchema",
+              objectMapper
+                  .createObjectNode()
+                  .set("json", objectMapper.valueToTree(toolDef.getInputSchema())));
         }
         tool.set("toolSpec", toolSpec);
         tools.add(tool);
@@ -400,14 +421,15 @@ public class AwsBedrockModel implements Model {
     return modelResponse;
   }
 
-  private ModelResponse handleStreamingResponse(Response response, Consumer<ModelResponseChunk> streamCallback)
-      throws IOException {
+  private ModelResponse handleStreamingResponse(
+      Response response, Consumer<ModelResponseChunk> streamCallback) throws IOException {
     StringBuilder fullContent = new StringBuilder();
     String finishReason = null;
     Usage usage = new Usage();
     List<Map<String, Object>> toolUses = new ArrayList<>();
 
-    logger.debug("Starting to read streaming response, Content-Type: {}", response.header("Content-Type"));
+    logger.debug(
+        "Starting to read streaming response, Content-Type: {}", response.header("Content-Type"));
 
     // AWS Bedrock uses application/vnd.amazon.eventstream binary format
     // We need to parse the binary stream to extract JSON payloads
@@ -422,8 +444,7 @@ public class AwsBedrockModel implements Model {
     while (pos < responseText.length()) {
       // Look for JSON object start
       int jsonStart = responseText.indexOf("{\"", pos);
-      if (jsonStart == -1)
-        break;
+      if (jsonStart == -1) break;
 
       // Find matching closing brace
       int braceCount = 0;
@@ -450,8 +471,7 @@ public class AwsBedrockModel implements Model {
         }
 
         if (!inString) {
-          if (c == '{')
-            braceCount++;
+          if (c == '{') braceCount++;
           else if (c == '}') {
             braceCount--;
             if (braceCount == 0) {
@@ -499,12 +519,15 @@ public class AwsBedrockModel implements Model {
       }
     }
 
-    logger.debug("Finished streaming. Parsed {} events. Content length: {}", eventCount, fullContent.length());
+    logger.debug(
+        "Finished streaming. Parsed {} events. Content length: {}",
+        eventCount,
+        fullContent.length());
     return buildFinalStreamResponse(fullContent.toString(), finishReason, usage, toolUses);
   }
 
-  private ModelResponse buildFinalStreamResponse(String content, String finishReason, Usage usage,
-      List<Map<String, Object>> toolUses) {
+  private ModelResponse buildFinalStreamResponse(
+      String content, String finishReason, Usage usage, List<Map<String, Object>> toolUses) {
     ModelResponse modelResponse = new ModelResponse();
     List<Candidate> candidates = new ArrayList<>();
     Candidate candidate = new Candidate();
@@ -525,7 +548,8 @@ public class AwsBedrockModel implements Model {
       toolRequest.setRef((String) toolUse.get("toolUseId"));
       toolRequest.setName((String) toolUse.get("name"));
       @SuppressWarnings("unchecked")
-      Map<String, Object> input = (Map<String, Object>) toolUse.getOrDefault("input", new HashMap<>());
+      Map<String, Object> input =
+          (Map<String, Object>) toolUse.getOrDefault("input", new HashMap<>());
       toolRequest.setInput(input);
       toolPart.setToolRequest(toolRequest);
       parts.add(toolPart);
@@ -547,15 +571,15 @@ public class AwsBedrockModel implements Model {
 
   private FinishReason convertStopReason(String stopReason) {
     switch (stopReason.toLowerCase()) {
-      case "end_turn" :
-      case "stop_sequence" :
-      case "tool_use" :
+      case "end_turn":
+      case "stop_sequence":
+      case "tool_use":
         return FinishReason.STOP;
-      case "max_tokens" :
+      case "max_tokens":
         return FinishReason.LENGTH;
-      case "content_filtered" :
+      case "content_filtered":
         return FinishReason.OTHER; // No SAFETY enum value
-      default :
+      default:
         return FinishReason.OTHER;
     }
   }

@@ -18,24 +18,23 @@
 
 package com.google.genkit.ai.telemetry;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.LongHistogram;
 import io.opentelemetry.api.metrics.Meter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ToolTelemetry provides metrics collection for tool execution.
- * 
- * <p>
- * This class tracks:
+ *
+ * <p>This class tracks:
+ *
  * <ul>
- * <li>Tool invocation counts</li>
- * <li>Tool latency histograms</li>
- * <li>Tool error rates</li>
+ *   <li>Tool invocation counts
+ *   <li>Tool latency histograms
+ *   <li>Tool error rates
  * </ul>
  */
 public class ToolTelemetry {
@@ -68,11 +67,20 @@ public class ToolTelemetry {
   private ToolTelemetry() {
     Meter meter = GlobalOpenTelemetry.getMeter(METER_NAME);
 
-    requestCounter = meter.counterBuilder(METRIC_REQUESTS).setDescription("Counts calls to genkit tools.")
-        .setUnit("1").build();
+    requestCounter =
+        meter
+            .counterBuilder(METRIC_REQUESTS)
+            .setDescription("Counts calls to genkit tools.")
+            .setUnit("1")
+            .build();
 
-    latencyHistogram = meter.histogramBuilder(METRIC_LATENCY)
-        .setDescription("Latencies when executing Genkit tools.").setUnit("ms").ofLongs().build();
+    latencyHistogram =
+        meter
+            .histogramBuilder(METRIC_LATENCY)
+            .setDescription("Latencies when executing Genkit tools.")
+            .setUnit("ms")
+            .ofLongs()
+            .build();
 
     logger.debug("ToolTelemetry initialized with OpenTelemetry metrics");
   }
@@ -80,28 +88,30 @@ public class ToolTelemetry {
   /**
    * Records metrics for a tool execution.
    *
-   * @param toolName
-   *            the tool name
-   * @param featureName
-   *            the feature/flow name
-   * @param path
-   *            the span path
-   * @param latencyMs
-   *            the latency in milliseconds
-   * @param error
-   *            the error name if failed, null otherwise
+   * @param toolName the tool name
+   * @param featureName the feature/flow name
+   * @param path the span path
+   * @param latencyMs the latency in milliseconds
+   * @param error the error name if failed, null otherwise
    */
-  public void recordToolMetrics(String toolName, String featureName, String path, long latencyMs, String error) {
+  public void recordToolMetrics(
+      String toolName, String featureName, String path, long latencyMs, String error) {
     String status = error != null ? "failure" : "success";
 
-    Attributes baseAttrs = Attributes.builder().put("toolName", truncate(toolName, 1024))
-        .put("featureName", truncate(featureName, 256)).put("path", truncate(path, 2048)).put("status", status)
-        .put("source", SOURCE).build();
+    Attributes baseAttrs =
+        Attributes.builder()
+            .put("toolName", truncate(toolName, 1024))
+            .put("featureName", truncate(featureName, 256))
+            .put("path", truncate(path, 2048))
+            .put("status", status)
+            .put("source", SOURCE)
+            .build();
 
     // Record request count
-    Attributes requestAttrs = error != null
-        ? baseAttrs.toBuilder().put("error", truncate(error, 256)).build()
-        : baseAttrs;
+    Attributes requestAttrs =
+        error != null
+            ? baseAttrs.toBuilder().put("error", truncate(error, 256)).build()
+            : baseAttrs;
     requestCounter.add(1, requestAttrs);
 
     // Record latency
@@ -111,10 +121,8 @@ public class ToolTelemetry {
   /**
    * Truncates a string to the specified maximum length.
    *
-   * @param value
-   *            the string to truncate
-   * @param maxLength
-   *            the maximum length
+   * @param value the string to truncate
+   * @param maxLength the maximum length
    * @return the truncated string
    */
   private String truncate(String value, int maxLength) {

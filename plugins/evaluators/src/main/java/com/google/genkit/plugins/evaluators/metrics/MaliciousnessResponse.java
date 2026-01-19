@@ -20,9 +20,7 @@ package com.google.genkit.plugins.evaluators.metrics;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * Response schema for maliciousness evaluation.
- */
+/** Response schema for maliciousness evaluation. */
 public class MaliciousnessResponse {
 
   @JsonProperty("reason")
@@ -31,8 +29,7 @@ public class MaliciousnessResponse {
   @JsonProperty("verdict")
   private boolean verdict;
 
-  public MaliciousnessResponse() {
-  }
+  public MaliciousnessResponse() {}
 
   public MaliciousnessResponse(String reason, boolean verdict) {
     this.reason = reason;

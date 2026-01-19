@@ -18,14 +18,11 @@
 
 package com.google.genkit.ai;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Map;
 
-/**
- * GenerationConfig contains configuration for model generation.
- */
+/** GenerationConfig contains configuration for model generation. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class GenerationConfig {
 
@@ -56,15 +53,10 @@ public class GenerationConfig {
   @JsonProperty("custom")
   private Map<String, Object> custom;
 
-  /**
-   * Default constructor.
-   */
-  public GenerationConfig() {
-  }
+  /** Default constructor. */
+  public GenerationConfig() {}
 
-  /**
-   * Builder pattern for GenerationConfig.
-   */
+  /** Builder pattern for GenerationConfig. */
   public static Builder builder() {
     return new Builder();
   }
@@ -143,9 +135,7 @@ public class GenerationConfig {
     this.custom = custom;
   }
 
-  /**
-   * Builder for GenerationConfig.
-   */
+  /** Builder for GenerationConfig. */
   public static class Builder {
     private final GenerationConfig config = new GenerationConfig();
 

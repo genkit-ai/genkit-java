@@ -28,9 +28,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-/**
- * Utility class for loading and rendering prompt templates.
- */
+/** Utility class for loading and rendering prompt templates. */
 public class PromptUtils {
 
   private static final Pattern TEMPLATE_PATTERN = Pattern.compile("\\{\\{(\\w+)\\}\\}");
@@ -42,11 +40,9 @@ public class PromptUtils {
   /**
    * Loads a prompt template from the classpath.
    *
-   * @param promptName
-   *            the name of the prompt file (without path prefix)
+   * @param promptName the name of the prompt file (without path prefix)
    * @return the prompt template content
-   * @throws IOException
-   *             if the prompt file cannot be read
+   * @throws IOException if the prompt file cannot be read
    */
   public static String loadPrompt(String promptName) throws IOException {
     String resourcePath = "prompts/" + promptName;
@@ -54,7 +50,8 @@ public class PromptUtils {
       if (is == null) {
         throw new IOException("Prompt template not found: " + resourcePath);
       }
-      try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+      try (BufferedReader reader =
+          new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
         return reader.lines().collect(Collectors.joining("\n"));
       }
     }
@@ -63,10 +60,8 @@ public class PromptUtils {
   /**
    * Renders a prompt template by substituting variables.
    *
-   * @param template
-   *            the prompt template
-   * @param variables
-   *            the variables to substitute
+   * @param template the prompt template
+   * @param variables the variables to substitute
    * @return the rendered prompt
    */
   public static String renderPrompt(String template, Map<String, String> variables) {
@@ -84,15 +79,13 @@ public class PromptUtils {
   /**
    * Loads and renders a prompt template.
    *
-   * @param promptName
-   *            the name of the prompt file
-   * @param variables
-   *            the variables to substitute
+   * @param promptName the name of the prompt file
+   * @param variables the variables to substitute
    * @return the rendered prompt
-   * @throws IOException
-   *             if the prompt file cannot be read
+   * @throws IOException if the prompt file cannot be read
    */
-  public static String loadAndRender(String promptName, Map<String, String> variables) throws IOException {
+  public static String loadAndRender(String promptName, Map<String, String> variables)
+      throws IOException {
     String template = loadPrompt(promptName);
     return renderPrompt(template, variables);
   }
@@ -100,8 +93,7 @@ public class PromptUtils {
   /**
    * Converts an object to a string representation for use in prompts.
    *
-   * @param obj
-   *            the object to convert
+   * @param obj the object to convert
    * @return the string representation
    */
   public static String stringify(Object obj) {

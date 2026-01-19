@@ -26,30 +26,35 @@ class GoogleGenAIPluginOptionsTest {
 
   @Test
   void testDefaultBuilder() {
-    GoogleGenAIPluginOptions options = GoogleGenAIPluginOptions.builder().apiKey("test-key").build();
+    GoogleGenAIPluginOptions options =
+        GoogleGenAIPluginOptions.builder().apiKey("test-key").build();
 
     assertNotNull(options);
   }
 
   @Test
   void testBuilderWithApiKey() {
-    GoogleGenAIPluginOptions options = GoogleGenAIPluginOptions.builder().apiKey("test-key-123").build();
+    GoogleGenAIPluginOptions options =
+        GoogleGenAIPluginOptions.builder().apiKey("test-key-123").build();
 
     assertEquals("test-key-123", options.getApiKey());
   }
 
   @Test
   void testBuilderWithBaseUrl() {
-    GoogleGenAIPluginOptions options = GoogleGenAIPluginOptions.builder().apiKey("test-key")
-        .baseUrl("https://custom.google.com").build();
+    GoogleGenAIPluginOptions options =
+        GoogleGenAIPluginOptions.builder()
+            .apiKey("test-key")
+            .baseUrl("https://custom.google.com")
+            .build();
 
     assertEquals("https://custom.google.com", options.getBaseUrl());
   }
 
   @Test
   void testBuilderWithAllOptions() {
-    GoogleGenAIPluginOptions options = GoogleGenAIPluginOptions.builder().apiKey("test-key")
-        .baseUrl("https://test.com").build();
+    GoogleGenAIPluginOptions options =
+        GoogleGenAIPluginOptions.builder().apiKey("test-key").baseUrl("https://test.com").build();
 
     assertEquals("test-key", options.getApiKey());
     assertEquals("https://test.com", options.getBaseUrl());

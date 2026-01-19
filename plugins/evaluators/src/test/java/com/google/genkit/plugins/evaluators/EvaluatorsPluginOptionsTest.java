@@ -22,7 +22,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 import java.util.Map;
-
 import org.junit.jupiter.api.Test;
 
 class EvaluatorsPluginOptionsTest {
@@ -39,15 +38,19 @@ class EvaluatorsPluginOptionsTest {
 
   @Test
   void testBuilderWithJudge() {
-    EvaluatorsPluginOptions options = EvaluatorsPluginOptions.builder().judge("googleai/gemini-2.0-flash").build();
+    EvaluatorsPluginOptions options =
+        EvaluatorsPluginOptions.builder().judge("googleai/gemini-2.0-flash").build();
 
     assertEquals("googleai/gemini-2.0-flash", options.getJudge());
   }
 
   @Test
   void testBuilderWithMetricTypes() {
-    EvaluatorsPluginOptions options = EvaluatorsPluginOptions.builder().judge("test/model")
-        .metricTypes(List.of(GenkitMetric.FAITHFULNESS, GenkitMetric.REGEX)).build();
+    EvaluatorsPluginOptions options =
+        EvaluatorsPluginOptions.builder()
+            .judge("test/model")
+            .metricTypes(List.of(GenkitMetric.FAITHFULNESS, GenkitMetric.REGEX))
+            .build();
 
     List<MetricConfig> metrics = options.getMetrics();
     assertNotNull(metrics);
@@ -58,11 +61,11 @@ class EvaluatorsPluginOptionsTest {
 
   @Test
   void testBuilderWithMetrics() {
-    MetricConfig config = MetricConfig.builder().metricType(GenkitMetric.MALICIOUSNESS).judge("custom/model")
-        .build();
+    MetricConfig config =
+        MetricConfig.builder().metricType(GenkitMetric.MALICIOUSNESS).judge("custom/model").build();
 
-    EvaluatorsPluginOptions options = EvaluatorsPluginOptions.builder().judge("default/model")
-        .metrics(List.of(config)).build();
+    EvaluatorsPluginOptions options =
+        EvaluatorsPluginOptions.builder().judge("default/model").metrics(List.of(config)).build();
 
     List<MetricConfig> metrics = options.getMetrics();
     assertNotNull(metrics);
@@ -73,35 +76,41 @@ class EvaluatorsPluginOptionsTest {
 
   @Test
   void testResolveJudge() {
-    EvaluatorsPluginOptions options = EvaluatorsPluginOptions.builder().judge("default/model").build();
+    EvaluatorsPluginOptions options =
+        EvaluatorsPluginOptions.builder().judge("default/model").build();
 
     // Metric without judge should use default
     MetricConfig metricWithoutJudge = MetricConfig.of(GenkitMetric.FAITHFULNESS);
     assertEquals("default/model", options.resolveJudge(metricWithoutJudge));
 
     // Metric with judge should use its own
-    MetricConfig metricWithJudge = MetricConfig.builder().metricType(GenkitMetric.FAITHFULNESS)
-        .judge("custom/model").build();
+    MetricConfig metricWithJudge =
+        MetricConfig.builder().metricType(GenkitMetric.FAITHFULNESS).judge("custom/model").build();
     assertEquals("custom/model", options.resolveJudge(metricWithJudge));
   }
 
   @Test
   void testResolveEmbedder() {
-    EvaluatorsPluginOptions options = EvaluatorsPluginOptions.builder().embedder("default/embedder").build();
+    EvaluatorsPluginOptions options =
+        EvaluatorsPluginOptions.builder().embedder("default/embedder").build();
 
     // Metric without embedder should use default
     MetricConfig metricWithoutEmbedder = MetricConfig.of(GenkitMetric.ANSWER_RELEVANCY);
     assertEquals("default/embedder", options.resolveEmbedder(metricWithoutEmbedder));
 
     // Metric with embedder should use its own
-    MetricConfig metricWithEmbedder = MetricConfig.builder().metricType(GenkitMetric.ANSWER_RELEVANCY)
-        .embedder("custom/embedder").build();
+    MetricConfig metricWithEmbedder =
+        MetricConfig.builder()
+            .metricType(GenkitMetric.ANSWER_RELEVANCY)
+            .embedder("custom/embedder")
+            .build();
     assertEquals("custom/embedder", options.resolveEmbedder(metricWithEmbedder));
   }
 
   @Test
   void testUseAllMetrics() {
-    EvaluatorsPluginOptions options = EvaluatorsPluginOptions.builder().judge("test/model").useAllMetrics().build();
+    EvaluatorsPluginOptions options =
+        EvaluatorsPluginOptions.builder().judge("test/model").useAllMetrics().build();
 
     List<MetricConfig> metrics = options.getMetrics();
     assertNotNull(metrics);
@@ -113,15 +122,19 @@ class EvaluatorsPluginOptionsTest {
     Map<String, Object> defaultConfig = Map.of("temperature", 0.5);
     Map<String, Object> customConfig = Map.of("temperature", 0.8);
 
-    EvaluatorsPluginOptions options = EvaluatorsPluginOptions.builder().judgeConfig(defaultConfig).build();
+    EvaluatorsPluginOptions options =
+        EvaluatorsPluginOptions.builder().judgeConfig(defaultConfig).build();
 
     // Metric without config should use default
     MetricConfig metricWithoutConfig = MetricConfig.of(GenkitMetric.FAITHFULNESS);
     assertEquals(defaultConfig, options.resolveJudgeConfig(metricWithoutConfig));
 
     // Metric with config should use its own
-    MetricConfig metricWithConfig = MetricConfig.builder().metricType(GenkitMetric.FAITHFULNESS)
-        .judgeConfig(customConfig).build();
+    MetricConfig metricWithConfig =
+        MetricConfig.builder()
+            .metricType(GenkitMetric.FAITHFULNESS)
+            .judgeConfig(customConfig)
+            .build();
     assertEquals(customConfig, options.resolveJudgeConfig(metricWithConfig));
   }
 }

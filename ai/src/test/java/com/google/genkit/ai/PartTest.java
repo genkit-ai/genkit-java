@@ -21,12 +21,9 @@ package com.google.genkit.ai;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Map;
-
 import org.junit.jupiter.api.Test;
 
-/**
- * Unit tests for Part.
- */
+/** Unit tests for Part. */
 class PartTest {
 
   @Test

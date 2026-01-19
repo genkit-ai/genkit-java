@@ -18,21 +18,19 @@
 
 package com.google.genkit.plugins.evaluators.metrics;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
- * Response schema for NLI (Natural Language Inference) evaluation. Contains a
- * list of statement verdicts.
+ * Response schema for NLI (Natural Language Inference) evaluation. Contains a list of statement
+ * verdicts.
  */
 public class NliResponse {
 
   @JsonProperty("responses")
   private List<NliResponseItem> responses;
 
-  public NliResponse() {
-  }
+  public NliResponse() {}
 
   public NliResponse(List<NliResponseItem> responses) {
     this.responses = responses;

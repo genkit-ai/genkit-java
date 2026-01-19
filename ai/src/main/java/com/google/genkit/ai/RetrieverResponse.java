@@ -18,31 +18,24 @@
 
 package com.google.genkit.ai;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 
-/**
- * RetrieverResponse contains documents retrieved from a query.
- */
+/** RetrieverResponse contains documents retrieved from a query. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class RetrieverResponse {
 
   @JsonProperty("documents")
   private List<Document> documents;
 
-  /**
-   * Default constructor.
-   */
-  public RetrieverResponse() {
-  }
+  /** Default constructor. */
+  public RetrieverResponse() {}
 
   /**
    * Creates a RetrieverResponse with documents.
    *
-   * @param documents
-   *            the retrieved documents
+   * @param documents the retrieved documents
    */
   public RetrieverResponse(List<Document> documents) {
     this.documents = documents;

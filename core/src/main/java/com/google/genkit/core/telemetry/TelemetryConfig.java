@@ -18,31 +18,27 @@
 
 package com.google.genkit.core.telemetry;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.genkit.core.tracing.Tracer;
-
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.api.metrics.MeterProvider;
 import io.opentelemetry.sdk.trace.SpanProcessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Central configuration for Genkit telemetry.
- * 
- * <p>
- * This class provides the single entry point for telemetry plugins (like
- * Firebase) to configure both tracing and metrics exporters.
- * 
- * <p>
- * Example usage by a telemetry plugin:
- * 
+ *
+ * <p>This class provides the single entry point for telemetry plugins (like Firebase) to configure
+ * both tracing and metrics exporters.
+ *
+ * <p>Example usage by a telemetry plugin:
+ *
  * <pre>{@code
  * // Register span processor for traces
  * SpanProcessor spanProcessor = BatchSpanProcessor.builder(traceExporter).build();
  * TelemetryConfig.registerSpanProcessor(spanProcessor);
- * 
+ *
  * // Register meter provider for metrics
  * SdkMeterProvider meterProvider = SdkMeterProvider.builder()
  *     .registerMetricReader(...)
@@ -63,14 +59,11 @@ public final class TelemetryConfig {
 
   /**
    * Registers a SpanProcessor for exporting traces.
-   * 
-   * <p>
-   * This allows telemetry plugins to add their own exporters to send traces to
-   * external services like Google Cloud Trace. Multiple span processors can be
-   * registered.
    *
-   * @param processor
-   *            the span processor to register
+   * <p>This allows telemetry plugins to add their own exporters to send traces to external services
+   * like Google Cloud Trace. Multiple span processors can be registered.
+   *
+   * @param processor the span processor to register
    */
   public static void registerSpanProcessor(SpanProcessor processor) {
     Tracer.registerSpanProcessor(processor);
@@ -78,13 +71,11 @@ public final class TelemetryConfig {
 
   /**
    * Sets the MeterProvider to be used by Genkit metrics classes.
-   * 
-   * <p>
-   * This should be called by telemetry plugins (like Firebase) during
-   * initialization, before any metrics are recorded.
    *
-   * @param provider
-   *            the MeterProvider to use for metrics
+   * <p>This should be called by telemetry plugins (like Firebase) during initialization, before any
+   * metrics are recorded.
+   *
+   * @param provider the MeterProvider to use for metrics
    */
   public static void setMeterProvider(MeterProvider provider) {
     synchronized (lock) {
@@ -98,13 +89,11 @@ public final class TelemetryConfig {
 
   /**
    * Gets a Meter for recording metrics.
-   * 
-   * <p>
-   * If a MeterProvider has been set via {@link #setMeterProvider(MeterProvider)},
-   * it will be used. Otherwise, falls back to GlobalOpenTelemetry.
    *
-   * @param instrumentationScopeName
-   *            the name of the instrumentation scope
+   * <p>If a MeterProvider has been set via {@link #setMeterProvider(MeterProvider)}, it will be
+   * used. Otherwise, falls back to GlobalOpenTelemetry.
+   *
+   * @param instrumentationScopeName the name of the instrumentation scope
    * @return a Meter for recording metrics
    */
   public static Meter getMeter(String instrumentationScopeName) {
@@ -128,9 +117,7 @@ public final class TelemetryConfig {
     return meterProvider != null;
   }
 
-  /**
-   * Resets the configuration. Primarily for testing.
-   */
+  /** Resets the configuration. Primarily for testing. */
   public static void reset() {
     synchronized (lock) {
       meterProvider = null;

@@ -20,11 +20,9 @@ package com.google.genkit.plugins.ollama;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.List;
-
-import org.junit.jupiter.api.Test;
-
 import com.google.genkit.core.Action;
+import java.util.List;
+import org.junit.jupiter.api.Test;
 
 class OllamaPluginTest {
 
@@ -38,8 +36,8 @@ class OllamaPluginTest {
 
   @Test
   void testConstructionWithOptions() {
-    OllamaPluginOptions options = OllamaPluginOptions.builder().baseUrl("http://localhost:11434").timeout(30)
-        .build();
+    OllamaPluginOptions options =
+        OllamaPluginOptions.builder().baseUrl("http://localhost:11434").timeout(30).build();
 
     OllamaPlugin plugin = new OllamaPlugin(options);
 
@@ -65,7 +63,8 @@ class OllamaPluginTest {
 
   @Test
   void testInitializesActions() {
-    OllamaPlugin plugin = new OllamaPlugin(OllamaPluginOptions.builder().baseUrl("http://localhost:11434").build());
+    OllamaPlugin plugin =
+        new OllamaPlugin(OllamaPluginOptions.builder().baseUrl("http://localhost:11434").build());
 
     List<Action<?, ?, ?>> actions = plugin.init();
 
@@ -75,7 +74,8 @@ class OllamaPluginTest {
 
   @Test
   void testGetOptions() {
-    OllamaPluginOptions options = OllamaPluginOptions.builder().baseUrl("http://test:8080").timeout(45).build();
+    OllamaPluginOptions options =
+        OllamaPluginOptions.builder().baseUrl("http://test:8080").timeout(45).build();
 
     OllamaPlugin plugin = new OllamaPlugin(options);
     OllamaPluginOptions retrievedOptions = plugin.getOptions();

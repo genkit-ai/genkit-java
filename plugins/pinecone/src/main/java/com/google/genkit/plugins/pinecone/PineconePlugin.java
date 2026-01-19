@@ -18,33 +18,37 @@
 
 package com.google.genkit.plugins.pinecone;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.genkit.ai.*;
 import com.google.genkit.core.Action;
 import com.google.genkit.core.ActionType;
 import com.google.genkit.core.Plugin;
 import com.google.genkit.core.Registry;
-
 import io.pinecone.clients.Pinecone;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Pinecone plugin for Genkit providing vector database functionality.
  *
- * <p>
- * Example usage:
- * 
+ * <p>Example usage:
+ *
  * <pre>{@code
- * Genkit genkit = Genkit.builder().plugin(GoogleGenAIPlugin.create(apiKey))
- * 		.plugin(PineconePlugin.builder().apiKey(System.getenv("PINECONE_API_KEY")).addIndex(PineconeIndexConfig
- * 				.builder().indexName("my-index").embedderName("googleai/text-embedding-004").build()).build())
- * 		.build();
+ * Genkit genkit = Genkit.builder()
+ *     .plugin(GoogleGenAIPlugin.create(apiKey))
+ *     .plugin(
+ *         PineconePlugin.builder()
+ *             .apiKey(System.getenv("PINECONE_API_KEY"))
+ *             .addIndex(
+ *                 PineconeIndexConfig.builder()
+ *                     .indexName("my-index")
+ *                     .embedderName("googleai/text-embedding-004")
+ *                     .build())
+ *             .build())
+ *     .build();
  * }</pre>
  */
 public class PineconePlugin implements Plugin {
@@ -65,9 +69,7 @@ public class PineconePlugin implements Plugin {
     this.externalClient = builder.externalClient;
   }
 
-  /**
-   * Creates a new builder for PineconePlugin.
-   */
+  /** Creates a new builder for PineconePlugin. */
   public static Builder builder() {
     return new Builder();
   }
@@ -75,8 +77,7 @@ public class PineconePlugin implements Plugin {
   /**
    * Creates a PineconePlugin with the specified API key.
    *
-   * @param apiKey
-   *            the Pinecone API key
+   * @param apiKey the Pinecone API key
    * @return a builder for further configuration
    */
   public static Builder create(String apiKey) {
@@ -108,12 +109,15 @@ public class PineconePlugin implements Plugin {
       Action<?, ?, ?> embedderAction = registry.lookupAction(embedderKey);
 
       if (embedderAction == null) {
-        throw new IllegalStateException("Embedder not found: " + indexConfig.getEmbedderName()
-            + ". Make sure the embedder plugin is registered before PineconePlugin.");
+        throw new IllegalStateException(
+            "Embedder not found: "
+                + indexConfig.getEmbedderName()
+                + ". Make sure the embedder plugin is registered before PineconePlugin.");
       }
 
       if (!(embedderAction instanceof Embedder)) {
-        throw new IllegalStateException("Action " + indexConfig.getEmbedderName() + " is not an Embedder");
+        throw new IllegalStateException(
+            "Action " + indexConfig.getEmbedderName() + " is not an Embedder");
       }
 
       Embedder embedder = (Embedder) embedderAction;
@@ -130,7 +134,8 @@ public class PineconePlugin implements Plugin {
 
       // Create retriever action
       String retrieverName = PLUGIN_NAME + "/" + storeKey;
-      Retriever retriever = Retriever.builder().name(retrieverName).handler(vectorStore::retrieve).build();
+      Retriever retriever =
+          Retriever.builder().name(retrieverName).handler(vectorStore::retrieve).build();
       actions.add(retriever);
       logger.info("Registered Pinecone retriever: {}", retrieverName);
 
@@ -147,8 +152,7 @@ public class PineconePlugin implements Plugin {
   /**
    * Gets a vector store by index name.
    *
-   * @param indexName
-   *            the index name
+   * @param indexName the index name
    * @return the vector store, or null if not found
    */
   public PineconeVectorStore getVectorStore(String indexName) {
@@ -158,10 +162,8 @@ public class PineconePlugin implements Plugin {
   /**
    * Gets a vector store by index name and namespace.
    *
-   * @param indexName
-   *            the index name
-   * @param namespace
-   *            the namespace
+   * @param indexName the index name
+   * @param namespace the namespace
    * @return the vector store, or null if not found
    */
   public PineconeVectorStore getVectorStore(String indexName, String namespace) {
@@ -172,40 +174,30 @@ public class PineconePlugin implements Plugin {
     return vectorStores.get(key);
   }
 
-  /**
-   * Gets the Pinecone client.
-   */
+  /** Gets the Pinecone client. */
   public Pinecone getClient() {
     return client;
   }
 
-  /**
-   * Builder for PineconePlugin.
-   */
+  /** Builder for PineconePlugin. */
   public static class Builder {
     private String apiKey;
     private final List<PineconeIndexConfig> indexConfigs = new ArrayList<>();
     private Pinecone externalClient;
 
-    /**
-     * Sets the Pinecone API key (required unless externalClient is provided).
-     */
+    /** Sets the Pinecone API key (required unless externalClient is provided). */
     public Builder apiKey(String apiKey) {
       this.apiKey = apiKey;
       return this;
     }
 
-    /**
-     * Adds an index configuration.
-     */
+    /** Adds an index configuration. */
     public Builder addIndex(PineconeIndexConfig indexConfig) {
       this.indexConfigs.add(indexConfig);
       return this;
     }
 
-    /**
-     * Sets an external Pinecone client to use instead of creating one.
-     */
+    /** Sets an external Pinecone client to use instead of creating one. */
     public Builder client(Pinecone client) {
       this.externalClient = client;
       return this;
@@ -214,8 +206,7 @@ public class PineconePlugin implements Plugin {
     /**
      * Builds the PineconePlugin.
      *
-     * @throws IllegalStateException
-     *             if required configuration is missing
+     * @throws IllegalStateException if required configuration is missing
      */
     public PineconePlugin build() {
       if (externalClient == null) {

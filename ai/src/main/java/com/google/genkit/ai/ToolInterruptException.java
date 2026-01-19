@@ -25,19 +25,20 @@ import java.util.Map;
 /**
  * Exception thrown when a tool execution is interrupted.
  *
- * <p>
- * This exception is used to implement the interrupt pattern, which allows tools
- * to pause execution and request user input (human-in-the-loop). When a tool
- * throws this exception, the generation loop stops and returns the interrupt
- * information to the caller.
+ * <p>This exception is used to implement the interrupt pattern, which allows tools to pause
+ * execution and request user input (human-in-the-loop). When a tool throws this exception, the
+ * generation loop stops and returns the interrupt information to the caller.
  *
- * <p>
- * Example usage:
+ * <p>Example usage:
  *
  * <pre>{@code
- * Tool<Input, Output> confirmTool = genkit.defineInterrupt(InterruptConfig.<Input, Output>builder()
- * 		.name("confirmAction").description("Ask user for confirmation before proceeding").inputSchema(Input.class)
- * 		.outputSchema(Output.class).build());
+ * Tool<Input, Output> confirmTool = genkit.defineInterrupt(
+ *     InterruptConfig.<Input, Output>builder()
+ *         .name("confirmAction")
+ *         .description("Ask user for confirmation before proceeding")
+ *         .inputSchema(Input.class)
+ *         .outputSchema(Output.class)
+ *         .build());
  * }</pre>
  */
 public class ToolInterruptException extends RuntimeException {
@@ -53,29 +54,28 @@ public class ToolInterruptException extends RuntimeException {
   /**
    * Creates a new ToolInterruptException with metadata.
    *
-   * @param metadata
-   *            additional metadata about the interrupt
+   * @param metadata additional metadata about the interrupt
    */
   public ToolInterruptException(Map<String, Object> metadata) {
     super("Tool execution interrupted");
-    this.metadata = metadata != null
-        ? Collections.unmodifiableMap(new HashMap<>(metadata))
-        : Collections.emptyMap();
+    this.metadata =
+        metadata != null
+            ? Collections.unmodifiableMap(new HashMap<>(metadata))
+            : Collections.emptyMap();
   }
 
   /**
    * Creates a new ToolInterruptException with a message and metadata.
    *
-   * @param message
-   *            the exception message
-   * @param metadata
-   *            additional metadata about the interrupt
+   * @param message the exception message
+   * @param metadata additional metadata about the interrupt
    */
   public ToolInterruptException(String message, Map<String, Object> metadata) {
     super(message);
-    this.metadata = metadata != null
-        ? Collections.unmodifiableMap(new HashMap<>(metadata))
-        : Collections.emptyMap();
+    this.metadata =
+        metadata != null
+            ? Collections.unmodifiableMap(new HashMap<>(metadata))
+            : Collections.emptyMap();
   }
 
   /**

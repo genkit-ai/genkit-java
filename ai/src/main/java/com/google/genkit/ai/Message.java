@@ -18,17 +18,14 @@
 
 package com.google.genkit.ai;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-/**
- * Message represents a message in a conversation with a generative AI model.
- */
+/** Message represents a message in a conversation with a generative AI model. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Message {
 
@@ -41,19 +38,14 @@ public class Message {
   @JsonProperty("metadata")
   private Map<String, Object> metadata;
 
-  /**
-   * Default constructor.
-   */
-  public Message() {
-  }
+  /** Default constructor. */
+  public Message() {}
 
   /**
    * Creates a message with the given role and content.
    *
-   * @param role
-   *            the message role
-   * @param content
-   *            the content parts
+   * @param role the message role
+   * @param content the content parts
    */
   public Message(Role role, List<Part> content) {
     this.role = role;
@@ -63,8 +55,7 @@ public class Message {
   /**
    * Creates a user message with text content.
    *
-   * @param text
-   *            the text content
+   * @param text the text content
    * @return a new user message
    */
   public static Message user(String text) {
@@ -74,8 +65,7 @@ public class Message {
   /**
    * Creates a system message with text content.
    *
-   * @param text
-   *            the text content
+   * @param text the text content
    * @return a new system message
    */
   public static Message system(String text) {
@@ -85,8 +75,7 @@ public class Message {
   /**
    * Creates a model message with text content.
    *
-   * @param text
-   *            the text content
+   * @param text the text content
    * @return a new model message
    */
   public static Message model(String text) {
@@ -96,8 +85,7 @@ public class Message {
   /**
    * Creates a tool message with content.
    *
-   * @param content
-   *            the content parts
+   * @param content the content parts
    * @return a new tool message
    */
   public static Message tool(List<Part> content) {
@@ -151,8 +139,7 @@ public class Message {
   /**
    * Adds a part to the message content.
    *
-   * @param part
-   *            the part to add
+   * @param part the part to add
    * @return this message for chaining
    */
   public Message addPart(Part part) {
@@ -172,9 +159,7 @@ public class Message {
     return new Builder();
   }
 
-  /**
-   * Builder for Message.
-   */
+  /** Builder for Message. */
   public static class Builder {
     private Role role;
     private List<Part> content = new ArrayList<>();

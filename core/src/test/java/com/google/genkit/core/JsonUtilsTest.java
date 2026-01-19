@@ -20,19 +20,15 @@ package com.google.genkit.core;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.junit.jupiter.api.Test;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
 
-/**
- * Unit tests for JsonUtils.
- */
+/** Unit tests for JsonUtils. */
 class JsonUtilsTest {
 
   @Test
@@ -102,7 +98,8 @@ class JsonUtilsTest {
 
   @Test
   void testFromJsonNode() {
-    JsonNode node = JsonUtils.getObjectMapper().createObjectNode().put("name", "test").put("value", 42);
+    JsonNode node =
+        JsonUtils.getObjectMapper().createObjectNode().put("name", "test").put("value", 42);
 
     TestObject obj = JsonUtils.fromJsonNode(node, TestObject.class);
 
@@ -169,16 +166,13 @@ class JsonUtilsTest {
 
   @Test
   void testEmptyObjectSerialization() {
-    Object emptyObj = new Object() {
-    };
+    Object emptyObj = new Object() {};
 
     // Should not fail on empty beans
     assertDoesNotThrow(() -> JsonUtils.toJson(emptyObj));
   }
 
-  /**
-   * Test helper class.
-   */
+  /** Test helper class. */
   static class TestObject {
     @JsonProperty("name")
     private String name;
@@ -186,8 +180,7 @@ class JsonUtilsTest {
     @JsonProperty("value")
     private int value;
 
-    public TestObject() {
-    }
+    public TestObject() {}
 
     public TestObject(String name, int value) {
       this.name = name;

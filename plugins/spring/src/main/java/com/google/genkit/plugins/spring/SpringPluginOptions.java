@@ -18,9 +18,7 @@
 
 package com.google.genkit.plugins.spring;
 
-/**
- * Options for configuring the Spring Boot plugin.
- */
+/** Options for configuring the Spring Boot plugin. */
 public class SpringPluginOptions {
 
   private final int port;
@@ -80,9 +78,7 @@ public class SpringPluginOptions {
     return contextPath;
   }
 
-  /**
-   * Builder for SpringPluginOptions.
-   */
+  /** Builder for SpringPluginOptions. */
   public static class Builder {
     private int port = 8080;
     private String host = "0.0.0.0";

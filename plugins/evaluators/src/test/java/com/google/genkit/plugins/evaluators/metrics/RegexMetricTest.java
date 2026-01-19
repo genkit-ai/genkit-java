@@ -20,12 +20,11 @@ package com.google.genkit.plugins.evaluators.metrics;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.junit.jupiter.api.Test;
-
 import com.google.genkit.ai.evaluation.EvalDataPoint;
 import com.google.genkit.ai.evaluation.EvalResponse;
 import com.google.genkit.ai.evaluation.EvalStatus;
 import com.google.genkit.ai.evaluation.Score;
+import org.junit.jupiter.api.Test;
 
 class RegexMetricTest {
 
@@ -37,8 +36,12 @@ class RegexMetricTest {
 
   @Test
   void testSimpleMatch() {
-    EvalDataPoint dataPoint = EvalDataPoint.builder().testCaseId("test-1").output("Hello World").reference("World")
-        .build();
+    EvalDataPoint dataPoint =
+        EvalDataPoint.builder()
+            .testCaseId("test-1")
+            .output("Hello World")
+            .reference("World")
+            .build();
 
     EvalResponse response = metric.evaluate(dataPoint);
     Score score = getScore(response);
@@ -50,8 +53,12 @@ class RegexMetricTest {
 
   @Test
   void testNoMatch() {
-    EvalDataPoint dataPoint = EvalDataPoint.builder().testCaseId("test-2").output("Hello World")
-        .reference("Goodbye").build();
+    EvalDataPoint dataPoint =
+        EvalDataPoint.builder()
+            .testCaseId("test-2")
+            .output("Hello World")
+            .reference("Goodbye")
+            .build();
 
     EvalResponse response = metric.evaluate(dataPoint);
     Score score = getScore(response);
@@ -63,8 +70,12 @@ class RegexMetricTest {
 
   @Test
   void testRegexPattern() {
-    EvalDataPoint dataPoint = EvalDataPoint.builder().testCaseId("test-3").output("The answer is 42")
-        .reference("\\d+").build();
+    EvalDataPoint dataPoint =
+        EvalDataPoint.builder()
+            .testCaseId("test-3")
+            .output("The answer is 42")
+            .reference("\\d+")
+            .build();
 
     EvalResponse response = metric.evaluate(dataPoint);
     Score score = getScore(response);
@@ -75,9 +86,12 @@ class RegexMetricTest {
 
   @Test
   void testEmailPattern() {
-    EvalDataPoint dataPoint = EvalDataPoint.builder().testCaseId("test-4")
-        .output("Contact us at test@example.com for more info")
-        .reference("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}").build();
+    EvalDataPoint dataPoint =
+        EvalDataPoint.builder()
+            .testCaseId("test-4")
+            .output("Contact us at test@example.com for more info")
+            .reference("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}")
+            .build();
 
     EvalResponse response = metric.evaluate(dataPoint);
     Score score = getScore(response);
@@ -88,8 +102,8 @@ class RegexMetricTest {
 
   @Test
   void testInvalidRegex() {
-    EvalDataPoint dataPoint = EvalDataPoint.builder().testCaseId("test-5").output("test").reference("[invalid")
-        .build();
+    EvalDataPoint dataPoint =
+        EvalDataPoint.builder().testCaseId("test-5").output("test").reference("[invalid").build();
 
     EvalResponse response = metric.evaluate(dataPoint);
     Score score = getScore(response);
@@ -101,7 +115,8 @@ class RegexMetricTest {
 
   @Test
   void testMissingOutput() {
-    EvalDataPoint dataPoint = EvalDataPoint.builder().testCaseId("test-6").reference("test").build();
+    EvalDataPoint dataPoint =
+        EvalDataPoint.builder().testCaseId("test-6").reference("test").build();
 
     assertThrows(IllegalArgumentException.class, () -> metric.evaluate(dataPoint));
   }

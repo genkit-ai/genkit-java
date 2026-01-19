@@ -20,20 +20,16 @@ package com.google.genkit.core.middleware;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.DefaultRegistry;
 import com.google.genkit.core.GenkitException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-/**
- * Tests for the Middleware classes.
- */
+/** Tests for the Middleware classes. */
 class MiddlewareTest {
 
   private ActionContext context;
@@ -45,10 +41,11 @@ class MiddlewareTest {
 
   @Test
   void testSimpleMiddleware() {
-    Middleware<String, String> middleware = (request, ctx, next) -> {
-      String modified = request.toUpperCase();
-      return next.apply(modified, ctx);
-    };
+    Middleware<String, String> middleware =
+        (request, ctx, next) -> {
+          String modified = request.toUpperCase();
+          return next.apply(modified, ctx);
+        };
 
     MiddlewareChain<String, String> chain = new MiddlewareChain<>();
     chain.use(middleware);
@@ -61,29 +58,36 @@ class MiddlewareTest {
   void testMiddlewareChainOrder() {
     List<String> order = new ArrayList<>();
 
-    Middleware<String, String> first = (request, ctx, next) -> {
-      order.add("first-before");
-      String result = next.apply(request + "-first", ctx);
-      order.add("first-after");
-      return result;
-    };
+    Middleware<String, String> first =
+        (request, ctx, next) -> {
+          order.add("first-before");
+          String result = next.apply(request + "-first", ctx);
+          order.add("first-after");
+          return result;
+        };
 
-    Middleware<String, String> second = (request, ctx, next) -> {
-      order.add("second-before");
-      String result = next.apply(request + "-second", ctx);
-      order.add("second-after");
-      return result;
-    };
+    Middleware<String, String> second =
+        (request, ctx, next) -> {
+          order.add("second-before");
+          String result = next.apply(request + "-second", ctx);
+          order.add("second-after");
+          return result;
+        };
 
     MiddlewareChain<String, String> chain = MiddlewareChain.of(first, second);
 
-    String result = chain.execute("input", context, (ctx, req) -> {
-      order.add("action");
-      return req;
-    });
+    String result =
+        chain.execute(
+            "input",
+            context,
+            (ctx, req) -> {
+              order.add("action");
+              return req;
+            });
 
     assertEquals("input-first-second", result);
-    assertEquals(List.of("first-before", "second-before", "action", "second-after", "first-after"), order);
+    assertEquals(
+        List.of("first-before", "second-before", "action", "second-after", "first-after"), order);
   }
 
   @Test
@@ -96,10 +100,11 @@ class MiddlewareTest {
 
   @Test
   void testMiddlewareModifiesResponse() {
-    Middleware<String, String> middleware = (request, ctx, next) -> {
-      String result = next.apply(request, ctx);
-      return result.toUpperCase();
-    };
+    Middleware<String, String> middleware =
+        (request, ctx, next) -> {
+          String result = next.apply(request, ctx);
+          return result.toUpperCase();
+        };
 
     MiddlewareChain<String, String> chain = new MiddlewareChain<>();
     chain.use(middleware);
@@ -128,13 +133,17 @@ class MiddlewareTest {
     MiddlewareChain<String, String> chain = new MiddlewareChain<>();
     chain.use(retryMiddleware);
 
-    String result = chain.execute("hello", context, (ctx, req) -> {
-      int attempt = attempts.incrementAndGet();
-      if (attempt < 3) {
-        throw new GenkitException("Simulated failure");
-      }
-      return "Success after " + attempt + " attempts";
-    });
+    String result =
+        chain.execute(
+            "hello",
+            context,
+            (ctx, req) -> {
+              int attempt = attempts.incrementAndGet();
+              if (attempt < 3) {
+                throw new GenkitException("Simulated failure");
+              }
+              return "Success after " + attempt + " attempts";
+            });
 
     assertEquals("Success after 3 attempts", result);
     assertEquals(3, attempts.get());
@@ -149,12 +158,18 @@ class MiddlewareTest {
     MiddlewareChain<String, String> chain = new MiddlewareChain<>();
     chain.use(retryMiddleware);
 
-    GenkitException exception = assertThrows(GenkitException.class, () -> {
-      chain.execute("hello", context, (ctx, req) -> {
-        attempts.incrementAndGet();
-        throw new GenkitException("Simulated failure");
-      });
-    });
+    GenkitException exception =
+        assertThrows(
+            GenkitException.class,
+            () -> {
+              chain.execute(
+                  "hello",
+                  context,
+                  (ctx, req) -> {
+                    attempts.incrementAndGet();
+                    throw new GenkitException("Simulated failure");
+                  });
+            });
 
     assertTrue(exception.getMessage().contains("Simulated failure"));
     assertEquals(3, attempts.get()); // Initial + 2 retries
@@ -162,11 +177,13 @@ class MiddlewareTest {
 
   @Test
   void testValidationMiddleware() {
-    Middleware<String, String> validationMiddleware = CommonMiddleware.validate(request -> {
-      if (request == null || request.isEmpty()) {
-        throw new GenkitException("Request cannot be empty");
-      }
-    });
+    Middleware<String, String> validationMiddleware =
+        CommonMiddleware.validate(
+            request -> {
+              if (request == null || request.isEmpty()) {
+                throw new GenkitException("Request cannot be empty");
+              }
+            });
 
     MiddlewareChain<String, String> chain = new MiddlewareChain<>();
     chain.use(validationMiddleware);
@@ -176,15 +193,19 @@ class MiddlewareTest {
     assertEquals("Result: hello", result);
 
     // Invalid request
-    GenkitException exception = assertThrows(GenkitException.class, () -> {
-      chain.execute("", context, (ctx, req) -> "Result: " + req);
-    });
+    GenkitException exception =
+        assertThrows(
+            GenkitException.class,
+            () -> {
+              chain.execute("", context, (ctx, req) -> "Result: " + req);
+            });
     assertTrue(exception.getMessage().contains("empty"));
   }
 
   @Test
   void testTransformRequestMiddleware() {
-    Middleware<String, String> transformMiddleware = CommonMiddleware.transformRequest(String::trim);
+    Middleware<String, String> transformMiddleware =
+        CommonMiddleware.transformRequest(String::trim);
 
     MiddlewareChain<String, String> chain = new MiddlewareChain<>();
     chain.use(transformMiddleware);
@@ -195,7 +216,8 @@ class MiddlewareTest {
 
   @Test
   void testTransformResponseMiddleware() {
-    Middleware<String, String> transformMiddleware = CommonMiddleware.transformResponse(String::toUpperCase);
+    Middleware<String, String> transformMiddleware =
+        CommonMiddleware.transformResponse(String::toUpperCase);
 
     MiddlewareChain<String, String> chain = new MiddlewareChain<>();
     chain.use(transformMiddleware);
@@ -212,14 +234,18 @@ class MiddlewareTest {
     MiddlewareChain<String, String> chain = new MiddlewareChain<>();
     chain.use(timingMiddleware);
 
-    String result = chain.execute("hello", context, (ctx, req) -> {
-      try {
-        Thread.sleep(50);
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-      }
-      return "Result: " + req;
-    });
+    String result =
+        chain.execute(
+            "hello",
+            context,
+            (ctx, req) -> {
+              try {
+                Thread.sleep(50);
+              } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+              }
+              return "Result: " + req;
+            });
 
     assertEquals("Result: hello", result);
     assertEquals(1, timings.size());
@@ -237,16 +263,24 @@ class MiddlewareTest {
     chain.use(cacheMiddleware);
 
     // First call - should execute action
-    String result1 = chain.execute("hello", context, (ctx, req) -> {
-      actionCalls.incrementAndGet();
-      return "Result: " + req;
-    });
+    String result1 =
+        chain.execute(
+            "hello",
+            context,
+            (ctx, req) -> {
+              actionCalls.incrementAndGet();
+              return "Result: " + req;
+            });
 
     // Second call - should use cache
-    String result2 = chain.execute("hello", context, (ctx, req) -> {
-      actionCalls.incrementAndGet();
-      return "Result: " + req;
-    });
+    String result2 =
+        chain.execute(
+            "hello",
+            context,
+            (ctx, req) -> {
+              actionCalls.incrementAndGet();
+              return "Result: " + req;
+            });
 
     assertEquals("Result: hello", result1);
     assertEquals("Result: hello", result2);
@@ -255,12 +289,14 @@ class MiddlewareTest {
 
   @Test
   void testConditionalMiddleware() {
-    Middleware<String, String> upperCaseMiddleware = (request, ctx, next) -> {
-      return next.apply(request.toUpperCase(), ctx);
-    };
+    Middleware<String, String> upperCaseMiddleware =
+        (request, ctx, next) -> {
+          return next.apply(request.toUpperCase(), ctx);
+        };
 
-    Middleware<String, String> conditionalMiddleware = CommonMiddleware
-        .conditional((request, ctx) -> request.startsWith("transform:"), upperCaseMiddleware);
+    Middleware<String, String> conditionalMiddleware =
+        CommonMiddleware.conditional(
+            (request, ctx) -> request.startsWith("transform:"), upperCaseMiddleware);
 
     MiddlewareChain<String, String> chain = new MiddlewareChain<>();
     chain.use(conditionalMiddleware);
@@ -276,15 +312,19 @@ class MiddlewareTest {
 
   @Test
   void testErrorHandlerMiddleware() {
-    Middleware<String, String> errorHandler = CommonMiddleware
-        .errorHandler(e -> "Error handled: " + e.getMessage());
+    Middleware<String, String> errorHandler =
+        CommonMiddleware.errorHandler(e -> "Error handled: " + e.getMessage());
 
     MiddlewareChain<String, String> chain = new MiddlewareChain<>();
     chain.use(errorHandler);
 
-    String result = chain.execute("hello", context, (ctx, req) -> {
-      throw new GenkitException("Something went wrong");
-    });
+    String result =
+        chain.execute(
+            "hello",
+            context,
+            (ctx, req) -> {
+              throw new GenkitException("Something went wrong");
+            });
 
     assertEquals("Error handled: Something went wrong", result);
   }
@@ -304,9 +344,12 @@ class MiddlewareTest {
     assertEquals("Result: hello", result2);
 
     // Third call should fail
-    GenkitException exception = assertThrows(GenkitException.class, () -> {
-      chain.execute("hello", context, (ctx, req) -> "Result: " + req);
-    });
+    GenkitException exception =
+        assertThrows(
+            GenkitException.class,
+            () -> {
+              chain.execute("hello", context, (ctx, req) -> "Result: " + req);
+            });
     assertTrue(exception.getMessage().contains("Rate limit exceeded"));
   }
 
@@ -314,9 +357,10 @@ class MiddlewareTest {
   void testBeforeAfterMiddleware() {
     List<String> events = new ArrayList<>();
 
-    Middleware<String, String> beforeAfterMiddleware = CommonMiddleware.beforeAfter(
-        (request, ctx) -> events.add("before: " + request),
-        (response, ctx) -> events.add("after: " + response));
+    Middleware<String, String> beforeAfterMiddleware =
+        CommonMiddleware.beforeAfter(
+            (request, ctx) -> events.add("before: " + request),
+            (response, ctx) -> events.add("after: " + response));
 
     MiddlewareChain<String, String> chain = new MiddlewareChain<>();
     chain.use(beforeAfterMiddleware);
@@ -329,7 +373,8 @@ class MiddlewareTest {
 
   @Test
   void testMiddlewareChainCopy() {
-    Middleware<String, String> middleware = (request, ctx, next) -> next.apply(request.toUpperCase(), ctx);
+    Middleware<String, String> middleware =
+        (request, ctx, next) -> next.apply(request.toUpperCase(), ctx);
 
     MiddlewareChain<String, String> original = new MiddlewareChain<>();
     original.use(middleware);
@@ -348,15 +393,17 @@ class MiddlewareTest {
   void testUseFirst() {
     List<String> order = new ArrayList<>();
 
-    Middleware<String, String> first = (request, ctx, next) -> {
-      order.add("first");
-      return next.apply(request, ctx);
-    };
+    Middleware<String, String> first =
+        (request, ctx, next) -> {
+          order.add("first");
+          return next.apply(request, ctx);
+        };
 
-    Middleware<String, String> second = (request, ctx, next) -> {
-      order.add("second");
-      return next.apply(request, ctx);
-    };
+    Middleware<String, String> second =
+        (request, ctx, next) -> {
+          order.add("second");
+          return next.apply(request, ctx);
+        };
 
     MiddlewareChain<String, String> chain = new MiddlewareChain<>();
     chain.use(first);

@@ -18,16 +18,6 @@
 
 package com.google.genkit.plugins.googlegenai;
 
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Consumer;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.genai.Client;
 import com.google.genai.types.GenerateImagesConfig;
 import com.google.genai.types.GenerateImagesResponse;
@@ -47,25 +37,28 @@ import com.google.genkit.ai.Part;
 import com.google.genkit.ai.Role;
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.GenkitException;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Imagen model implementation for image generation using the official Google
- * GenAI SDK.
+ * Imagen model implementation for image generation using the official Google GenAI SDK.
  *
- * <p>
- * Imagen is Google's text-to-image model that generates high-quality images
- * from text prompts.
+ * <p>Imagen is Google's text-to-image model that generates high-quality images from text prompts.
  *
- * <p>
- * Configuration options (passed via request.config):
+ * <p>Configuration options (passed via request.config):
+ *
  * <ul>
- * <li>numberOfImages - Number of images to generate (1-4)</li>
- * <li>aspectRatio - Aspect ratio: "1:1", "3:4", "4:3", "9:16", "16:9"</li>
- * <li>personGeneration - Control people generation: "dont_allow",
- * "allow_adult", "allow_all"</li>
- * <li>negativePrompt - Description of what to avoid in the generated
- * images</li>
- * <li>outputMimeType - MIME type of output: "image/png" or "image/jpeg"</li>
+ *   <li>numberOfImages - Number of images to generate (1-4)
+ *   <li>aspectRatio - Aspect ratio: "1:1", "3:4", "4:3", "9:16", "16:9"
+ *   <li>personGeneration - Control people generation: "dont_allow", "allow_adult", "allow_all"
+ *   <li>negativePrompt - Description of what to avoid in the generated images
+ *   <li>outputMimeType - MIME type of output: "image/png" or "image/jpeg"
  * </ul>
  */
 public class ImagenModel implements Model {
@@ -80,10 +73,8 @@ public class ImagenModel implements Model {
   /**
    * Creates a new ImagenModel.
    *
-   * @param modelName
-   *            the model name (e.g., "imagen-3.0-generate-002")
-   * @param options
-   *            the plugin options
+   * @param modelName the model name (e.g., "imagen-3.0-generate-002")
+   * @param options the plugin options
    */
   public ImagenModel(String modelName, GoogleGenAIPluginOptions options) {
     this.modelName = modelName;
@@ -170,7 +161,8 @@ public class ImagenModel implements Model {
   }
 
   @Override
-  public ModelResponse run(ActionContext context, ModelRequest request, Consumer<ModelResponseChunk> streamCallback) {
+  public ModelResponse run(
+      ActionContext context, ModelRequest request, Consumer<ModelResponseChunk> streamCallback) {
     // Image generation doesn't support streaming, just call the regular method
     return run(context, request);
   }
@@ -233,17 +225,17 @@ public class ImagenModel implements Model {
     if (config.containsKey("personGeneration")) {
       String personGen = (String) config.get("personGeneration");
       switch (personGen.toLowerCase()) {
-        case "dont_allow" :
-        case "allow_none" :
+        case "dont_allow":
+        case "allow_none":
           configBuilder.personGeneration(PersonGeneration.Known.DONT_ALLOW);
           break;
-        case "allow_adult" :
+        case "allow_adult":
           configBuilder.personGeneration(PersonGeneration.Known.ALLOW_ADULT);
           break;
-        case "allow_all" :
+        case "allow_all":
           configBuilder.personGeneration(PersonGeneration.Known.ALLOW_ALL);
           break;
-        default :
+        default:
           configBuilder.personGeneration(personGen);
       }
     }

@@ -18,14 +18,11 @@
 
 package com.google.genkit.samples.types;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-/**
- * Complex order input demonstrating nested types.
- */
+/** Complex order input demonstrating nested types. */
 public class OrderRequest {
 
   @JsonProperty("customerId")
@@ -76,36 +73,47 @@ public class OrderRequest {
     public String getId() {
       return id;
     }
+
     public void setId(String id) {
       this.id = id;
     }
+
     public String getFirstName() {
       return firstName;
     }
+
     public void setFirstName(String firstName) {
       this.firstName = firstName;
     }
+
     public String getLastName() {
       return lastName;
     }
+
     public void setLastName(String lastName) {
       this.lastName = lastName;
     }
+
     public String getEmail() {
       return email;
     }
+
     public void setEmail(String email) {
       this.email = email;
     }
+
     public String getPhone() {
       return phone;
     }
+
     public void setPhone(String phone) {
       this.phone = phone;
     }
+
     public CustomerPreferences getPreferences() {
       return preferences;
     }
+
     public void setPreferences(CustomerPreferences preferences) {
       this.preferences = preferences;
     }
@@ -125,18 +133,23 @@ public class OrderRequest {
     public String getCommunicationChannel() {
       return communicationChannel;
     }
+
     public void setCommunicationChannel(String communicationChannel) {
       this.communicationChannel = communicationChannel;
     }
+
     public Boolean getMarketingOptIn() {
       return marketingOptIn;
     }
+
     public void setMarketingOptIn(Boolean marketingOptIn) {
       this.marketingOptIn = marketingOptIn;
     }
+
     public String getLanguage() {
       return language;
     }
+
     public void setLanguage(String language) {
       this.language = language;
     }
@@ -165,36 +178,47 @@ public class OrderRequest {
     public String getProductId() {
       return productId;
     }
+
     public void setProductId(String productId) {
       this.productId = productId;
     }
+
     public String getName() {
       return name;
     }
+
     public void setName(String name) {
       this.name = name;
     }
+
     public Integer getQuantity() {
       return quantity;
     }
+
     public void setQuantity(Integer quantity) {
       this.quantity = quantity;
     }
+
     public Double getUnitPrice() {
       return unitPrice;
     }
+
     public void setUnitPrice(Double unitPrice) {
       this.unitPrice = unitPrice;
     }
+
     public Discount getDiscount() {
       return discount;
     }
+
     public void setDiscount(Discount discount) {
       this.discount = discount;
     }
+
     public List<Customization> getCustomizations() {
       return customizations;
     }
+
     public void setCustomizations(List<Customization> customizations) {
       this.customizations = customizations;
     }
@@ -214,18 +238,23 @@ public class OrderRequest {
     public String getType() {
       return type;
     }
+
     public void setType(String type) {
       this.type = type;
     }
+
     public Double getValue() {
       return value;
     }
+
     public void setValue(Double value) {
       this.value = value;
     }
+
     public String getCode() {
       return code;
     }
+
     public void setCode(String code) {
       this.code = code;
     }
@@ -245,18 +274,23 @@ public class OrderRequest {
     public String getType() {
       return type;
     }
+
     public void setType(String type) {
       this.type = type;
     }
+
     public String getValue() {
       return value;
     }
+
     public void setValue(String value) {
       this.value = value;
     }
+
     public Double getAdditionalCost() {
       return additionalCost;
     }
+
     public void setAdditionalCost(Double additionalCost) {
       this.additionalCost = additionalCost;
     }
@@ -288,42 +322,55 @@ public class OrderRequest {
     public String getStreet1() {
       return street1;
     }
+
     public void setStreet1(String street1) {
       this.street1 = street1;
     }
+
     public String getStreet2() {
       return street2;
     }
+
     public void setStreet2(String street2) {
       this.street2 = street2;
     }
+
     public String getCity() {
       return city;
     }
+
     public void setCity(String city) {
       this.city = city;
     }
+
     public String getState() {
       return state;
     }
+
     public void setState(String state) {
       this.state = state;
     }
+
     public String getPostalCode() {
       return postalCode;
     }
+
     public void setPostalCode(String postalCode) {
       this.postalCode = postalCode;
     }
+
     public String getCountry() {
       return country;
     }
+
     public void setCountry(String country) {
       this.country = country;
     }
+
     public Coordinates getCoordinates() {
       return coordinates;
     }
+
     public void setCoordinates(Coordinates coordinates) {
       this.coordinates = coordinates;
     }
@@ -340,12 +387,15 @@ public class OrderRequest {
     public Double getLatitude() {
       return latitude;
     }
+
     public void setLatitude(Double latitude) {
       this.latitude = latitude;
     }
+
     public Double getLongitude() {
       return longitude;
     }
+
     public void setLongitude(Double longitude) {
       this.longitude = longitude;
     }
@@ -362,12 +412,15 @@ public class OrderRequest {
     public String getType() {
       return type;
     }
+
     public void setType(String type) {
       this.type = type;
     }
+
     public PaymentDetails getDetails() {
       return details;
     }
+
     public void setDetails(PaymentDetails details) {
       this.details = details;
     }
@@ -390,24 +443,31 @@ public class OrderRequest {
     public String getLastFourDigits() {
       return lastFourDigits;
     }
+
     public void setLastFourDigits(String lastFourDigits) {
       this.lastFourDigits = lastFourDigits;
     }
+
     public String getCardType() {
       return cardType;
     }
+
     public void setCardType(String cardType) {
       this.cardType = cardType;
     }
+
     public Integer getExpirationMonth() {
       return expirationMonth;
     }
+
     public void setExpirationMonth(Integer expirationMonth) {
       this.expirationMonth = expirationMonth;
     }
+
     public Integer getExpirationYear() {
       return expirationYear;
     }
+
     public void setExpirationYear(Integer expirationYear) {
       this.expirationYear = expirationYear;
     }
@@ -417,48 +477,63 @@ public class OrderRequest {
   public String getCustomerId() {
     return customerId;
   }
+
   public void setCustomerId(String customerId) {
     this.customerId = customerId;
   }
+
   public Customer getCustomer() {
     return customer;
   }
+
   public void setCustomer(Customer customer) {
     this.customer = customer;
   }
+
   public List<OrderItem> getItems() {
     return items;
   }
+
   public void setItems(List<OrderItem> items) {
     this.items = items;
   }
+
   public Address getShippingAddress() {
     return shippingAddress;
   }
+
   public void setShippingAddress(Address shippingAddress) {
     this.shippingAddress = shippingAddress;
   }
+
   public Address getBillingAddress() {
     return billingAddress;
   }
+
   public void setBillingAddress(Address billingAddress) {
     this.billingAddress = billingAddress;
   }
+
   public PaymentMethod getPaymentMethod() {
     return paymentMethod;
   }
+
   public void setPaymentMethod(PaymentMethod paymentMethod) {
     this.paymentMethod = paymentMethod;
   }
+
   public String getOrderNotes() {
     return orderNotes;
   }
+
   public void setOrderNotes(String orderNotes) {
     this.orderNotes = orderNotes;
   }
+
   public Map<String, Object> getMetadata() {
     return metadata;
   }
+
   public void setMetadata(Map<String, Object> metadata) {
     this.metadata = metadata;
   }

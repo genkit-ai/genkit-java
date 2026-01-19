@@ -18,14 +18,11 @@
 
 package com.google.genkit.ai;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Map;
 
-/**
- * RetrieverRequest contains a query for document retrieval.
- */
+/** RetrieverRequest contains a query for document retrieval. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class RetrieverRequest {
 
@@ -35,17 +32,13 @@ public class RetrieverRequest {
   @JsonProperty("options")
   private RetrieverOptions options;
 
-  /**
-   * Default constructor.
-   */
-  public RetrieverRequest() {
-  }
+  /** Default constructor. */
+  public RetrieverRequest() {}
 
   /**
    * Creates a RetrieverRequest with a query.
    *
-   * @param query
-   *            the query document
+   * @param query the query document
    */
   public RetrieverRequest(Document query) {
     this.query = query;
@@ -54,8 +47,7 @@ public class RetrieverRequest {
   /**
    * Creates a RetrieverRequest with a text query.
    *
-   * @param queryText
-   *            the query text
+   * @param queryText the query text
    * @return a RetrieverRequest
    */
   public static RetrieverRequest fromText(String queryText) {
@@ -80,9 +72,7 @@ public class RetrieverRequest {
     this.options = options;
   }
 
-  /**
-   * RetrieverOptions contains options for retrieval.
-   */
+  /** RetrieverOptions contains options for retrieval. */
   @JsonInclude(JsonInclude.Include.NON_NULL)
   public static class RetrieverOptions {
 

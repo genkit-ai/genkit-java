@@ -18,9 +18,7 @@
 
 package com.google.genkit.core.tracing;
 
-/**
- * SpanContext contains trace and span identifiers for distributed tracing.
- */
+/** SpanContext contains trace and span identifiers for distributed tracing. */
 public class SpanContext {
 
   private final String traceId;
@@ -30,12 +28,9 @@ public class SpanContext {
   /**
    * Creates a new SpanContext.
    *
-   * @param traceId
-   *            the trace ID
-   * @param spanId
-   *            the span ID
-   * @param parentSpanId
-   *            the parent span ID, may be null
+   * @param traceId the trace ID
+   * @param spanId the span ID
+   * @param parentSpanId the parent span ID, may be null
    */
   public SpanContext(String traceId, String spanId, String parentSpanId) {
     this.traceId = traceId;
@@ -81,7 +76,16 @@ public class SpanContext {
 
   @Override
   public String toString() {
-    return "SpanContext{" + "traceId='" + traceId + '\'' + ", spanId='" + spanId + '\'' + ", parentSpanId='"
-        + parentSpanId + '\'' + '}';
+    return "SpanContext{"
+        + "traceId='"
+        + traceId
+        + '\''
+        + ", spanId='"
+        + spanId
+        + '\''
+        + ", parentSpanId='"
+        + parentSpanId
+        + '\''
+        + '}';
   }
 }

@@ -18,17 +18,15 @@
 
 package com.google.genkit.plugins.spring;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Spring Boot application class for Genkit.
  *
- * <p>
- * This class is the entry point for Spring Boot auto-configuration and
- * component scanning for the Genkit Spring plugin.
+ * <p>This class is the entry point for Spring Boot auto-configuration and component scanning for
+ * the Genkit Spring plugin.
  */
 @SpringBootApplication
 public class GenkitSpringApplication {
@@ -46,8 +44,7 @@ public class GenkitSpringApplication {
   /**
    * Creates the Genkit flow controller bean.
    *
-   * @param objectMapper
-   *            the ObjectMapper for JSON serialization
+   * @param objectMapper the ObjectMapper for JSON serialization
    * @return the flow controller
    */
   @Bean

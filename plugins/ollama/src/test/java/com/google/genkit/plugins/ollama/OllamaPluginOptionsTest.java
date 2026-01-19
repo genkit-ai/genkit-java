@@ -35,7 +35,8 @@ class OllamaPluginOptionsTest {
 
   @Test
   void testBuilderWithServerUrl() {
-    OllamaPluginOptions options = OllamaPluginOptions.builder().baseUrl("http://custom:8080").build();
+    OllamaPluginOptions options =
+        OllamaPluginOptions.builder().baseUrl("http://custom:8080").build();
 
     assertEquals("http://custom:8080", options.getBaseUrl());
   }
@@ -49,7 +50,8 @@ class OllamaPluginOptionsTest {
 
   @Test
   void testBuilderWithAllOptions() {
-    OllamaPluginOptions options = OllamaPluginOptions.builder().baseUrl("http://test:9000").timeout(30).build();
+    OllamaPluginOptions options =
+        OllamaPluginOptions.builder().baseUrl("http://test:9000").timeout(30).build();
 
     assertEquals("http://test:9000", options.getBaseUrl());
     assertEquals(30, options.getTimeout());

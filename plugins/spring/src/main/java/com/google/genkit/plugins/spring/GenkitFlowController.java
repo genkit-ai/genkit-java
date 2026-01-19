@@ -18,13 +18,17 @@
 
 package com.google.genkit.plugins.spring;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.genkit.core.Action;
+import com.google.genkit.core.ActionContext;
+import com.google.genkit.core.ActionType;
+import com.google.genkit.core.Registry;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -36,18 +40,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.genkit.core.Action;
-import com.google.genkit.core.ActionContext;
-import com.google.genkit.core.ActionType;
-import com.google.genkit.core.Registry;
-
 /**
  * REST controller that exposes Genkit flows as HTTP endpoints.
  *
- * <p>
- * This controller dynamically handles requests to flow endpoints based on the
- * registered flows in the Genkit registry.
+ * <p>This controller dynamically handles requests to flow endpoints based on the registered flows
+ * in the Genkit registry.
  */
 @RestController
 public class GenkitFlowController {
@@ -59,8 +56,7 @@ public class GenkitFlowController {
   /**
    * Creates a new GenkitFlowController.
    *
-   * @param objectMapper
-   *            the ObjectMapper for JSON serialization
+   * @param objectMapper the ObjectMapper for JSON serialization
    */
   public GenkitFlowController(ObjectMapper objectMapper) {
     this.objectMapper = objectMapper;
@@ -87,9 +83,7 @@ public class GenkitFlowController {
     return plugin != null ? plugin.getOptions() : null;
   }
 
-  /**
-   * Logs all registered flow endpoints.
-   */
+  /** Logs all registered flow endpoints. */
   private void logRegisteredEndpoints() {
     Registry registry = getRegistry();
     SpringPluginOptions options = getOptions();
@@ -140,15 +134,16 @@ public class GenkitFlowController {
   /**
    * Executes a flow by name.
    *
-   * @param flowName
-   *            the name of the flow to execute
-   * @param input
-   *            the input data for the flow
+   * @param flowName the name of the flow to execute
+   * @param input the input data for the flow
    * @return the flow execution result
    */
-  @PostMapping(value = "/api/flows/{flowName}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<Object> executeFlow(@PathVariable String flowName,
-      @RequestBody(required = false) Object input) {
+  @PostMapping(
+      value = "/api/flows/{flowName}",
+      produces = MediaType.APPLICATION_JSON_VALUE,
+      consumes = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<Object> executeFlow(
+      @PathVariable String flowName, @RequestBody(required = false) Object input) {
     Registry registry = getRegistry();
     if (registry == null) {
       return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
@@ -159,7 +154,8 @@ public class GenkitFlowController {
       // Find the flow action
       Action<?, ?, ?> action = findFlowByName(flowName);
       if (action == null) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Flow not found: " + flowName));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(Map.of("error", "Flow not found: " + flowName));
       }
 
       // Execute the flow
@@ -178,8 +174,7 @@ public class GenkitFlowController {
   /**
    * Finds a flow action by name.
    *
-   * @param flowName
-   *            the name of the flow
+   * @param flowName the name of the flow
    * @return the flow action, or null if not found
    */
   private Action<?, ?, ?> findFlowByName(String flowName) {
@@ -188,14 +183,16 @@ public class GenkitFlowController {
       return null;
     }
     List<Action<?, ?, ?>> flows = registry.listActions(ActionType.FLOW);
-    return flows.stream().filter(action -> action.getName().equals(flowName)).findFirst().orElse(null);
+    return flows.stream()
+        .filter(action -> action.getName().equals(flowName))
+        .findFirst()
+        .orElse(null);
   }
 
   /**
    * Creates an error response with structured error information.
    *
-   * @param e
-   *            the exception
+   * @param e the exception
    * @return the error response
    */
   private ResponseEntity<Object> createErrorResponse(Exception e) {

@@ -22,9 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests for SpringPluginOptions.
- */
+/** Tests for SpringPluginOptions. */
 class SpringPluginOptionsTest {
 
   @Test
@@ -67,8 +65,13 @@ class SpringPluginOptionsTest {
 
   @Test
   void testFullCustomization() {
-    SpringPluginOptions options = SpringPluginOptions.builder().port(3000).host("127.0.0.1").basePath("/v1/flows")
-        .contextPath("/api").build();
+    SpringPluginOptions options =
+        SpringPluginOptions.builder()
+            .port(3000)
+            .host("127.0.0.1")
+            .basePath("/v1/flows")
+            .contextPath("/api")
+            .build();
 
     assertEquals(3000, options.getPort());
     assertEquals("127.0.0.1", options.getHost());

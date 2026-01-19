@@ -24,31 +24,26 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * InMemorySessionStore is a simple in-memory implementation of SessionStore.
- * 
- * <p>
- * This implementation is suitable for:
- * <ul>
- * <li>Development and testing</li>
- * <li>Single-instance deployments</li>
- * <li>Prototyping</li>
- * </ul>
- * 
- * <p>
- * <b>Note:</b> Sessions are lost when the application restarts. For production
- * use cases requiring persistence, implement a database-backed SessionStore.
  *
- * @param <S>
- *            the type of the custom session state
+ * <p>This implementation is suitable for:
+ *
+ * <ul>
+ *   <li>Development and testing
+ *   <li>Single-instance deployments
+ *   <li>Prototyping
+ * </ul>
+ *
+ * <p><b>Note:</b> Sessions are lost when the application restarts. For production use cases
+ * requiring persistence, implement a database-backed SessionStore.
+ *
+ * @param <S> the type of the custom session state
  */
 public class InMemorySessionStore<S> implements SessionStore<S> {
 
   private final Map<String, SessionData<S>> data = new ConcurrentHashMap<>();
 
-  /**
-   * Creates a new InMemorySessionStore.
-   */
-  public InMemorySessionStore() {
-  }
+  /** Creates a new InMemorySessionStore. */
+  public InMemorySessionStore() {}
 
   @Override
   public CompletableFuture<SessionData<S>> get(String sessionId) {
@@ -81,9 +76,7 @@ public class InMemorySessionStore<S> implements SessionStore<S> {
     return data.size();
   }
 
-  /**
-   * Clears all sessions from the store.
-   */
+  /** Clears all sessions from the store. */
   public void clear() {
     data.clear();
   }

@@ -18,30 +18,24 @@
 
 package com.google.genkit.ai.evaluation;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.HashMap;
+import java.util.Map;
 
-/**
- * Details about an evaluation score, including reasoning.
- */
+/** Details about an evaluation score, including reasoning. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ScoreDetails {
 
   @JsonProperty("reasoning")
   private String reasoning;
 
-  /**
-   * Additional properties that may be included in the details.
-   */
+  /** Additional properties that may be included in the details. */
   private Map<String, Object> additionalProperties = new HashMap<>();
 
-  public ScoreDetails() {
-  }
+  public ScoreDetails() {}
 
   private ScoreDetails(Builder builder) {
     this.reasoning = builder.reasoning;

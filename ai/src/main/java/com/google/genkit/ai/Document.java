@@ -18,17 +18,14 @@
 
 package com.google.genkit.ai;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-/**
- * Document represents a document for use with embedders and retrievers.
- */
+/** Document represents a document for use with embedders and retrievers. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Document {
 
@@ -38,9 +35,7 @@ public class Document {
   @JsonProperty("metadata")
   private Map<String, Object> metadata;
 
-  /**
-   * Default constructor.
-   */
+  /** Default constructor. */
   public Document() {
     this.content = new ArrayList<>();
     this.metadata = new HashMap<>();
@@ -49,8 +44,7 @@ public class Document {
   /**
    * Creates a Document with text content.
    *
-   * @param text
-   *            the text content
+   * @param text the text content
    */
   public Document(String text) {
     this();
@@ -60,8 +54,7 @@ public class Document {
   /**
    * Creates a Document with parts.
    *
-   * @param content
-   *            the content parts
+   * @param content the content parts
    */
   public Document(List<Part> content) {
     this.content = content != null ? content : new ArrayList<>();
@@ -71,8 +64,7 @@ public class Document {
   /**
    * Creates a text Document.
    *
-   * @param text
-   *            the text content
+   * @param text the text content
    * @return a Document with text content
    */
   public static Document fromText(String text) {
@@ -82,10 +74,8 @@ public class Document {
   /**
    * Creates a Document with text and metadata.
    *
-   * @param text
-   *            the text content
-   * @param metadata
-   *            the metadata
+   * @param text the text content
+   * @param metadata the metadata
    * @return a Document with text content and metadata
    */
   public static Document fromText(String text, Map<String, Object> metadata) {
@@ -133,10 +123,8 @@ public class Document {
   /**
    * Adds metadata to this Document.
    *
-   * @param key
-   *            the metadata key
-   * @param value
-   *            the metadata value
+   * @param key the metadata key
+   * @param value the metadata value
    * @return this Document for chaining
    */
   public Document withMetadata(String key, Object value) {

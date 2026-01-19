@@ -18,40 +18,34 @@
 
 package com.google.genkit.prompt;
 
-import java.util.Map;
-import java.util.function.Consumer;
-
 import com.google.genkit.ai.*;
 import com.google.genkit.ai.telemetry.ModelTelemetryHelper;
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.GenkitException;
 import com.google.genkit.core.Registry;
+import java.util.Map;
+import java.util.function.Consumer;
 
 /**
- * ExecutablePrompt wraps a DotPrompt and provides direct generation
- * capabilities.
- * 
- * <p>
- * This class allows prompts to be called directly for generation, similar to
- * the JavaScript API: `const response = await helloPrompt({ name: 'John' });`
- * 
- * <p>
- * In Java, this becomes:
- * 
+ * ExecutablePrompt wraps a DotPrompt and provides direct generation capabilities.
+ *
+ * <p>This class allows prompts to be called directly for generation, similar to the JavaScript API:
+ * `const response = await helloPrompt({ name: 'John' });`
+ *
+ * <p>In Java, this becomes:
+ *
  * <pre>{@code
  * ExecutablePrompt<HelloInput> helloPrompt = genkit.prompt("hello", HelloInput.class);
  * ModelResponse response = helloPrompt.generate(new HelloInput("John"));
  * }</pre>
- * 
- * <p>
- * Or for streaming:
- * 
+ *
+ * <p>Or for streaming:
+ *
  * <pre>{@code
  * helloPrompt.stream(input, chunk -> System.out.println(chunk.getText()));
  * }</pre>
  *
- * @param <I>
- *            the input type for the prompt
+ * @param <I> the input type for the prompt
  */
 public class ExecutablePrompt<I> {
 
@@ -62,8 +56,8 @@ public class ExecutablePrompt<I> {
   private GenerateObjectFunction generateObjectFunction;
 
   /**
-   * Functional interface for the generate function. This allows ExecutablePrompt
-   * to use Genkit.generate() for tool/interrupt support.
+   * Functional interface for the generate function. This allows ExecutablePrompt to use
+   * Genkit.generate() for tool/interrupt support.
    */
   @FunctionalInterface
   public interface GenerateFunction {
@@ -71,8 +65,8 @@ public class ExecutablePrompt<I> {
   }
 
   /**
-   * Functional interface for the generateObject function. This allows
-   * ExecutablePrompt to use Genkit.generateObject() for typed structured output.
+   * Functional interface for the generateObject function. This allows ExecutablePrompt to use
+   * Genkit.generateObject() for typed structured output.
    */
   @FunctionalInterface
   public interface GenerateObjectFunction {
@@ -82,12 +76,9 @@ public class ExecutablePrompt<I> {
   /**
    * Creates a new ExecutablePrompt.
    *
-   * @param dotPrompt
-   *            the underlying DotPrompt
-   * @param registry
-   *            the Genkit registry
-   * @param inputClass
-   *            the input class for type checking
+   * @param dotPrompt the underlying DotPrompt
+   * @param registry the Genkit registry
+   * @param inputClass the input class for type checking
    */
   public ExecutablePrompt(DotPrompt<I> dotPrompt, Registry registry, Class<I> inputClass) {
     this.dotPrompt = dotPrompt;
@@ -96,11 +87,9 @@ public class ExecutablePrompt<I> {
   }
 
   /**
-   * Sets the generate function to use Genkit.generate() for tool/interrupt
-   * support.
+   * Sets the generate function to use Genkit.generate() for tool/interrupt support.
    *
-   * @param generateFunction
-   *            the generate function
+   * @param generateFunction the generate function
    * @return this for chaining
    */
   public ExecutablePrompt<I> withGenerateFunction(GenerateFunction generateFunction) {
@@ -109,14 +98,13 @@ public class ExecutablePrompt<I> {
   }
 
   /**
-   * Sets the generateObject function to use Genkit.generateObject() for typed
-   * structured output.
+   * Sets the generateObject function to use Genkit.generateObject() for typed structured output.
    *
-   * @param generateObjectFunction
-   *            the generateObject function
+   * @param generateObjectFunction the generateObject function
    * @return this for chaining
    */
-  public ExecutablePrompt<I> withGenerateObjectFunction(GenerateObjectFunction generateObjectFunction) {
+  public ExecutablePrompt<I> withGenerateObjectFunction(
+      GenerateObjectFunction generateObjectFunction) {
     this.generateObjectFunction = generateObjectFunction;
     return this;
   }
@@ -124,29 +112,22 @@ public class ExecutablePrompt<I> {
   /**
    * Generates a response using the default model specified in the prompt.
    *
-   * @param input
-   *            the prompt input
+   * @param input the prompt input
    * @return the model response
-   * @throws GenkitException
-   *             if generation fails
+   * @throws GenkitException if generation fails
    */
   public ModelResponse generate(I input) throws GenkitException {
     return generate(input, (GenerateOptions<?>) null);
   }
 
   /**
-   * Generates a structured output using the default model specified in the
-   * prompt.
+   * Generates a structured output using the default model specified in the prompt.
    *
-   * @param <T>
-   *            the output type
-   * @param input
-   *            the prompt input
-   * @param outputClass
-   *            the class to deserialize the response into
+   * @param <T> the output type
+   * @param input the prompt input
+   * @param outputClass the class to deserialize the response into
    * @return the generated object
-   * @throws GenkitException
-   *             if generation fails
+   * @throws GenkitException if generation fails
    */
   public <T> T generate(I input, Class<T> outputClass) throws GenkitException {
     ModelRequest request = dotPrompt.toModelRequest(input);
@@ -157,8 +138,11 @@ public class ExecutablePrompt<I> {
           "generateObjectFunction not set. Use genkit.prompt() to create ExecutablePrompt with proper setup.");
     }
 
-    GenerateOptions.Builder<T> genOptions = GenerateOptions.<T>builder().model(modelName)
-        .messages(request.getMessages()).outputClass(outputClass);
+    GenerateOptions.Builder<T> genOptions =
+        GenerateOptions.<T>builder()
+            .model(modelName)
+            .messages(request.getMessages())
+            .outputClass(outputClass);
 
     // Add config from dotprompt
     if (dotPrompt.getConfig() != null) {
@@ -171,21 +155,15 @@ public class ExecutablePrompt<I> {
   /**
    * Generates a response with custom options.
    *
-   * <p>
-   * If outputClass is set in options, returns a typed object. Otherwise returns
-   * ModelResponse. If a generateFunction is set (via Genkit), this uses
-   * Genkit.generate() which supports tools and interrupts. Otherwise, it calls
-   * the model directly.
+   * <p>If outputClass is set in options, returns a typed object. Otherwise returns ModelResponse.
+   * If a generateFunction is set (via Genkit), this uses Genkit.generate() which supports tools and
+   * interrupts. Otherwise, it calls the model directly.
    *
-   * @param <T>
-   *            the return type (ModelResponse or typed object)
-   * @param input
-   *            the prompt input
-   * @param options
-   *            optional generation options to override prompt defaults
+   * @param <T> the return type (ModelResponse or typed object)
+   * @param input the prompt input
+   * @param options optional generation options to override prompt defaults
    * @return the model response or typed object
-   * @throws GenkitException
-   *             if generation fails
+   * @throws GenkitException if generation fails
    */
   @SuppressWarnings("unchecked")
   public <T> T generate(I input, GenerateOptions options) throws GenkitException {
@@ -195,14 +173,19 @@ public class ExecutablePrompt<I> {
     // If we have a generate function (from Genkit), use it for tool/interrupt
     // support
     if (generateFunction != null) {
-      GenerateOptions.Builder genOptions = GenerateOptions.builder().model(modelName)
-          .messages(request.getMessages());
+      GenerateOptions.Builder genOptions =
+          GenerateOptions.builder().model(modelName).messages(request.getMessages());
 
       // Add system message if present
       if (request.getMessages() != null && !request.getMessages().isEmpty()) {
-        Message systemMsg = request.getMessages().stream().filter(m -> m.getRole() == Role.SYSTEM).findFirst()
-            .orElse(null);
-        if (systemMsg != null && systemMsg.getContent() != null && !systemMsg.getContent().isEmpty()) {
+        Message systemMsg =
+            request.getMessages().stream()
+                .filter(m -> m.getRole() == Role.SYSTEM)
+                .findFirst()
+                .orElse(null);
+        if (systemMsg != null
+            && systemMsg.getContent() != null
+            && !systemMsg.getContent().isEmpty()) {
           genOptions.system(systemMsg.getContent().get(0).getText());
         }
       }
@@ -238,39 +221,39 @@ public class ExecutablePrompt<I> {
     }
 
     final ModelRequest finalRequest = request;
-    return (T) ModelTelemetryHelper.runWithTelemetry(modelName, dotPrompt.getName(),
-        "/prompt/" + dotPrompt.getName(), finalRequest, r -> model.run(ctx, r));
+    return (T)
+        ModelTelemetryHelper.runWithTelemetry(
+            modelName,
+            dotPrompt.getName(),
+            "/prompt/" + dotPrompt.getName(),
+            finalRequest,
+            r -> model.run(ctx, r));
   }
 
   /**
    * Generates a response with streaming.
    *
-   * @param input
-   *            the prompt input
-   * @param streamCallback
-   *            callback for streaming chunks
+   * @param input the prompt input
+   * @param streamCallback callback for streaming chunks
    * @return the final model response
-   * @throws GenkitException
-   *             if generation fails
+   * @throws GenkitException if generation fails
    */
-  public ModelResponse stream(I input, Consumer<ModelResponseChunk> streamCallback) throws GenkitException {
+  public ModelResponse stream(I input, Consumer<ModelResponseChunk> streamCallback)
+      throws GenkitException {
     return stream(input, null, streamCallback);
   }
 
   /**
    * Generates a response with streaming and custom options.
    *
-   * @param input
-   *            the prompt input
-   * @param options
-   *            optional generation options
-   * @param streamCallback
-   *            callback for streaming chunks
+   * @param input the prompt input
+   * @param options optional generation options
+   * @param streamCallback callback for streaming chunks
    * @return the final model response
-   * @throws GenkitException
-   *             if generation fails
+   * @throws GenkitException if generation fails
    */
-  public ModelResponse stream(I input, GenerateOptions options, Consumer<ModelResponseChunk> streamCallback)
+  public ModelResponse stream(
+      I input, GenerateOptions options, Consumer<ModelResponseChunk> streamCallback)
       throws GenkitException {
     ModelRequest request = dotPrompt.toModelRequest(input);
     String modelName = resolveModel(options);
@@ -283,18 +266,20 @@ public class ExecutablePrompt<I> {
     }
 
     final ModelRequest finalRequest = request;
-    return ModelTelemetryHelper.runWithTelemetryStreaming(modelName, dotPrompt.getName(),
-        "/prompt/" + dotPrompt.getName(), finalRequest, r -> model.run(ctx, r, streamCallback));
+    return ModelTelemetryHelper.runWithTelemetryStreaming(
+        modelName,
+        dotPrompt.getName(),
+        "/prompt/" + dotPrompt.getName(),
+        finalRequest,
+        r -> model.run(ctx, r, streamCallback));
   }
 
   /**
    * Renders the prompt template without generating.
    *
-   * @param input
-   *            the prompt input
+   * @param input the prompt input
    * @return the rendered prompt text
-   * @throws GenkitException
-   *             if rendering fails
+   * @throws GenkitException if rendering fails
    */
   public String render(I input) throws GenkitException {
     return dotPrompt.render(input);
@@ -303,11 +288,9 @@ public class ExecutablePrompt<I> {
   /**
    * Gets the ModelRequest that would be sent to the model.
    *
-   * @param input
-   *            the prompt input
+   * @param input the prompt input
    * @return the model request
-   * @throws GenkitException
-   *             if conversion fails
+   * @throws GenkitException if conversion fails
    */
   public ModelRequest toModelRequest(I input) throws GenkitException {
     return dotPrompt.toModelRequest(input);
@@ -322,9 +305,7 @@ public class ExecutablePrompt<I> {
     return dotPrompt.toPrompt(inputClass);
   }
 
-  /**
-   * Registers this prompt as an action in the registry.
-   */
+  /** Registers this prompt as an action in the registry. */
   public void register() {
     dotPrompt.register(registry, inputClass);
   }
@@ -391,8 +372,8 @@ public class ExecutablePrompt<I> {
 
   private Model getModel(String modelName) {
     // Try direct lookup first
-    com.google.genkit.core.Action<?, ?, ?> action = registry.lookupAction(com.google.genkit.core.ActionType.MODEL,
-        modelName);
+    com.google.genkit.core.Action<?, ?, ?> action =
+        registry.lookupAction(com.google.genkit.core.ActionType.MODEL, modelName);
 
     if (action == null) {
       // Try with model/ prefix
@@ -437,7 +418,11 @@ public class ExecutablePrompt<I> {
       configMap.put("topK", optionsConfig.getTopK());
     }
 
-    return ModelRequest.builder().messages(request.getMessages()).config(configMap).tools(request.getTools())
-        .output(request.getOutput()).build();
+    return ModelRequest.builder()
+        .messages(request.getMessages())
+        .config(configMap)
+        .tools(request.getTools())
+        .output(request.getOutput())
+        .build();
   }
 }

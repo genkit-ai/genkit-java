@@ -18,6 +18,11 @@
 
 package com.google.genkit.plugins.postgresql;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.genkit.ai.*;
+import com.google.genkit.core.ActionContext;
+import com.pgvector.PGvector;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -28,24 +33,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
 import javax.sql.DataSource;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.genkit.ai.*;
-import com.google.genkit.core.ActionContext;
-import com.pgvector.PGvector;
 
 /**
  * PostgreSQL vector store implementation using pgvector extension.
  *
- * <p>
- * This class provides indexing and retrieval of documents using PostgreSQL with
- * the pgvector extension for vector similarity search.
+ * <p>This class provides indexing and retrieval of documents using PostgreSQL with the pgvector
+ * extension for vector similarity search.
  */
 public class PostgresVectorStore {
 
@@ -60,12 +56,9 @@ public class PostgresVectorStore {
   /**
    * Creates a new PostgresVectorStore.
    *
-   * @param dataSource
-   *            the PostgreSQL data source
-   * @param config
-   *            the table configuration
-   * @param embedder
-   *            the embedder for generating vectors
+   * @param dataSource the PostgreSQL data source
+   * @param config the table configuration
+   * @param embedder the embedder for generating vectors
    */
   public PostgresVectorStore(DataSource dataSource, PostgresTableConfig config, Embedder embedder) {
     this.dataSource = dataSource;
@@ -73,9 +66,7 @@ public class PostgresVectorStore {
     this.embedder = embedder;
   }
 
-  /**
-   * Initializes the vector store by creating the table and index if needed.
-   */
+  /** Initializes the vector store by creating the table and index if needed. */
   public synchronized void initialize() throws SQLException {
     if (initialized) {
       return;
@@ -111,17 +102,23 @@ public class PostgresVectorStore {
   }
 
   private void ensureTable(Connection conn) throws SQLException {
-    String createTableSql = String.format("""
-        CREATE TABLE IF NOT EXISTS %s (
-            %s UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            %s TEXT,
-            %s vector(%d),
-            %s JSONB,
-            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-        )
-        """, escapeIdentifier(config.getTableName()), escapeIdentifier(config.getIdColumn()),
-        escapeIdentifier(config.getContentColumn()), escapeIdentifier(config.getEmbeddingColumn()),
-        config.getVectorDimension(), escapeIdentifier(config.getMetadataColumn()));
+    String createTableSql =
+        String.format(
+            """
+            CREATE TABLE IF NOT EXISTS %s (
+                %s UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                %s TEXT,
+                %s vector(%d),
+                %s JSONB,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            )
+            """,
+            escapeIdentifier(config.getTableName()),
+            escapeIdentifier(config.getIdColumn()),
+            escapeIdentifier(config.getContentColumn()),
+            escapeIdentifier(config.getEmbeddingColumn()),
+            config.getVectorDimension(),
+            escapeIdentifier(config.getMetadataColumn()));
 
     try (Statement stmt = conn.createStatement()) {
       stmt.execute(createTableSql);
@@ -131,13 +128,18 @@ public class PostgresVectorStore {
 
   private void ensureIndex(Connection conn) throws SQLException {
     String indexName = config.getTableName() + "_embedding_idx";
-    String createIndexSql = String.format("""
-        CREATE INDEX IF NOT EXISTS %s ON %s
-        USING ivfflat (%s %s)
-        WITH (lists = %d)
-        """, escapeIdentifier(indexName), escapeIdentifier(config.getTableName()),
-        escapeIdentifier(config.getEmbeddingColumn()), config.getDistanceStrategy().getIndexOpsClass(),
-        config.getIndexLists());
+    String createIndexSql =
+        String.format(
+            """
+            CREATE INDEX IF NOT EXISTS %s ON %s
+            USING ivfflat (%s %s)
+            WITH (lists = %d)
+            """,
+            escapeIdentifier(indexName),
+            escapeIdentifier(config.getTableName()),
+            escapeIdentifier(config.getEmbeddingColumn()),
+            config.getDistanceStrategy().getIndexOpsClass(),
+            config.getIndexLists());
 
     try (Statement stmt = conn.createStatement()) {
       stmt.execute(createIndexSql);
@@ -148,10 +150,8 @@ public class PostgresVectorStore {
   /**
    * Retrieves documents similar to the query.
    *
-   * @param context
-   *            the action context
-   * @param request
-   *            the retriever request
+   * @param context the action context
+   * @param request the retriever request
    * @return the retriever response with matching documents
    */
   public RetrieverResponse retrieve(ActionContext context, RetrieverRequest request) {
@@ -171,9 +171,10 @@ public class PostgresVectorStore {
       // Generate embedding for query
       List<Float> queryEmbedding = generateEmbedding(context, queryText);
 
-      int limit = request.getOptions() != null && request.getOptions().getK() != null
-          ? request.getOptions().getK()
-          : 10;
+      int limit =
+          request.getOptions() != null && request.getOptions().getK() != null
+              ? request.getOptions().getK()
+              : 10;
 
       List<Document> documents = performSimilaritySearch(queryEmbedding, limit);
 
@@ -190,10 +191,8 @@ public class PostgresVectorStore {
   /**
    * Indexes documents into the vector store.
    *
-   * @param context
-   *            the action context
-   * @param request
-   *            the indexer request
+   * @param context the action context
+   * @param request the indexer request
    * @return the indexer response
    */
   public IndexerResponse index(ActionContext context, IndexerRequest request) {
@@ -210,19 +209,28 @@ public class PostgresVectorStore {
       try (Connection conn = dataSource.getConnection()) {
         PGvector.addVectorType(conn);
 
-        String insertSql = String.format("""
-            INSERT INTO %s (%s, %s, %s, %s)
-            VALUES (?, ?, ?::vector, ?::jsonb)
-            ON CONFLICT (%s) DO UPDATE SET
-                %s = EXCLUDED.%s,
-                %s = EXCLUDED.%s,
-                %s = EXCLUDED.%s
-            """, escapeIdentifier(config.getTableName()), escapeIdentifier(config.getIdColumn()),
-            escapeIdentifier(config.getContentColumn()), escapeIdentifier(config.getEmbeddingColumn()),
-            escapeIdentifier(config.getMetadataColumn()), escapeIdentifier(config.getIdColumn()),
-            escapeIdentifier(config.getContentColumn()), escapeIdentifier(config.getContentColumn()),
-            escapeIdentifier(config.getEmbeddingColumn()), escapeIdentifier(config.getEmbeddingColumn()),
-            escapeIdentifier(config.getMetadataColumn()), escapeIdentifier(config.getMetadataColumn()));
+        String insertSql =
+            String.format(
+                """
+                INSERT INTO %s (%s, %s, %s, %s)
+                VALUES (?, ?, ?::vector, ?::jsonb)
+                ON CONFLICT (%s) DO UPDATE SET
+                    %s = EXCLUDED.%s,
+                    %s = EXCLUDED.%s,
+                    %s = EXCLUDED.%s
+                """,
+                escapeIdentifier(config.getTableName()),
+                escapeIdentifier(config.getIdColumn()),
+                escapeIdentifier(config.getContentColumn()),
+                escapeIdentifier(config.getEmbeddingColumn()),
+                escapeIdentifier(config.getMetadataColumn()),
+                escapeIdentifier(config.getIdColumn()),
+                escapeIdentifier(config.getContentColumn()),
+                escapeIdentifier(config.getContentColumn()),
+                escapeIdentifier(config.getEmbeddingColumn()),
+                escapeIdentifier(config.getEmbeddingColumn()),
+                escapeIdentifier(config.getMetadataColumn()),
+                escapeIdentifier(config.getMetadataColumn()));
 
         try (PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
           for (Document doc : documents) {
@@ -287,18 +295,26 @@ public class PostgresVectorStore {
     return list;
   }
 
-  private List<Document> performSimilaritySearch(List<Float> queryEmbedding, int limit) throws SQLException {
+  private List<Document> performSimilaritySearch(List<Float> queryEmbedding, int limit)
+      throws SQLException {
     List<Document> results = new ArrayList<>();
 
-    String querySql = String.format("""
-        SELECT %s, %s, %s, %s %s ?::vector AS distance
-        FROM %s
-        ORDER BY %s %s ?::vector
-        LIMIT ?
-        """, escapeIdentifier(config.getIdColumn()), escapeIdentifier(config.getContentColumn()),
-        escapeIdentifier(config.getMetadataColumn()), escapeIdentifier(config.getEmbeddingColumn()),
-        config.getDistanceStrategy().getOperator(), escapeIdentifier(config.getTableName()),
-        escapeIdentifier(config.getEmbeddingColumn()), config.getDistanceStrategy().getOperator());
+    String querySql =
+        String.format(
+            """
+            SELECT %s, %s, %s, %s %s ?::vector AS distance
+            FROM %s
+            ORDER BY %s %s ?::vector
+            LIMIT ?
+            """,
+            escapeIdentifier(config.getIdColumn()),
+            escapeIdentifier(config.getContentColumn()),
+            escapeIdentifier(config.getMetadataColumn()),
+            escapeIdentifier(config.getEmbeddingColumn()),
+            config.getDistanceStrategy().getOperator(),
+            escapeIdentifier(config.getTableName()),
+            escapeIdentifier(config.getEmbeddingColumn()),
+            config.getDistanceStrategy().getOperator());
 
     try (Connection conn = dataSource.getConnection()) {
       PGvector.addVectorType(conn);
@@ -402,8 +418,7 @@ public class PostgresVectorStore {
   /**
    * Deletes documents by their IDs.
    *
-   * @param ids
-   *            the document IDs to delete
+   * @param ids the document IDs to delete
    * @return the number of documents deleted
    */
   public int deleteByIds(List<String> ids) throws SQLException {
@@ -414,10 +429,15 @@ public class PostgresVectorStore {
     ensureInitialized();
 
     String placeholders = String.join(",", ids.stream().map(id -> "?").toList());
-    String deleteSql = String.format("DELETE FROM %s WHERE %s IN (%s)", escapeIdentifier(config.getTableName()),
-        escapeIdentifier(config.getIdColumn()), placeholders);
+    String deleteSql =
+        String.format(
+            "DELETE FROM %s WHERE %s IN (%s)",
+            escapeIdentifier(config.getTableName()),
+            escapeIdentifier(config.getIdColumn()),
+            placeholders);
 
-    try (Connection conn = dataSource.getConnection(); PreparedStatement pstmt = conn.prepareStatement(deleteSql)) {
+    try (Connection conn = dataSource.getConnection();
+        PreparedStatement pstmt = conn.prepareStatement(deleteSql)) {
 
       for (int i = 0; i < ids.size(); i++) {
         pstmt.setObject(i + 1, UUID.fromString(ids.get(i)));
@@ -439,7 +459,8 @@ public class PostgresVectorStore {
 
     String deleteSql = String.format("DELETE FROM %s", escapeIdentifier(config.getTableName()));
 
-    try (Connection conn = dataSource.getConnection(); Statement stmt = conn.createStatement()) {
+    try (Connection conn = dataSource.getConnection();
+        Statement stmt = conn.createStatement()) {
 
       int deleted = stmt.executeUpdate(deleteSql);
       logger.info("Cleared {} documents from table {}", deleted, config.getTableName());
@@ -447,16 +468,12 @@ public class PostgresVectorStore {
     }
   }
 
-  /**
-   * Gets the table configuration.
-   */
+  /** Gets the table configuration. */
   public PostgresTableConfig getConfig() {
     return config;
   }
 
-  /**
-   * Gets the data source.
-   */
+  /** Gets the data source. */
   public DataSource getDataSource() {
     return dataSource;
   }

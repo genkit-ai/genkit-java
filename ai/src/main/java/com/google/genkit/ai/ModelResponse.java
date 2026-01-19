@@ -18,17 +18,14 @@
 
 package com.google.genkit.ai;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-/**
- * ModelResponse represents a response from a generative AI model.
- */
+/** ModelResponse represents a response from a generative AI model. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ModelResponse {
 
@@ -56,17 +53,13 @@ public class ModelResponse {
   @JsonProperty("interrupts")
   private List<Part> interrupts;
 
-  /**
-   * Default constructor.
-   */
-  public ModelResponse() {
-  }
+  /** Default constructor. */
+  public ModelResponse() {}
 
   /**
    * Creates a ModelResponse with the given candidates.
    *
-   * @param candidates
-   *            the candidates
+   * @param candidates the candidates
    */
   public ModelResponse(List<Candidate> candidates) {
     this.candidates = candidates != null ? new ArrayList<>(candidates) : new ArrayList<>();
@@ -94,7 +87,9 @@ public class ModelResponse {
     if (first.getMessage() == null || first.getMessage().getContent() == null) {
       return null;
     }
-    return first.getMessage().getContent().stream().filter(part -> part.getText() != null).map(Part::getText)
+    return first.getMessage().getContent().stream()
+        .filter(part -> part.getText() != null)
+        .map(Part::getText)
         .collect(Collectors.joining());
   }
 
@@ -113,9 +108,8 @@ public class ModelResponse {
   /**
    * Returns all messages including the model's response.
    *
-   * <p>
-   * This is useful when resuming after an interrupt - pass these messages to the
-   * next generate call to maintain context.
+   * <p>This is useful when resuming after an interrupt - pass these messages to the next generate
+   * call to maintain context.
    *
    * @return list of all messages (request messages + model response)
    */
@@ -144,7 +138,8 @@ public class ModelResponse {
     if (first.getMessage() == null || first.getMessage().getContent() == null) {
       return new ArrayList<>();
     }
-    return first.getMessage().getContent().stream().filter(part -> part.getToolRequest() != null)
+    return first.getMessage().getContent().stream()
+        .filter(part -> part.getToolRequest() != null)
         .collect(Collectors.toList());
   }
 
@@ -215,11 +210,10 @@ public class ModelResponse {
 
   /**
    * Returns the list of interrupt tool requests.
-   * 
-   * <p>
-   * When the model requests tools that are interrupts, this list contains the
-   * tool request parts with interrupt metadata. Check if this list is non-empty
-   * to determine if generation was interrupted.
+   *
+   * <p>When the model requests tools that are interrupts, this list contains the tool request parts
+   * with interrupt metadata. Check if this list is non-empty to determine if generation was
+   * interrupted.
    *
    * @return list of interrupt tool request parts, or empty list if none
    */
@@ -240,9 +234,7 @@ public class ModelResponse {
     return interrupts != null && !interrupts.isEmpty();
   }
 
-  /**
-   * Builder for ModelResponse.
-   */
+  /** Builder for ModelResponse. */
   public static class Builder {
     private List<Candidate> candidates = new ArrayList<>();
     private Usage usage;

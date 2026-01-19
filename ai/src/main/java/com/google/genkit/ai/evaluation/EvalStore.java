@@ -20,29 +20,23 @@ package com.google.genkit.ai.evaluation;
 
 import java.util.List;
 
-/**
- * Interface for storing and retrieving evaluation runs.
- */
+/** Interface for storing and retrieving evaluation runs. */
 public interface EvalStore {
 
   /**
    * Saves an evaluation run.
    *
-   * @param evalRun
-   *            the evaluation run to save
-   * @throws Exception
-   *             if save fails
+   * @param evalRun the evaluation run to save
+   * @throws Exception if save fails
    */
   void save(EvalRun evalRun) throws Exception;
 
   /**
    * Loads an evaluation run by ID.
    *
-   * @param evalRunId
-   *            the evaluation run ID
+   * @param evalRunId the evaluation run ID
    * @return the evaluation run, or null if not found
-   * @throws Exception
-   *             if load fails
+   * @throws Exception if load fails
    */
   EvalRun load(String evalRunId) throws Exception;
 
@@ -50,31 +44,25 @@ public interface EvalStore {
    * Lists all evaluation run keys.
    *
    * @return list of evaluation run keys
-   * @throws Exception
-   *             if listing fails
+   * @throws Exception if listing fails
    */
   List<EvalRunKey> list() throws Exception;
 
   /**
    * Lists evaluation run keys with optional filtering.
    *
-   * @param actionRef
-   *            filter by action reference
-   * @param datasetId
-   *            filter by dataset ID
+   * @param actionRef filter by action reference
+   * @param datasetId filter by dataset ID
    * @return filtered list of evaluation run keys
-   * @throws Exception
-   *             if listing fails
+   * @throws Exception if listing fails
    */
   List<EvalRunKey> list(String actionRef, String datasetId) throws Exception;
 
   /**
    * Deletes an evaluation run.
    *
-   * @param evalRunId
-   *            the evaluation run ID to delete
-   * @throws Exception
-   *             if deletion fails
+   * @param evalRunId the evaluation run ID to delete
+   * @throws Exception if deletion fails
    */
   void delete(String evalRunId) throws Exception;
 }

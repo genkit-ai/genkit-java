@@ -18,23 +18,19 @@
 
 package com.google.genkit.plugins.compatoai;
 
+import com.google.genkit.core.Action;
+import com.google.genkit.core.Plugin;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.genkit.core.Action;
-import com.google.genkit.core.Plugin;
-
 /**
- * CompatOAIPlugin provides a generic OpenAI-compatible API integration for
- * Genkit.
- * 
- * This plugin allows you to use any OpenAI-compatible API endpoint by
- * configuring the base URL and providing model definitions. Useful for: -
- * Custom or self-hosted OpenAI-compatible endpoints - New providers before
- * dedicated plugins are available - Testing and experimentation
+ * CompatOAIPlugin provides a generic OpenAI-compatible API integration for Genkit.
+ *
+ * <p>This plugin allows you to use any OpenAI-compatible API endpoint by configuring the base URL
+ * and providing model definitions. Useful for: - Custom or self-hosted OpenAI-compatible endpoints
+ * - New providers before dedicated plugins are available - Testing and experimentation
  */
 public class CompatOAIPlugin implements Plugin {
 
@@ -47,14 +43,12 @@ public class CompatOAIPlugin implements Plugin {
   /**
    * Creates a CompatOAIPlugin with the specified configuration.
    *
-   * @param pluginName
-   *            the plugin name (e.g., "my-provider")
-   * @param options
-   *            the plugin options (API key, base URL, etc.)
-   * @param models
-   *            the list of models to register
+   * @param pluginName the plugin name (e.g., "my-provider")
+   * @param options the plugin options (API key, base URL, etc.)
+   * @param models the list of models to register
    */
-  public CompatOAIPlugin(String pluginName, CompatOAIPluginOptions options, List<ModelDefinition> models) {
+  public CompatOAIPlugin(
+      String pluginName, CompatOAIPluginOptions options, List<ModelDefinition> models) {
     this.pluginName = pluginName;
     this.options = options;
     this.models = models;
@@ -79,7 +73,8 @@ public class CompatOAIPlugin implements Plugin {
     List<Action<?, ?, ?>> actions = new ArrayList<>();
 
     for (ModelDefinition modelDef : models) {
-      CompatOAIModel model = new CompatOAIModel(modelDef.getFullName(), modelDef.getLabel(), options);
+      CompatOAIModel model =
+          new CompatOAIModel(modelDef.getFullName(), modelDef.getLabel(), options);
       actions.add(model);
       logger.debug("Created model: {}", modelDef.getFullName());
     }
@@ -98,9 +93,7 @@ public class CompatOAIPlugin implements Plugin {
     return options;
   }
 
-  /**
-   * Model definition for a compat-oai model.
-   */
+  /** Model definition for a compat-oai model. */
   public static class ModelDefinition {
     private final String modelId;
     private final String label;
@@ -109,12 +102,9 @@ public class CompatOAIPlugin implements Plugin {
     /**
      * Creates a model definition.
      *
-     * @param prefix
-     *            the plugin prefix (e.g., "my-provider")
-     * @param modelId
-     *            the model ID (e.g., "my-model-v1")
-     * @param label
-     *            the display label (e.g., "My Provider my-model-v1")
+     * @param prefix the plugin prefix (e.g., "my-provider")
+     * @param modelId the model ID (e.g., "my-model-v1")
+     * @param label the display label (e.g., "My Provider my-model-v1")
      */
     public ModelDefinition(String prefix, String modelId, String label) {
       this.prefix = prefix;
@@ -125,10 +115,8 @@ public class CompatOAIPlugin implements Plugin {
     /**
      * Creates a model definition with auto-generated label.
      *
-     * @param prefix
-     *            the plugin prefix
-     * @param modelId
-     *            the model ID
+     * @param prefix the plugin prefix
+     * @param modelId the model ID
      */
     public ModelDefinition(String prefix, String modelId) {
       this(prefix, modelId, prefix + " " + modelId);
@@ -153,9 +141,7 @@ public class CompatOAIPlugin implements Plugin {
     }
   }
 
-  /**
-   * Builder for CompatOAIPlugin.
-   */
+  /** Builder for CompatOAIPlugin. */
   public static class Builder {
     private String pluginName;
     private String apiKey;
@@ -167,8 +153,7 @@ public class CompatOAIPlugin implements Plugin {
     /**
      * Sets the plugin name.
      *
-     * @param pluginName
-     *            the plugin name (e.g., "my-provider")
+     * @param pluginName the plugin name (e.g., "my-provider")
      * @return this builder
      */
     public Builder pluginName(String pluginName) {
@@ -179,8 +164,7 @@ public class CompatOAIPlugin implements Plugin {
     /**
      * Sets the API key.
      *
-     * @param apiKey
-     *            the API key
+     * @param apiKey the API key
      * @return this builder
      */
     public Builder apiKey(String apiKey) {
@@ -191,8 +175,7 @@ public class CompatOAIPlugin implements Plugin {
     /**
      * Sets the base URL for API requests.
      *
-     * @param baseUrl
-     *            the base URL (e.g., "https://api.example.com/v1")
+     * @param baseUrl the base URL (e.g., "https://api.example.com/v1")
      * @return this builder
      */
     public Builder baseUrl(String baseUrl) {
@@ -203,8 +186,7 @@ public class CompatOAIPlugin implements Plugin {
     /**
      * Sets the organization ID (optional).
      *
-     * @param organization
-     *            the organization ID
+     * @param organization the organization ID
      * @return this builder
      */
     public Builder organization(String organization) {
@@ -215,8 +197,7 @@ public class CompatOAIPlugin implements Plugin {
     /**
      * Sets the request timeout in seconds.
      *
-     * @param timeout
-     *            the timeout
+     * @param timeout the timeout
      * @return this builder
      */
     public Builder timeout(int timeout) {
@@ -227,8 +208,7 @@ public class CompatOAIPlugin implements Plugin {
     /**
      * Adds a model to register.
      *
-     * @param modelId
-     *            the model ID (e.g., "my-model-v1")
+     * @param modelId the model ID (e.g., "my-model-v1")
      * @return this builder
      */
     public Builder addModel(String modelId) {
@@ -242,10 +222,8 @@ public class CompatOAIPlugin implements Plugin {
     /**
      * Adds a model with a custom label.
      *
-     * @param modelId
-     *            the model ID
-     * @param label
-     *            the display label
+     * @param modelId the model ID
+     * @param label the display label
      * @return this builder
      */
     public Builder addModel(String modelId, String label) {
@@ -259,8 +237,7 @@ public class CompatOAIPlugin implements Plugin {
     /**
      * Adds multiple models.
      *
-     * @param modelIds
-     *            the model IDs to add
+     * @param modelIds the model IDs to add
      * @return this builder
      */
     public Builder addModels(String... modelIds) {
@@ -283,8 +260,13 @@ public class CompatOAIPlugin implements Plugin {
         throw new IllegalStateException("At least one model must be added");
       }
 
-      CompatOAIPluginOptions options = CompatOAIPluginOptions.builder().apiKey(apiKey).baseUrl(baseUrl)
-          .organization(organization).timeout(timeout).build();
+      CompatOAIPluginOptions options =
+          CompatOAIPluginOptions.builder()
+              .apiKey(apiKey)
+              .baseUrl(baseUrl)
+              .organization(organization)
+              .timeout(timeout)
+              .build();
 
       return new CompatOAIPlugin(pluginName, options, models);
     }

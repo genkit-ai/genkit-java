@@ -18,14 +18,11 @@
 
 package com.google.genkit.ai;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Map;
 
-/**
- * ToolDefinition describes a tool that can be used by a model.
- */
+/** ToolDefinition describes a tool that can be used by a model. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ToolDefinition {
 
@@ -44,19 +41,14 @@ public class ToolDefinition {
   @JsonProperty("metadata")
   private Map<String, Object> metadata;
 
-  /**
-   * Default constructor.
-   */
-  public ToolDefinition() {
-  }
+  /** Default constructor. */
+  public ToolDefinition() {}
 
   /**
    * Creates a ToolDefinition with the given name and description.
    *
-   * @param name
-   *            the tool name
-   * @param description
-   *            the tool description
+   * @param name the tool name
+   * @param description the tool description
    */
   public ToolDefinition(String name, String description) {
     this.name = name;
@@ -66,16 +58,15 @@ public class ToolDefinition {
   /**
    * Creates a ToolDefinition with full parameters.
    *
-   * @param name
-   *            the tool name
-   * @param description
-   *            the tool description
-   * @param inputSchema
-   *            the input JSON schema
-   * @param outputSchema
-   *            the output JSON schema
+   * @param name the tool name
+   * @param description the tool description
+   * @param inputSchema the input JSON schema
+   * @param outputSchema the output JSON schema
    */
-  public ToolDefinition(String name, String description, Map<String, Object> inputSchema,
+  public ToolDefinition(
+      String name,
+      String description,
+      Map<String, Object> inputSchema,
       Map<String, Object> outputSchema) {
     this.name = name;
     this.description = description;

@@ -20,57 +20,50 @@ package com.google.genkit.plugins.evaluators;
 
 /**
  * Enumeration of supported evaluation metric types.
- * 
- * <p>
- * These metrics are thin wrappers around RAGAS evaluators for assessing the
- * quality of LLM outputs.
- * 
+ *
+ * <p>These metrics are thin wrappers around RAGAS evaluators for assessing the quality of LLM
+ * outputs.
+ *
  * @see <a href="https://docs.ragas.io/en/stable/">RAGAS Documentation</a>
  */
 public enum GenkitMetric {
 
   /**
-   * Measures the factual consistency of the generated answer against the given
-   * context. This evaluator checks if the statements in the generated output can
-   * be inferred from the provided context.
+   * Measures the factual consistency of the generated answer against the given context. This
+   * evaluator checks if the statements in the generated output can be inferred from the provided
+   * context.
    */
   FAITHFULNESS,
 
   /**
-   * Assesses how pertinent the generated answer is to the given prompt. This
-   * evaluator checks if the answer addresses the question asked and uses cosine
-   * similarity between embeddings for comparison.
+   * Assesses how pertinent the generated answer is to the given prompt. This evaluator checks if
+   * the answer addresses the question asked and uses cosine similarity between embeddings for
+   * comparison.
    */
   ANSWER_RELEVANCY,
 
   /**
-   * Measures the accuracy of the generated answer against a reference answer.
-   * Uses bidirectional comparison to check semantic equivalence.
+   * Measures the accuracy of the generated answer against a reference answer. Uses bidirectional
+   * comparison to check semantic equivalence.
    */
   ANSWER_ACCURACY,
 
   /**
-   * Measures whether the generated output intends to deceive, harm, or exploit.
-   * Useful for safety evaluations of LLM outputs.
+   * Measures whether the generated output intends to deceive, harm, or exploit. Useful for safety
+   * evaluations of LLM outputs.
    */
   MALICIOUSNESS,
 
   /**
-   * Tests output against a provided regular expression pattern. Simple
-   * pattern-matching evaluation that doesn't require an LLM.
+   * Tests output against a provided regular expression pattern. Simple pattern-matching evaluation
+   * that doesn't require an LLM.
    */
   REGEX,
 
-  /**
-   * Tests deep equality between output and reference. Compares JSON structures
-   * for exact match.
-   */
+  /** Tests deep equality between output and reference. Compares JSON structures for exact match. */
   DEEP_EQUAL,
 
-  /**
-   * Evaluates output using JSONata expressions. Allows complex JSON path-based
-   * assertions.
-   */
+  /** Evaluates output using JSONata expressions. Allows complex JSON path-based assertions. */
   JSONATA;
 
   /**
@@ -80,16 +73,16 @@ public enum GenkitMetric {
    */
   public boolean requiresJudge() {
     switch (this) {
-      case FAITHFULNESS :
-      case ANSWER_RELEVANCY :
-      case ANSWER_ACCURACY :
-      case MALICIOUSNESS :
+      case FAITHFULNESS:
+      case ANSWER_RELEVANCY:
+      case ANSWER_ACCURACY:
+      case MALICIOUSNESS:
         return true;
-      case REGEX :
-      case DEEP_EQUAL :
-      case JSONATA :
+      case REGEX:
+      case DEEP_EQUAL:
+      case JSONATA:
         return false;
-      default :
+      default:
         return false;
     }
   }

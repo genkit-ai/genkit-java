@@ -21,9 +21,7 @@ package com.google.genkit.plugins.ollama;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Options for configuring the Ollama plugin.
- */
+/** Options for configuring the Ollama plugin. */
 public class OllamaPluginOptions {
 
   private final String baseUrl;
@@ -64,8 +62,8 @@ public class OllamaPluginOptions {
   }
 
   /**
-   * Gets the list of models to register. If empty, will attempt to auto-discover
-   * models from Ollama.
+   * Gets the list of models to register. If empty, will attempt to auto-discover models from
+   * Ollama.
    *
    * @return the list of models
    */
@@ -73,15 +71,28 @@ public class OllamaPluginOptions {
     return models;
   }
 
-  /**
-   * Builder for OllamaPluginOptions.
-   */
+  /** Builder for OllamaPluginOptions. */
   public static class Builder {
     private String baseUrl = getBaseUrlFromEnv();
     private int timeout = 300; // Ollama models can be slow to respond
-    private List<String> models = Arrays.asList("llama3.2", "llama3.1", "llama3", "llama2", "mistral", "mixtral",
-        "codellama", "phi3", "phi", "gemma2", "gemma", "qwen2.5", "qwen2", "deepseek-coder-v2", "command-r",
-        "llava");
+    private List<String> models =
+        Arrays.asList(
+            "llama3.2",
+            "llama3.1",
+            "llama3",
+            "llama2",
+            "mistral",
+            "mixtral",
+            "codellama",
+            "phi3",
+            "phi",
+            "gemma2",
+            "gemma",
+            "qwen2.5",
+            "qwen2",
+            "deepseek-coder-v2",
+            "command-r",
+            "llava");
 
     private static String getBaseUrlFromEnv() {
       String url = System.getenv("OLLAMA_HOST");

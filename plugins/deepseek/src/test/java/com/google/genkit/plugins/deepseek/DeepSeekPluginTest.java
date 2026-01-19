@@ -20,19 +20,20 @@ package com.google.genkit.plugins.deepseek;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.List;
-
-import org.junit.jupiter.api.Test;
-
 import com.google.genkit.core.Action;
 import com.google.genkit.plugins.compatoai.CompatOAIPluginOptions;
+import java.util.List;
+import org.junit.jupiter.api.Test;
 
 class DeepSeekPluginTest {
 
   @Test
   void testDefaultConstruction() {
-    CompatOAIPluginOptions options = CompatOAIPluginOptions.builder().apiKey("test-key")
-        .baseUrl("https://api.deepseek.com/v1").build();
+    CompatOAIPluginOptions options =
+        CompatOAIPluginOptions.builder()
+            .apiKey("test-key")
+            .baseUrl("https://api.deepseek.com/v1")
+            .build();
     DeepSeekPlugin plugin = new DeepSeekPlugin(options);
 
     assertNotNull(plugin);
@@ -41,8 +42,11 @@ class DeepSeekPluginTest {
 
   @Test
   void testConstructionWithOptions() {
-    CompatOAIPluginOptions options = CompatOAIPluginOptions.builder().apiKey("test-key")
-        .baseUrl("https://api.deepseek.com/v1").build();
+    CompatOAIPluginOptions options =
+        CompatOAIPluginOptions.builder()
+            .apiKey("test-key")
+            .baseUrl("https://api.deepseek.com/v1")
+            .build();
 
     DeepSeekPlugin plugin = new DeepSeekPlugin(options);
 
@@ -75,8 +79,12 @@ class DeepSeekPluginTest {
 
   @Test
   void testInitializesActions() {
-    DeepSeekPlugin plugin = new DeepSeekPlugin(
-        CompatOAIPluginOptions.builder().apiKey("test-key").baseUrl("https://api.deepseek.com/v1").build());
+    DeepSeekPlugin plugin =
+        new DeepSeekPlugin(
+            CompatOAIPluginOptions.builder()
+                .apiKey("test-key")
+                .baseUrl("https://api.deepseek.com/v1")
+                .build());
 
     List<Action<?, ?, ?>> actions = plugin.init();
 

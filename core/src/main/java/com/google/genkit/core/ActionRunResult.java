@@ -19,11 +19,9 @@
 package com.google.genkit.core;
 
 /**
- * ActionRunResult contains the result of an action execution along with
- * telemetry information.
+ * ActionRunResult contains the result of an action execution along with telemetry information.
  *
- * @param <T>
- *            the type of the result
+ * @param <T> the type of the result
  */
 public class ActionRunResult<T> {
 
@@ -34,12 +32,9 @@ public class ActionRunResult<T> {
   /**
    * Creates a new ActionRunResult.
    *
-   * @param result
-   *            the action result
-   * @param traceId
-   *            the trace ID for this execution
-   * @param spanId
-   *            the span ID for this execution
+   * @param result the action result
+   * @param traceId the trace ID for this execution
+   * @param spanId the span ID for this execution
    */
   public ActionRunResult(T result, String traceId, String spanId) {
     this.result = result;
@@ -77,8 +72,7 @@ public class ActionRunResult<T> {
   /**
    * Creates a builder for ActionRunResult.
    *
-   * @param <T>
-   *            the result type
+   * @param <T> the result type
    * @return a new builder
    */
   public static <T> Builder<T> builder() {
@@ -88,8 +82,7 @@ public class ActionRunResult<T> {
   /**
    * Builder for ActionRunResult.
    *
-   * @param <T>
-   *            the result type
+   * @param <T> the result type
    */
   public static class Builder<T> {
     private T result;

@@ -21,12 +21,9 @@ package com.google.genkit.ai;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Map;
-
 import org.junit.jupiter.api.Test;
 
-/**
- * Unit tests for ToolRequest and ToolResponse.
- */
+/** Unit tests for ToolRequest and ToolResponse. */
 class ToolTest {
 
   @Test
@@ -158,8 +155,16 @@ class ToolTest {
   void testToolRequestWithComplexInput() {
     ToolRequest request = new ToolRequest();
     request.setName("database_query");
-    request.setInput(Map.of("table", "users", "fields", new String[]{"id", "name", "email"}, "limit", 10, "where",
-        Map.of("active", true)));
+    request.setInput(
+        Map.of(
+            "table",
+            "users",
+            "fields",
+            new String[] {"id", "name", "email"},
+            "limit",
+            10,
+            "where",
+            Map.of("active", true)));
 
     assertEquals("database_query", request.getName());
     @SuppressWarnings("unchecked")

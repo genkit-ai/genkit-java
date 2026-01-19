@@ -18,9 +18,7 @@
 
 package com.google.genkit.plugins.jetty;
 
-/**
- * Options for configuring the Jetty plugin.
- */
+/** Options for configuring the Jetty plugin. */
 public class JettyPluginOptions {
 
   private final int port;
@@ -69,9 +67,7 @@ public class JettyPluginOptions {
     return basePath;
   }
 
-  /**
-   * Builder for JettyPluginOptions.
-   */
+  /** Builder for JettyPluginOptions. */
   public static class Builder {
     private int port = 8080;
     private String host = "0.0.0.0";

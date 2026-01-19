@@ -18,21 +18,10 @@
 
 package com.google.genkit.core.tracing;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BiFunction;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.GenkitException;
-
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanKind;
@@ -44,10 +33,18 @@ import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 import io.opentelemetry.semconv.ServiceAttributes;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiFunction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Tracer provides tracing utilities for Genkit operations. It integrates with
- * OpenTelemetry for distributed tracing.
+ * Tracer provides tracing utilities for Genkit operations. It integrates with OpenTelemetry for
+ * distributed tracing.
  */
 public final class Tracer {
 
@@ -72,9 +69,7 @@ public final class Tracer {
     // Utility class
   }
 
-  /**
-   * Initializes the OpenTelemetry tracer with the telemetry exporter.
-   */
+  /** Initializes the OpenTelemetry tracer with the telemetry exporter. */
   private static synchronized void initializeTracer() {
     if (initialized.compareAndSet(false, true)) {
       try {
@@ -82,18 +77,27 @@ public final class Tracer {
         telemetryExporter = new TelemetryServerExporter();
 
         // Create resource with service info
-        Resource resource = Resource.getDefault()
-            .merge(Resource.create(Attributes.builder().put(ServiceAttributes.SERVICE_NAME, SERVICE_NAME)
-                .put(ServiceAttributes.SERVICE_VERSION, SERVICE_VERSION).build()));
+        Resource resource =
+            Resource.getDefault()
+                .merge(
+                    Resource.create(
+                        Attributes.builder()
+                            .put(ServiceAttributes.SERVICE_NAME, SERVICE_NAME)
+                            .put(ServiceAttributes.SERVICE_VERSION, SERVICE_VERSION)
+                            .build()));
 
         // Create SDK tracer provider with our exporter and resource
-        tracerProvider = SdkTracerProvider.builder().addSpanProcessor(telemetryExporter).setResource(resource)
-            .build();
+        tracerProvider =
+            SdkTracerProvider.builder()
+                .addSpanProcessor(telemetryExporter)
+                .setResource(resource)
+                .build();
 
         // Build the OpenTelemetry SDK - DON'T register globally
         // This allows plugins (like Firebase) to set up a global SDK with both
         // TracerProvider and MeterProvider for metrics export
-        OpenTelemetrySdk openTelemetry = OpenTelemetrySdk.builder().setTracerProvider(tracerProvider).build();
+        OpenTelemetrySdk openTelemetry =
+            OpenTelemetrySdk.builder().setTracerProvider(tracerProvider).build();
 
         otelTracer = openTelemetry.getTracer(INSTRUMENTATION_NAME);
 
@@ -111,11 +115,10 @@ public final class Tracer {
   }
 
   /**
-   * Configures the telemetry server URL for exporting traces. This is typically
-   * called when the CLI notifies the runtime of the telemetry server URL.
+   * Configures the telemetry server URL for exporting traces. This is typically called when the CLI
+   * notifies the runtime of the telemetry server URL.
    *
-   * @param serverUrl
-   *            the telemetry server URL
+   * @param serverUrl the telemetry server URL
    */
   public static void configureTelemetryServer(String serverUrl) {
     if (serverUrl != null && !serverUrl.isEmpty() && telemetryExporter != null) {
@@ -130,12 +133,11 @@ public final class Tracer {
   }
 
   /**
-   * Registers an additional span processor for exporting traces. This allows
-   * plugins (like Firebase) to add their own exporters to send traces to external
-   * services like Google Cloud Trace.
+   * Registers an additional span processor for exporting traces. This allows plugins (like
+   * Firebase) to add their own exporters to send traces to external services like Google Cloud
+   * Trace.
    *
-   * @param processor
-   *            the span processor to add
+   * @param processor the span processor to add
    */
   public static void registerSpanProcessor(SpanProcessor processor) {
     if (processor == null) {
@@ -151,15 +153,20 @@ public final class Tracer {
   }
 
   /**
-   * Reinitializes the tracer with all registered span processors. Called when
-   * additional processors are registered.
+   * Reinitializes the tracer with all registered span processors. Called when additional processors
+   * are registered.
    */
   private static void reinitializeTracer() {
     try {
       // Create resource with service info
-      Resource resource = Resource.getDefault()
-          .merge(Resource.create(Attributes.builder().put(ServiceAttributes.SERVICE_NAME, SERVICE_NAME)
-              .put(ServiceAttributes.SERVICE_VERSION, SERVICE_VERSION).build()));
+      Resource resource =
+          Resource.getDefault()
+              .merge(
+                  Resource.create(
+                      Attributes.builder()
+                          .put(ServiceAttributes.SERVICE_NAME, SERVICE_NAME)
+                          .put(ServiceAttributes.SERVICE_VERSION, SERVICE_VERSION)
+                          .build()));
 
       // Build new tracer provider with all processors and resource
       SdkTracerProviderBuilder builder = SdkTracerProvider.builder();
@@ -173,7 +180,8 @@ public final class Tracer {
       SdkTracerProvider newProvider = builder.build();
 
       // Build new OpenTelemetry SDK
-      OpenTelemetrySdk openTelemetry = OpenTelemetrySdk.builder().setTracerProvider(newProvider).build();
+      OpenTelemetrySdk openTelemetry =
+          OpenTelemetrySdk.builder().setTracerProvider(newProvider).build();
 
       // Update the tracer
       otelTracer = openTelemetry.getTracer(INSTRUMENTATION_NAME);
@@ -185,15 +193,14 @@ public final class Tracer {
 
       tracerProvider = newProvider;
 
-      logger.debug("Tracer reinitialized with {} additional processors", additionalProcessors.size());
+      logger.debug(
+          "Tracer reinitialized with {} additional processors", additionalProcessors.size());
     } catch (Exception e) {
       logger.error("Failed to reinitialize tracer", e);
     }
   }
 
-  /**
-   * Returns true if the telemetry exporter is configured.
-   */
+  /** Returns true if the telemetry exporter is configured. */
   public static boolean isTelemetryConfigured() {
     return telemetryExporter != null && telemetryExporter.isConfigured();
   }
@@ -201,24 +208,18 @@ public final class Tracer {
   /**
    * Runs a function within a new tracing span.
    *
-   * @param ctx
-   *            the action context
-   * @param metadata
-   *            the span metadata
-   * @param input
-   *            the input to pass to the function
-   * @param fn
-   *            the function to execute
-   * @param <I>
-   *            the input type
-   * @param <O>
-   *            the output type
+   * @param ctx the action context
+   * @param metadata the span metadata
+   * @param input the input to pass to the function
+   * @param fn the function to execute
+   * @param <I> the input type
+   * @param <O> the output type
    * @return the function result
-   * @throws GenkitException
-   *             if the function throws an exception
+   * @throws GenkitException if the function throws an exception
    */
-  public static <I, O> O runInNewSpan(ActionContext ctx, SpanMetadata metadata, I input,
-      BiFunction<SpanContext, I, O> fn) throws GenkitException {
+  public static <I, O> O runInNewSpan(
+      ActionContext ctx, SpanMetadata metadata, I input, BiFunction<SpanContext, I, O> fn)
+      throws GenkitException {
     String spanName = metadata.getName() != null ? metadata.getName() : "unknown";
 
     // Determine if this is a root span
@@ -278,8 +279,11 @@ public final class Tracer {
     }
 
     io.opentelemetry.api.trace.SpanContext otelSpanContext = span.getSpanContext();
-    SpanContext spanContext = new SpanContext(otelSpanContext.getTraceId(), otelSpanContext.getSpanId(),
-        ctx.getSpanContext() != null ? ctx.getSpanContext().getSpanId() : null);
+    SpanContext spanContext =
+        new SpanContext(
+            otelSpanContext.getTraceId(),
+            otelSpanContext.getSpanId(),
+            ctx.getSpanContext() != null ? ctx.getSpanContext().getSpanId() : null);
 
     try (Scope scope = span.makeCurrent()) {
       O result = fn.apply(spanContext, input);
@@ -318,10 +322,7 @@ public final class Tracer {
     }
   }
 
-  /**
-   * Builds an annotated path for the span. Format:
-   * /{name,t:type}/{name,t:type,s:subtype}
-   */
+  /** Builds an annotated path for the span. Format: /{name,t:type}/{name,t:type,s:subtype} */
   private static String buildPath(String name, String parentPath, String type, String subtype) {
     StringBuilder segment = new StringBuilder("{").append(name);
     if (type != null && !type.isEmpty()) {
@@ -349,8 +350,7 @@ public final class Tracer {
   /**
    * Creates a child span context from a parent.
    *
-   * @param parent
-   *            the parent span context
+   * @param parent the parent span context
    * @return a new child SpanContext
    */
   public static SpanContext newChildSpanContext(SpanContext parent) {
@@ -361,16 +361,14 @@ public final class Tracer {
   /**
    * Adds an event to the current span.
    *
-   * @param name
-   *            the event name
-   * @param attributes
-   *            the event attributes
+   * @param name the event name
+   * @param attributes the event attributes
    */
   public static void addEvent(String name, Map<String, String> attributes) {
     Span currentSpan = Span.current();
     if (currentSpan != null) {
-      io.opentelemetry.api.common.AttributesBuilder attrBuilder = io.opentelemetry.api.common.Attributes
-          .builder();
+      io.opentelemetry.api.common.AttributesBuilder attrBuilder =
+          io.opentelemetry.api.common.Attributes.builder();
       if (attributes != null) {
         for (Map.Entry<String, String> entry : attributes.entrySet()) {
           attrBuilder.put(entry.getKey(), entry.getValue());
@@ -383,8 +381,7 @@ public final class Tracer {
   /**
    * Records an exception on the current span.
    *
-   * @param exception
-   *            the exception to record
+   * @param exception the exception to record
    */
   public static void recordException(Throwable exception) {
     Span currentSpan = Span.current();

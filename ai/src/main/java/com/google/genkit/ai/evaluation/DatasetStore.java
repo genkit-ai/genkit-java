@@ -22,43 +22,36 @@ import java.util.List;
 
 /**
  * Interface for dataset storage operations.
- * 
- * <p>
- * Implementations of this interface handle CRUD operations for datasets used in
- * evaluation workflows.
+ *
+ * <p>Implementations of this interface handle CRUD operations for datasets used in evaluation
+ * workflows.
  */
 public interface DatasetStore {
 
   /**
    * Creates a new dataset.
    *
-   * @param request
-   *            the create request containing dataset data and metadata
+   * @param request the create request containing dataset data and metadata
    * @return metadata about the created dataset
-   * @throws Exception
-   *             if creation fails
+   * @throws Exception if creation fails
    */
   DatasetMetadata createDataset(CreateDatasetRequest request) throws Exception;
 
   /**
    * Updates an existing dataset.
    *
-   * @param request
-   *            the update request containing dataset ID and new data
+   * @param request the update request containing dataset ID and new data
    * @return metadata about the updated dataset
-   * @throws Exception
-   *             if update fails or dataset not found
+   * @throws Exception if update fails or dataset not found
    */
   DatasetMetadata updateDataset(UpdateDatasetRequest request) throws Exception;
 
   /**
    * Gets the data for a dataset.
    *
-   * @param datasetId
-   *            the dataset ID
+   * @param datasetId the dataset ID
    * @return the list of dataset samples
-   * @throws Exception
-   *             if retrieval fails or dataset not found
+   * @throws Exception if retrieval fails or dataset not found
    */
   List<DatasetSample> getDataset(String datasetId) throws Exception;
 
@@ -66,18 +59,15 @@ public interface DatasetStore {
    * Lists all datasets.
    *
    * @return list of dataset metadata
-   * @throws Exception
-   *             if listing fails
+   * @throws Exception if listing fails
    */
   List<DatasetMetadata> listDatasets() throws Exception;
 
   /**
    * Deletes a dataset.
    *
-   * @param datasetId
-   *            the dataset ID to delete
-   * @throws Exception
-   *             if deletion fails
+   * @param datasetId the dataset ID to delete
+   * @throws Exception if deletion fails
    */
   void deleteDataset(String datasetId) throws Exception;
 }

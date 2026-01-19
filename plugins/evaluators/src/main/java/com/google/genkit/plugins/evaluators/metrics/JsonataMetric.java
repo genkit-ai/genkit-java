@@ -18,9 +18,6 @@
 
 package com.google.genkit.plugins.evaluators.metrics;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.dashjoin.jsonata.Jsonata;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.genkit.ai.evaluation.EvalDataPoint;
@@ -28,27 +25,26 @@ import com.google.genkit.ai.evaluation.EvalResponse;
 import com.google.genkit.ai.evaluation.EvalStatus;
 import com.google.genkit.ai.evaluation.Score;
 import com.google.genkit.ai.evaluation.ScoreDetails;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * JSONata metric evaluator.
- * 
- * <p>
- * Evaluates the output using a JSONata expression provided in the reference.
- * The expression should return a truthy value for pass, falsy for fail.
+ *
+ * <p>Evaluates the output using a JSONata expression provided in the reference. The expression
+ * should return a truthy value for pass, falsy for fail.
  */
 public class JsonataMetric {
 
   private static final Logger logger = LoggerFactory.getLogger(JsonataMetric.class);
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
-  public JsonataMetric() {
-  }
+  public JsonataMetric() {}
 
   /**
    * Evaluates the output using the JSONata expression in the reference.
    *
-   * @param dataPoint
-   *            the evaluation data point
+   * @param dataPoint the evaluation data point
    * @return the evaluation response
    */
   public EvalResponse evaluate(EvalDataPoint dataPoint) {
@@ -75,26 +71,39 @@ public class JsonataMetric {
       double score = pass ? 1.0 : 0.0;
       EvalStatus status = pass ? EvalStatus.PASS : EvalStatus.FAIL;
 
-      String reasoning = String.format("JSONata expression '%s' evaluated to: %s", expression,
-          result != null ? result.toString() : "null");
+      String reasoning =
+          String.format(
+              "JSONata expression '%s' evaluated to: %s",
+              expression, result != null ? result.toString() : "null");
 
-      return EvalResponse
-          .builder().testCaseId(dataPoint.getTestCaseId()).evaluation(Score.builder().score(score)
-              .status(status).details(ScoreDetails.builder().reasoning(reasoning).build()).build())
+      return EvalResponse.builder()
+          .testCaseId(dataPoint.getTestCaseId())
+          .evaluation(
+              Score.builder()
+                  .score(score)
+                  .status(status)
+                  .details(ScoreDetails.builder().reasoning(reasoning).build())
+                  .build())
           .build();
 
     } catch (Exception e) {
       logger.error("Error evaluating JSONata expression: {}", expression, e);
-      return EvalResponse.builder().testCaseId(dataPoint.getTestCaseId()).evaluation(Score.builder().score(0.0)
-          .status(EvalStatus.UNKNOWN).details(ScoreDetails.builder()
-              .reasoning("Error evaluating JSONata expression: " + e.getMessage()).build())
-          .build()).build();
+      return EvalResponse.builder()
+          .testCaseId(dataPoint.getTestCaseId())
+          .evaluation(
+              Score.builder()
+                  .score(0.0)
+                  .status(EvalStatus.UNKNOWN)
+                  .details(
+                      ScoreDetails.builder()
+                          .reasoning("Error evaluating JSONata expression: " + e.getMessage())
+                          .build())
+                  .build())
+          .build();
     }
   }
 
-  /**
-   * Determines if a value is truthy. Follows JavaScript-like truthy rules.
-   */
+  /** Determines if a value is truthy. Follows JavaScript-like truthy rules. */
   private boolean isTruthy(Object value) {
     if (value == null) {
       return false;

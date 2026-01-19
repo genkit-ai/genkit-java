@@ -22,32 +22,25 @@ import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.GenkitException;
 
 /**
- * Middleware is a function that wraps action execution, allowing pre-processing
- * and post-processing of requests and responses.
+ * Middleware is a function that wraps action execution, allowing pre-processing and post-processing
+ * of requests and responses.
  *
- * <p>
- * Middleware functions receive the request, action context, and a "next"
- * function to call the next middleware in the chain (or the actual action if at
- * the end of the chain).
+ * <p>Middleware functions receive the request, action context, and a "next" function to call the
+ * next middleware in the chain (or the actual action if at the end of the chain).
  *
- * <p>
- * Example usage:
+ * <p>Example usage:
  *
- * <pre>
- * {@code
+ * <pre>{@code
  * Middleware<String, String> loggingMiddleware = (request, context, next) -> {
- * 	System.out.println("Before: " + request);
- * 	String result = next.apply(request, context);
- * 	System.out.println("After: " + result);
- * 	return result;
+ *   System.out.println("Before: " + request);
+ *   String result = next.apply(request, context);
+ *   System.out.println("After: " + result);
+ *   return result;
  * };
- * }
- * </pre>
+ * }</pre>
  *
- * @param <I>
- *            The input type
- * @param <O>
- *            The output type
+ * @param <I> The input type
+ * @param <O> The output type
  */
 @FunctionalInterface
 public interface Middleware<I, O> {
@@ -55,15 +48,11 @@ public interface Middleware<I, O> {
   /**
    * Processes the request through this middleware.
    *
-   * @param request
-   *            the input request
-   * @param context
-   *            the action context
-   * @param next
-   *            the next function in the middleware chain
+   * @param request the input request
+   * @param context the action context
+   * @param next the next function in the middleware chain
    * @return the output response
-   * @throws GenkitException
-   *             if processing fails
+   * @throws GenkitException if processing fails
    */
   O handle(I request, ActionContext context, MiddlewareNext<I, O> next) throws GenkitException;
 }

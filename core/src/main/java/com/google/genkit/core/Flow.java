@@ -18,39 +18,33 @@
 
 package com.google.genkit.core;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.genkit.core.middleware.Middleware;
+import com.google.genkit.core.middleware.MiddlewareChain;
+import com.google.genkit.core.tracing.SpanMetadata;
+import com.google.genkit.core.tracing.Tracer;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.genkit.core.middleware.Middleware;
-import com.google.genkit.core.middleware.MiddlewareChain;
-import com.google.genkit.core.tracing.SpanMetadata;
-import com.google.genkit.core.tracing.Tracer;
-
 /**
- * A Flow is a user-defined Action. It represents a function from input I to
- * output O. The Stream parameter S is for flows that support streaming their
- * results incrementally.
+ * A Flow is a user-defined Action. It represents a function from input I to output O. The Stream
+ * parameter S is for flows that support streaming their results incrementally.
  *
- * <p>
- * Flows are the primary way to organize AI application logic in Genkit. They
- * provide:
+ * <p>Flows are the primary way to organize AI application logic in Genkit. They provide:
+ *
  * <ul>
- * <li>Observability through automatic tracing</li>
- * <li>Integration with Genkit developer tools</li>
- * <li>Easy deployment as API endpoints</li>
- * <li>Built-in streaming support</li>
+ *   <li>Observability through automatic tracing
+ *   <li>Integration with Genkit developer tools
+ *   <li>Easy deployment as API endpoints
+ *   <li>Built-in streaming support
  * </ul>
  *
- * @param <I>
- *            The input type for the flow
- * @param <O>
- *            The output type for the flow
- * @param <S>
- *            The streaming chunk type (use Void for non-streaming flows)
+ * @param <I> The input type for the flow
+ * @param <O> The output type for the flow
+ * @param <S> The streaming chunk type (use Void for non-streaming flows)
  */
 public class Flow<I, O, S> implements Action<I, O, S> {
 
@@ -60,8 +54,7 @@ public class Flow<I, O, S> implements Action<I, O, S> {
   /**
    * Creates a new Flow wrapping an ActionDef.
    *
-   * @param actionDef
-   *            the underlying action definition
+   * @param actionDef the underlying action definition
    */
   private Flow(ActionDef<I, O, S> actionDef) {
     this(actionDef, new MiddlewareChain<>());
@@ -70,10 +63,8 @@ public class Flow<I, O, S> implements Action<I, O, S> {
   /**
    * Creates a new Flow wrapping an ActionDef with middleware.
    *
-   * @param actionDef
-   *            the underlying action definition
-   * @param middlewareChain
-   *            the middleware chain to use
+   * @param actionDef the underlying action definition
+   * @param middlewareChain the middleware chain to use
    */
   private Flow(ActionDef<I, O, S> actionDef, MiddlewareChain<I, O> middlewareChain) {
     this.actionDef = actionDef;
@@ -83,63 +74,64 @@ public class Flow<I, O, S> implements Action<I, O, S> {
   /**
    * Defines a new non-streaming flow and registers it.
    *
-   * @param registry
-   *            the registry to register with
-   * @param name
-   *            the flow name
-   * @param inputClass
-   *            the input type class
-   * @param outputClass
-   *            the output type class
-   * @param fn
-   *            the flow function
-   * @param <I>
-   *            input type
-   * @param <O>
-   *            output type
+   * @param registry the registry to register with
+   * @param name the flow name
+   * @param inputClass the input type class
+   * @param outputClass the output type class
+   * @param fn the flow function
+   * @param <I> input type
+   * @param <O> output type
    * @return the created flow
    */
-  public static <I, O> Flow<I, O, Void> define(Registry registry, String name, Class<I> inputClass,
-      Class<O> outputClass, BiFunction<ActionContext, I, O> fn) {
+  public static <I, O> Flow<I, O, Void> define(
+      Registry registry,
+      String name,
+      Class<I> inputClass,
+      Class<O> outputClass,
+      BiFunction<ActionContext, I, O> fn) {
     return define(registry, name, inputClass, outputClass, fn, null);
   }
 
   /**
    * Defines a new non-streaming flow with middleware and registers it.
    *
-   * @param registry
-   *            the registry to register with
-   * @param name
-   *            the flow name
-   * @param inputClass
-   *            the input type class
-   * @param outputClass
-   *            the output type class
-   * @param fn
-   *            the flow function
-   * @param middleware
-   *            the middleware to apply
-   * @param <I>
-   *            input type
-   * @param <O>
-   *            output type
+   * @param registry the registry to register with
+   * @param name the flow name
+   * @param inputClass the input type class
+   * @param outputClass the output type class
+   * @param fn the flow function
+   * @param middleware the middleware to apply
+   * @param <I> input type
+   * @param <O> output type
    * @return the created flow
    */
-  public static <I, O> Flow<I, O, Void> define(Registry registry, String name, Class<I> inputClass,
-      Class<O> outputClass, BiFunction<ActionContext, I, O> fn, List<Middleware<I, O>> middleware) {
+  public static <I, O> Flow<I, O, Void> define(
+      Registry registry,
+      String name,
+      Class<I> inputClass,
+      Class<O> outputClass,
+      BiFunction<ActionContext, I, O> fn,
+      List<Middleware<I, O>> middleware) {
     MiddlewareChain<I, O> chain = new MiddlewareChain<>();
     if (middleware != null) {
       chain.useAll(middleware);
     }
 
-    ActionDef<I, O, Void> actionDef = ActionDef.create(name, ActionType.FLOW, null, null, inputClass, outputClass,
-        (ctx, input) -> {
-          ActionContext flowCtx = ctx.withFlowName(name);
-          if (chain.isEmpty()) {
-            return fn.apply(flowCtx, input);
-          }
-          return chain.execute(input, flowCtx, (c, i) -> fn.apply(c, i));
-        });
+    ActionDef<I, O, Void> actionDef =
+        ActionDef.create(
+            name,
+            ActionType.FLOW,
+            null,
+            null,
+            inputClass,
+            outputClass,
+            (ctx, input) -> {
+              ActionContext flowCtx = ctx.withFlowName(name);
+              if (chain.isEmpty()) {
+                return fn.apply(flowCtx, input);
+              }
+              return chain.execute(input, flowCtx, (c, i) -> fn.apply(c, i));
+            });
 
     Flow<I, O, Void> flow = new Flow<>(actionDef, chain);
     flow.register(registry);
@@ -149,31 +141,34 @@ public class Flow<I, O, S> implements Action<I, O, S> {
   /**
    * Defines a new streaming flow and registers it.
    *
-   * @param registry
-   *            the registry to register with
-   * @param name
-   *            the flow name
-   * @param inputClass
-   *            the input type class
-   * @param outputClass
-   *            the output type class
-   * @param fn
-   *            the streaming flow function
-   * @param <I>
-   *            input type
-   * @param <O>
-   *            output type
-   * @param <S>
-   *            stream chunk type
+   * @param registry the registry to register with
+   * @param name the flow name
+   * @param inputClass the input type class
+   * @param outputClass the output type class
+   * @param fn the streaming flow function
+   * @param <I> input type
+   * @param <O> output type
+   * @param <S> stream chunk type
    * @return the created flow
    */
-  public static <I, O, S> Flow<I, O, S> defineStreaming(Registry registry, String name, Class<I> inputClass,
-      Class<O> outputClass, ActionDef.StreamingFunction<I, O, S> fn) {
-    ActionDef<I, O, S> actionDef = ActionDef.createStreaming(name, ActionType.FLOW, null, null, inputClass,
-        outputClass, (ctx, input, cb) -> {
-          ActionContext flowCtx = ctx.withFlowName(name);
-          return fn.apply(flowCtx, input, cb);
-        });
+  public static <I, O, S> Flow<I, O, S> defineStreaming(
+      Registry registry,
+      String name,
+      Class<I> inputClass,
+      Class<O> outputClass,
+      ActionDef.StreamingFunction<I, O, S> fn) {
+    ActionDef<I, O, S> actionDef =
+        ActionDef.createStreaming(
+            name,
+            ActionType.FLOW,
+            null,
+            null,
+            inputClass,
+            outputClass,
+            (ctx, input, cb) -> {
+              ActionContext flowCtx = ctx.withFlowName(name);
+              return fn.apply(flowCtx, input, cb);
+            });
 
     Flow<I, O, S> flow = new Flow<>(actionDef);
     flow.register(registry);
@@ -181,38 +176,39 @@ public class Flow<I, O, S> implements Action<I, O, S> {
   }
 
   /**
-   * Runs a named step within the current flow. Each call to run results in a new
-   * step with its own trace span.
+   * Runs a named step within the current flow. Each call to run results in a new step with its own
+   * trace span.
    *
-   * @param ctx
-   *            the action context (must be a flow context)
-   * @param name
-   *            the step name
-   * @param fn
-   *            the step function
-   * @param <T>
-   *            the step output type
+   * @param ctx the action context (must be a flow context)
+   * @param name the step name
+   * @param fn the step function
+   * @param <T> the step output type
    * @return the step result
-   * @throws GenkitException
-   *             if not called from within a flow
+   * @throws GenkitException if not called from within a flow
    */
-  public static <T> T run(ActionContext ctx, String name, Function<Void, T> fn) throws GenkitException {
+  public static <T> T run(ActionContext ctx, String name, Function<Void, T> fn)
+      throws GenkitException {
     if (ctx.getFlowName() == null) {
       throw new GenkitException("Flow.run(\"" + name + "\"): must be called from within a flow");
     }
 
-    SpanMetadata spanMetadata = SpanMetadata.builder().name(name).type("flowStep").subtype("flowStep").build();
+    SpanMetadata spanMetadata =
+        SpanMetadata.builder().name(name).type("flowStep").subtype("flowStep").build();
 
-    return Tracer.runInNewSpan(ctx, spanMetadata, null, (spanCtx, input) -> {
-      try {
-        return fn.apply(null);
-      } catch (Exception e) {
-        if (e instanceof GenkitException) {
-          throw (GenkitException) e;
-        }
-        throw new GenkitException("Flow step failed: " + e.getMessage(), e);
-      }
-    });
+    return Tracer.runInNewSpan(
+        ctx,
+        spanMetadata,
+        null,
+        (spanCtx, input) -> {
+          try {
+            return fn.apply(null);
+          } catch (Exception e) {
+            if (e instanceof GenkitException) {
+              throw (GenkitException) e;
+            }
+            throw new GenkitException("Flow step failed: " + e.getMessage(), e);
+          }
+        });
   }
 
   @Override
@@ -247,8 +243,8 @@ public class Flow<I, O, S> implements Action<I, O, S> {
   }
 
   @Override
-  public ActionRunResult<JsonNode> runJsonWithTelemetry(ActionContext ctx, JsonNode input,
-      Consumer<JsonNode> streamCallback) throws GenkitException {
+  public ActionRunResult<JsonNode> runJsonWithTelemetry(
+      ActionContext ctx, JsonNode input, Consumer<JsonNode> streamCallback) throws GenkitException {
     return actionDef.runJsonWithTelemetry(ctx, input, streamCallback);
   }
 
@@ -284,8 +280,7 @@ public class Flow<I, O, S> implements Action<I, O, S> {
   /**
    * Creates a copy of this flow with additional middleware.
    *
-   * @param middleware
-   *            the middleware to add
+   * @param middleware the middleware to add
    * @return a new flow with the middleware added
    */
   public Flow<I, O, S> withMiddleware(Middleware<I, O> middleware) {
@@ -297,8 +292,7 @@ public class Flow<I, O, S> implements Action<I, O, S> {
   /**
    * Creates a copy of this flow with additional middleware.
    *
-   * @param middlewareList
-   *            the middleware to add
+   * @param middlewareList the middleware to add
    * @return a new flow with the middleware added
    */
   public Flow<I, O, S> withMiddleware(List<Middleware<I, O>> middlewareList) {
@@ -308,20 +302,18 @@ public class Flow<I, O, S> implements Action<I, O, S> {
   }
 
   /**
-   * Streams the flow output with the given input. Returns a consumer that can be
-   * used with a yield-style iteration pattern.
+   * Streams the flow output with the given input. Returns a consumer that can be used with a
+   * yield-style iteration pattern.
    *
-   * @param ctx
-   *            the action context
-   * @param input
-   *            the flow input
-   * @param consumer
-   *            the consumer for streaming values
+   * @param ctx the action context
+   * @param input the flow input
+   * @param consumer the consumer for streaming values
    */
   public void stream(ActionContext ctx, I input, Consumer<StreamingFlowValue<O, S>> consumer) {
-    Consumer<S> streamCallback = chunk -> {
-      consumer.accept(new StreamingFlowValue<>(false, null, chunk));
-    };
+    Consumer<S> streamCallback =
+        chunk -> {
+          consumer.accept(new StreamingFlowValue<>(false, null, chunk));
+        };
 
     try {
       O output = run(ctx, input, streamCallback);
@@ -332,13 +324,10 @@ public class Flow<I, O, S> implements Action<I, O, S> {
   }
 
   /**
-   * StreamingFlowValue represents either a streamed chunk or the final output of
-   * a flow.
+   * StreamingFlowValue represents either a streamed chunk or the final output of a flow.
    *
-   * @param <O>
-   *            the output type
-   * @param <S>
-   *            the stream chunk type
+   * @param <O> the output type
+   * @param <S> the stream chunk type
    */
   public static class StreamingFlowValue<O, S> {
     private final boolean done;
@@ -348,12 +337,9 @@ public class Flow<I, O, S> implements Action<I, O, S> {
     /**
      * Creates a new StreamingFlowValue.
      *
-     * @param done
-     *            true if this is the final output
-     * @param output
-     *            the final output (valid if done is true)
-     * @param stream
-     *            the stream chunk (valid if done is false)
+     * @param done true if this is the final output
+     * @param output the final output (valid if done is true)
+     * @param stream the stream chunk (valid if done is false)
      */
     public StreamingFlowValue(boolean done, O output, S stream) {
       this.done = done;

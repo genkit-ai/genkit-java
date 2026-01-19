@@ -18,16 +18,6 @@
 
 package com.google.genkit.plugins.anthropic;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -35,14 +25,21 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.genkit.ai.*;
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.GenkitException;
-
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import okhttp3.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Anthropic Claude model implementation for Genkit.
- * 
- * Supports Claude 3.5, Claude 3, and Claude 2 model families with both
- * synchronous and streaming generation.
+ *
+ * <p>Supports Claude 3.5, Claude 3, and Claude 2 model families with both synchronous and streaming
+ * generation.
  */
 public class AnthropicModel implements Model {
 
@@ -58,18 +55,19 @@ public class AnthropicModel implements Model {
   /**
    * Creates a new AnthropicModel.
    *
-   * @param modelName
-   *            the model name (e.g., "claude-3-5-sonnet-20241022")
-   * @param options
-   *            the plugin options
+   * @param modelName the model name (e.g., "claude-3-5-sonnet-20241022")
+   * @param options the plugin options
    */
   public AnthropicModel(String modelName, AnthropicPluginOptions options) {
     this.modelName = modelName;
     this.options = options;
     this.objectMapper = new ObjectMapper();
-    this.client = new OkHttpClient.Builder().connectTimeout(options.getTimeout(), TimeUnit.SECONDS)
-        .readTimeout(options.getTimeout(), TimeUnit.SECONDS)
-        .writeTimeout(options.getTimeout(), TimeUnit.SECONDS).build();
+    this.client =
+        new OkHttpClient.Builder()
+            .connectTimeout(options.getTimeout(), TimeUnit.SECONDS)
+            .readTimeout(options.getTimeout(), TimeUnit.SECONDS)
+            .writeTimeout(options.getTimeout(), TimeUnit.SECONDS)
+            .build();
     this.info = createModelInfo();
   }
 
@@ -114,7 +112,8 @@ public class AnthropicModel implements Model {
   }
 
   @Override
-  public ModelResponse run(ActionContext context, ModelRequest request, Consumer<ModelResponseChunk> streamCallback) {
+  public ModelResponse run(
+      ActionContext context, ModelRequest request, Consumer<ModelResponseChunk> streamCallback) {
     if (streamCallback == null) {
       return run(context, request);
     }
@@ -128,10 +127,14 @@ public class AnthropicModel implements Model {
   private ModelResponse callAnthropic(ModelRequest request) throws IOException {
     ObjectNode requestBody = buildRequestBody(request);
 
-    Request httpRequest = new Request.Builder().url(options.getBaseUrl() + "/messages")
-        .header("x-api-key", options.getApiKey()).header("anthropic-version", options.getAnthropicVersion())
-        .header("Content-Type", "application/json")
-        .post(RequestBody.create(requestBody.toString(), JSON_MEDIA_TYPE)).build();
+    Request httpRequest =
+        new Request.Builder()
+            .url(options.getBaseUrl() + "/messages")
+            .header("x-api-key", options.getApiKey())
+            .header("anthropic-version", options.getAnthropicVersion())
+            .header("Content-Type", "application/json")
+            .post(RequestBody.create(requestBody.toString(), JSON_MEDIA_TYPE))
+            .build();
 
     try (Response response = client.newCall(httpRequest).execute()) {
       if (!response.isSuccessful()) {
@@ -144,15 +147,20 @@ public class AnthropicModel implements Model {
     }
   }
 
-  private ModelResponse callAnthropicStreaming(ModelRequest request, Consumer<ModelResponseChunk> streamCallback)
-      throws IOException {
+  private ModelResponse callAnthropicStreaming(
+      ModelRequest request, Consumer<ModelResponseChunk> streamCallback) throws IOException {
     ObjectNode requestBody = buildRequestBody(request);
     requestBody.put("stream", true);
 
-    Request httpRequest = new Request.Builder().url(options.getBaseUrl() + "/messages")
-        .header("x-api-key", options.getApiKey()).header("anthropic-version", options.getAnthropicVersion())
-        .header("Content-Type", "application/json").header("Accept", "text/event-stream")
-        .post(RequestBody.create(requestBody.toString(), JSON_MEDIA_TYPE)).build();
+    Request httpRequest =
+        new Request.Builder()
+            .url(options.getBaseUrl() + "/messages")
+            .header("x-api-key", options.getApiKey())
+            .header("anthropic-version", options.getAnthropicVersion())
+            .header("Content-Type", "application/json")
+            .header("Accept", "text/event-stream")
+            .post(RequestBody.create(requestBody.toString(), JSON_MEDIA_TYPE))
+            .build();
 
     StringBuilder fullContent = new StringBuilder();
     String finishReason = null;
@@ -165,10 +173,12 @@ public class AnthropicModel implements Model {
     try (Response response = client.newCall(httpRequest).execute()) {
       if (!response.isSuccessful()) {
         String errorBody = response.body() != null ? response.body().string() : "No error body";
-        throw new GenkitException("Anthropic streaming API error: " + response.code() + " - " + errorBody);
+        throw new GenkitException(
+            "Anthropic streaming API error: " + response.code() + " - " + errorBody);
       }
 
-      BufferedReader reader = new BufferedReader(new InputStreamReader(response.body().byteStream()));
+      BufferedReader reader =
+          new BufferedReader(new InputStreamReader(response.body().byteStream()));
       String line;
 
       while ((line = reader.readLine()) != null) {
@@ -186,7 +196,7 @@ public class AnthropicModel implements Model {
           String eventType = event.has("type") ? event.get("type").asText() : "";
 
           switch (eventType) {
-            case "content_block_start" :
+            case "content_block_start":
               JsonNode contentBlock = event.get("content_block");
               if (contentBlock != null && "tool_use".equals(contentBlock.path("type").asText())) {
                 currentToolIndex++;
@@ -198,7 +208,7 @@ public class AnthropicModel implements Model {
               }
               break;
 
-            case "content_block_delta" :
+            case "content_block_delta":
               JsonNode delta = event.get("delta");
               if (delta != null) {
                 String deltaType = delta.path("type").asText();
@@ -219,7 +229,7 @@ public class AnthropicModel implements Model {
               }
               break;
 
-            case "message_delta" :
+            case "message_delta":
               JsonNode messageDelta = event.get("delta");
               if (messageDelta != null && messageDelta.has("stop_reason")) {
                 finishReason = messageDelta.get("stop_reason").asText();
@@ -233,7 +243,7 @@ public class AnthropicModel implements Model {
               }
               break;
 
-            case "message_start" :
+            case "message_start":
               JsonNode messageNode = event.get("message");
               if (messageNode != null) {
                 JsonNode msgUsage = messageNode.get("usage");
@@ -294,17 +304,17 @@ public class AnthropicModel implements Model {
     // Set finish reason
     if (finishReason != null) {
       switch (finishReason) {
-        case "end_turn" :
-        case "stop_sequence" :
+        case "end_turn":
+        case "stop_sequence":
           candidate.setFinishReason(FinishReason.STOP);
           break;
-        case "max_tokens" :
+        case "max_tokens":
           candidate.setFinishReason(FinishReason.LENGTH);
           break;
-        case "tool_use" :
+        case "tool_use":
           candidate.setFinishReason(FinishReason.OTHER);
           break;
-        default :
+        default:
           candidate.setFinishReason(FinishReason.OTHER);
       }
     }
@@ -334,7 +344,8 @@ public class AnthropicModel implements Model {
     body.put("max_tokens", maxTokens);
 
     // Check if structured output is requested
-    boolean structuredOutputRequested = request.getOutput() != null && request.getOutput().getSchema() != null;
+    boolean structuredOutputRequested =
+        request.getOutput() != null && request.getOutput().getSchema() != null;
 
     // Check if any message already contains "json" keyword
     boolean hasJsonKeywordInMessages = false;
@@ -346,8 +357,7 @@ public class AnthropicModel implements Model {
             break;
           }
         }
-        if (hasJsonKeywordInMessages)
-          break;
+        if (hasJsonKeywordInMessages) break;
       }
     }
 
@@ -458,8 +468,11 @@ public class AnthropicModel implements Model {
         // For Anthropic: If structured output is requested and this is the first user
         // message
         // without tool responses, and no JSON keyword exists yet, add the instruction
-        if (structuredOutputRequested && !hasJsonKeywordInMessages && !jsonInstructionAdded
-            && message.getRole() == Role.USER && !hasToolResponses) {
+        if (structuredOutputRequested
+            && !hasJsonKeywordInMessages
+            && !jsonInstructionAdded
+            && message.getRole() == Role.USER
+            && !hasToolResponses) {
           ObjectNode jsonInstruction = contentArray.addObject();
           jsonInstruction.put("type", "text");
           jsonInstruction.put("text", "Return the response in JSON format.");
@@ -533,12 +546,12 @@ public class AnthropicModel implements Model {
 
   private String convertRole(Role role) {
     switch (role) {
-      case USER :
-      case TOOL :
+      case USER:
+      case TOOL:
         return "user";
-      case MODEL :
+      case MODEL:
         return "assistant";
-      default :
+      default:
         return "user";
     }
   }
@@ -610,17 +623,17 @@ public class AnthropicModel implements Model {
     String stopReason = root.path("stop_reason").asText(null);
     if (stopReason != null) {
       switch (stopReason) {
-        case "end_turn" :
-        case "stop_sequence" :
+        case "end_turn":
+        case "stop_sequence":
           candidate.setFinishReason(FinishReason.STOP);
           break;
-        case "max_tokens" :
+        case "max_tokens":
           candidate.setFinishReason(FinishReason.LENGTH);
           break;
-        case "tool_use" :
+        case "tool_use":
           candidate.setFinishReason(FinishReason.STOP);
           break;
-        default :
+        default:
           candidate.setFinishReason(FinishReason.OTHER);
       }
     }

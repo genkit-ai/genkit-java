@@ -18,14 +18,13 @@
 
 package com.google.genkit.core;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Map;
 
 /**
- * ActionDesc is a descriptor of an action containing its metadata and schemas.
- * This is used for reflection and discovery of actions.
+ * ActionDesc is a descriptor of an action containing its metadata and schemas. This is used for
+ * reflection and discovery of actions.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ActionDesc {
@@ -51,30 +50,26 @@ public class ActionDesc {
   @JsonProperty("metadata")
   private Map<String, Object> metadata;
 
-  /**
-   * Default constructor for Jackson deserialization.
-   */
-  public ActionDesc() {
-  }
+  /** Default constructor for Jackson deserialization. */
+  public ActionDesc() {}
 
   /**
    * Creates a new ActionDesc with the specified parameters.
    *
-   * @param type
-   *            the action type
-   * @param name
-   *            the action name
-   * @param description
-   *            optional description
-   * @param inputSchema
-   *            optional input JSON schema
-   * @param outputSchema
-   *            optional output JSON schema
-   * @param metadata
-   *            optional metadata
+   * @param type the action type
+   * @param name the action name
+   * @param description optional description
+   * @param inputSchema optional input JSON schema
+   * @param outputSchema optional output JSON schema
+   * @param metadata optional metadata
    */
-  public ActionDesc(ActionType type, String name, String description, Map<String, Object> inputSchema,
-      Map<String, Object> outputSchema, Map<String, Object> metadata) {
+  public ActionDesc(
+      ActionType type,
+      String name,
+      String description,
+      Map<String, Object> inputSchema,
+      Map<String, Object> outputSchema,
+      Map<String, Object> metadata) {
     this.type = type;
     this.key = type.keyFromName(name);
     this.name = name;
@@ -151,9 +146,7 @@ public class ActionDesc {
     this.metadata = metadata;
   }
 
-  /**
-   * Builder for ActionDesc.
-   */
+  /** Builder for ActionDesc. */
   public static class Builder {
     private ActionType type;
     private String name;

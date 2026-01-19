@@ -18,6 +18,12 @@
 
 package com.google.genkit.plugins.openai;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.genkit.ai.*;
+import com.google.genkit.core.ActionContext;
+import com.google.genkit.core.GenkitException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,26 +31,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.genkit.ai.*;
-import com.google.genkit.core.ActionContext;
-import com.google.genkit.core.GenkitException;
-
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * OpenAI image generation model implementation for Genkit. Supports DALL-E 2,
- * DALL-E 3, and gpt-image-1 models.
+ * OpenAI image generation model implementation for Genkit. Supports DALL-E 2, DALL-E 3, and
+ * gpt-image-1 models.
  */
 public class OpenAIImageModel implements Model {
 
@@ -60,18 +57,19 @@ public class OpenAIImageModel implements Model {
   /**
    * Creates a new OpenAIImageModel.
    *
-   * @param modelName
-   *            the model name (dall-e-2, dall-e-3, or gpt-image-1)
-   * @param options
-   *            the plugin options
+   * @param modelName the model name (dall-e-2, dall-e-3, or gpt-image-1)
+   * @param options the plugin options
    */
   public OpenAIImageModel(String modelName, OpenAIPluginOptions options) {
     this.modelName = modelName;
     this.options = options;
     this.objectMapper = new ObjectMapper();
-    this.client = new OkHttpClient.Builder().connectTimeout(options.getTimeout() * 2, TimeUnit.SECONDS)
-        .readTimeout(options.getTimeout() * 2, TimeUnit.SECONDS)
-        .writeTimeout(options.getTimeout() * 2, TimeUnit.SECONDS).build();
+    this.client =
+        new OkHttpClient.Builder()
+            .connectTimeout(options.getTimeout() * 2, TimeUnit.SECONDS)
+            .readTimeout(options.getTimeout() * 2, TimeUnit.SECONDS)
+            .writeTimeout(options.getTimeout() * 2, TimeUnit.SECONDS)
+            .build();
     this.info = createModelInfo();
   }
 
@@ -115,7 +113,8 @@ public class OpenAIImageModel implements Model {
   }
 
   @Override
-  public ModelResponse run(ActionContext context, ModelRequest request, Consumer<ModelResponseChunk> streamCallback) {
+  public ModelResponse run(
+      ActionContext context, ModelRequest request, Consumer<ModelResponseChunk> streamCallback) {
     // Image generation doesn't support streaming, just call the non-streaming
     // version
     return run(context, request);
@@ -124,12 +123,17 @@ public class OpenAIImageModel implements Model {
   private ModelResponse callOpenAIImages(ModelRequest request) throws IOException {
     ObjectNode requestBody = buildRequestBody(request);
 
-    Request httpRequest = new Request.Builder().url(options.getBaseUrl() + "/images/generations")
-        .header("Authorization", "Bearer " + options.getApiKey()).header("Content-Type", "application/json")
-        .post(RequestBody.create(requestBody.toString(), JSON_MEDIA_TYPE)).build();
+    Request httpRequest =
+        new Request.Builder()
+            .url(options.getBaseUrl() + "/images/generations")
+            .header("Authorization", "Bearer " + options.getApiKey())
+            .header("Content-Type", "application/json")
+            .post(RequestBody.create(requestBody.toString(), JSON_MEDIA_TYPE))
+            .build();
 
     if (options.getOrganization() != null) {
-      httpRequest = httpRequest.newBuilder().header("OpenAI-Organization", options.getOrganization()).build();
+      httpRequest =
+          httpRequest.newBuilder().header("OpenAI-Organization", options.getOrganization()).build();
     }
 
     logger.debug("Calling OpenAI Images API with model: {}", modelName);
@@ -137,7 +141,8 @@ public class OpenAIImageModel implements Model {
     try (Response response = client.newCall(httpRequest).execute()) {
       if (!response.isSuccessful()) {
         String errorBody = response.body() != null ? response.body().string() : "No error body";
-        throw new GenkitException("OpenAI Images API error: " + response.code() + " - " + errorBody);
+        throw new GenkitException(
+            "OpenAI Images API error: " + response.code() + " - " + errorBody);
       }
 
       String responseBody = response.body().string();

@@ -18,38 +18,34 @@
 
 package com.google.genkit.ai.telemetry;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.genkit.ai.ModelResponse;
 import com.google.genkit.ai.Usage;
 import com.google.genkit.core.telemetry.TelemetryConfig;
-
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.LongHistogram;
 import io.opentelemetry.api.metrics.Meter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * GenerateTelemetry provides metrics collection for model generate actions.
- * 
- * <p>
- * This class tracks:
+ *
+ * <p>This class tracks:
+ *
  * <ul>
- * <li>Request counts per model</li>
- * <li>Latency histograms</li>
- * <li>Input/output token counts</li>
- * <li>Input/output character counts</li>
- * <li>Input/output image counts</li>
+ *   <li>Request counts per model
+ *   <li>Latency histograms
+ *   <li>Input/output token counts
+ *   <li>Input/output character counts
+ *   <li>Input/output image counts
  * </ul>
- * 
- * <p>
- * The metrics follow the same naming conventions as the JS and Go SDKs for
- * consistency across the Genkit ecosystem.
- * 
- * <p>
- * Meters are obtained lazily from GlobalOpenTelemetry to ensure they use the
- * correct MeterProvider when telemetry plugins (like Firebase) are initialized.
+ *
+ * <p>The metrics follow the same naming conventions as the JS and Go SDKs for consistency across
+ * the Genkit ecosystem.
+ *
+ * <p>Meters are obtained lazily from GlobalOpenTelemetry to ensure they use the correct
+ * MeterProvider when telemetry plugins (like Firebase) are initialized.
  */
 public class GenerateTelemetry {
 
@@ -101,9 +97,8 @@ public class GenerateTelemetry {
   }
 
   /**
-   * Initializes meters lazily. This ensures that the meters are created after
-   * telemetry plugins (like Firebase) have configured the MeterProvider via
-   * TelemetryConfig.
+   * Initializes meters lazily. This ensures that the meters are created after telemetry plugins
+   * (like Firebase) have configured the MeterProvider via TelemetryConfig.
    */
   private synchronized void ensureMetersInitialized() {
     if (metersInitialized) {
@@ -112,32 +107,69 @@ public class GenerateTelemetry {
 
     Meter meter = TelemetryConfig.getMeter(METER_NAME);
 
-    requestCounter = meter.counterBuilder(METRIC_REQUESTS)
-        .setDescription("Counts calls to genkit generate actions.").setUnit("1").build();
+    requestCounter =
+        meter
+            .counterBuilder(METRIC_REQUESTS)
+            .setDescription("Counts calls to genkit generate actions.")
+            .setUnit("1")
+            .build();
 
-    latencyHistogram = meter.histogramBuilder(METRIC_LATENCY)
-        .setDescription("Latencies when interacting with a Genkit model.").setUnit("ms").ofLongs().build();
+    latencyHistogram =
+        meter
+            .histogramBuilder(METRIC_LATENCY)
+            .setDescription("Latencies when interacting with a Genkit model.")
+            .setUnit("ms")
+            .ofLongs()
+            .build();
 
-    inputTokensCounter = meter.counterBuilder(METRIC_INPUT_TOKENS)
-        .setDescription("Counts input tokens to a Genkit model.").setUnit("1").build();
+    inputTokensCounter =
+        meter
+            .counterBuilder(METRIC_INPUT_TOKENS)
+            .setDescription("Counts input tokens to a Genkit model.")
+            .setUnit("1")
+            .build();
 
-    outputTokensCounter = meter.counterBuilder(METRIC_OUTPUT_TOKENS)
-        .setDescription("Counts output tokens from a Genkit model.").setUnit("1").build();
+    outputTokensCounter =
+        meter
+            .counterBuilder(METRIC_OUTPUT_TOKENS)
+            .setDescription("Counts output tokens from a Genkit model.")
+            .setUnit("1")
+            .build();
 
-    inputCharsCounter = meter.counterBuilder(METRIC_INPUT_CHARS)
-        .setDescription("Counts input characters to any Genkit model.").setUnit("1").build();
+    inputCharsCounter =
+        meter
+            .counterBuilder(METRIC_INPUT_CHARS)
+            .setDescription("Counts input characters to any Genkit model.")
+            .setUnit("1")
+            .build();
 
-    outputCharsCounter = meter.counterBuilder(METRIC_OUTPUT_CHARS)
-        .setDescription("Counts output characters from a Genkit model.").setUnit("1").build();
+    outputCharsCounter =
+        meter
+            .counterBuilder(METRIC_OUTPUT_CHARS)
+            .setDescription("Counts output characters from a Genkit model.")
+            .setUnit("1")
+            .build();
 
-    inputImagesCounter = meter.counterBuilder(METRIC_INPUT_IMAGES)
-        .setDescription("Counts input images to a Genkit model.").setUnit("1").build();
+    inputImagesCounter =
+        meter
+            .counterBuilder(METRIC_INPUT_IMAGES)
+            .setDescription("Counts input images to a Genkit model.")
+            .setUnit("1")
+            .build();
 
-    outputImagesCounter = meter.counterBuilder(METRIC_OUTPUT_IMAGES)
-        .setDescription("Count output images from a Genkit model.").setUnit("1").build();
+    outputImagesCounter =
+        meter
+            .counterBuilder(METRIC_OUTPUT_IMAGES)
+            .setDescription("Count output images from a Genkit model.")
+            .setUnit("1")
+            .build();
 
-    thinkingTokensCounter = meter.counterBuilder(METRIC_THINKING_TOKENS)
-        .setDescription("Counts thinking tokens from a Genkit model.").setUnit("1").build();
+    thinkingTokensCounter =
+        meter
+            .counterBuilder(METRIC_THINKING_TOKENS)
+            .setDescription("Counts thinking tokens from a Genkit model.")
+            .setUnit("1")
+            .build();
 
     metersInitialized = true;
     logger.debug("GenerateTelemetry meters initialized with OpenTelemetry");
@@ -146,34 +178,39 @@ public class GenerateTelemetry {
   /**
    * Records metrics for a generate action.
    *
-   * @param modelName
-   *            the model name
-   * @param featureName
-   *            the feature name (flow name or "generate")
-   * @param path
-   *            the span path
-   * @param response
-   *            the model response (may be null)
-   * @param latencyMs
-   *            the latency in milliseconds
-   * @param error
-   *            the error name if failed, null otherwise
+   * @param modelName the model name
+   * @param featureName the feature name (flow name or "generate")
+   * @param path the span path
+   * @param response the model response (may be null)
+   * @param latencyMs the latency in milliseconds
+   * @param error the error name if failed, null otherwise
    */
-  public void recordGenerateMetrics(String modelName, String featureName, String path, ModelResponse response,
-      long latencyMs, String error) {
+  public void recordGenerateMetrics(
+      String modelName,
+      String featureName,
+      String path,
+      ModelResponse response,
+      long latencyMs,
+      String error) {
     // Ensure meters are initialized (lazy initialization)
     ensureMetersInitialized();
 
     String status = error != null ? "failure" : "success";
 
-    Attributes baseAttrs = Attributes.builder().put("modelName", truncate(modelName, 1024))
-        .put("featureName", truncate(featureName, 256)).put("path", truncate(path, 2048)).put("status", status)
-        .put("source", SOURCE).build();
+    Attributes baseAttrs =
+        Attributes.builder()
+            .put("modelName", truncate(modelName, 1024))
+            .put("featureName", truncate(featureName, 256))
+            .put("path", truncate(path, 2048))
+            .put("status", status)
+            .put("source", SOURCE)
+            .build();
 
     // Record request count
-    Attributes requestAttrs = error != null
-        ? baseAttrs.toBuilder().put("error", truncate(error, 256)).build()
-        : baseAttrs;
+    Attributes requestAttrs =
+        error != null
+            ? baseAttrs.toBuilder().put("error", truncate(error, 256)).build()
+            : baseAttrs;
     requestCounter.add(1, requestAttrs);
 
     // Record latency
@@ -188,10 +225,8 @@ public class GenerateTelemetry {
   /**
    * Records usage metrics from a model response.
    *
-   * @param usage
-   *            the usage statistics
-   * @param attrs
-   *            the base attributes
+   * @param usage the usage statistics
+   * @param attrs the base attributes
    */
   private void recordUsageMetrics(Usage usage, Attributes attrs) {
     if (usage.getInputTokens() != null && usage.getInputTokens() > 0) {
@@ -226,10 +261,8 @@ public class GenerateTelemetry {
   /**
    * Truncates a string to the specified maximum length.
    *
-   * @param value
-   *            the string to truncate
-   * @param maxLength
-   *            the maximum length
+   * @param value the string to truncate
+   * @param maxLength the maximum length
    * @return the truncated string
    */
   private String truncate(String value, int maxLength) {

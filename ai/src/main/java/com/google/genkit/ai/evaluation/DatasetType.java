@@ -20,9 +20,7 @@ package com.google.genkit.ai.evaluation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * Type of dataset based on the target action.
- */
+/** Type of dataset based on the target action. */
 public enum DatasetType {
   @JsonProperty("UNKNOWN")
   UNKNOWN,

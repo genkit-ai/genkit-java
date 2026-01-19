@@ -18,74 +18,52 @@
 
 package com.google.genkit.ai.evaluation;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-/**
- * A single evaluation result combining input data with metric scores.
- */
+/** A single evaluation result combining input data with metric scores. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class EvalResult {
 
-  /**
-   * The test case ID.
-   */
+  /** The test case ID. */
   @JsonProperty("testCaseId")
   private String testCaseId;
 
-  /**
-   * The input to the evaluated action.
-   */
+  /** The input to the evaluated action. */
   @JsonProperty("input")
   private Object input;
 
-  /**
-   * The output from the evaluated action.
-   */
+  /** The output from the evaluated action. */
   @JsonProperty("output")
   private Object output;
 
-  /**
-   * Error from the evaluated action.
-   */
+  /** Error from the evaluated action. */
   @JsonProperty("error")
   private String error;
 
-  /**
-   * Context used during evaluation.
-   */
+  /** Context used during evaluation. */
   @JsonProperty("context")
   private List<Object> context;
 
-  /**
-   * Reference output for comparison.
-   */
+  /** Reference output for comparison. */
   @JsonProperty("reference")
   private Object reference;
 
-  /**
-   * Custom fields.
-   */
+  /** Custom fields. */
   @JsonProperty("custom")
   private Map<String, Object> custom;
 
-  /**
-   * Trace IDs associated with this result.
-   */
+  /** Trace IDs associated with this result. */
   @JsonProperty("traceIds")
   private List<String> traceIds;
 
-  /**
-   * Metrics from all evaluators.
-   */
+  /** Metrics from all evaluators. */
   @JsonProperty("metrics")
   private List<EvalMetric> metrics;
 
-  public EvalResult() {
-  }
+  public EvalResult() {}
 
   private EvalResult(Builder builder) {
     this.testCaseId = builder.testCaseId;

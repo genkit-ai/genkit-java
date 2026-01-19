@@ -18,33 +18,29 @@
 
 package com.google.genkit.plugins.pinecone;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import org.openapitools.db_control.client.model.IndexModel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.genkit.ai.*;
 import com.google.genkit.core.ActionContext;
 import com.google.protobuf.Struct;
 import com.google.protobuf.Value;
-
 import io.pinecone.clients.Index;
 import io.pinecone.clients.Pinecone;
 import io.pinecone.unsigned_indices_model.QueryResponseWithUnsignedIndices;
 import io.pinecone.unsigned_indices_model.ScoredVectorWithUnsignedIndices;
 import io.pinecone.unsigned_indices_model.VectorWithUnsignedIndices;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import org.openapitools.db_control.client.model.IndexModel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Pinecone vector store implementation.
  *
- * <p>
- * This class provides indexing and retrieval of documents using Pinecone vector
- * database for similarity search.
+ * <p>This class provides indexing and retrieval of documents using Pinecone vector database for
+ * similarity search.
  */
 public class PineconeVectorStore {
 
@@ -59,12 +55,9 @@ public class PineconeVectorStore {
   /**
    * Creates a new PineconeVectorStore.
    *
-   * @param pinecone
-   *            the Pinecone client
-   * @param config
-   *            the index configuration
-   * @param embedder
-   *            the embedder for generating vectors
+   * @param pinecone the Pinecone client
+   * @param config the index configuration
+   * @param embedder the embedder for generating vectors
    */
   public PineconeVectorStore(Pinecone pinecone, PineconeIndexConfig config, Embedder embedder) {
     this.pinecone = pinecone;
@@ -72,9 +65,7 @@ public class PineconeVectorStore {
     this.embedder = embedder;
   }
 
-  /**
-   * Initializes the vector store by connecting to or creating the index.
-   */
+  /** Initializes the vector store by connecting to or creating the index. */
   public synchronized void initialize() {
     if (initialized) {
       return;
@@ -92,16 +83,23 @@ public class PineconeVectorStore {
       if (existingIndex == null && config.isCreateIndexIfNotExists()) {
         // Create serverless index
         logger.info("Creating Pinecone index: {}", config.getIndexName());
-        pinecone.createServerlessIndex(config.getIndexName(), config.getMetric().getValue(),
-            config.getDimension(), config.getCloud().getValue(), config.getRegion(), "disabled", // deletionProtection
+        pinecone.createServerlessIndex(
+            config.getIndexName(),
+            config.getMetric().getValue(),
+            config.getDimension(),
+            config.getCloud().getValue(),
+            config.getRegion(),
+            "disabled", // deletionProtection
             null // tags
-        );
+            );
 
         // Wait for index to be ready
         waitForIndexReady();
       } else if (existingIndex == null) {
         throw new IllegalStateException(
-            "Index " + config.getIndexName() + " does not exist and createIndexIfNotExists is false");
+            "Index "
+                + config.getIndexName()
+                + " does not exist and createIndexIfNotExists is false");
       }
 
       // Get index connection
@@ -136,10 +134,8 @@ public class PineconeVectorStore {
   /**
    * Retrieves documents similar to the query.
    *
-   * @param context
-   *            the action context
-   * @param request
-   *            the retriever request
+   * @param context the action context
+   * @param request the retriever request
    * @return the retriever response with matching documents
    */
   public RetrieverResponse retrieve(ActionContext context, RetrieverRequest request) {
@@ -159,16 +155,21 @@ public class PineconeVectorStore {
       // Generate embedding for query
       List<Float> queryEmbedding = generateEmbedding(context, queryText);
 
-      int topK = request.getOptions() != null && request.getOptions().getK() != null
-          ? request.getOptions().getK()
-          : 10;
+      int topK =
+          request.getOptions() != null && request.getOptions().getK() != null
+              ? request.getOptions().getK()
+              : 10;
 
       // Query Pinecone
-      QueryResponseWithUnsignedIndices response = index.queryByVector(topK, queryEmbedding, config.getNamespace(),
-          null, // filter
-          true, // includeValues
-          true // includeMetadata
-      );
+      QueryResponseWithUnsignedIndices response =
+          index.queryByVector(
+              topK,
+              queryEmbedding,
+              config.getNamespace(),
+              null, // filter
+              true, // includeValues
+              true // includeMetadata
+              );
 
       List<Document> documents = new ArrayList<>();
       if (response.getMatchesList() != null) {
@@ -191,10 +192,8 @@ public class PineconeVectorStore {
   /**
    * Indexes documents into the vector store.
    *
-   * @param context
-   *            the action context
-   * @param request
-   *            the indexer request
+   * @param context the action context
+   * @param request the indexer request
    * @return the indexer response
    */
   public IndexerResponse index(ActionContext context, IndexerRequest request) {
@@ -231,9 +230,10 @@ public class PineconeVectorStore {
 
         List<VectorWithUnsignedIndices> vectors = new ArrayList<>();
         for (int j = i; j < endIdx; j++) {
-          VectorWithUnsignedIndices vector = new VectorWithUnsignedIndices(ids.get(j), embeddings.get(j),
-              metadataList.get(j), null // sparseValues
-          );
+          VectorWithUnsignedIndices vector =
+              new VectorWithUnsignedIndices(
+                  ids.get(j), embeddings.get(j), metadataList.get(j), null // sparseValues
+                  );
           vectors.add(vector);
         }
 
@@ -313,7 +313,8 @@ public class PineconeVectorStore {
       case NUMBER_VALUE -> value.getNumberValue();
       case BOOL_VALUE -> value.getBoolValue();
       case NULL_VALUE -> null;
-      case LIST_VALUE -> value.getListValue().getValuesList().stream().map(this::protobufValueToObject).toList();
+      case LIST_VALUE ->
+          value.getListValue().getValuesList().stream().map(this::protobufValueToObject).toList();
       case STRUCT_VALUE -> {
         Map<String, Object> map = new HashMap<>();
         for (Map.Entry<String, Value> entry : value.getStructValue().getFieldsMap().entrySet()) {
@@ -371,7 +372,8 @@ public class PineconeVectorStore {
     } else if (obj instanceof Boolean) {
       return Value.newBuilder().setBoolValue((Boolean) obj).build();
     } else if (obj instanceof List) {
-      com.google.protobuf.ListValue.Builder listBuilder = com.google.protobuf.ListValue.newBuilder();
+      com.google.protobuf.ListValue.Builder listBuilder =
+          com.google.protobuf.ListValue.newBuilder();
       for (Object item : (List<?>) obj) {
         Value itemValue = objectToProtobufValue(item);
         if (itemValue != null) {
@@ -406,8 +408,7 @@ public class PineconeVectorStore {
   /**
    * Deletes documents by their IDs.
    *
-   * @param ids
-   *            the document IDs to delete
+   * @param ids the document IDs to delete
    */
   public void deleteByIds(List<String> ids) {
     if (ids == null || ids.isEmpty()) {
@@ -420,26 +421,23 @@ public class PineconeVectorStore {
     logger.info("Deleted {} documents from index {}", ids.size(), config.getIndexName());
   }
 
-  /**
-   * Deletes all documents in the namespace.
-   */
+  /** Deletes all documents in the namespace. */
   public void deleteAll() {
     ensureInitialized();
 
     index.deleteAll(config.getNamespace());
-    logger.info("Deleted all documents from index {} namespace {}", config.getIndexName(), config.getNamespace());
+    logger.info(
+        "Deleted all documents from index {} namespace {}",
+        config.getIndexName(),
+        config.getNamespace());
   }
 
-  /**
-   * Gets the index configuration.
-   */
+  /** Gets the index configuration. */
   public PineconeIndexConfig getConfig() {
     return config;
   }
 
-  /**
-   * Gets the Pinecone index connection.
-   */
+  /** Gets the Pinecone index connection. */
   public Index getIndex() {
     ensureInitialized();
     return index;

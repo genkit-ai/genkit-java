@@ -24,26 +24,21 @@ import static org.mockito.Mockito.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-/**
- * Unit tests for DefaultRegistry.
- */
+/** Unit tests for DefaultRegistry. */
 @ExtendWith(MockitoExtension.class)
 class DefaultRegistryTest {
 
   private DefaultRegistry registry;
 
-  @Mock
-  private Plugin mockPlugin;
+  @Mock private Plugin mockPlugin;
 
-  @Mock
-  private Action<String, String, Void> mockAction;
+  @Mock private Action<String, String, Void> mockAction;
 
   @BeforeEach
   void setUp() {
@@ -72,7 +67,8 @@ class DefaultRegistryTest {
   void testRegisterPluginDuplicate() {
     registry.registerPlugin("test-plugin", mockPlugin);
 
-    assertThrows(IllegalStateException.class, () -> registry.registerPlugin("test-plugin", mockPlugin));
+    assertThrows(
+        IllegalStateException.class, () -> registry.registerPlugin("test-plugin", mockPlugin));
   }
 
   @Test
@@ -133,7 +129,8 @@ class DefaultRegistryTest {
     Map<String, Object> schema = new HashMap<>();
     registry.registerSchema(schemaName, schema);
 
-    assertThrows(IllegalStateException.class, () -> registry.registerSchema(schemaName, new HashMap<>()));
+    assertThrows(
+        IllegalStateException.class, () -> registry.registerSchema(schemaName, new HashMap<>()));
   }
 
   @Test

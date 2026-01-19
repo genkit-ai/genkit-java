@@ -18,12 +18,10 @@
 
 /**
  * Firestore vector search retriever and indexer components.
- * 
- * <p>
- * Provides vector similarity search using Cloud Firestore's native vector
- * search capabilities. Supports COSINE, EUCLIDEAN, and DOT_PRODUCT distance
- * measures.
- * 
+ *
+ * <p>Provides vector similarity search using Cloud Firestore's native vector search capabilities.
+ * Supports COSINE, EUCLIDEAN, and DOT_PRODUCT distance measures.
+ *
  * @see com.google.genkit.plugins.firebase.retriever.FirestoreVectorStore
  * @see com.google.genkit.plugins.firebase.retriever.FirestoreRetrieverConfig
  */

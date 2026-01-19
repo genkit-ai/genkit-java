@@ -20,19 +20,17 @@ package com.google.genkit.plugins.xai;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.List;
-
-import org.junit.jupiter.api.Test;
-
 import com.google.genkit.core.Action;
 import com.google.genkit.plugins.compatoai.CompatOAIPluginOptions;
+import java.util.List;
+import org.junit.jupiter.api.Test;
 
 class XAIPluginTest {
 
   @Test
   void testDefaultConstruction() {
-    CompatOAIPluginOptions options = CompatOAIPluginOptions.builder().apiKey("test-key")
-        .baseUrl("https://api.x.ai/v1").build();
+    CompatOAIPluginOptions options =
+        CompatOAIPluginOptions.builder().apiKey("test-key").baseUrl("https://api.x.ai/v1").build();
     XAIPlugin plugin = new XAIPlugin(options);
 
     assertNotNull(plugin);
@@ -41,8 +39,8 @@ class XAIPluginTest {
 
   @Test
   void testConstructionWithOptions() {
-    CompatOAIPluginOptions options = CompatOAIPluginOptions.builder().apiKey("test-key")
-        .baseUrl("https://api.x.ai/v1").build();
+    CompatOAIPluginOptions options =
+        CompatOAIPluginOptions.builder().apiKey("test-key").baseUrl("https://api.x.ai/v1").build();
 
     XAIPlugin plugin = new XAIPlugin(options);
 
@@ -77,13 +75,18 @@ class XAIPluginTest {
 
   @Test
   void testInitializesActions() {
-    XAIPlugin plugin = new XAIPlugin(
-        CompatOAIPluginOptions.builder().apiKey("test-key").baseUrl("https://api.x.ai/v1").build());
+    XAIPlugin plugin =
+        new XAIPlugin(
+            CompatOAIPluginOptions.builder()
+                .apiKey("test-key")
+                .baseUrl("https://api.x.ai/v1")
+                .build());
 
     List<Action<?, ?, ?>> actions = plugin.init();
 
     assertNotNull(actions);
-    assertTrue(actions.size() >= XAIPlugin.SUPPORTED_MODELS.size(),
+    assertTrue(
+        actions.size() >= XAIPlugin.SUPPORTED_MODELS.size(),
         "Should register at least all supported models");
   }
 
@@ -95,7 +98,8 @@ class XAIPluginTest {
     List<Action<?, ?, ?>> actions = plugin.init();
 
     assertNotNull(actions);
-    assertTrue(actions.size() > XAIPlugin.SUPPORTED_MODELS.size(),
+    assertTrue(
+        actions.size() > XAIPlugin.SUPPORTED_MODELS.size(),
         "Should include custom model in addition to supported models");
   }
 }

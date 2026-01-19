@@ -19,25 +19,22 @@
 /**
  * Middleware support for Genkit Java.
  *
- * <p>
- * This package provides a middleware pattern implementation for wrapping action
- * execution with pre-processing and post-processing logic. Middleware can be
- * used for:
+ * <p>This package provides a middleware pattern implementation for wrapping action execution with
+ * pre-processing and post-processing logic. Middleware can be used for:
+ *
  * <ul>
- * <li>Logging and monitoring</li>
- * <li>Request/response transformation</li>
- * <li>Caching</li>
- * <li>Rate limiting</li>
- * <li>Retry logic</li>
- * <li>Validation</li>
- * <li>Error handling</li>
+ *   <li>Logging and monitoring
+ *   <li>Request/response transformation
+ *   <li>Caching
+ *   <li>Rate limiting
+ *   <li>Retry logic
+ *   <li>Validation
+ *   <li>Error handling
  * </ul>
  *
- * <p>
- * Example usage:
+ * <p>Example usage:
  *
- * <pre>
- * {@code
+ * <pre>{@code
  * // Create a middleware chain
  * MiddlewareChain<String, String> chain = new MiddlewareChain<>();
  * chain.use(CommonMiddleware.logging("myAction"));
@@ -45,11 +42,10 @@
  *
  * // Execute with middleware
  * String result = chain.execute(input, context, (ctx, req) -> {
- * 	// Actual action logic
- * 	return "Hello, " + req;
+ *   // Actual action logic
+ *   return "Hello, " + req;
  * });
- * }
- * </pre>
+ * }</pre>
  *
  * @see com.google.genkit.core.middleware.Middleware
  * @see com.google.genkit.core.middleware.MiddlewareChain

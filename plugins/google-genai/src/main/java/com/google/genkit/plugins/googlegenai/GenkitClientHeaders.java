@@ -29,8 +29,7 @@ public final class GenkitClientHeaders {
   /** Genkit client attribution value, e.g. "genkit-java/1.0.0". */
   public static final String GENKIT_CLIENT_HEADER = "genkit-java/" + resolveGenkitVersion();
 
-  private GenkitClientHeaders() {
-  }
+  private GenkitClientHeaders() {}
 
   private static String resolveGenkitVersion() {
     String version = Genkit.class.getPackage().getImplementationVersion();

@@ -23,27 +23,28 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.junit.jupiter.api.Test;
 
-/**
- * Unit tests for Agent.
- */
+/** Unit tests for Agent. */
 class AgentTest {
 
-  /**
-   * Helper to create a simple test tool.
-   */
+  /** Helper to create a simple test tool. */
   private Tool<String, String> createTestTool(String name) {
     Map<String, Object> schema = new HashMap<>();
     schema.put("type", "string");
-    return new Tool<>(name, "Test tool " + name, schema, schema, String.class, (ctx, input) -> "result");
+    return new Tool<>(
+        name, "Test tool " + name, schema, schema, String.class, (ctx, input) -> "result");
   }
 
   @Test
   void testAgentCreation() {
-    AgentConfig config = AgentConfig.builder().name("testAgent").description("Test agent description")
-        .system("You are a test agent.").model("test-model").build();
+    AgentConfig config =
+        AgentConfig.builder()
+            .name("testAgent")
+            .description("Test agent description")
+            .system("You are a test agent.")
+            .model("test-model")
+            .build();
 
     Agent agent = new Agent(config);
 
@@ -56,7 +57,8 @@ class AgentTest {
 
   @Test
   void testAsTool() {
-    AgentConfig config = AgentConfig.builder().name("delegateAgent").description("Handles delegated tasks").build();
+    AgentConfig config =
+        AgentConfig.builder().name("delegateAgent").description("Handles delegated tasks").build();
 
     Agent agent = new Agent(config);
     Tool<Map<String, Object>, Agent.AgentTransferResult> tool = agent.asTool();
@@ -127,8 +129,12 @@ class AgentTest {
 
     AgentConfig subConfig = AgentConfig.builder().name("subAgent").description("Sub agent").build();
 
-    AgentConfig config = AgentConfig.builder().name("parent").tools(List.of(parentTool)).agents(List.of(subConfig))
-        .build();
+    AgentConfig config =
+        AgentConfig.builder()
+            .name("parent")
+            .tools(List.of(parentTool))
+            .agents(List.of(subConfig))
+            .build();
 
     Agent parent = new Agent(config);
     Agent subAgent = new Agent(subConfig);

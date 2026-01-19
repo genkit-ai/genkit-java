@@ -18,11 +18,6 @@
 
 package com.google.genkit.ai;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.genkit.core.Action;
 import com.google.genkit.core.ActionContext;
@@ -34,17 +29,18 @@ import com.google.genkit.core.JsonUtils;
 import com.google.genkit.core.Registry;
 import com.google.genkit.core.tracing.SpanMetadata;
 import com.google.genkit.core.tracing.Tracer;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
 /**
  * Tool represents a function that can be called by an AI model.
  *
- * Tools allow models to interact with external systems and perform actions
- * during generation.
+ * <p>Tools allow models to interact with external systems and perform actions during generation.
  *
- * @param <I>
- *            the input type
- * @param <O>
- *            the output type
+ * @param <I> the input type
+ * @param <O> the output type
  */
 public class Tool<I, O> implements Action<I, O, Void> {
 
@@ -59,21 +55,20 @@ public class Tool<I, O> implements Action<I, O, Void> {
   /**
    * Creates a new Tool.
    *
-   * @param name
-   *            the tool name
-   * @param description
-   *            the tool description
-   * @param inputSchema
-   *            the input JSON schema
-   * @param outputSchema
-   *            the output JSON schema
-   * @param inputClass
-   *            the input class for JSON deserialization
-   * @param handler
-   *            the tool handler function
+   * @param name the tool name
+   * @param description the tool description
+   * @param inputSchema the input JSON schema
+   * @param outputSchema the output JSON schema
+   * @param inputClass the input class for JSON deserialization
+   * @param handler the tool handler function
    */
-  public Tool(String name, String description, Map<String, Object> inputSchema, Map<String, Object> outputSchema,
-      Class<I> inputClass, BiFunction<ActionContext, I, O> handler) {
+  public Tool(
+      String name,
+      String description,
+      Map<String, Object> inputSchema,
+      Map<String, Object> outputSchema,
+      Class<I> inputClass,
+      BiFunction<ActionContext, I, O> handler) {
     this.name = name;
     this.description = description;
     this.inputSchema = inputSchema;
@@ -87,10 +82,8 @@ public class Tool<I, O> implements Action<I, O, Void> {
   /**
    * Creates a builder for Tool.
    *
-   * @param <I>
-   *            the input type
-   * @param <O>
-   *            the output type
+   * @param <I> the input type
+   * @param <O> the output type
    * @return a new builder
    */
   public static <I, O> Builder<I, O> builder() {
@@ -109,37 +102,46 @@ public class Tool<I, O> implements Action<I, O, Void> {
 
   @Override
   public ActionDesc getDesc() {
-    return ActionDesc.builder().type(ActionType.TOOL).name(name).description(description).inputSchema(inputSchema)
-        .outputSchema(outputSchema).build();
+    return ActionDesc.builder()
+        .type(ActionType.TOOL)
+        .name(name)
+        .description(description)
+        .inputSchema(inputSchema)
+        .outputSchema(outputSchema)
+        .build();
   }
 
   @Override
   public O run(ActionContext ctx, I input) throws GenkitException {
-    SpanMetadata spanMetadata = SpanMetadata.builder().name(name).type(ActionType.TOOL.getValue()).subtype("tool")
-        .build();
+    SpanMetadata spanMetadata =
+        SpanMetadata.builder().name(name).type(ActionType.TOOL.getValue()).subtype("tool").build();
 
     String flowName = ctx.getFlowName();
     if (flowName != null) {
       spanMetadata.getAttributes().put("genkit:metadata:flow:name", flowName);
     }
 
-    return Tracer.runInNewSpan(ctx, spanMetadata, input, (spanCtx, in) -> {
-      try {
-        O result = handler.apply(ctx.withSpanContext(spanCtx), in);
-        return result;
-      } catch (AgentHandoffException e) {
-        // Re-throw agent handoff exceptions for multi-agent pattern
-        throw e;
-      } catch (ToolInterruptException e) {
-        // Re-throw interrupt exceptions for human-in-the-loop pattern
-        throw e;
-      } catch (Exception e) {
-        if (e instanceof GenkitException) {
-          throw (GenkitException) e;
-        }
-        throw new GenkitException("Tool execution failed: " + e.getMessage(), e);
-      }
-    });
+    return Tracer.runInNewSpan(
+        ctx,
+        spanMetadata,
+        input,
+        (spanCtx, in) -> {
+          try {
+            O result = handler.apply(ctx.withSpanContext(spanCtx), in);
+            return result;
+          } catch (AgentHandoffException e) {
+            // Re-throw agent handoff exceptions for multi-agent pattern
+            throw e;
+          } catch (ToolInterruptException e) {
+            // Re-throw interrupt exceptions for human-in-the-loop pattern
+            throw e;
+          } catch (Exception e) {
+            if (e instanceof GenkitException) {
+              throw (GenkitException) e;
+            }
+            throw new GenkitException("Tool execution failed: " + e.getMessage(), e);
+          }
+        });
   }
 
   @Override
@@ -157,8 +159,8 @@ public class Tool<I, O> implements Action<I, O, Void> {
   }
 
   @Override
-  public ActionRunResult<JsonNode> runJsonWithTelemetry(ActionContext ctx, JsonNode input,
-      Consumer<JsonNode> streamCallback) throws GenkitException {
+  public ActionRunResult<JsonNode> runJsonWithTelemetry(
+      ActionContext ctx, JsonNode input, Consumer<JsonNode> streamCallback) throws GenkitException {
     JsonNode result = runJson(ctx, input, streamCallback);
     return new ActionRunResult<>(result, null, null);
   }
@@ -213,29 +215,28 @@ public class Tool<I, O> implements Action<I, O, Void> {
   /**
    * Constructs a tool response for an interrupted tool request.
    *
-   * <p>
-   * This method is used when resuming generation after an interrupt. It creates a
-   * tool response part that can be passed to {@link ResumeOptions#getRespond()}.
+   * <p>This method is used when resuming generation after an interrupt. It creates a tool response
+   * part that can be passed to {@link ResumeOptions#getRespond()}.
    *
-   * <p>
-   * Example usage:
-   * 
+   * <p>Example usage:
+   *
    * <pre>{@code
    * // Get interrupt from response
    * Part interrupt = response.getInterrupts().get(0);
-   * 
+   *
    * // Create response with user-provided data
    * Part responseData = tool.respond(interrupt, userConfirmation);
-   * 
+   *
    * // Resume generation
-   * ModelResponse resumed = genkit.generate(GenerateOptions.builder().messages(response.getMessages())
-   * 		.resume(ResumeOptions.builder().respond(responseData).build()).build());
+   * ModelResponse resumed = genkit.generate(
+   *     GenerateOptions.builder()
+   *         .messages(response.getMessages())
+   *         .resume(ResumeOptions.builder().respond(responseData).build())
+   *         .build());
    * }</pre>
    *
-   * @param interrupt
-   *            the interrupted tool request part
-   * @param output
-   *            the output data to respond with
+   * @param interrupt the interrupted tool request part
+   * @param output the output data to respond with
    * @return a tool response part
    */
   public Part respond(Part interrupt, O output) {
@@ -245,12 +246,9 @@ public class Tool<I, O> implements Action<I, O, Void> {
   /**
    * Constructs a tool response for an interrupted tool request with metadata.
    *
-   * @param interrupt
-   *            the interrupted tool request part
-   * @param output
-   *            the output data to respond with
-   * @param metadata
-   *            optional metadata to include in the response
+   * @param interrupt the interrupted tool request part
+   * @param output the output data to respond with
+   * @param metadata optional metadata to include in the response
    * @return a tool response part
    */
   public Part respond(Part interrupt, O output, Map<String, Object> metadata) {
@@ -260,7 +258,8 @@ public class Tool<I, O> implements Action<I, O, Void> {
 
     ToolRequest toolRequest = interrupt.getToolRequest();
     Part responsePart = new Part();
-    ToolResponse toolResponse = new ToolResponse(toolRequest.getRef(), toolRequest.getName(), output);
+    ToolResponse toolResponse =
+        new ToolResponse(toolRequest.getRef(), toolRequest.getName(), output);
     responsePart.setToolResponse(toolResponse);
 
     // Add interruptResponse marker in metadata
@@ -277,29 +276,28 @@ public class Tool<I, O> implements Action<I, O, Void> {
   /**
    * Constructs a restart request for an interrupted tool.
    *
-   * <p>
-   * This method creates a tool request that will cause the tool to be
-   * re-executed. The resumed metadata will be passed to the tool handler.
+   * <p>This method creates a tool request that will cause the tool to be re-executed. The resumed
+   * metadata will be passed to the tool handler.
    *
-   * <p>
-   * Example usage:
-   * 
+   * <p>Example usage:
+   *
    * <pre>{@code
    * // Get interrupt from response
    * Part interrupt = response.getInterrupts().get(0);
-   * 
+   *
    * // Create restart request with confirmation metadata
    * Part restartRequest = tool.restart(interrupt, Map.of("confirmed", true));
-   * 
+   *
    * // Resume generation
-   * ModelResponse resumed = genkit.generate(GenerateOptions.builder().messages(response.getMessages())
-   * 		.resume(ResumeOptions.builder().restart(restartRequest).build()).build());
+   * ModelResponse resumed = genkit.generate(
+   *     GenerateOptions.builder()
+   *         .messages(response.getMessages())
+   *         .resume(ResumeOptions.builder().restart(restartRequest).build())
+   *         .build());
    * }</pre>
    *
-   * @param interrupt
-   *            the interrupted tool request part
-   * @param resumedMetadata
-   *            metadata to pass to the tool handler's resumed context
+   * @param interrupt the interrupted tool request part
+   * @param resumedMetadata metadata to pass to the tool handler's resumed context
    * @return a tool request part for restart
    */
   public Part restart(Part interrupt, Map<String, Object> resumedMetadata) {
@@ -309,12 +307,9 @@ public class Tool<I, O> implements Action<I, O, Void> {
   /**
    * Constructs a restart request with replacement input.
    *
-   * @param interrupt
-   *            the interrupted tool request part
-   * @param resumedMetadata
-   *            metadata to pass to the tool handler's resumed context
-   * @param replaceInput
-   *            optional new input to use instead of the original
+   * @param interrupt the interrupted tool request part
+   * @param resumedMetadata metadata to pass to the tool handler's resumed context
+   * @param replaceInput optional new input to use instead of the original
    * @return a tool request part for restart
    */
   public Part restart(Part interrupt, Map<String, Object> resumedMetadata, I replaceInput) {
@@ -347,10 +342,8 @@ public class Tool<I, O> implements Action<I, O, Void> {
   /**
    * Builder for Tool.
    *
-   * @param <I>
-   *            the input type
-   * @param <O>
-   *            the output type
+   * @param <I> the input type
+   * @param <O> the output type
    */
   public static class Builder<I, O> {
     private String name;
@@ -388,9 +381,8 @@ public class Tool<I, O> implements Action<I, O, Void> {
 
     /**
      * Sets the output class and automatically generates the output schema.
-     * 
-     * @param outputClass
-     *            the output class
+     *
+     * @param outputClass the output class
      * @return this builder
      */
     public Builder<I, O> outputClass(Class<O> outputClass) {

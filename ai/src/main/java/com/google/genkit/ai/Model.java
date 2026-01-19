@@ -18,10 +18,6 @@
 
 package com.google.genkit.ai;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Consumer;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.genkit.core.Action;
 import com.google.genkit.core.ActionContext;
@@ -31,12 +27,14 @@ import com.google.genkit.core.ActionType;
 import com.google.genkit.core.GenkitException;
 import com.google.genkit.core.JsonUtils;
 import com.google.genkit.core.Registry;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * Model is the interface for AI model implementations.
- * 
- * Models are registered as actions and can be invoked to generate responses
- * from prompts.
+ *
+ * <p>Models are registered as actions and can be invoked to generate responses from prompts.
  */
 public interface Model extends Action<ModelRequest, ModelResponse, ModelResponseChunk> {
 
@@ -50,13 +48,10 @@ public interface Model extends Action<ModelRequest, ModelResponse, ModelResponse
   /**
    * Generates a response from the given request.
    *
-   * @param ctx
-   *            the action context
-   * @param request
-   *            the model request
+   * @param ctx the action context
+   * @param request the model request
    * @return the model response
-   * @throws GenkitException
-   *             if generation fails
+   * @throws GenkitException if generation fails
    */
   @Override
   ModelResponse run(ActionContext ctx, ModelRequest request) throws GenkitException;
@@ -64,18 +59,15 @@ public interface Model extends Action<ModelRequest, ModelResponse, ModelResponse
   /**
    * Generates a streaming response from the given request.
    *
-   * @param ctx
-   *            the action context
-   * @param request
-   *            the model request
-   * @param streamCallback
-   *            callback for streaming chunks
+   * @param ctx the action context
+   * @param request the model request
+   * @param streamCallback callback for streaming chunks
    * @return the final model response
-   * @throws GenkitException
-   *             if generation fails
+   * @throws GenkitException if generation fails
    */
   @Override
-  default ModelResponse run(ActionContext ctx, ModelRequest request, Consumer<ModelResponseChunk> streamCallback)
+  default ModelResponse run(
+      ActionContext ctx, ModelRequest request, Consumer<ModelResponseChunk> streamCallback)
       throws GenkitException {
     // Default implementation doesn't support streaming
     return run(ctx, request);
@@ -97,7 +89,11 @@ public interface Model extends Action<ModelRequest, ModelResponse, ModelResponse
 
   @Override
   default ActionDesc getDesc() {
-    return ActionDesc.builder().type(ActionType.MODEL).name(getName()).metadata(getMetadata()).build();
+    return ActionDesc.builder()
+        .type(ActionType.MODEL)
+        .name(getName())
+        .metadata(getMetadata())
+        .build();
   }
 
   @Override
@@ -113,8 +109,8 @@ public interface Model extends Action<ModelRequest, ModelResponse, ModelResponse
   }
 
   @Override
-  default ActionRunResult<JsonNode> runJsonWithTelemetry(ActionContext ctx, JsonNode input,
-      Consumer<JsonNode> streamCallback) throws GenkitException {
+  default ActionRunResult<JsonNode> runJsonWithTelemetry(
+      ActionContext ctx, JsonNode input, Consumer<JsonNode> streamCallback) throws GenkitException {
     JsonNode result = runJson(ctx, input, streamCallback);
     return new ActionRunResult<>(result, null, null);
   }

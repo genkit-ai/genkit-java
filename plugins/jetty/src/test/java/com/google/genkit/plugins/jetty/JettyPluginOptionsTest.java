@@ -57,7 +57,8 @@ class JettyPluginOptionsTest {
 
   @Test
   void testBuilderWithAllOptions() {
-    JettyPluginOptions options = JettyPluginOptions.builder().port(9000).host("127.0.0.1").basePath("/v2").build();
+    JettyPluginOptions options =
+        JettyPluginOptions.builder().port(9000).host("127.0.0.1").basePath("/v2").build();
 
     assertEquals(9000, options.getPort());
     assertEquals("127.0.0.1", options.getHost());

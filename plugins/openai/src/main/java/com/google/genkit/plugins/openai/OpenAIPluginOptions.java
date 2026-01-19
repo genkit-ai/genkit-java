@@ -18,9 +18,7 @@
 
 package com.google.genkit.plugins.openai;
 
-/**
- * Options for configuring the OpenAI plugin.
- */
+/** Options for configuring the OpenAI plugin. */
 public class OpenAIPluginOptions {
 
   private final String apiKey;
@@ -80,9 +78,7 @@ public class OpenAIPluginOptions {
     return timeout;
   }
 
-  /**
-   * Builder for OpenAIPluginOptions.
-   */
+  /** Builder for OpenAIPluginOptions. */
   public static class Builder {
     private String apiKey = getApiKeyFromEnv();
     private String baseUrl = "https://api.openai.com/v1";

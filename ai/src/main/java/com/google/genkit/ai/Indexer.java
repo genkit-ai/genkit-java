@@ -18,11 +18,6 @@
 
 package com.google.genkit.ai;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.genkit.core.Action;
 import com.google.genkit.core.ActionContext;
@@ -32,12 +27,16 @@ import com.google.genkit.core.ActionType;
 import com.google.genkit.core.GenkitException;
 import com.google.genkit.core.JsonUtils;
 import com.google.genkit.core.Registry;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
 /**
  * Indexer is an action that indexes documents into a vector store.
  *
- * Indexers are used for RAG (Retrieval Augmented Generation) workflows to store
- * documents that can later be retrieved.
+ * <p>Indexers are used for RAG (Retrieval Augmented Generation) workflows to store documents that
+ * can later be retrieved.
  */
 public class Indexer implements Action<IndexerRequest, IndexerResponse, Void> {
 
@@ -48,10 +47,8 @@ public class Indexer implements Action<IndexerRequest, IndexerResponse, Void> {
   /**
    * Creates a new Indexer.
    *
-   * @param name
-   *            the indexer name
-   * @param handler
-   *            the indexing function
+   * @param name the indexer name
+   * @param handler the indexing function
    */
   public Indexer(String name, BiFunction<ActionContext, IndexerRequest, IndexerResponse> handler) {
     this.name = name;
@@ -81,8 +78,13 @@ public class Indexer implements Action<IndexerRequest, IndexerResponse, Void> {
 
   @Override
   public ActionDesc getDesc() {
-    return ActionDesc.builder().type(ActionType.INDEXER).name(name).inputSchema(getInputSchema())
-        .outputSchema(getOutputSchema()).metadata(getMetadata()).build();
+    return ActionDesc.builder()
+        .type(ActionType.INDEXER)
+        .name(name)
+        .inputSchema(getInputSchema())
+        .outputSchema(getOutputSchema())
+        .metadata(getMetadata())
+        .build();
   }
 
   @Override
@@ -109,8 +111,8 @@ public class Indexer implements Action<IndexerRequest, IndexerResponse, Void> {
   }
 
   @Override
-  public ActionRunResult<JsonNode> runJsonWithTelemetry(ActionContext ctx, JsonNode input,
-      Consumer<JsonNode> streamCallback) throws GenkitException {
+  public ActionRunResult<JsonNode> runJsonWithTelemetry(
+      ActionContext ctx, JsonNode input, Consumer<JsonNode> streamCallback) throws GenkitException {
     JsonNode result = runJson(ctx, input, streamCallback);
     return new ActionRunResult<>(result, null, null);
   }
@@ -183,9 +185,7 @@ public class Indexer implements Action<IndexerRequest, IndexerResponse, Void> {
     registry.registerAction(ActionType.INDEXER.keyFromName(name), this);
   }
 
-  /**
-   * Builder for Indexer.
-   */
+  /** Builder for Indexer. */
   public static class Builder {
     private String name;
     private BiFunction<ActionContext, IndexerRequest, IndexerResponse> handler;

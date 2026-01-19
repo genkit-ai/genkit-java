@@ -18,17 +18,6 @@
 
 package com.google.genkit;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.genkit.ai.*;
 import com.google.genkit.ai.evaluation.*;
 import com.google.genkit.ai.session.*;
@@ -39,12 +28,21 @@ import com.google.genkit.core.tracing.SpanMetadata;
 import com.google.genkit.core.tracing.Tracer;
 import com.google.genkit.prompt.DotPrompt;
 import com.google.genkit.prompt.ExecutablePrompt;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Genkit is the main entry point for the Genkit framework.
  *
- * It provides methods to define and run flows, configure AI models, and
- * interact with the Genkit ecosystem.
+ * <p>It provides methods to define and run flows, configure AI models, and interact with the Genkit
+ * ecosystem.
  */
 public class Genkit {
 
@@ -58,9 +56,7 @@ public class Genkit {
   private ReflectionServer reflectionServer;
   private EvaluationManager evaluationManager;
 
-  /**
-   * Creates a new Genkit instance with default options.
-   */
+  /** Creates a new Genkit instance with default options. */
   public Genkit() {
     this(GenkitOptions.builder().build());
   }
@@ -68,8 +64,7 @@ public class Genkit {
   /**
    * Creates a new Genkit instance with the given options.
    *
-   * @param options
-   *            the Genkit options
+   * @param options the Genkit options
    */
   public Genkit(GenkitOptions options) {
     this.options = options;
@@ -91,8 +86,7 @@ public class Genkit {
   /**
    * Creates a Genkit instance with the given plugins.
    *
-   * @param plugins
-   *            the plugins to use
+   * @param plugins the plugins to use
    * @return a configured Genkit instance
    */
   public static Genkit create(Plugin... plugins) {
@@ -103,9 +97,7 @@ public class Genkit {
     return builder.build();
   }
 
-  /**
-   * Initializes plugins.
-   */
+  /** Initializes plugins. */
   public void init() {
     // Register utility actions
     registerUtilityActions();
@@ -130,9 +122,7 @@ public class Genkit {
     }
   }
 
-  /**
-   * Registers utility actions like /util/generate.
-   */
+  /** Registers utility actions like /util/generate. */
   private void registerUtilityActions() {
     GenerateAction.define(registry);
   }
@@ -140,21 +130,18 @@ public class Genkit {
   /**
    * Defines a flow.
    *
-   * @param <I>
-   *            the input type
-   * @param <O>
-   *            the output type
-   * @param name
-   *            the flow name
-   * @param inputClass
-   *            the input class
-   * @param outputClass
-   *            the output class
-   * @param handler
-   *            the flow handler
+   * @param <I> the input type
+   * @param <O> the output type
+   * @param name the flow name
+   * @param inputClass the input class
+   * @param outputClass the output class
+   * @param handler the flow handler
    * @return the flow
    */
-  public <I, O> Flow<I, O, Void> defineFlow(String name, Class<I> inputClass, Class<O> outputClass,
+  public <I, O> Flow<I, O, Void> defineFlow(
+      String name,
+      Class<I> inputClass,
+      Class<O> outputClass,
       BiFunction<ActionContext, I, O> handler) {
     return Flow.define(registry, name, inputClass, outputClass, handler);
   }
@@ -162,111 +149,102 @@ public class Genkit {
   /**
    * Defines a flow with middleware.
    *
-   * @param <I>
-   *            the input type
-   * @param <O>
-   *            the output type
-   * @param name
-   *            the flow name
-   * @param inputClass
-   *            the input class
-   * @param outputClass
-   *            the output class
-   * @param handler
-   *            the flow handler
-   * @param middleware
-   *            the middleware to apply
+   * @param <I> the input type
+   * @param <O> the output type
+   * @param name the flow name
+   * @param inputClass the input class
+   * @param outputClass the output class
+   * @param handler the flow handler
+   * @param middleware the middleware to apply
    * @return the flow
    */
-  public <I, O> Flow<I, O, Void> defineFlow(String name, Class<I> inputClass, Class<O> outputClass,
-      BiFunction<ActionContext, I, O> handler, List<Middleware<I, O>> middleware) {
+  public <I, O> Flow<I, O, Void> defineFlow(
+      String name,
+      Class<I> inputClass,
+      Class<O> outputClass,
+      BiFunction<ActionContext, I, O> handler,
+      List<Middleware<I, O>> middleware) {
     return Flow.define(registry, name, inputClass, outputClass, handler, middleware);
   }
 
   /**
    * Defines a flow with a simple handler.
    *
-   * @param <I>
-   *            the input type
-   * @param <O>
-   *            the output type
-   * @param name
-   *            the flow name
-   * @param inputClass
-   *            the input class
-   * @param outputClass
-   *            the output class
-   * @param handler
-   *            the flow handler
+   * @param <I> the input type
+   * @param <O> the output type
+   * @param name the flow name
+   * @param inputClass the input class
+   * @param outputClass the output class
+   * @param handler the flow handler
    * @return the flow
    */
-  public <I, O> Flow<I, O, Void> defineFlow(String name, Class<I> inputClass, Class<O> outputClass,
-      Function<I, O> handler) {
-    return Flow.define(registry, name, inputClass, outputClass, (ctx, input) -> handler.apply(input));
+  public <I, O> Flow<I, O, Void> defineFlow(
+      String name, Class<I> inputClass, Class<O> outputClass, Function<I, O> handler) {
+    return Flow.define(
+        registry, name, inputClass, outputClass, (ctx, input) -> handler.apply(input));
   }
 
   /**
    * Defines a flow with a simple handler and middleware.
    *
-   * @param <I>
-   *            the input type
-   * @param <O>
-   *            the output type
-   * @param name
-   *            the flow name
-   * @param inputClass
-   *            the input class
-   * @param outputClass
-   *            the output class
-   * @param handler
-   *            the flow handler
-   * @param middleware
-   *            the middleware to apply
+   * @param <I> the input type
+   * @param <O> the output type
+   * @param name the flow name
+   * @param inputClass the input class
+   * @param outputClass the output class
+   * @param handler the flow handler
+   * @param middleware the middleware to apply
    * @return the flow
    */
-  public <I, O> Flow<I, O, Void> defineFlow(String name, Class<I> inputClass, Class<O> outputClass,
-      Function<I, O> handler, List<Middleware<I, O>> middleware) {
-    return Flow.define(registry, name, inputClass, outputClass, (ctx, input) -> handler.apply(input), middleware);
+  public <I, O> Flow<I, O, Void> defineFlow(
+      String name,
+      Class<I> inputClass,
+      Class<O> outputClass,
+      Function<I, O> handler,
+      List<Middleware<I, O>> middleware) {
+    return Flow.define(
+        registry, name, inputClass, outputClass, (ctx, input) -> handler.apply(input), middleware);
   }
 
   /**
    * Defines a tool.
    *
-   * @param <I>
-   *            the input type
-   * @param <O>
-   *            the output type
-   * @param name
-   *            the tool name
-   * @param description
-   *            the tool description
-   * @param inputSchema
-   *            the input JSON schema
-   * @param inputClass
-   *            the input class
-   * @param handler
-   *            the tool handler
+   * @param <I> the input type
+   * @param <O> the output type
+   * @param name the tool name
+   * @param description the tool description
+   * @param inputSchema the input JSON schema
+   * @param inputClass the input class
+   * @param handler the tool handler
    * @return the tool
    */
-  public <I, O> Tool<I, O> defineTool(String name, String description, Map<String, Object> inputSchema,
-      Class<I> inputClass, BiFunction<ActionContext, I, O> handler) {
-    Tool<I, O> tool = Tool.<I, O>builder().name(name).description(description).inputSchema(inputSchema)
-        .inputClass(inputClass).handler(handler).build();
+  public <I, O> Tool<I, O> defineTool(
+      String name,
+      String description,
+      Map<String, Object> inputSchema,
+      Class<I> inputClass,
+      BiFunction<ActionContext, I, O> handler) {
+    Tool<I, O> tool =
+        Tool.<I, O>builder()
+            .name(name)
+            .description(description)
+            .inputSchema(inputSchema)
+            .inputClass(inputClass)
+            .handler(handler)
+            .build();
     tool.register(registry);
     return tool;
   }
 
   /**
    * Defines a tool with typed input and output classes.
-   * 
-   * <p>
-   * This is the preferred way to create tools with structured input/output. The
-   * schemas are automatically generated from the classes using their
-   * {@code @JsonPropertyDescription} and {@code @JsonProperty} annotations.
-   * 
-   * <p>
-   * Example usage:
-   * 
+   *
+   * <p>This is the preferred way to create tools with structured input/output. The schemas are
+   * automatically generated from the classes using their {@code @JsonPropertyDescription} and
+   * {@code @JsonProperty} annotations.
+   *
+   * <p>Example usage:
+   *
    * <pre>{@code
    * Tool<RecipeRequest, MenuItem> tool = genkit.defineTool(
    *     "generateRecipe",
@@ -280,55 +258,52 @@ public class Genkit {
    * );
    * }</pre>
    *
-   * @param <I>
-   *            the input type
-   * @param <O>
-   *            the output type
-   * @param name
-   *            the tool name
-   * @param description
-   *            the tool description
-   * @param handler
-   *            the tool handler
-   * @param inputClass
-   *            the input class (schema auto-generated)
-   * @param outputClass
-   *            the output class (schema auto-generated)
+   * @param <I> the input type
+   * @param <O> the output type
+   * @param name the tool name
+   * @param description the tool description
+   * @param handler the tool handler
+   * @param inputClass the input class (schema auto-generated)
+   * @param outputClass the output class (schema auto-generated)
    * @return the tool
    */
-  public <I, O> Tool<I, O> defineTool(String name, String description, BiFunction<ActionContext, I, O> handler,
-      Class<I> inputClass, Class<O> outputClass) {
-    Tool<I, O> tool = Tool.<I, O>builder().name(name).description(description).inputClass(inputClass)
-        .outputClass(outputClass).handler(handler).build();
+  public <I, O> Tool<I, O> defineTool(
+      String name,
+      String description,
+      BiFunction<ActionContext, I, O> handler,
+      Class<I> inputClass,
+      Class<O> outputClass) {
+    Tool<I, O> tool =
+        Tool.<I, O>builder()
+            .name(name)
+            .description(description)
+            .inputClass(inputClass)
+            .outputClass(outputClass)
+            .handler(handler)
+            .build();
     tool.register(registry);
     return tool;
   }
 
   /**
    * Loads a prompt by name from the prompts directory.
-   * 
-   * <p>
-   * This is similar to the JavaScript API: `ai.prompt('hello')`. The prompt is
-   * loaded from the configured promptDir (default: /prompts). The prompt is
-   * automatically registered as an action and cached for reuse.
    *
-   * <p>
-   * Example usage:
-   * 
+   * <p>This is similar to the JavaScript API: `ai.prompt('hello')`. The prompt is loaded from the
+   * configured promptDir (default: /prompts). The prompt is automatically registered as an action
+   * and cached for reuse.
+   *
+   * <p>Example usage:
+   *
    * <pre>{@code
    * ExecutablePrompt<HelloInput> helloPrompt = genkit.prompt("hello", HelloInput.class);
    * ModelResponse response = helloPrompt.generate(new HelloInput("John"));
    * }</pre>
    *
-   * @param <I>
-   *            the input type
-   * @param name
-   *            the prompt name (without .prompt extension)
-   * @param inputClass
-   *            the input class
+   * @param <I> the input type
+   * @param name the prompt name (without .prompt extension)
+   * @param inputClass the input class
    * @return the executable prompt
-   * @throws GenkitException
-   *             if the prompt cannot be loaded
+   * @throws GenkitException if the prompt cannot be loaded
    */
   @SuppressWarnings("unchecked")
   public <I> ExecutablePrompt<I> prompt(String name, Class<I> inputClass) throws GenkitException {
@@ -338,25 +313,19 @@ public class Genkit {
   /**
    * Loads a prompt by name with an optional variant.
    *
-   * <p>
-   * Variants allow different versions of the same prompt to be tested. For
-   * example: "recipe" with variant "gemini25pro" loads
-   * "recipe.gemini25pro.prompt".
+   * <p>Variants allow different versions of the same prompt to be tested. For example: "recipe"
+   * with variant "gemini25pro" loads "recipe.gemini25pro.prompt".
    *
-   * @param <I>
-   *            the input type
-   * @param name
-   *            the prompt name (without .prompt extension)
-   * @param inputClass
-   *            the input class
-   * @param variant
-   *            optional variant name (e.g., "gemini25pro")
+   * @param <I> the input type
+   * @param name the prompt name (without .prompt extension)
+   * @param inputClass the input class
+   * @param variant optional variant name (e.g., "gemini25pro")
    * @return the executable prompt
-   * @throws GenkitException
-   *             if the prompt cannot be loaded
+   * @throws GenkitException if the prompt cannot be loaded
    */
   @SuppressWarnings("unchecked")
-  public <I> ExecutablePrompt<I> prompt(String name, Class<I> inputClass, String variant) throws GenkitException {
+  public <I> ExecutablePrompt<I> prompt(String name, Class<I> inputClass, String variant)
+      throws GenkitException {
     // Build the cache key
     String cacheKey = variant != null ? name + "." + variant : name;
 
@@ -376,25 +345,23 @@ public class Genkit {
       // Auto-register as action
       dotPrompt.register(registry, inputClass);
       String registeredKey = ActionType.EXECUTABLE_PROMPT.keyFromName(dotPrompt.getName());
-      logger.info("Loaded and registered prompt: {} as {} (variant: {})", name, registeredKey, variant);
+      logger.info(
+          "Loaded and registered prompt: {} as {} (variant: {})", name, registeredKey, variant);
     }
 
-    return new ExecutablePrompt<>(dotPrompt, registry, inputClass).withGenerateFunction(opts -> this.generate(opts))
+    return new ExecutablePrompt<>(dotPrompt, registry, inputClass)
+        .withGenerateFunction(opts -> this.generate(opts))
         .withGenerateObjectFunction((opts, clazz) -> this.generateObject(opts));
   }
 
   /**
    * Loads a prompt by name using a Map as input type.
-   * 
-   * <p>
-   * This is a convenience method when you don't want to define a specific input
-   * class.
    *
-   * @param name
-   *            the prompt name (without .prompt extension)
+   * <p>This is a convenience method when you don't want to define a specific input class.
+   *
+   * @param name the prompt name (without .prompt extension)
    * @return the executable prompt with Map input
-   * @throws GenkitException
-   *             if the prompt cannot be loaded
+   * @throws GenkitException if the prompt cannot be loaded
    */
   @SuppressWarnings("unchecked")
   public ExecutablePrompt<Map<String, Object>> prompt(String name) throws GenkitException {
@@ -404,22 +371,25 @@ public class Genkit {
   /**
    * Defines a prompt.
    *
-   * @param <I>
-   *            the input type
-   * @param name
-   *            the prompt name
-   * @param template
-   *            the prompt template
-   * @param inputClass
-   *            the input class
-   * @param renderer
-   *            the prompt renderer
+   * @param <I> the input type
+   * @param name the prompt name
+   * @param template the prompt template
+   * @param inputClass the input class
+   * @param renderer the prompt renderer
    * @return the prompt
    */
-  public <I> Prompt<I> definePrompt(String name, String template, Class<I> inputClass,
+  public <I> Prompt<I> definePrompt(
+      String name,
+      String template,
+      Class<I> inputClass,
       BiFunction<ActionContext, I, ModelRequest> renderer) {
-    Prompt<I> prompt = Prompt.<I>builder().name(name).template(template).inputClass(inputClass).renderer(renderer)
-        .build();
+    Prompt<I> prompt =
+        Prompt.<I>builder()
+            .name(name)
+            .template(template)
+            .inputClass(inputClass)
+            .renderer(renderer)
+            .build();
     prompt.register(registry);
     return prompt;
   }
@@ -427,8 +397,7 @@ public class Genkit {
   /**
    * Registers a model.
    *
-   * @param model
-   *            the model to register
+   * @param model the model to register
    */
   public void registerModel(Model model) {
     model.register(registry);
@@ -437,8 +406,7 @@ public class Genkit {
   /**
    * Registers an embedder.
    *
-   * @param embedder
-   *            the embedder to register
+   * @param embedder the embedder to register
    */
   public void registerEmbedder(Embedder embedder) {
     embedder.register(registry);
@@ -447,8 +415,7 @@ public class Genkit {
   /**
    * Registers a retriever.
    *
-   * @param retriever
-   *            the retriever to register
+   * @param retriever the retriever to register
    */
   public void registerRetriever(Retriever retriever) {
     retriever.register(registry);
@@ -457,8 +424,7 @@ public class Genkit {
   /**
    * Registers an indexer.
    *
-   * @param indexer
-   *            the indexer to register
+   * @param indexer the indexer to register
    */
   public void registerIndexer(Indexer indexer) {
     indexer.register(registry);
@@ -466,30 +432,26 @@ public class Genkit {
 
   /**
    * Defines and registers a retriever.
-   * 
-   * <p>
-   * This is the preferred way to create retrievers as it automatically registers
-   * them with the Genkit registry.
-   * 
-   * <p>
-   * Example usage:
-   * 
+   *
+   * <p>This is the preferred way to create retrievers as it automatically registers them with the
+   * Genkit registry.
+   *
+   * <p>Example usage:
+   *
    * <pre>{@code
    * Retriever myRetriever = genkit.defineRetriever("myStore/docs", (ctx, request) -> {
-   * 	// Find similar documents
-   * 	List<Document> docs = findSimilarDocs(request.getQuery());
-   * 	return new RetrieverResponse(docs);
+   *   // Find similar documents
+   *   List<Document> docs = findSimilarDocs(request.getQuery());
+   *   return new RetrieverResponse(docs);
    * });
    * }</pre>
    *
-   * @param name
-   *            the retriever name
-   * @param handler
-   *            the retrieval function
+   * @param name the retriever name
+   * @param handler the retrieval function
    * @return the registered retriever
    */
-  public Retriever defineRetriever(String name,
-      BiFunction<ActionContext, RetrieverRequest, RetrieverResponse> handler) {
+  public Retriever defineRetriever(
+      String name, BiFunction<ActionContext, RetrieverRequest, RetrieverResponse> handler) {
     Retriever retriever = Retriever.builder().name(name).handler(handler).build();
     retriever.register(registry);
     return retriever;
@@ -497,29 +459,26 @@ public class Genkit {
 
   /**
    * Defines and registers an indexer.
-   * 
-   * <p>
-   * This is the preferred way to create indexers as it automatically registers
-   * them with the Genkit registry.
-   * 
-   * <p>
-   * Example usage:
-   * 
+   *
+   * <p>This is the preferred way to create indexers as it automatically registers them with the
+   * Genkit registry.
+   *
+   * <p>Example usage:
+   *
    * <pre>{@code
    * Indexer myIndexer = genkit.defineIndexer("myStore/docs", (ctx, request) -> {
-   * 	// Index the documents
-   * 	indexDocuments(request.getDocuments());
-   * 	return new IndexerResponse();
+   *   // Index the documents
+   *   indexDocuments(request.getDocuments());
+   *   return new IndexerResponse();
    * });
    * }</pre>
    *
-   * @param name
-   *            the indexer name
-   * @param handler
-   *            the indexing function
+   * @param name the indexer name
+   * @param handler the indexing function
    * @return the registered indexer
    */
-  public Indexer defineIndexer(String name, BiFunction<ActionContext, IndexerRequest, IndexerResponse> handler) {
+  public Indexer defineIndexer(
+      String name, BiFunction<ActionContext, IndexerRequest, IndexerResponse> handler) {
     Indexer indexer = Indexer.builder().name(name).handler(handler).build();
     indexer.register(registry);
     return indexer;
@@ -528,8 +487,7 @@ public class Genkit {
   /**
    * Gets a model by name.
    *
-   * @param name
-   *            the model name
+   * @param name the model name
    * @return the model
    */
   public Model getModel(String name) {
@@ -543,8 +501,7 @@ public class Genkit {
   /**
    * Gets an embedder by name.
    *
-   * @param name
-   *            the embedder name
+   * @param name the embedder name
    * @return the embedder
    */
   public Embedder getEmbedder(String name) {
@@ -558,8 +515,7 @@ public class Genkit {
   /**
    * Gets a retriever by name.
    *
-   * @param name
-   *            the retriever name
+   * @param name the retriever name
    * @return the retriever
    */
   public Retriever getRetriever(String name) {
@@ -572,47 +528,48 @@ public class Genkit {
 
   /**
    * Generates a model response using the specified options.
-   * 
-   * <p>
-   * This method handles tool execution automatically. If the model requests tool
-   * calls, this method will execute the tools, add the results to the
-   * conversation, and continue generation until the model produces a final
-   * response.
-   * 
-   * <p>
-   * When a tool throws a {@link ToolInterruptException}, the generation is halted
-   * and the response is returned with {@link FinishReason#INTERRUPTED}. The
-   * caller can then use {@link ResumeOptions} to continue generation after
-   * handling the interrupt.
-   * 
-   * <p>
-   * Example with interrupts:
-   * 
+   *
+   * <p>This method handles tool execution automatically. If the model requests tool calls, this
+   * method will execute the tools, add the results to the conversation, and continue generation
+   * until the model produces a final response.
+   *
+   * <p>When a tool throws a {@link ToolInterruptException}, the generation is halted and the
+   * response is returned with {@link FinishReason#INTERRUPTED}. The caller can then use {@link
+   * ResumeOptions} to continue generation after handling the interrupt.
+   *
+   * <p>Example with interrupts:
+   *
    * <pre>{@code
    * // First generation - may be interrupted
-   * ModelResponse response = genkit.generate(GenerateOptions.builder().model("googleai/gemini-pro")
-   * 		.prompt("Transfer $100 to account 12345").tools(List.of(confirmTransfer)).build());
+   * ModelResponse response = genkit.generate(
+   *     GenerateOptions.builder()
+   *         .model("googleai/gemini-pro")
+   *         .prompt("Transfer $100 to account 12345")
+   *         .tools(List.of(confirmTransfer))
+   *         .build());
    *
    * // Check if interrupted
    * if (response.isInterrupted()) {
-   * 	Part interrupt = response.getInterrupts().get(0);
-   * 
-   * 	// Get user confirmation
-   * 	boolean confirmed = askUserForConfirmation();
-   * 
-   * 	// Resume with user response
-   * 	Part responseData = confirmTransfer.respond(interrupt, new ConfirmOutput(confirmed));
-   * 	ModelResponse resumed = genkit.generate(GenerateOptions.builder().model("googleai/gemini-pro")
-   * 			.messages(response.getMessages()).tools(List.of(confirmTransfer))
-   * 			.resume(ResumeOptions.builder().respond(responseData).build()).build());
+   *   Part interrupt = response.getInterrupts().get(0);
+   *
+   *   // Get user confirmation
+   *   boolean confirmed = askUserForConfirmation();
+   *
+   *   // Resume with user response
+   *   Part responseData = confirmTransfer.respond(interrupt, new ConfirmOutput(confirmed));
+   *   ModelResponse resumed = genkit.generate(
+   *       GenerateOptions.builder()
+   *           .model("googleai/gemini-pro")
+   *           .messages(response.getMessages())
+   *           .tools(List.of(confirmTransfer))
+   *           .resume(ResumeOptions.builder().respond(responseData).build())
+   *           .build());
    * }
    * }</pre>
    *
-   * @param options
-   *            the generate options
+   * @param options the generate options
    * @return the model response
-   * @throws GenkitException
-   *             if generation fails
+   * @throws GenkitException if generation fails
    */
   @SuppressWarnings("unchecked")
   public <T> T generate(GenerateOptions options) throws GenkitException {
@@ -626,8 +583,14 @@ public class Genkit {
         T result = JsonUtils.fromJson(jsonOutput, outputClass);
         return result;
       } catch (Exception e) {
-        throw new GenkitException("Failed to deserialize model output to " + outputClass.getSimpleName() + ": "
-            + e.getMessage() + "\nRaw output: " + response.getText(), e);
+        throw new GenkitException(
+            "Failed to deserialize model output to "
+                + outputClass.getSimpleName()
+                + ": "
+                + e.getMessage()
+                + "\nRaw output: "
+                + response.getText(),
+            e);
       }
     }
     // Otherwise return ModelResponse
@@ -635,11 +598,9 @@ public class Genkit {
   }
 
   /**
-   * Extracts JSON from model response text that may contain markdown or extra
-   * text.
+   * Extracts JSON from model response text that may contain markdown or extra text.
    *
-   * @param text
-   *            the response text
+   * @param text the response text
    * @return the extracted JSON string
    */
   private String extractJson(String text) {
@@ -656,7 +617,8 @@ public class Genkit {
       // Unwrap single-key root objects (e.g., {"menu_item": {...}} -> {...})
       // This handles cases where the model wraps the response in a descriptive key
       try {
-        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        com.fasterxml.jackson.databind.ObjectMapper mapper =
+            new com.fasterxml.jackson.databind.ObjectMapper();
         com.fasterxml.jackson.databind.JsonNode rootNode = mapper.readTree(json);
         if (rootNode.isObject() && rootNode.size() == 1) {
           com.fasterxml.jackson.databind.JsonNode unwrapped = rootNode.elements().next();
@@ -685,11 +647,9 @@ public class Genkit {
   /**
    * Internal method that performs the actual generation.
    *
-   * @param options
-   *            the generate options
+   * @param options the generate options
    * @return the model response
-   * @throws GenkitException
-   *             if generation fails
+   * @throws GenkitException if generation fails
    */
   private ModelResponse generateInternal(GenerateOptions<?> options) throws GenkitException {
     Model model = getModel(options.getModel());
@@ -706,8 +666,12 @@ public class Genkit {
 
     while (turn < maxTurns) {
       // Create span metadata for the model call
-      SpanMetadata modelSpanMetadata = SpanMetadata.builder().name(options.getModel())
-          .type(ActionType.MODEL.getValue()).subtype("model").build();
+      SpanMetadata modelSpanMetadata =
+          SpanMetadata.builder()
+              .name(options.getModel())
+              .type(ActionType.MODEL.getValue())
+              .subtype("model")
+              .build();
 
       String flowName = ctx.getFlowName();
       if (flowName != null) {
@@ -717,11 +681,20 @@ public class Genkit {
       final ModelRequest currentRequest = request;
       final String flowNameForTelemetry = flowName;
       final String spanPath = "/generate/" + options.getModel();
-      ModelResponse response = Tracer.runInNewSpan(ctx, modelSpanMetadata, request, (spanCtx, req) -> {
-        // Wrap model execution with telemetry to record generate metrics
-        return ModelTelemetryHelper.runWithTelemetry(options.getModel(), flowNameForTelemetry, spanPath,
-            currentRequest, r -> model.run(ctx.withSpanContext(spanCtx), r));
-      });
+      ModelResponse response =
+          Tracer.runInNewSpan(
+              ctx,
+              modelSpanMetadata,
+              request,
+              (spanCtx, req) -> {
+                // Wrap model execution with telemetry to record generate metrics
+                return ModelTelemetryHelper.runWithTelemetry(
+                    options.getModel(),
+                    flowNameForTelemetry,
+                    spanPath,
+                    currentRequest,
+                    r -> model.run(ctx.withSpanContext(spanCtx), r));
+              });
 
       // Check if the model requested tool calls
       List<Part> toolRequestParts = extractToolRequestParts(response);
@@ -731,8 +704,8 @@ public class Genkit {
       }
 
       // Execute tools and handle interrupts
-      ToolExecutionResult toolResult = executeToolsWithInterruptHandling(ctx, toolRequestParts,
-          options.getTools());
+      ToolExecutionResult toolResult =
+          executeToolsWithInterruptHandling(ctx, toolRequestParts, options.getTools());
 
       // If there are interrupts, return immediately with interrupted response
       if (!toolResult.getInterrupts().isEmpty()) {
@@ -751,8 +724,13 @@ public class Genkit {
       updatedMessages.add(toolResponseMessage);
 
       // Update request with new messages for next turn
-      request = ModelRequest.builder().messages(updatedMessages).config(request.getConfig())
-          .tools(request.getTools()).output(request.getOutput()).build();
+      request =
+          ModelRequest.builder()
+              .messages(updatedMessages)
+              .config(request.getConfig())
+              .tools(request.getTools())
+              .output(request.getOutput())
+              .build();
 
       turn++;
     }
@@ -760,9 +738,7 @@ public class Genkit {
     throw new GenkitException("Max tool execution turns (" + maxTurns + ") exceeded");
   }
 
-  /**
-   * Handles resume options by processing respond and restart directives.
-   */
+  /** Handles resume options by processing respond and restart directives. */
   private ModelRequest handleResumeOption(ModelRequest request, GenerateOptions<?> options) {
     ResumeOptions resume = options.getResume();
     List<Message> messages = new java.util.ArrayList<>(request.getMessages());
@@ -806,8 +782,8 @@ public class Genkit {
           Object result = typedTool.run(ctx, restartRequest.getInput());
 
           Part responsePart = new Part();
-          ToolResponse toolResponse = new ToolResponse(restartRequest.getRef(), restartRequest.getName(),
-              result);
+          ToolResponse toolResponse =
+              new ToolResponse(restartRequest.getRef(), restartRequest.getName(), result);
           responsePart.setToolResponse(toolResponse);
           Map<String, Object> metadata = new java.util.HashMap<>();
           metadata.put("source", "restart");
@@ -816,7 +792,9 @@ public class Genkit {
         } catch (ToolInterruptException e) {
           // Tool interrupted again during restart
           throw new GenkitException(
-              "Tool '" + restartRequest.getName() + "' triggered an interrupt during restart. "
+              "Tool '"
+                  + restartRequest.getName()
+                  + "' triggered an interrupt during restart. "
                   + "Re-interrupting during restart is not supported.");
         }
       }
@@ -835,15 +813,17 @@ public class Genkit {
     toolResponseMessage.setMetadata(toolMsgMetadata);
     messages.add(toolResponseMessage);
 
-    return ModelRequest.builder().messages(messages).config(request.getConfig()).tools(request.getTools())
-        .output(request.getOutput()).build();
+    return ModelRequest.builder()
+        .messages(messages)
+        .config(request.getConfig())
+        .tools(request.getTools())
+        .output(request.getOutput())
+        .build();
   }
 
-  /**
-   * Builds an interrupted response from the model response and tool execution
-   * result.
-   */
-  private ModelResponse buildInterruptedResponse(ModelResponse response, ToolExecutionResult toolResult) {
+  /** Builds an interrupted response from the model response and tool execution result. */
+  private ModelResponse buildInterruptedResponse(
+      ModelResponse response, ToolExecutionResult toolResult) {
     // Update the model message content with interrupt metadata
     Message originalMessage = response.getMessage();
     List<Part> updatedContent = new java.util.ArrayList<>();
@@ -851,7 +831,10 @@ public class Genkit {
     for (Part part : originalMessage.getContent()) {
       if (part.getToolRequest() != null) {
         ToolRequest toolRequest = part.getToolRequest();
-        String key = toolRequest.getName() + "#" + (toolRequest.getRef() != null ? toolRequest.getRef() : "");
+        String key =
+            toolRequest.getName()
+                + "#"
+                + (toolRequest.getRef() != null ? toolRequest.getRef() : "");
 
         // Check if this tool request was interrupted
         Part interruptPart = toolResult.getInterruptMap().get(key);
@@ -863,9 +846,10 @@ public class Genkit {
           if (pendingOutput != null) {
             Part pendingPart = new Part();
             pendingPart.setToolRequest(toolRequest);
-            Map<String, Object> metadata = part.getMetadata() != null
-                ? new java.util.HashMap<>(part.getMetadata())
-                : new java.util.HashMap<>();
+            Map<String, Object> metadata =
+                part.getMetadata() != null
+                    ? new java.util.HashMap<>(part.getMetadata())
+                    : new java.util.HashMap<>();
             metadata.put("pendingOutput", pendingOutput);
             pendingPart.setMetadata(metadata);
             updatedContent.add(pendingPart);
@@ -888,15 +872,19 @@ public class Genkit {
     updatedCandidate.setMessage(updatedMessage);
     updatedCandidate.setFinishReason(FinishReason.INTERRUPTED);
 
-    return ModelResponse.builder().candidates(List.of(updatedCandidate)).usage(response.getUsage())
-        .request(response.getRequest()).custom(response.getCustom()).latencyMs(response.getLatencyMs())
-        .finishReason(FinishReason.INTERRUPTED).finishMessage("One or more tool calls resulted in interrupts.")
-        .interrupts(toolResult.getInterrupts()).build();
+    return ModelResponse.builder()
+        .candidates(List.of(updatedCandidate))
+        .usage(response.getUsage())
+        .request(response.getRequest())
+        .custom(response.getCustom())
+        .latencyMs(response.getLatencyMs())
+        .finishReason(FinishReason.INTERRUPTED)
+        .finishMessage("One or more tool calls resulted in interrupts.")
+        .interrupts(toolResult.getInterrupts())
+        .build();
   }
 
-  /**
-   * Extracts tool request parts from a model response.
-   */
+  /** Extracts tool request parts from a model response. */
   private List<Part> extractToolRequestParts(ModelResponse response) {
     List<Part> parts = new java.util.ArrayList<>();
     if (response.getCandidates() != null) {
@@ -913,9 +901,7 @@ public class Genkit {
     return parts;
   }
 
-  /**
-   * Extracts tool requests from a model response.
-   */
+  /** Extracts tool requests from a model response. */
   private List<ToolRequest> extractToolRequests(ModelResponse response) {
     List<ToolRequest> requests = new java.util.ArrayList<>();
     if (response.getCandidates() != null) {
@@ -932,16 +918,17 @@ public class Genkit {
     return requests;
   }
 
-  /**
-   * Result of tool execution with interrupt handling.
-   */
+  /** Result of tool execution with interrupt handling. */
   private static class ToolExecutionResult {
     private final List<Part> responses;
     private final List<Part> interrupts;
     private final Map<String, Part> interruptMap;
     private final Map<String, Object> pendingOutputMap;
 
-    ToolExecutionResult(List<Part> responses, List<Part> interrupts, Map<String, Part> interruptMap,
+    ToolExecutionResult(
+        List<Part> responses,
+        List<Part> interrupts,
+        Map<String, Part> interruptMap,
         Map<String, Object> pendingOutputMap) {
       this.responses = responses;
       this.interrupts = interrupts;
@@ -952,22 +939,23 @@ public class Genkit {
     List<Part> getResponses() {
       return responses;
     }
+
     List<Part> getInterrupts() {
       return interrupts;
     }
+
     Map<String, Part> getInterruptMap() {
       return interruptMap;
     }
+
     Map<String, Object> getPendingOutputMap() {
       return pendingOutputMap;
     }
   }
 
-  /**
-   * Executes tools with interrupt handling.
-   */
-  private ToolExecutionResult executeToolsWithInterruptHandling(ActionContext ctx, List<Part> toolRequestParts,
-      List<Tool<?, ?>> tools) {
+  /** Executes tools with interrupt handling. */
+  private ToolExecutionResult executeToolsWithInterruptHandling(
+      ActionContext ctx, List<Part> toolRequestParts, List<Tool<?, ?>> tools) {
 
     List<Part> responseParts = new java.util.ArrayList<>();
     List<Part> interrupts = new java.util.ArrayList<>();
@@ -983,16 +971,17 @@ public class Genkit {
       Tool<?, ?> tool = findTool(toolName, tools);
       if (tool == null) {
         Part errorPart = new Part();
-        ToolResponse errorResponse = new ToolResponse(toolRequest.getRef(), toolName,
-            Map.of("error", "Tool not found: " + toolName));
+        ToolResponse errorResponse =
+            new ToolResponse(
+                toolRequest.getRef(), toolName, Map.of("error", "Tool not found: " + toolName));
         errorPart.setToolResponse(errorResponse);
         responseParts.add(errorPart);
         continue;
       }
 
       // Check if this is an interrupt tool (has "interrupt" metadata marker)
-      boolean isInterruptTool = tool.getMetadata() != null
-          && Boolean.TRUE.equals(tool.getMetadata().get("interrupt"));
+      boolean isInterruptTool =
+          tool.getMetadata() != null && Boolean.TRUE.equals(tool.getMetadata().get("interrupt"));
 
       try {
         // Convert input to the expected type
@@ -1024,10 +1013,12 @@ public class Genkit {
 
         Part interruptPart = new Part();
         interruptPart.setToolRequest(toolRequest);
-        Map<String, Object> metadata = toolRequestPart.getMetadata() != null
-            ? new java.util.HashMap<>(toolRequestPart.getMetadata())
-            : new java.util.HashMap<>();
-        metadata.put("interrupt",
+        Map<String, Object> metadata =
+            toolRequestPart.getMetadata() != null
+                ? new java.util.HashMap<>(toolRequestPart.getMetadata())
+                : new java.util.HashMap<>();
+        metadata.put(
+            "interrupt",
             interruptMetadata != null && !interruptMetadata.isEmpty() ? interruptMetadata : true);
         interruptPart.setMetadata(metadata);
 
@@ -1039,8 +1030,11 @@ public class Genkit {
       } catch (Exception e) {
         logger.error("Tool execution failed for '{}': {}", toolName, e.getMessage());
         Part errorPart = new Part();
-        ToolResponse errorResponse = new ToolResponse(toolRequest.getRef(), toolName,
-            Map.of("error", "Tool execution failed: " + e.getMessage()));
+        ToolResponse errorResponse =
+            new ToolResponse(
+                toolRequest.getRef(),
+                toolName,
+                Map.of("error", "Tool execution failed: " + e.getMessage()));
         errorPart.setToolResponse(errorResponse);
         responseParts.add(errorPart);
       }
@@ -1049,10 +1043,9 @@ public class Genkit {
     return new ToolExecutionResult(responseParts, interrupts, interruptMap, pendingOutputMap);
   }
 
-  /**
-   * Executes tools and returns the response parts.
-   */
-  private List<Part> executeTools(ActionContext ctx, List<ToolRequest> toolRequests, List<Tool<?, ?>> tools) {
+  /** Executes tools and returns the response parts. */
+  private List<Part> executeTools(
+      ActionContext ctx, List<ToolRequest> toolRequests, List<Tool<?, ?>> tools) {
     List<Part> responseParts = new java.util.ArrayList<>();
 
     for (ToolRequest toolRequest : toolRequests) {
@@ -1064,8 +1057,9 @@ public class Genkit {
       if (tool == null) {
         // Tool not found, create an error response
         Part errorPart = new Part();
-        ToolResponse errorResponse = new ToolResponse(toolRequest.getRef(), toolName,
-            Map.of("error", "Tool not found: " + toolName));
+        ToolResponse errorResponse =
+            new ToolResponse(
+                toolRequest.getRef(), toolName, Map.of("error", "Tool not found: " + toolName));
         errorPart.setToolResponse(errorResponse);
         responseParts.add(errorPart);
         continue;
@@ -1087,8 +1081,11 @@ public class Genkit {
       } catch (Exception e) {
         logger.error("Tool execution failed for '{}': {}", toolName, e.getMessage());
         Part errorPart = new Part();
-        ToolResponse errorResponse = new ToolResponse(toolRequest.getRef(), toolName,
-            Map.of("error", "Tool execution failed: " + e.getMessage()));
+        ToolResponse errorResponse =
+            new ToolResponse(
+                toolRequest.getRef(),
+                toolName,
+                Map.of("error", "Tool execution failed: " + e.getMessage()));
         errorPart.setToolResponse(errorResponse);
         responseParts.add(errorPart);
       }
@@ -1097,9 +1094,7 @@ public class Genkit {
     return responseParts;
   }
 
-  /**
-   * Finds a tool by name.
-   */
+  /** Finds a tool by name. */
   private Tool<?, ?> findTool(String toolName, List<Tool<?, ?>> tools) {
     if (tools != null) {
       for (Tool<?, ?> tool : tools) {
@@ -1120,34 +1115,31 @@ public class Genkit {
 
   /**
    * Generates a streaming model response using the specified options.
-   * 
-   * <p>
-   * This method invokes the model with streaming enabled, calling the provided
-   * callback for each chunk of the response as it arrives. This is useful for
-   * displaying responses incrementally to users.
    *
-   * <p>
-   * Example usage:
-   * 
+   * <p>This method invokes the model with streaming enabled, calling the provided callback for each
+   * chunk of the response as it arrives. This is useful for displaying responses incrementally to
+   * users.
+   *
+   * <p>Example usage:
+   *
    * <pre>{@code
    * StringBuilder result = new StringBuilder();
    * ModelResponse response = genkit.generateStream(
-   * 		GenerateOptions.builder().model("openai/gpt-4o").prompt("Tell me a story").build(), chunk -> {
-   * 			System.out.print(chunk.getText());
-   * 			result.append(chunk.getText());
-   * 		});
+   *     GenerateOptions.builder().model("openai/gpt-4o").prompt("Tell me a story").build(),
+   *     chunk -> {
+   *       System.out.print(chunk.getText());
+   *       result.append(chunk.getText());
+   *     });
    * }</pre>
    *
-   * @param options
-   *            the generate options
-   * @param streamCallback
-   *            callback invoked for each response chunk
+   * @param options the generate options
+   * @param streamCallback callback invoked for each response chunk
    * @return the final aggregated model response
-   * @throws GenkitException
-   *             if generation fails or model doesn't support streaming
+   * @throws GenkitException if generation fails or model doesn't support streaming
    */
-  public ModelResponse generateStream(GenerateOptions<?> options,
-      java.util.function.Consumer<ModelResponseChunk> streamCallback) throws GenkitException {
+  public ModelResponse generateStream(
+      GenerateOptions<?> options, java.util.function.Consumer<ModelResponseChunk> streamCallback)
+      throws GenkitException {
     Model model = getModel(options.getModel());
     if (!model.supportsStreaming()) {
       throw new GenkitException("Model " + options.getModel() + " does not support streaming");
@@ -1160,8 +1152,12 @@ public class Genkit {
 
     while (turn < maxTurns) {
       // Create span metadata for the model call
-      SpanMetadata modelSpanMetadata = SpanMetadata.builder().name(options.getModel())
-          .type(ActionType.MODEL.getValue()).subtype("model").build();
+      SpanMetadata modelSpanMetadata =
+          SpanMetadata.builder()
+              .name(options.getModel())
+              .type(ActionType.MODEL.getValue())
+              .subtype("model")
+              .build();
 
       String flowName = ctx.getFlowName();
       if (flowName != null) {
@@ -1171,11 +1167,20 @@ public class Genkit {
       final ModelRequest currentRequest = request;
       final String flowNameForTelemetry = flowName;
       final String spanPath = "/generateStream/" + options.getModel();
-      ModelResponse response = Tracer.runInNewSpan(ctx, modelSpanMetadata, request, (spanCtx, req) -> {
-        // Wrap model execution with telemetry to record generate metrics
-        return ModelTelemetryHelper.runWithTelemetryStreaming(options.getModel(), flowNameForTelemetry,
-            spanPath, currentRequest, r -> model.run(ctx.withSpanContext(spanCtx), r, streamCallback));
-      });
+      ModelResponse response =
+          Tracer.runInNewSpan(
+              ctx,
+              modelSpanMetadata,
+              request,
+              (spanCtx, req) -> {
+                // Wrap model execution with telemetry to record generate metrics
+                return ModelTelemetryHelper.runWithTelemetryStreaming(
+                    options.getModel(),
+                    flowNameForTelemetry,
+                    spanPath,
+                    currentRequest,
+                    r -> model.run(ctx.withSpanContext(spanCtx), r, streamCallback));
+              });
 
       // Check if the model requested tool calls
       List<ToolRequest> toolRequests = extractToolRequests(response);
@@ -1199,8 +1204,13 @@ public class Genkit {
       updatedMessages.add(toolResponseMessage);
 
       // Update request with new messages for next turn
-      request = ModelRequest.builder().messages(updatedMessages).config(request.getConfig())
-          .tools(request.getTools()).output(request.getOutput()).build();
+      request =
+          ModelRequest.builder()
+              .messages(updatedMessages)
+              .config(request.getConfig())
+              .tools(request.getTools())
+              .output(request.getOutput())
+              .build();
 
       turn++;
     }
@@ -1211,13 +1221,10 @@ public class Genkit {
   /**
    * Generates a model response with a simple prompt.
    *
-   * @param modelName
-   *            the model name
-   * @param prompt
-   *            the prompt text
+   * @param modelName the model name
+   * @param prompt the prompt text
    * @return the model response
-   * @throws GenkitException
-   *             if generation fails
+   * @throws GenkitException if generation fails
    */
   public ModelResponse generate(String modelName, String prompt) throws GenkitException {
     return generate(GenerateOptions.builder().model(modelName).prompt(prompt).build());
@@ -1225,44 +1232,44 @@ public class Genkit {
 
   /**
    * Generates a structured output from the model, returning a typed object.
-   * 
-   * <p>
-   * This method automatically generates a JSON schema from the provided class and
-   * deserializes the model's response into an instance of that class. You can add
-   * descriptions to fields using {@code @JsonPropertyDescription} and mark fields
-   * as required using {@code @JsonProperty(required = true)}:
-   * 
+   *
+   * <p>This method automatically generates a JSON schema from the provided class and deserializes
+   * the model's response into an instance of that class. You can add descriptions to fields using
+   * {@code @JsonPropertyDescription} and mark fields as required using
+   * {@code @JsonProperty(required = true)}:
+   *
    * <pre>
    * {
-   * 	&#64;code
-   * 	public class MenuItem {
-   * 		&#64;JsonProperty(required = true)
-   * 		&#64;JsonPropertyDescription("The name of the menu item")
-   * 		private String name;
-   * 
-   * 		&#64;JsonPropertyDescription("A description of the menu item")
-   * 		private String description;
-   * 
-   * 		@JsonProperty(required = true)
-   * 		&#64;JsonPropertyDescription("The estimated number of calories")
-   * 		private int calories;
-   * 
-   * 		// getters/setters...
-   * 	}
-   * 
-   * 	// Usage:
-   * 	MenuItem item = genkit.generate(GenerateOptions.<MenuItem>builder().model("openai/gpt-4o-mini")
-   * 			.prompt("Suggest a menu item for a pirate-themed restaurant.").outputClass(MenuItem.class).build());
+   *   &#64;code
+   *   public class MenuItem {
+   *     &#64;JsonProperty(required = true)
+   *     &#64;JsonPropertyDescription("The name of the menu item")
+   *     private String name;
+   *
+   *     &#64;JsonPropertyDescription("A description of the menu item")
+   *     private String description;
+   *
+   *     @JsonProperty(required = true)
+   *     &#64;JsonPropertyDescription("The estimated number of calories")
+   *     private int calories;
+   *
+   *     // getters/setters...
+   *   }
+   *
+   *   // Usage:
+   *   MenuItem item = genkit.generate(
+   *       GenerateOptions.<MenuItem>builder()
+   *           .model("openai/gpt-4o-mini")
+   *           .prompt("Suggest a menu item for a pirate-themed restaurant.")
+   *           .outputClass(MenuItem.class)
+   *           .build());
    * }
    * </pre>
    *
-   * @param <T>
-   *            the output type
-   * @param options
-   *            the generate options with outputClass set
+   * @param <T> the output type
+   * @param options the generate options with outputClass set
    * @return the generated object
-   * @throws GenkitException
-   *             if generation or deserialization fails
+   * @throws GenkitException if generation or deserialization fails
    */
   @SuppressWarnings("unchecked")
   public <T> T generateObject(GenerateOptions options) throws GenkitException {
@@ -1280,80 +1287,87 @@ public class Genkit {
       return JsonUtils.fromJson(jsonOutput, outputClass);
     } catch (Exception e) {
       throw new GenkitException(
-          "Failed to deserialize model output to " + outputClass.getSimpleName() + ": " + e.getMessage(), e);
+          "Failed to deserialize model output to "
+              + outputClass.getSimpleName()
+              + ": "
+              + e.getMessage(),
+          e);
     }
   }
 
   /**
    * Generates a structured output from the model with a simple prompt.
-   * 
-   * <p>
-   * Convenience method that combines model name, prompt, and output class.
-   * 
+   *
+   * <p>Convenience method that combines model name, prompt, and output class.
+   *
    * <pre>{@code
-   * MenuItem item = genkit.generateObject("openai/gpt-4o-mini",
-   * 		"Suggest a menu item for a pirate-themed restaurant.", MenuItem.class);
+   * MenuItem item = genkit.generateObject(
+   *     "openai/gpt-4o-mini",
+   *     "Suggest a menu item for a pirate-themed restaurant.",
+   *     MenuItem.class);
    * }</pre>
    *
-   * @param <T>
-   *            the output type
-   * @param modelName
-   *            the model name
-   * @param prompt
-   *            the prompt text
-   * @param outputClass
-   *            the class to deserialize the response into
+   * @param <T> the output type
+   * @param modelName the model name
+   * @param prompt the prompt text
+   * @param outputClass the class to deserialize the response into
    * @return the generated object
-   * @throws GenkitException
-   *             if generation or deserialization fails
+   * @throws GenkitException if generation or deserialization fails
    */
-  public <T> T generateObject(String modelName, String prompt, Class<T> outputClass) throws GenkitException {
+  public <T> T generateObject(String modelName, String prompt, Class<T> outputClass)
+      throws GenkitException {
     return generateObject(
-        GenerateOptions.<T>builder().model(modelName).prompt(prompt).outputClass(outputClass).build());
+        GenerateOptions.<T>builder()
+            .model(modelName)
+            .prompt(prompt)
+            .outputClass(outputClass)
+            .build());
   }
 
   /**
    * Generates a structured output from the model, returning a typed object.
-   * 
-   * <p>
-   * Alternative method that takes outputClass as a separate parameter.
    *
-   * @param <T>
-   *            the output type
-   * @param options
-   *            the generate options
-   * @param outputClass
-   *            the class to deserialize the response into
+   * <p>Alternative method that takes outputClass as a separate parameter.
+   *
+   * @param <T> the output type
+   * @param options the generate options
+   * @param outputClass the class to deserialize the response into
    * @return the generated object
-   * @throws GenkitException
-   *             if generation or deserialization fails
+   * @throws GenkitException if generation or deserialization fails
    */
-  public <T> T generateObject(GenerateOptions<?> options, Class<T> outputClass) throws GenkitException {
+  public <T> T generateObject(GenerateOptions<?> options, Class<T> outputClass)
+      throws GenkitException {
     // Build options with output config from class
-    GenerateOptions<T> optionsWithOutput = GenerateOptions.<T>builder().model(options.getModel())
-        .prompt(options.getPrompt()).messages(options.getMessages()).docs(options.getDocs())
-        .system(options.getSystem()).tools(options.getTools()).toolChoice(options.getToolChoice())
-        .outputClass(outputClass).config(options.getConfig()).context(options.getContext())
-        .maxTurns(options.getMaxTurns()).resume(options.getResume()).build();
+    GenerateOptions<T> optionsWithOutput =
+        GenerateOptions.<T>builder()
+            .model(options.getModel())
+            .prompt(options.getPrompt())
+            .messages(options.getMessages())
+            .docs(options.getDocs())
+            .system(options.getSystem())
+            .tools(options.getTools())
+            .toolChoice(options.getToolChoice())
+            .outputClass(outputClass)
+            .config(options.getConfig())
+            .context(options.getContext())
+            .maxTurns(options.getMaxTurns())
+            .resume(options.getResume())
+            .build();
 
     return generateObject(optionsWithOutput);
   }
 
   /**
    * Generates a structured output from the model with a simple prompt.
-   * 
-   * <p>
-   * Convenience method that combines model name, prompt, and output class.
-   * 
-   * Embeds documents using the specified embedder.
    *
-   * @param embedderName
-   *            the embedder name
-   * @param documents
-   *            the documents to embed
+   * <p>Convenience method that combines model name, prompt, and output class.
+   *
+   * <p>Embeds documents using the specified embedder.
+   *
+   * @param embedderName the embedder name
+   * @param documents the documents to embed
    * @return the embed response
-   * @throws GenkitException
-   *             if embedding fails
+   * @throws GenkitException if embedding fails
    */
   public EmbedResponse embed(String embedderName, List<Document> documents) throws GenkitException {
     Embedder embedder = getEmbedder(embedderName);
@@ -1364,31 +1378,29 @@ public class Genkit {
 
   /**
    * Retrieves documents using the specified retriever.
-   * 
-   * <p>
-   * This is the primary method for retrieval in RAG workflows. The returned
-   * documents can be passed directly to {@code generate()} via the
-   * {@code .docs()} option.
-   * 
-   * <p>
-   * Example usage:
-   * 
+   *
+   * <p>This is the primary method for retrieval in RAG workflows. The returned documents can be
+   * passed directly to {@code generate()} via the {@code .docs()} option.
+   *
+   * <p>Example usage:
+   *
    * <pre>{@code
    * // Retrieve relevant documents
    * List<Document> docs = genkit.retrieve("myStore/docs", "What is the capital of France?");
-   * 
+   *
    * // Use documents in generation
-   * ModelResponse response = genkit.generate(GenerateOptions.builder().model("openai/gpt-4o-mini")
-   * 		.prompt("Answer the question based on context").docs(docs).build());
+   * ModelResponse response = genkit.generate(
+   *     GenerateOptions.builder()
+   *         .model("openai/gpt-4o-mini")
+   *         .prompt("Answer the question based on context")
+   *         .docs(docs)
+   *         .build());
    * }</pre>
    *
-   * @param retrieverName
-   *            the retriever name
-   * @param query
-   *            the query text
+   * @param retrieverName the retriever name
+   * @param query the query text
    * @return the list of retrieved documents
-   * @throws GenkitException
-   *             if retrieval fails
+   * @throws GenkitException if retrieval fails
    */
   public List<Document> retrieve(String retrieverName, String query) throws GenkitException {
     Retriever retriever = getRetriever(retrieverName);
@@ -1400,25 +1412,22 @@ public class Genkit {
 
   /**
    * Retrieves documents using the specified retriever with options.
-   * 
-   * <p>
-   * Example usage:
-   * 
+   *
+   * <p>Example usage:
+   *
    * <pre>{@code
-   * List<Document> docs = genkit.retrieve("myStore/docs", "query", RetrieverParams.builder().k(5).build());
+   * List<Document> docs = genkit
+   *     .retrieve("myStore/docs", "query", RetrieverParams.builder().k(5).build());
    * }</pre>
    *
-   * @param retrieverName
-   *            the retriever name
-   * @param query
-   *            the query text
-   * @param options
-   *            retrieval options (e.g., k for number of results)
+   * @param retrieverName the retriever name
+   * @param query the query text
+   * @param options retrieval options (e.g., k for number of results)
    * @return the list of retrieved documents
-   * @throws GenkitException
-   *             if retrieval fails
+   * @throws GenkitException if retrieval fails
    */
-  public List<Document> retrieve(String retrieverName, String query, RetrieverRequest.RetrieverOptions options)
+  public List<Document> retrieve(
+      String retrieverName, String query, RetrieverRequest.RetrieverOptions options)
       throws GenkitException {
     Retriever retriever = getRetriever(retrieverName);
     RetrieverRequest request = RetrieverRequest.fromText(query);
@@ -1431,13 +1440,10 @@ public class Genkit {
   /**
    * Retrieves documents using a Document as the query.
    *
-   * @param retrieverName
-   *            the retriever name
-   * @param query
-   *            the query document
+   * @param retrieverName the retriever name
+   * @param query the query document
    * @return the list of retrieved documents
-   * @throws GenkitException
-   *             if retrieval fails
+   * @throws GenkitException if retrieval fails
    */
   public List<Document> retrieve(String retrieverName, Document query) throws GenkitException {
     Retriever retriever = getRetriever(retrieverName);
@@ -1449,22 +1455,19 @@ public class Genkit {
 
   /**
    * Indexes documents using the specified indexer.
-   * 
-   * <p>
-   * Example usage:
-   * 
+   *
+   * <p>Example usage:
+   *
    * <pre>{@code
-   * List<Document> docs = List.of(Document.fromText("Paris is the capital of France."),
-   * 		Document.fromText("Berlin is the capital of Germany."));
+   * List<Document> docs = List.of(
+   *     Document.fromText("Paris is the capital of France."),
+   *     Document.fromText("Berlin is the capital of Germany."));
    * genkit.index("myStore/docs", docs);
    * }</pre>
    *
-   * @param indexerName
-   *            the indexer name
-   * @param documents
-   *            the documents to index
-   * @throws GenkitException
-   *             if indexing fails
+   * @param indexerName the indexer name
+   * @param documents the documents to index
+   * @throws GenkitException if indexing fails
    */
   public void index(String indexerName, List<Document> documents) throws GenkitException {
     Indexer indexer = getIndexer(indexerName);
@@ -1476,8 +1479,7 @@ public class Genkit {
   /**
    * Gets an indexer by name.
    *
-   * @param name
-   *            the indexer name
+   * @param name the indexer name
    * @return the indexer
    */
   public Indexer getIndexer(String name) {
@@ -1491,17 +1493,12 @@ public class Genkit {
   /**
    * Runs a flow by name.
    *
-   * @param <I>
-   *            the input type
-   * @param <O>
-   *            the output type
-   * @param flowName
-   *            the flow name
-   * @param input
-   *            the flow input
+   * @param <I> the input type
+   * @param <O> the output type
+   * @param flowName the flow name
+   * @param input the flow input
    * @return the flow output
-   * @throws GenkitException
-   *             if execution fails
+   * @throws GenkitException if execution fails
    */
   @SuppressWarnings("unchecked")
   public <I, O> O runFlow(String flowName, I input) throws GenkitException {
@@ -1541,9 +1538,7 @@ public class Genkit {
     return plugins;
   }
 
-  /**
-   * Starts the reflection server for dev tools integration.
-   */
+  /** Starts the reflection server for dev tools integration. */
   private void startReflectionServer() {
     try {
       int port = options.getReflectionPort();
@@ -1559,9 +1554,7 @@ public class Genkit {
     }
   }
 
-  /**
-   * Stops the Genkit instance and cleans up resources.
-   */
+  /** Stops the Genkit instance and cleans up resources. */
   public void stop() {
     if (reflectionServer != null) {
       try {
@@ -1580,22 +1573,22 @@ public class Genkit {
   /**
    * Creates a new session with default options.
    *
-   * <p>
-   * Sessions provide stateful multi-turn conversations with automatic history
-   * persistence. Each session can have multiple named conversation threads.
+   * <p>Sessions provide stateful multi-turn conversations with automatic history persistence. Each
+   * session can have multiple named conversation threads.
    *
-   * <p>
-   * Example usage:
-   * 
+   * <p>Example usage:
+   *
    * <pre>{@code
    * Session<Void> session = genkit.createSession();
-   * Chat<Void> chat = session
-   * 		.chat(ChatOptions.<Void>builder().model("openai/gpt-4o").system("You are a helpful assistant.").build());
+   * Chat<Void> chat = session.chat(
+   *     ChatOptions.<Void>builder()
+   *         .model("openai/gpt-4o")
+   *         .system("You are a helpful assistant.")
+   *         .build());
    * chat.send("Hello!");
    * }</pre>
    *
-   * @param <S>
-   *            the session state type
+   * @param <S> the session state type
    * @return a new session
    */
   public <S> Session<S> createSession() {
@@ -1605,23 +1598,24 @@ public class Genkit {
   /**
    * Creates a new session with the given options.
    *
-   * <p>
-   * Example usage:
-   * 
+   * <p>Example usage:
+   *
    * <pre>{@code
    * // With custom state
-   * Session<MyState> session = genkit
-   * 		.createSession(SessionOptions.<MyState>builder().initialState(new MyState("John")).build());
+   * Session<MyState> session = genkit.createSession(
+   *     SessionOptions.<MyState>builder().initialState(new MyState("John")).build());
    *
    * // With custom store and session ID
-   * Session<MyState> session = genkit.createSession(SessionOptions.<MyState>builder()
-   * 		.store(new RedisSessionStore<>()).sessionId("my-session-123").initialState(new MyState()).build());
+   * Session<MyState> session = genkit.createSession(
+   *     SessionOptions.<MyState>builder()
+   *         .store(new RedisSessionStore<>())
+   *         .sessionId("my-session-123")
+   *         .initialState(new MyState())
+   *         .build());
    * }</pre>
    *
-   * @param <S>
-   *            the session state type
-   * @param options
-   *            the session options
+   * @param <S> the session state type
+   * @param options the session options
    * @return a new session
    */
   public <S> Session<S> createSession(SessionOptions<S> options) {
@@ -1631,52 +1625,48 @@ public class Genkit {
   /**
    * Loads an existing session from a store.
    *
-   * <p>
-   * Example usage:
-   * 
+   * <p>Example usage:
+   *
    * <pre>{@code
-   * CompletableFuture<Session<MyState>> sessionFuture = genkit.loadSession("session-123",
-   * 		SessionOptions.<MyState>builder().store(mySessionStore).build());
+   * CompletableFuture<Session<MyState>> sessionFuture = genkit.loadSession(
+   *     "session-123",
+   *     SessionOptions.<MyState>builder().store(mySessionStore).build());
    * Session<MyState> session = sessionFuture.get();
    * if (session != null) {
-   * 	Chat<MyState> chat = session.chat();
-   * 	// Continue conversation...
+   *   Chat<MyState> chat = session.chat();
+   *   // Continue conversation...
    * }
    * }</pre>
    *
-   * @param <S>
-   *            the session state type
-   * @param sessionId
-   *            the session ID to load
-   * @param options
-   *            the session options (must include store)
+   * @param <S> the session state type
+   * @param sessionId the session ID to load
+   * @param options the session options (must include store)
    * @return a CompletableFuture containing the session, or null if not found
    */
-  public <S> CompletableFuture<Session<S>> loadSession(String sessionId, SessionOptions<S> options) {
+  public <S> CompletableFuture<Session<S>> loadSession(
+      String sessionId, SessionOptions<S> options) {
     return Session.load(registry, sessionId, options, agentRegistry);
   }
 
   /**
    * Creates a simple chat without session persistence.
    *
-   * <p>
-   * This is a convenience method for quick interactions without full session
-   * management. Use {@link #createSession()} for persistent multi-turn
-   * conversations.
+   * <p>This is a convenience method for quick interactions without full session management. Use
+   * {@link #createSession()} for persistent multi-turn conversations.
    *
-   * <p>
-   * Example usage:
-   * 
+   * <p>Example usage:
+   *
    * <pre>{@code
-   * Chat<Void> chat = genkit
-   * 		.chat(ChatOptions.<Void>builder().model("openai/gpt-4o").system("You are a helpful assistant.").build());
+   * Chat<Void> chat = genkit.chat(
+   *     ChatOptions.<Void>builder()
+   *         .model("openai/gpt-4o")
+   *         .system("You are a helpful assistant.")
+   *         .build());
    * ModelResponse response = chat.send("Hello!");
    * }</pre>
    *
-   * @param <S>
-   *            the state type (usually Void for simple chats)
-   * @param options
-   *            the chat options
+   * @param <S> the state type (usually Void for simple chats)
+   * @param options the chat options
    * @return a new chat instance
    */
   public <S> Chat<S> chat(ChatOptions<S> options) {
@@ -1691,33 +1681,42 @@ public class Genkit {
   /**
    * Defines an agent that can be used as a tool in multi-agent systems.
    *
-   * <p>
-   * Agents are specialized conversational components that can be delegated to by
-   * other agents. When an agent is called as a tool, it takes over the
-   * conversation with its own system prompt, model, and tools.
+   * <p>Agents are specialized conversational components that can be delegated to by other agents.
+   * When an agent is called as a tool, it takes over the conversation with its own system prompt,
+   * model, and tools.
    *
-   * <p>
-   * Example usage:
-   * 
+   * <p>Example usage:
+   *
    * <pre>{@code
    * // Define a specialized agent
-   * Agent reservationAgent = genkit.defineAgent(AgentConfig.builder().name("reservationAgent")
-   * 		.description("Handles restaurant reservations").system("You are a reservation specialist...")
-   * 		.model("openai/gpt-4o").tools(List.of(reservationTool, lookupTool)).build());
+   * Agent reservationAgent = genkit.defineAgent(
+   *     AgentConfig.builder()
+   *         .name("reservationAgent")
+   *         .description("Handles restaurant reservations")
+   *         .system("You are a reservation specialist...")
+   *         .model("openai/gpt-4o")
+   *         .tools(List.of(reservationTool, lookupTool))
+   *         .build());
    *
    * // Use in a parent agent
    * Agent triageAgent = genkit.defineAgent(
-   * 		AgentConfig.builder().name("triageAgent").description("Routes customer requests to specialists")
-   * 				.system("You route customer requests to the appropriate specialist")
-   * 				.agents(List.of(reservationAgent.getConfig())).build());
+   *     AgentConfig.builder()
+   *         .name("triageAgent")
+   *         .description("Routes customer requests to specialists")
+   *         .system("You route customer requests to the appropriate specialist")
+   *         .agents(List.of(reservationAgent.getConfig()))
+   *         .build());
    *
    * // Start chat with triage agent
-   * Chat chat = genkit.chat(ChatOptions.builder().model("openai/gpt-4o").system(triageAgent.getSystem())
-   * 		.tools(triageAgent.getAllTools(agentRegistry)).build());
+   * Chat chat = genkit.chat(
+   *     ChatOptions.builder()
+   *         .model("openai/gpt-4o")
+   *         .system(triageAgent.getSystem())
+   *         .tools(triageAgent.getAllTools(agentRegistry))
+   *         .build());
    * }</pre>
    *
-   * @param config
-   *            the agent configuration
+   * @param config the agent configuration
    * @return the created agent
    */
   public Agent defineAgent(AgentConfig config) {
@@ -1732,8 +1731,7 @@ public class Genkit {
   /**
    * Gets an agent by name.
    *
-   * @param name
-   *            the agent name
+   * @param name the agent name
    * @return the agent, or null if not found
    */
   public Agent getAgent(String name) {
@@ -1743,8 +1741,7 @@ public class Genkit {
   /**
    * Gets the agent registry.
    *
-   * <p>
-   * This returns an unmodifiable view of all registered agents.
+   * <p>This returns an unmodifiable view of all registered agents.
    *
    * @return the agent registry
    */
@@ -1755,12 +1752,10 @@ public class Genkit {
   /**
    * Gets all tools for an agent, including sub-agent tools.
    *
-   * <p>
-   * This is a convenience method that collects all tools from an agent, including
-   * tools from any sub-agents defined in its configuration.
+   * <p>This is a convenience method that collects all tools from an agent, including tools from any
+   * sub-agents defined in its configuration.
    *
-   * @param agent
-   *            the agent
+   * @param agent the agent
    * @return the list of all tools
    */
   public List<Tool<?, ?>> getAllToolsForAgent(Agent agent) {
@@ -1770,47 +1765,52 @@ public class Genkit {
   /**
    * Defines an interrupt tool for human-in-the-loop interactions.
    *
-   * <p>
-   * Interrupts allow tools to pause generation and request user input. When a
-   * tool throws a {@link ToolInterruptException}, the chat returns early with the
-   * interrupt information, allowing the application to collect user input and
-   * resume.
+   * <p>Interrupts allow tools to pause generation and request user input. When a tool throws a
+   * {@link ToolInterruptException}, the chat returns early with the interrupt information, allowing
+   * the application to collect user input and resume.
    *
-   * <p>
-   * Example usage:
-   * 
+   * <p>Example usage:
+   *
    * <pre>{@code
    * // Define an interrupt for confirming actions
-   * Tool<ConfirmInput, ConfirmOutput> confirmInterrupt = genkit.defineInterrupt(InterruptConfig
-   * 		.<ConfirmInput, ConfirmOutput>builder().name("confirm").description("Asks user to confirm an action")
-   * 		.inputType(ConfirmInput.class).outputType(ConfirmOutput.class).build());
+   * Tool<ConfirmInput, ConfirmOutput> confirmInterrupt = genkit.defineInterrupt(
+   *     InterruptConfig.<ConfirmInput, ConfirmOutput>builder()
+   *         .name("confirm")
+   *         .description("Asks user to confirm an action")
+   *         .inputType(ConfirmInput.class)
+   *         .outputType(ConfirmOutput.class)
+   *         .build());
    *
    * // Use in a chat with tools
    * Chat chat = genkit.chat(
-   * 		ChatOptions.builder().model("openai/gpt-4o").tools(List.of(someActionTool, confirmInterrupt)).build());
+   *     ChatOptions.builder()
+   *         .model("openai/gpt-4o")
+   *         .tools(List.of(someActionTool, confirmInterrupt))
+   *         .build());
    *
    * ModelResponse response = chat.send("Book a table for 4");
    *
    * // Check for interrupts
    * if (chat.hasPendingInterrupts()) {
-   * 	List<InterruptRequest> interrupts = chat.getPendingInterrupts();
-   * 	// Show UI to user, collect response
-   * 	ConfirmOutput userResponse = getUserConfirmation(interrupts.get(0));
-   * 
-   * 	// Resume with user response
-   * 	response = chat.send("",
-   * 			SendOptions.builder().resumeOptions(
-   * 					ResumeOptions.builder().respond(List.of(interrupts.get(0).respond(userResponse))).build())
-   * 					.build());
+   *   List<InterruptRequest> interrupts = chat.getPendingInterrupts();
+   *   // Show UI to user, collect response
+   *   ConfirmOutput userResponse = getUserConfirmation(interrupts.get(0));
+   *
+   *   // Resume with user response
+   *   response = chat.send(
+   *       "",
+   *       SendOptions.builder()
+   *           .resumeOptions(
+   *               ResumeOptions.builder()
+   *                   .respond(List.of(interrupts.get(0).respond(userResponse)))
+   *                   .build())
+   *           .build());
    * }
    * }</pre>
    *
-   * @param <I>
-   *            the interrupt input type
-   * @param <O>
-   *            the interrupt output type (user response)
-   * @param config
-   *            the interrupt configuration
+   * @param <I> the interrupt input type
+   * @param <O> the interrupt output type (user response)
+   * @param config the interrupt configuration
    * @return the interrupt as a tool
    */
   public <I, O> Tool<I, O> defineInterrupt(InterruptConfig<I, O> config) {
@@ -1826,22 +1826,29 @@ public class Genkit {
       outputSchema.put("type", "object");
     }
 
-    Tool<I, O> interruptTool = new Tool<>(config.getName(),
-        config.getDescription() != null ? config.getDescription() : "Interrupt: " + config.getName(),
-        inputSchema, outputSchema, config.getInputType(), (ctx, input) -> {
-          // Build metadata from input - create a mutable copy since user may return
-          // immutable map
-          Map<String, Object> metadata = new java.util.HashMap<>();
-          if (config.getRequestMetadata() != null) {
-            metadata.putAll(config.getRequestMetadata().apply(input));
-          }
-          metadata.put("interrupt", true);
-          metadata.put("interruptName", config.getName());
-          metadata.put("input", input);
+    Tool<I, O> interruptTool =
+        new Tool<>(
+            config.getName(),
+            config.getDescription() != null
+                ? config.getDescription()
+                : "Interrupt: " + config.getName(),
+            inputSchema,
+            outputSchema,
+            config.getInputType(),
+            (ctx, input) -> {
+              // Build metadata from input - create a mutable copy since user may return
+              // immutable map
+              Map<String, Object> metadata = new java.util.HashMap<>();
+              if (config.getRequestMetadata() != null) {
+                metadata.putAll(config.getRequestMetadata().apply(input));
+              }
+              metadata.put("interrupt", true);
+              metadata.put("interruptName", config.getName());
+              metadata.put("input", input);
 
-          // Throw interrupt exception - this never returns
-          throw new ToolInterruptException(metadata);
-        });
+              // Throw interrupt exception - this never returns
+              throw new ToolInterruptException(metadata);
+            });
 
     // Register the interrupt tool
     registry.registerAction(ActionType.TOOL, interruptTool);
@@ -1851,27 +1858,24 @@ public class Genkit {
   /**
    * Gets the current session from the context.
    *
-   * <p>
-   * This method can be called from within tool execution to access the current
-   * session state. It uses a thread-local context that is set during chat
-   * execution.
+   * <p>This method can be called from within tool execution to access the current session state. It
+   * uses a thread-local context that is set during chat execution.
    *
-   * <p>
-   * Example usage:
-   * 
+   * <p>Example usage:
+   *
    * <pre>{@code
-   * Tool<Input, Output> myTool = genkit.defineTool("myTool", Input.class, Output.class, (ctx, input) -> {
-   * 	Session<?> session = genkit.currentSession();
-   * 	if (session != null) {
-   * 		Object state = session.getState();
-   * 		// Use session state...
-   * 	}
-   * 	return new Output();
-   * });
+   * Tool<Input, Output> myTool = genkit
+   *     .defineTool("myTool", Input.class, Output.class, (ctx, input) -> {
+   *       Session<?> session = genkit.currentSession();
+   *       if (session != null) {
+   *         Object state = session.getState();
+   *         // Use session state...
+   *       }
+   *       return new Output();
+   *     });
    * }</pre>
    *
-   * @param <S>
-   *            the session state type
+   * @param <S> the session state type
    * @return the current session, or null if not in a session context
    */
   @SuppressWarnings("unchecked")
@@ -1885,76 +1889,73 @@ public class Genkit {
 
   /**
    * Defines a new evaluator and registers it with the registry.
-   * 
-   * <p>
-   * Evaluators assess the quality of AI outputs. They can be used to:
+   *
+   * <p>Evaluators assess the quality of AI outputs. They can be used to:
+   *
    * <ul>
-   * <li>Score outputs based on various criteria (accuracy, relevance, etc.)</li>
-   * <li>Compare outputs against reference data</li>
-   * <li>Run automated quality checks in CI/CD pipelines</li>
+   *   <li>Score outputs based on various criteria (accuracy, relevance, etc.)
+   *   <li>Compare outputs against reference data
+   *   <li>Run automated quality checks in CI/CD pipelines
    * </ul>
-   * 
-   * <p>
-   * Example usage:
-   * 
+   *
+   * <p>Example usage:
+   *
    * <pre>{@code
-   * genkit.defineEvaluator("myEvaluator", "My Evaluator", "Checks output quality", (dataPoint, options) -> {
-   * 	// Evaluate the output
-   * 	double score = calculateScore(dataPoint.getOutput());
-   * 	return EvalResponse.builder().testCaseId(dataPoint.getTestCaseId())
-   * 			.evaluation(Score.builder().score(score).build()).build();
-   * });
+   * genkit.defineEvaluator(
+   *     "myEvaluator",
+   *     "My Evaluator",
+   *     "Checks output quality",
+   *     (dataPoint, options) -> {
+   *       // Evaluate the output
+   *       double score = calculateScore(dataPoint.getOutput());
+   *       return EvalResponse.builder()
+   *           .testCaseId(dataPoint.getTestCaseId())
+   *           .evaluation(Score.builder().score(score).build())
+   *           .build();
+   *     });
    * }</pre>
    *
-   * @param <O>
-   *            the options type
-   * @param name
-   *            the evaluator name
-   * @param displayName
-   *            the display name shown in the UI
-   * @param definition
-   *            description of what the evaluator measures
-   * @param evaluatorFn
-   *            the evaluation function
+   * @param <O> the options type
+   * @param name the evaluator name
+   * @param displayName the display name shown in the UI
+   * @param definition description of what the evaluator measures
+   * @param evaluatorFn the evaluation function
    * @return the created evaluator
    */
-  public <O> Evaluator<O> defineEvaluator(String name, String displayName, String definition,
-      EvaluatorFn<O> evaluatorFn) {
+  public <O> Evaluator<O> defineEvaluator(
+      String name, String displayName, String definition, EvaluatorFn<O> evaluatorFn) {
     return Evaluator.define(registry, name, displayName, definition, evaluatorFn);
   }
 
   /**
    * Defines a new evaluator with full options.
    *
-   * @param <O>
-   *            the options type
-   * @param name
-   *            the evaluator name
-   * @param displayName
-   *            the display name shown in the UI
-   * @param definition
-   *            description of what the evaluator measures
-   * @param isBilled
-   *            whether using this evaluator incurs costs
-   * @param optionsClass
-   *            the class for evaluator-specific options
-   * @param evaluatorFn
-   *            the evaluation function
+   * @param <O> the options type
+   * @param name the evaluator name
+   * @param displayName the display name shown in the UI
+   * @param definition description of what the evaluator measures
+   * @param isBilled whether using this evaluator incurs costs
+   * @param optionsClass the class for evaluator-specific options
+   * @param evaluatorFn the evaluation function
    * @return the created evaluator
    */
-  public <O> Evaluator<O> defineEvaluator(String name, String displayName, String definition, boolean isBilled,
-      Class<O> optionsClass, EvaluatorFn<O> evaluatorFn) {
-    return Evaluator.define(registry, name, displayName, definition, isBilled, optionsClass, evaluatorFn);
+  public <O> Evaluator<O> defineEvaluator(
+      String name,
+      String displayName,
+      String definition,
+      boolean isBilled,
+      Class<O> optionsClass,
+      EvaluatorFn<O> evaluatorFn) {
+    return Evaluator.define(
+        registry, name, displayName, definition, isBilled, optionsClass, evaluatorFn);
   }
 
   /**
    * Gets an evaluator by name.
    *
-   * @param name
-   *            the evaluator name
+   * @param name the evaluator name
    * @return the evaluator
-   * @throws GenkitException
-   *             if evaluator not found
+   * @throws GenkitException if evaluator not found
    */
   @SuppressWarnings("unchecked")
   public Evaluator<?> getEvaluator(String name) {
@@ -1967,21 +1968,19 @@ public class Genkit {
 
   /**
    * Runs an evaluation using the specified request.
-   * 
-   * <p>
-   * This method:
+   *
+   * <p>This method:
+   *
    * <ol>
-   * <li>Loads the dataset</li>
-   * <li>Runs inference on the target action</li>
-   * <li>Executes all specified evaluators</li>
-   * <li>Stores and returns the results</li>
+   *   <li>Loads the dataset
+   *   <li>Runs inference on the target action
+   *   <li>Executes all specified evaluators
+   *   <li>Stores and returns the results
    * </ol>
    *
-   * @param request
-   *            the evaluation request
+   * @param request the evaluation request
    * @return the evaluation run key
-   * @throws Exception
-   *             if evaluation fails
+   * @throws Exception if evaluation fails
    */
   public EvalRunKey evaluate(RunEvaluationRequest request) throws Exception {
     return getEvaluationManager().runEvaluation(request);
@@ -2017,9 +2016,7 @@ public class Genkit {
     return getEvaluationManager().getEvalStore();
   }
 
-  /**
-   * Builder for Genkit.
-   */
+  /** Builder for Genkit. */
   public static class Builder {
     private final List<Plugin> plugins = new ArrayList<>();
     private GenkitOptions options = GenkitOptions.builder().build();
@@ -2027,8 +2024,7 @@ public class Genkit {
     /**
      * Sets the Genkit options.
      *
-     * @param options
-     *            the options
+     * @param options the options
      * @return this builder
      */
     public Builder options(GenkitOptions options) {
@@ -2039,8 +2035,7 @@ public class Genkit {
     /**
      * Adds a plugin.
      *
-     * @param plugin
-     *            the plugin to add
+     * @param plugin the plugin to add
      * @return this builder
      */
     public Builder plugin(Plugin plugin) {
@@ -2061,12 +2056,12 @@ public class Genkit {
     /**
      * Sets the reflection port.
      *
-     * @param port
-     *            the port number
+     * @param port the port number
      * @return this builder
      */
     public Builder reflectionPort(int port) {
-      this.options = GenkitOptions.builder().devMode(options.isDevMode()).reflectionPort(port).build();
+      this.options =
+          GenkitOptions.builder().devMode(options.isDevMode()).reflectionPort(port).build();
       return this;
     }
 

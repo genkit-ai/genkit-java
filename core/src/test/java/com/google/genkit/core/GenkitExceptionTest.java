@@ -22,12 +22,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.junit.jupiter.api.Test;
 
-/**
- * Unit tests for GenkitException.
- */
+/** Unit tests for GenkitException. */
 class GenkitExceptionTest {
 
   @Test
@@ -84,9 +81,11 @@ class GenkitExceptionTest {
 
   @Test
   void testExceptionCanBeThrown() {
-    assertThrows(GenkitException.class, () -> {
-      throw new GenkitException("Test exception");
-    });
+    assertThrows(
+        GenkitException.class,
+        () -> {
+          throw new GenkitException("Test exception");
+        });
   }
 
   @Test
@@ -109,7 +108,8 @@ class GenkitExceptionTest {
   @Test
   void testDetailsCanBeAnyObject() {
     String stringDetails = "Simple string details";
-    GenkitException exceptionWithString = new GenkitException("Test", null, "ERR", stringDetails, null);
+    GenkitException exceptionWithString =
+        new GenkitException("Test", null, "ERR", stringDetails, null);
     assertEquals(stringDetails, exceptionWithString.getDetails());
 
     Map<String, Object> mapDetails = Map.of("key", "value");

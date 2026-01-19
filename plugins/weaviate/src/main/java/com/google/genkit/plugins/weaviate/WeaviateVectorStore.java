@@ -18,15 +18,9 @@
 
 package com.google.genkit.plugins.weaviate;
 
-import java.util.*;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.genkit.ai.*;
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.GenkitException;
-
 import io.weaviate.client.WeaviateClient;
 import io.weaviate.client.base.Result;
 import io.weaviate.client.v1.batch.model.ObjectGetResponse;
@@ -37,24 +31,27 @@ import io.weaviate.client.v1.graphql.query.fields.Field;
 import io.weaviate.client.v1.misc.model.VectorIndexConfig;
 import io.weaviate.client.v1.schema.model.Property;
 import io.weaviate.client.v1.schema.model.WeaviateClass;
+import java.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Weaviate vector store implementation for RAG workflows.
  *
- * <p>
- * Provides vector similarity search using Weaviate's native vector search
- * capabilities. Supports COSINE, L2_SQUARED, and DOT distance measures.
+ * <p>Provides vector similarity search using Weaviate's native vector search capabilities. Supports
+ * COSINE, L2_SQUARED, and DOT distance measures.
  *
- * <p>
- * Example usage:
- * 
+ * <p>Example usage:
+ *
  * <pre>{@code
  * // Retrieve documents
- * RetrieverResponse response = genkit.retrieve("weaviate/my-collection", Document.fromText("What is AI?"),
- * 		Map.of("limit", 5));
+ * RetrieverResponse response = genkit
+ *     .retrieve("weaviate/my-collection", Document.fromText("What is AI?"), Map.of("limit", 5));
  *
  * // Index documents
- * genkit.index("weaviate/my-collection", List.of(Document.fromText("AI is artificial intelligence")));
+ * genkit.index(
+ *     "weaviate/my-collection",
+ *     List.of(Document.fromText("AI is artificial intelligence")));
  * }</pre>
  */
 public class WeaviateVectorStore {
@@ -69,25 +66,21 @@ public class WeaviateVectorStore {
   /**
    * Creates a new WeaviateVectorStore.
    *
-   * @param client
-   *            the Weaviate client
-   * @param config
-   *            the collection configuration
-   * @param embedder
-   *            the embedder to use
+   * @param client the Weaviate client
+   * @param config the collection configuration
+   * @param embedder the embedder to use
    */
-  public WeaviateVectorStore(WeaviateClient client, WeaviateCollectionConfig config, Embedder embedder) {
+  public WeaviateVectorStore(
+      WeaviateClient client, WeaviateCollectionConfig config, Embedder embedder) {
     this.client = client;
     this.config = config;
     this.embedder = embedder;
   }
 
   /**
-   * Ensures the Weaviate collection (class) exists, creating it if configured to
-   * do so.
+   * Ensures the Weaviate collection (class) exists, creating it if configured to do so.
    *
-   * @throws GenkitException
-   *             if collection creation fails
+   * @throws GenkitException if collection creation fails
    */
   public void ensureCollectionExists() throws GenkitException {
     if (collectionInitialized || !config.isCreateCollectionIfMissing()) {
@@ -117,31 +110,53 @@ public class WeaviateVectorStore {
         }
 
         // Create the class
-        logger.info("Creating Weaviate class '{}' with distance measure: {}", className,
+        logger.info(
+            "Creating Weaviate class '{}' with distance measure: {}",
+            className,
             config.getDistanceMeasure());
 
         // Build properties
         List<Property> properties = new ArrayList<>();
-        properties.add(Property.builder().name(config.getContentField()).dataType(List.of("text"))
-            .description("Document content").build());
-        properties.add(Property.builder().name(config.getMetadataField()).dataType(List.of("text"))
-            .description("Document metadata as JSON").build());
-        properties.add(Property.builder().name("contentType").dataType(List.of("text"))
-            .description("Content type").build());
+        properties.add(
+            Property.builder()
+                .name(config.getContentField())
+                .dataType(List.of("text"))
+                .description("Document content")
+                .build());
+        properties.add(
+            Property.builder()
+                .name(config.getMetadataField())
+                .dataType(List.of("text"))
+                .description("Document metadata as JSON")
+                .build());
+        properties.add(
+            Property.builder()
+                .name("contentType")
+                .dataType(List.of("text"))
+                .description("Content type")
+                .build());
 
         // Build class config with vectorizer none (we provide our own vectors)
-        VectorIndexConfig vectorIndexConfig = VectorIndexConfig.builder()
-            .distance(toWeaviateDistance(config.getDistanceMeasure())).build();
+        VectorIndexConfig vectorIndexConfig =
+            VectorIndexConfig.builder()
+                .distance(toWeaviateDistance(config.getDistanceMeasure()))
+                .build();
 
-        WeaviateClass weaviateClass = WeaviateClass.builder().className(className)
-            .description("Genkit document collection: " + config.getName()).properties(properties)
-            .vectorizer("none") // We provide our own vectors
-            .vectorIndexConfig(vectorIndexConfig).build();
+        WeaviateClass weaviateClass =
+            WeaviateClass.builder()
+                .className(className)
+                .description("Genkit document collection: " + config.getName())
+                .properties(properties)
+                .vectorizer("none") // We provide our own vectors
+                .vectorIndexConfig(vectorIndexConfig)
+                .build();
 
-        Result<Boolean> createResult = client.schema().classCreator().withClass(weaviateClass).run();
+        Result<Boolean> createResult =
+            client.schema().classCreator().withClass(weaviateClass).run();
 
         if (createResult.hasErrors()) {
-          throw new GenkitException("Failed to create Weaviate class: " + createResult.getError().toString());
+          throw new GenkitException(
+              "Failed to create Weaviate class: " + createResult.getError().toString());
         }
 
         logger.info("Created Weaviate class: {}", className);
@@ -150,7 +165,8 @@ public class WeaviateVectorStore {
       } catch (GenkitException e) {
         throw e;
       } catch (Exception e) {
-        throw new GenkitException("Failed to ensure Weaviate collection exists: " + e.getMessage(), e);
+        throw new GenkitException(
+            "Failed to ensure Weaviate collection exists: " + e.getMessage(), e);
       }
     }
   }
@@ -178,15 +194,13 @@ public class WeaviateVectorStore {
   /**
    * Retrieves documents from Weaviate using vector similarity search.
    *
-   * @param ctx
-   *            the action context
-   * @param request
-   *            the retriever request
+   * @param ctx the action context
+   * @param request the retriever request
    * @return the retriever response with matched documents
-   * @throws GenkitException
-   *             if retrieval fails
+   * @throws GenkitException if retrieval fails
    */
-  public RetrieverResponse retrieve(ActionContext ctx, RetrieverRequest request) throws GenkitException {
+  public RetrieverResponse retrieve(ActionContext ctx, RetrieverRequest request)
+      throws GenkitException {
     ensureCollectionExists();
 
     try {
@@ -233,21 +247,31 @@ public class WeaviateVectorStore {
       // Build the query
       String className = toClassName(config.getName());
 
-      NearVectorArgument.NearVectorArgumentBuilder nearVectorBuilder = NearVectorArgument.builder()
-          .vector(queryVector);
+      NearVectorArgument.NearVectorArgumentBuilder nearVectorBuilder =
+          NearVectorArgument.builder().vector(queryVector);
 
       if (distanceThreshold != null) {
         nearVectorBuilder.distance(distanceThreshold.floatValue());
       }
 
-      Result<GraphQLResponse> result = client.graphQL().get().withClassName(className)
-          .withNearVector(nearVectorBuilder.build()).withLimit(limit)
-          .withFields(Field.builder().name(config.getContentField()).build(),
-              Field.builder().name(config.getMetadataField()).build(),
-              Field.builder().name("contentType").build(),
-              Field.builder().name("_additional").fields(Field.builder().name("id").build(),
-                  Field.builder().name("distance").build()).build())
-          .run();
+      Result<GraphQLResponse> result =
+          client
+              .graphQL()
+              .get()
+              .withClassName(className)
+              .withNearVector(nearVectorBuilder.build())
+              .withLimit(limit)
+              .withFields(
+                  Field.builder().name(config.getContentField()).build(),
+                  Field.builder().name(config.getMetadataField()).build(),
+                  Field.builder().name("contentType").build(),
+                  Field.builder()
+                      .name("_additional")
+                      .fields(
+                          Field.builder().name("id").build(),
+                          Field.builder().name("distance").build())
+                      .build())
+              .run();
 
       if (result.hasErrors()) {
         throw new GenkitException("Weaviate query failed: " + result.getError().toString());
@@ -256,7 +280,8 @@ public class WeaviateVectorStore {
       // Parse results
       List<Document> documents = parseGraphQLResponse(result.getResult(), className);
 
-      logger.debug("Retrieved {} documents from collection: {}", documents.size(), config.getName());
+      logger.debug(
+          "Retrieved {} documents from collection: {}", documents.size(), config.getName());
       return new RetrieverResponse(documents);
 
     } catch (GenkitException e) {
@@ -269,13 +294,10 @@ public class WeaviateVectorStore {
   /**
    * Indexes documents into Weaviate with their embeddings.
    *
-   * @param ctx
-   *            the action context
-   * @param request
-   *            the indexer request
+   * @param ctx the action context
+   * @param request the indexer request
    * @return the indexer response
-   * @throws GenkitException
-   *             if indexing fails
+   * @throws GenkitException if indexing fails
    */
   public IndexerResponse index(ActionContext ctx, IndexerRequest request) throws GenkitException {
     ensureCollectionExists();
@@ -293,7 +315,10 @@ public class WeaviateVectorStore {
       List<EmbedResponse.Embedding> embeddings = embedResponse.getEmbeddings();
       if (embeddings.size() != documents.size()) {
         throw new GenkitException(
-            "Embedding count mismatch: expected " + documents.size() + ", got " + embeddings.size());
+            "Embedding count mismatch: expected "
+                + documents.size()
+                + ", got "
+                + embeddings.size());
       }
 
       // Prepare batch of objects
@@ -315,18 +340,23 @@ public class WeaviateVectorStore {
           properties.put(config.getMetadataField(), "{}");
         }
 
-        WeaviateObject obj = WeaviateObject.builder().className(className).properties(properties)
-            .vector(embedding).build();
+        WeaviateObject obj =
+            WeaviateObject.builder()
+                .className(className)
+                .properties(properties)
+                .vector(embedding)
+                .build();
 
         objects.add(obj);
       }
 
       // Batch insert
-      Result<ObjectGetResponse[]> batchResult = client.batch().objectsBatcher()
-          .withObjects(objects.toArray(new WeaviateObject[0])).run();
+      Result<ObjectGetResponse[]> batchResult =
+          client.batch().objectsBatcher().withObjects(objects.toArray(new WeaviateObject[0])).run();
 
       if (batchResult.hasErrors()) {
-        throw new GenkitException("Weaviate batch insert failed: " + batchResult.getError().toString());
+        throw new GenkitException(
+            "Weaviate batch insert failed: " + batchResult.getError().toString());
       }
 
       // Check individual object errors
@@ -350,9 +380,7 @@ public class WeaviateVectorStore {
     }
   }
 
-  /**
-   * Converts collection name to Weaviate class name (must start with uppercase).
-   */
+  /** Converts collection name to Weaviate class name (must start with uppercase). */
   private String toClassName(String name) {
     if (name == null || name.isEmpty()) {
       return "Documents";
@@ -360,9 +388,7 @@ public class WeaviateVectorStore {
     return Character.toUpperCase(name.charAt(0)) + name.substring(1);
   }
 
-  /**
-   * Converts distance measure to Weaviate distance string.
-   */
+  /** Converts distance measure to Weaviate distance string. */
   private String toWeaviateDistance(WeaviateCollectionConfig.DistanceMeasure measure) {
     if (measure == null) {
       return "cosine";
@@ -374,9 +400,7 @@ public class WeaviateVectorStore {
     };
   }
 
-  /**
-   * Converts float array to Float object array.
-   */
+  /** Converts float array to Float object array. */
   private Float[] toFloatObjectArray(float[] floats) {
     Float[] result = new Float[floats.length];
     for (int i = 0; i < floats.length; i++) {
@@ -385,16 +409,13 @@ public class WeaviateVectorStore {
     return result;
   }
 
-  /**
-   * Converts map to JSON string.
-   */
+  /** Converts map to JSON string. */
   private String mapToJson(Map<String, Object> map) {
     try {
       StringBuilder sb = new StringBuilder("{");
       boolean first = true;
       for (Map.Entry<String, Object> entry : map.entrySet()) {
-        if (!first)
-          sb.append(",");
+        if (!first) sb.append(",");
         sb.append("\"").append(entry.getKey()).append("\":");
         Object value = entry.getValue();
         if (value instanceof String) {
@@ -413,9 +434,7 @@ public class WeaviateVectorStore {
     }
   }
 
-  /**
-   * Parses JSON string to map.
-   */
+  /** Parses JSON string to map. */
   @SuppressWarnings("unchecked")
   private Map<String, Object> jsonToMap(String json) {
     if (json == null || json.isEmpty() || json.equals("{}")) {
@@ -456,9 +475,7 @@ public class WeaviateVectorStore {
     }
   }
 
-  /**
-   * Parses GraphQL response to documents.
-   */
+  /** Parses GraphQL response to documents. */
   @SuppressWarnings("unchecked")
   private List<Document> parseGraphQLResponse(GraphQLResponse response, String className) {
     List<Document> documents = new ArrayList<>();

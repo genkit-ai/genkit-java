@@ -18,16 +18,6 @@
 
 package com.google.genkit.plugins.postgresql;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.sql.DataSource;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.genkit.ai.*;
 import com.google.genkit.core.Action;
 import com.google.genkit.core.ActionType;
@@ -35,23 +25,34 @@ import com.google.genkit.core.Plugin;
 import com.google.genkit.core.Registry;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.sql.DataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * PostgreSQL plugin for Genkit providing vector database functionality using
- * pgvector.
+ * PostgreSQL plugin for Genkit providing vector database functionality using pgvector.
  *
- * <p>
- * Example usage:
- * 
+ * <p>Example usage:
+ *
  * <pre>{@code
- * Genkit genkit = Genkit
- * 		.builder().plugin(
- * 				GoogleGenAIPlugin.create(apiKey))
- * 		.plugin(PostgresPlugin.builder().connectionString("jdbc:postgresql://localhost:5432/mydb").username("user")
- * 				.password("pass").addTable(PostgresTableConfig.builder().tableName("documents")
- * 						.embedderName("googleai/text-embedding-004").build())
- * 				.build())
- * 		.build();
+ * Genkit genkit = Genkit.builder()
+ *     .plugin(GoogleGenAIPlugin.create(apiKey))
+ *     .plugin(
+ *         PostgresPlugin.builder()
+ *             .connectionString("jdbc:postgresql://localhost:5432/mydb")
+ *             .username("user")
+ *             .password("pass")
+ *             .addTable(
+ *                 PostgresTableConfig.builder()
+ *                     .tableName("documents")
+ *                     .embedderName("googleai/text-embedding-004")
+ *                     .build())
+ *             .build())
+ *     .build();
  * }</pre>
  */
 public class PostgresPlugin implements Plugin {
@@ -78,9 +79,7 @@ public class PostgresPlugin implements Plugin {
     this.externalDataSource = builder.externalDataSource;
   }
 
-  /**
-   * Creates a new builder for PostgresPlugin.
-   */
+  /** Creates a new builder for PostgresPlugin. */
   public static Builder builder() {
     return new Builder();
   }
@@ -110,12 +109,15 @@ public class PostgresPlugin implements Plugin {
       Action<?, ?, ?> embedderAction = registry.lookupAction(embedderKey);
 
       if (embedderAction == null) {
-        throw new IllegalStateException("Embedder not found: " + tableConfig.getEmbedderName()
-            + ". Make sure the embedder plugin is registered before PostgresPlugin.");
+        throw new IllegalStateException(
+            "Embedder not found: "
+                + tableConfig.getEmbedderName()
+                + ". Make sure the embedder plugin is registered before PostgresPlugin.");
       }
 
       if (!(embedderAction instanceof Embedder)) {
-        throw new IllegalStateException("Action " + tableConfig.getEmbedderName() + " is not an Embedder");
+        throw new IllegalStateException(
+            "Action " + tableConfig.getEmbedderName() + " is not an Embedder");
       }
 
       Embedder embedder = (Embedder) embedderAction;
@@ -126,7 +128,8 @@ public class PostgresPlugin implements Plugin {
 
       // Create retriever action
       String retrieverName = PLUGIN_NAME + "/" + tableConfig.getTableName();
-      Retriever retriever = Retriever.builder().name(retrieverName).handler(vectorStore::retrieve).build();
+      Retriever retriever =
+          Retriever.builder().name(retrieverName).handler(vectorStore::retrieve).build();
       actions.add(retriever);
       logger.info("Registered PostgreSQL retriever: {}", retrieverName);
 
@@ -152,9 +155,10 @@ public class PostgresPlugin implements Plugin {
     }
 
     // Apply custom properties
-    hikariProperties.forEach((key, value) -> {
-      hikariConfig.addDataSourceProperty(key, value);
-    });
+    hikariProperties.forEach(
+        (key, value) -> {
+          hikariConfig.addDataSourceProperty(key, value);
+        });
 
     // Set sensible defaults
     if (!hikariProperties.containsKey("maximumPoolSize")) {
@@ -176,17 +180,14 @@ public class PostgresPlugin implements Plugin {
   /**
    * Gets a vector store by table name.
    *
-   * @param tableName
-   *            the table name
+   * @param tableName the table name
    * @return the vector store, or null if not found
    */
   public PostgresVectorStore getVectorStore(String tableName) {
     return vectorStores.get(tableName);
   }
 
-  /**
-   * Closes the plugin and releases resources.
-   */
+  /** Closes the plugin and releases resources. */
   public void close() {
     if (managedDataSource != null && !managedDataSource.isClosed()) {
       managedDataSource.close();
@@ -194,9 +195,7 @@ public class PostgresPlugin implements Plugin {
     }
   }
 
-  /**
-   * Builder for PostgresPlugin.
-   */
+  /** Builder for PostgresPlugin. */
   public static class Builder {
     private String connectionString;
     private String username;
@@ -206,36 +205,28 @@ public class PostgresPlugin implements Plugin {
     private DataSource externalDataSource;
 
     /**
-     * Sets the JDBC connection string (required unless externalDataSource is
-     * provided).
+     * Sets the JDBC connection string (required unless externalDataSource is provided).
      *
-     * <p>
-     * Example: "jdbc:postgresql://localhost:5432/mydb"
+     * <p>Example: "jdbc:postgresql://localhost:5432/mydb"
      */
     public Builder connectionString(String connectionString) {
       this.connectionString = connectionString;
       return this;
     }
 
-    /**
-     * Sets the database username.
-     */
+    /** Sets the database username. */
     public Builder username(String username) {
       this.username = username;
       return this;
     }
 
-    /**
-     * Sets the database password.
-     */
+    /** Sets the database password. */
     public Builder password(String password) {
       this.password = password;
       return this;
     }
 
-    /**
-     * Adds a table configuration.
-     */
+    /** Adds a table configuration. */
     public Builder addTable(PostgresTableConfig tableConfig) {
       this.tableConfigs.add(tableConfig);
       return this;
@@ -244,14 +235,14 @@ public class PostgresPlugin implements Plugin {
     /**
      * Sets a HikariCP connection pool property.
      *
-     * <p>
-     * Common properties:
+     * <p>Common properties:
+     *
      * <ul>
-     * <li>maximumPoolSize - maximum pool size (default: 10)</li>
-     * <li>minimumIdle - minimum idle connections (default: 2)</li>
-     * <li>connectionTimeout - connection timeout in ms (default: 30000)</li>
-     * <li>idleTimeout - idle connection timeout in ms</li>
-     * <li>maxLifetime - maximum connection lifetime in ms</li>
+     *   <li>maximumPoolSize - maximum pool size (default: 10)
+     *   <li>minimumIdle - minimum idle connections (default: 2)
+     *   <li>connectionTimeout - connection timeout in ms (default: 30000)
+     *   <li>idleTimeout - idle connection timeout in ms
+     *   <li>maxLifetime - maximum connection lifetime in ms
      * </ul>
      */
     public Builder hikariProperty(String key, Object value) {
@@ -262,9 +253,8 @@ public class PostgresPlugin implements Plugin {
     /**
      * Sets an external DataSource to use instead of creating one.
      *
-     * <p>
-     * This is useful when you want to manage the connection pool yourself or use a
-     * different connection pool implementation.
+     * <p>This is useful when you want to manage the connection pool yourself or use a different
+     * connection pool implementation.
      */
     public Builder dataSource(DataSource dataSource) {
       this.externalDataSource = dataSource;
@@ -274,24 +264,22 @@ public class PostgresPlugin implements Plugin {
     /**
      * Creates a builder configured for a local PostgreSQL instance.
      *
-     * @param database
-     *            the database name
-     * @param username
-     *            the username
-     * @param password
-     *            the password
+     * @param database the database name
+     * @param username the username
+     * @param password the password
      * @return a pre-configured builder
      */
     public static Builder local(String database, String username, String password) {
-      return new Builder().connectionString("jdbc:postgresql://localhost:5432/" + database).username(username)
+      return new Builder()
+          .connectionString("jdbc:postgresql://localhost:5432/" + database)
+          .username(username)
           .password(password);
     }
 
     /**
      * Builds the PostgresPlugin.
      *
-     * @throws IllegalStateException
-     *             if required configuration is missing
+     * @throws IllegalStateException if required configuration is missing
      */
     public PostgresPlugin build() {
       if (externalDataSource == null) {

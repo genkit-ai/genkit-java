@@ -21,21 +21,17 @@ package com.google.genkit.ai.session;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.google.genkit.core.Registry;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.google.genkit.core.Registry;
-
-/**
- * Unit tests for SessionContext.
- */
+/** Unit tests for SessionContext. */
 class SessionContextTest {
 
   private Registry mockRegistry;
@@ -55,16 +51,19 @@ class SessionContextTest {
     SessionContext.clearSession();
   }
 
-  /**
-   * Helper to create a test session.
-   */
+  /** Helper to create a test session. */
   private Session<String> createTestSession(String id) {
     SessionData<String> sessionData = new SessionData<>(id, "test-state");
-    return new Session<String>(mockRegistry, store, sessionData, () -> null, // We don't need actual chat for
+    return new Session<String>(
+        mockRegistry,
+        store,
+        sessionData,
+        () -> null, // We don't need actual
+        // chat for
         // context
         // tests
         null // No agent registry needed for these tests
-    );
+        );
   }
 
   @Test
@@ -101,10 +100,13 @@ class SessionContextTest {
 
     AtomicReference<Session<?>> capturedSession = new AtomicReference<>();
 
-    String result = SessionContext.runWithSession(session, () -> {
-      capturedSession.set(SessionContext.currentSession());
-      return "test-result";
-    });
+    String result =
+        SessionContext.runWithSession(
+            session,
+            () -> {
+              capturedSession.set(SessionContext.currentSession());
+              return "test-result";
+            });
 
     assertEquals("test-result", result);
     assertSame(session, capturedSession.get());
@@ -119,10 +121,13 @@ class SessionContextTest {
 
     SessionContext.setSession(outerSession);
 
-    String result = SessionContext.runWithSession(innerSession, () -> {
-      assertSame(innerSession, SessionContext.currentSession());
-      return "done";
-    });
+    String result =
+        SessionContext.runWithSession(
+            innerSession,
+            () -> {
+              assertSame(innerSession, SessionContext.currentSession());
+              return "done";
+            });
 
     // Outer session should be restored
     assertSame(outerSession, SessionContext.currentSession());
@@ -134,11 +139,15 @@ class SessionContextTest {
   void testRunWithSessionHandlesException() {
     Session<String> session = createTestSession("error-session");
 
-    assertThrows(RuntimeException.class, () -> {
-      SessionContext.runWithSession(session, () -> {
-        throw new RuntimeException("Test exception");
-      });
-    });
+    assertThrows(
+        RuntimeException.class,
+        () -> {
+          SessionContext.runWithSession(
+              session,
+              () -> {
+                throw new RuntimeException("Test exception");
+              });
+        });
 
     // Session should be cleared even after exception
     assertFalse(SessionContext.hasSession());
@@ -155,27 +164,29 @@ class SessionContextTest {
 
     ExecutorService executor = Executors.newFixedThreadPool(2);
 
-    executor.submit(() -> {
-      SessionContext.setSession(session1);
-      try {
-        Thread.sleep(50); // Allow time for overlap
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-      }
-      thread1SessionId.set(SessionContext.<String>currentSession().getId());
-      latch.countDown();
-    });
+    executor.submit(
+        () -> {
+          SessionContext.setSession(session1);
+          try {
+            Thread.sleep(50); // Allow time for overlap
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+          }
+          thread1SessionId.set(SessionContext.<String>currentSession().getId());
+          latch.countDown();
+        });
 
-    executor.submit(() -> {
-      SessionContext.setSession(session2);
-      try {
-        Thread.sleep(50); // Allow time for overlap
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-      }
-      thread2SessionId.set(SessionContext.<String>currentSession().getId());
-      latch.countDown();
-    });
+    executor.submit(
+        () -> {
+          SessionContext.setSession(session2);
+          try {
+            Thread.sleep(50); // Allow time for overlap
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+          }
+          thread2SessionId.set(SessionContext.<String>currentSession().getId());
+          latch.countDown();
+        });
 
     assertTrue(latch.await(1, TimeUnit.SECONDS));
     executor.shutdown();
@@ -207,23 +218,29 @@ class SessionContextTest {
     AtomicReference<String> level3 = new AtomicReference<>();
     AtomicReference<String> afterLevel2 = new AtomicReference<>();
 
-    SessionContext.runWithSession(session1, () -> {
-      level1.set(SessionContext.<String>currentSession().getId());
+    SessionContext.runWithSession(
+        session1,
+        () -> {
+          level1.set(SessionContext.<String>currentSession().getId());
 
-      SessionContext.runWithSession(session2, () -> {
-        level2.set(SessionContext.<String>currentSession().getId());
+          SessionContext.runWithSession(
+              session2,
+              () -> {
+                level2.set(SessionContext.<String>currentSession().getId());
 
-        SessionContext.runWithSession(session3, () -> {
-          level3.set(SessionContext.<String>currentSession().getId());
+                SessionContext.runWithSession(
+                    session3,
+                    () -> {
+                      level3.set(SessionContext.<String>currentSession().getId());
+                      return null;
+                    });
+
+                afterLevel2.set(SessionContext.<String>currentSession().getId());
+                return null;
+              });
+
           return null;
         });
-
-        afterLevel2.set(SessionContext.<String>currentSession().getId());
-        return null;
-      });
-
-      return null;
-    });
 
     assertEquals("session-1", level1.get());
     assertEquals("session-2", level2.get());
@@ -233,10 +250,13 @@ class SessionContextTest {
 
   @Test
   void testRunWithSessionWithNullSession() throws Exception {
-    String result = SessionContext.runWithSession(null, () -> {
-      assertFalse(SessionContext.hasSession());
-      return "result";
-    });
+    String result =
+        SessionContext.runWithSession(
+            null,
+            () -> {
+              assertFalse(SessionContext.hasSession());
+              return "result";
+            });
 
     assertEquals("result", result);
   }

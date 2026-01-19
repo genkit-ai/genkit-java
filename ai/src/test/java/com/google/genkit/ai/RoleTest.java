@@ -24,9 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-/**
- * Unit tests for Role.
- */
+/** Unit tests for Role. */
 class RoleTest {
 
   @Test
@@ -133,7 +131,9 @@ class RoleTest {
     Role[] roles = Role.values();
     for (int i = 0; i < roles.length; i++) {
       for (int j = i + 1; j < roles.length; j++) {
-        assertNotEquals(roles[i].getValue(), roles[j].getValue(),
+        assertNotEquals(
+            roles[i].getValue(),
+            roles[j].getValue(),
             String.format("Roles %s and %s have same value", roles[i].name(), roles[j].name()));
       }
     }

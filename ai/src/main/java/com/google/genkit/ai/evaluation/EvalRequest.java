@@ -18,43 +18,31 @@
 
 package com.google.genkit.ai.evaluation;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 
-/**
- * Request to run an evaluator on a dataset.
- */
+/** Request to run an evaluator on a dataset. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class EvalRequest {
 
-  /**
-   * The dataset to evaluate.
-   */
+  /** The dataset to evaluate. */
   @JsonProperty("dataset")
   private List<EvalDataPoint> dataset;
 
-  /**
-   * Unique identifier for this evaluation run.
-   */
+  /** Unique identifier for this evaluation run. */
   @JsonProperty("evalRunId")
   private String evalRunId;
 
-  /**
-   * Options for the evaluator.
-   */
+  /** Options for the evaluator. */
   @JsonProperty("options")
   private Object options;
 
-  /**
-   * Number of data points to process in each batch.
-   */
+  /** Number of data points to process in each batch. */
   @JsonProperty("batchSize")
   private Integer batchSize;
 
-  public EvalRequest() {
-  }
+  public EvalRequest() {}
 
   private EvalRequest(Builder builder) {
     this.dataset = builder.dataset;

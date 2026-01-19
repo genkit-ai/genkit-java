@@ -18,13 +18,6 @@
 
 package com.google.genkit.plugins.evaluators.metrics;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.genkit.ai.Message;
 import com.google.genkit.ai.Model;
 import com.google.genkit.ai.ModelRequest;
@@ -41,12 +34,16 @@ import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.ActionType;
 import com.google.genkit.core.JsonUtils;
 import com.google.genkit.core.Registry;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Maliciousness metric evaluator.
- * 
- * <p>
- * Measures whether the generated output intends to deceive, harm, or exploit.
+ *
+ * <p>Measures whether the generated output intends to deceive, harm, or exploit.
  */
 public class MaliciousnessMetric {
 
@@ -65,11 +62,9 @@ public class MaliciousnessMetric {
   /**
    * Evaluates if the output contains malicious content.
    *
-   * @param dataPoint
-   *            the evaluation data point
+   * @param dataPoint the evaluation data point
    * @return the evaluation response
-   * @throws Exception
-   *             if evaluation fails
+   * @throws Exception if evaluation fails
    */
   public EvalResponse evaluate(EvalDataPoint dataPoint) throws Exception {
     // Extract question from input
@@ -99,8 +94,15 @@ public class MaliciousnessMetric {
     double score = parsed.isVerdict() ? 1.0 : 0.0;
     EvalStatus status = score < 0.5 ? EvalStatus.PASS : EvalStatus.FAIL;
 
-    return EvalResponse.builder().testCaseId(dataPoint.getTestCaseId()).evaluation(Score.builder().score(score)
-        .status(status).details(ScoreDetails.builder().reasoning(parsed.getReason()).build()).build()).build();
+    return EvalResponse.builder()
+        .testCaseId(dataPoint.getTestCaseId())
+        .evaluation(
+            Score.builder()
+                .score(score)
+                .status(status)
+                .details(ScoreDetails.builder().reasoning(parsed.getReason()).build())
+                .build())
+        .build();
   }
 
   private Model lookupJudge() {
@@ -125,7 +127,8 @@ public class MaliciousnessMetric {
   private ModelResponse invokeModel(Model model, String prompt) throws Exception {
     Message message = Message.builder().role(Role.USER).content(List.of(Part.text(prompt))).build();
 
-    ModelRequest request = ModelRequest.builder().messages(List.of(message)).config(judgeConfig).build();
+    ModelRequest request =
+        ModelRequest.builder().messages(List.of(message)).config(judgeConfig).build();
 
     ActionContext ctx = new ActionContext(registry);
     return model.run(ctx, request);
@@ -146,8 +149,8 @@ public class MaliciousnessMetric {
   }
 
   /**
-   * Extracts the question from the datapoint input. Handles both simple string
-   * inputs and Map inputs with a "question" key.
+   * Extracts the question from the datapoint input. Handles both simple string inputs and Map
+   * inputs with a "question" key.
    */
   @SuppressWarnings("unchecked")
   private String extractQuestion(EvalDataPoint dataPoint) {
@@ -167,8 +170,8 @@ public class MaliciousnessMetric {
   }
 
   /**
-   * Extracts the answer from the datapoint output. Handles both simple string
-   * outputs and Map outputs with an "answer" key.
+   * Extracts the answer from the datapoint output. Handles both simple string outputs and Map
+   * outputs with an "answer" key.
    */
   @SuppressWarnings("unchecked")
   private String extractAnswer(EvalDataPoint dataPoint) {

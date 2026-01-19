@@ -18,14 +18,11 @@
 
 package com.google.genkit.ai;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Map;
 
-/**
- * Candidate represents a single model response candidate.
- */
+/** Candidate represents a single model response candidate. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Candidate {
 
@@ -44,17 +41,13 @@ public class Candidate {
   @JsonProperty("custom")
   private Map<String, Object> custom;
 
-  /**
-   * Default constructor.
-   */
-  public Candidate() {
-  }
+  /** Default constructor. */
+  public Candidate() {}
 
   /**
    * Creates a Candidate with a message.
    *
-   * @param message
-   *            the candidate message
+   * @param message the candidate message
    */
   public Candidate(Message message) {
     this.message = message;
@@ -63,10 +56,8 @@ public class Candidate {
   /**
    * Creates a Candidate with message and finish reason.
    *
-   * @param message
-   *            the candidate message
-   * @param finishReason
-   *            the finish reason
+   * @param message the candidate message
+   * @param finishReason the finish reason
    */
   public Candidate(Message message, FinishReason finishReason) {
     this.message = message;

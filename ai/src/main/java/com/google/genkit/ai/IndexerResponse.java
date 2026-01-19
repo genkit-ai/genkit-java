@@ -20,15 +20,10 @@ package com.google.genkit.ai;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-/**
- * Response from an indexer operation.
- */
+/** Response from an indexer operation. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class IndexerResponse {
 
-  /**
-   * Default constructor.
-   */
-  public IndexerResponse() {
-  }
+  /** Default constructor. */
+  public IndexerResponse() {}
 }

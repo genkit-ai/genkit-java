@@ -18,15 +18,12 @@
 
 package com.google.genkit.ai;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-/**
- * Request to index documents into a vector store.
- */
+/** Request to index documents into a vector store. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class IndexerRequest {
 
@@ -36,9 +33,7 @@ public class IndexerRequest {
   @JsonProperty("options")
   private Object options;
 
-  /**
-   * Default constructor.
-   */
+  /** Default constructor. */
   public IndexerRequest() {
     this.documents = new ArrayList<>();
   }
@@ -46,8 +41,7 @@ public class IndexerRequest {
   /**
    * Creates a request with documents.
    *
-   * @param documents
-   *            the documents to index
+   * @param documents the documents to index
    */
   public IndexerRequest(List<Document> documents) {
     this.documents = documents != null ? documents : new ArrayList<>();
@@ -56,10 +50,8 @@ public class IndexerRequest {
   /**
    * Creates a request with documents and options.
    *
-   * @param documents
-   *            the documents to index
-   * @param options
-   *            the indexing options
+   * @param documents the documents to index
+   * @param options the indexing options
    */
   public IndexerRequest(List<Document> documents, Object options) {
     this.documents = documents != null ? documents : new ArrayList<>();
@@ -78,8 +70,7 @@ public class IndexerRequest {
   /**
    * Sets the documents to index.
    *
-   * @param documents
-   *            the documents
+   * @param documents the documents
    */
   public void setDocuments(List<Document> documents) {
     this.documents = documents;
@@ -97,8 +88,7 @@ public class IndexerRequest {
   /**
    * Sets the indexing options.
    *
-   * @param options
-   *            the options
+   * @param options the options
    */
   public void setOptions(Object options) {
     this.options = options;

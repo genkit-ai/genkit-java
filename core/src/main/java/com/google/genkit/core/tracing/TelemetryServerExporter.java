@@ -18,17 +18,6 @@
 
 package com.google.genkit.core.tracing;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.common.CompletableResultCode;
@@ -36,10 +25,19 @@ import io.opentelemetry.sdk.trace.SpanProcessor;
 import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.LinkData;
 import io.opentelemetry.sdk.trace.data.SpanData;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * OpenTelemetry SpanProcessor that exports spans to the Genkit telemetry
- * server. This enables traces to be visible in the Genkit Developer UI.
+ * OpenTelemetry SpanProcessor that exports spans to the Genkit telemetry server. This enables
+ * traces to be visible in the Genkit Developer UI.
  */
 public class TelemetryServerExporter implements SpanProcessor {
 
@@ -52,26 +50,20 @@ public class TelemetryServerExporter implements SpanProcessor {
   // Buffer spans by trace ID to send complete traces
   private final Map<String, TraceData> traceBuffer = new ConcurrentHashMap<>();
 
-  /**
-   * Creates a new TelemetryServerExporter.
-   */
-  public TelemetryServerExporter() {
-  }
+  /** Creates a new TelemetryServerExporter. */
+  public TelemetryServerExporter() {}
 
   /**
    * Sets the telemetry client to use for exporting traces.
    *
-   * @param client
-   *            the telemetry client
+   * @param client the telemetry client
    */
   public void setClient(TelemetryClient client) {
     this.clientRef.set(client);
     logger.debug("Telemetry client configured");
   }
 
-  /**
-   * Returns true if the exporter is configured with a client.
-   */
+  /** Returns true if the exporter is configured with a client. */
   public boolean isConfigured() {
     return clientRef.get() != null;
   }
@@ -108,7 +100,9 @@ public class TelemetryServerExporter implements SpanProcessor {
 
       // If this is a root span (no parent), set trace-level info and export
       String parentSpanId = otelSpanData.getParentSpanId();
-      if (parentSpanId == null || parentSpanId.isEmpty() || "0000000000000000".equals(parentSpanId)) {
+      if (parentSpanId == null
+          || parentSpanId.isEmpty()
+          || "0000000000000000".equals(parentSpanId)) {
         traceData.setDisplayName(otelSpanData.getName());
         traceData.setStartTime(toMillis(otelSpanData.getStartEpochNanos()));
         traceData.setEndTime(toMillis(otelSpanData.getEndEpochNanos()));
@@ -189,15 +183,20 @@ public class TelemetryServerExporter implements SpanProcessor {
     span.setSpanKind(otelSpan.getKind().name());
 
     String parentSpanId = otelSpan.getParentSpanId();
-    if (parentSpanId != null && !parentSpanId.isEmpty() && !"0000000000000000".equals(parentSpanId)) {
+    if (parentSpanId != null
+        && !parentSpanId.isEmpty()
+        && !"0000000000000000".equals(parentSpanId)) {
       span.setParentSpanId(parentSpanId);
     }
 
     // Convert attributes
     Map<String, Object> attributes = new HashMap<>();
-    otelSpan.getAttributes().forEach((key, value) -> {
-      attributes.put(key.getKey(), value);
-    });
+    otelSpan
+        .getAttributes()
+        .forEach(
+            (key, value) -> {
+              attributes.put(key.getKey(), value);
+            });
     span.setAttributes(attributes);
 
     // Convert status
@@ -231,9 +230,12 @@ public class TelemetryServerExporter implements SpanProcessor {
         annotation.setDescription(event.getName());
 
         Map<String, Object> eventAttrs = new HashMap<>();
-        event.getAttributes().forEach((key, value) -> {
-          eventAttrs.put(key.getKey(), value);
-        });
+        event
+            .getAttributes()
+            .forEach(
+                (key, value) -> {
+                  eventAttrs.put(key.getKey(), value);
+                });
         annotation.setAttributes(eventAttrs);
 
         timeEvent.setAnnotation(annotation);
@@ -259,9 +261,11 @@ public class TelemetryServerExporter implements SpanProcessor {
         l.setContext(ctx);
 
         Map<String, Object> linkAttrs = new HashMap<>();
-        link.getAttributes().forEach((key, value) -> {
-          linkAttrs.put(key.getKey(), value);
-        });
+        link.getAttributes()
+            .forEach(
+                (key, value) -> {
+                  linkAttrs.put(key.getKey(), value);
+                });
         l.setAttributes(linkAttrs);
         l.setDroppedAttributesCount(link.getTotalAttributeCount() - link.getAttributes().size());
 
@@ -271,19 +275,20 @@ public class TelemetryServerExporter implements SpanProcessor {
     }
 
     // Set sameProcessAsParentSpan
-    span.setSameProcessAsParentSpan(new GenkitSpanData.BoolValue(!otelSpan.getSpanContext().isRemote()));
+    span.setSameProcessAsParentSpan(
+        new GenkitSpanData.BoolValue(!otelSpan.getSpanContext().isRemote()));
 
     return span;
   }
 
   private int convertStatusCode(StatusCode statusCode) {
     switch (statusCode) {
-      case OK :
+      case OK:
         return 0;
-      case ERROR :
+      case ERROR:
         return 2;
-      case UNSET :
-      default :
+      case UNSET:
+      default:
         return 0;
     }
   }

@@ -20,25 +20,19 @@ package com.google.genkit.plugins.localvec;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * Options for the local vector store retriever.
- */
+/** Options for the local vector store retriever. */
 public class RetrieverOptions {
 
   @JsonProperty("k")
   private int k = 3;
 
-  /**
-   * Default constructor.
-   */
-  public RetrieverOptions() {
-  }
+  /** Default constructor. */
+  public RetrieverOptions() {}
 
   /**
    * Creates options with specified k value.
    *
-   * @param k
-   *            the number of documents to retrieve
+   * @param k the number of documents to retrieve
    */
   public RetrieverOptions(int k) {
     this.k = k;
@@ -56,8 +50,7 @@ public class RetrieverOptions {
   /**
    * Sets the number of documents to retrieve.
    *
-   * @param k
-   *            the k value
+   * @param k the k value
    */
   public void setK(int k) {
     this.k = k;

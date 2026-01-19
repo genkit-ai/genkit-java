@@ -18,14 +18,6 @@
 
 package com.google.genkit.plugins.evaluators.metrics;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.genkit.ai.Message;
 import com.google.genkit.ai.Model;
 import com.google.genkit.ai.ModelRequest;
@@ -42,14 +34,19 @@ import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.ActionType;
 import com.google.genkit.core.JsonUtils;
 import com.google.genkit.core.Registry;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Faithfulness metric evaluator.
- * 
- * <p>
- * Measures the factual consistency of the generated answer against the given
- * context. Uses a two-step process: 1. Extract statements from the answer 2.
- * Check each statement against the context using NLI
+ *
+ * <p>Measures the factual consistency of the generated answer against the given context. Uses a
+ * two-step process: 1. Extract statements from the answer 2. Check each statement against the
+ * context using NLI
  */
 public class FaithfulnessMetric {
 
@@ -69,16 +66,17 @@ public class FaithfulnessMetric {
   /**
    * Evaluates faithfulness of the output against the context.
    *
-   * @param dataPoint
-   *            the evaluation data point
+   * @param dataPoint the evaluation data point
    * @return the evaluation response
-   * @throws Exception
-   *             if evaluation fails
+   * @throws Exception if evaluation fails
    */
   public EvalResponse evaluate(EvalDataPoint dataPoint) throws Exception {
     logger.debug(
         "FaithfulnessMetric.evaluate called with dataPoint: testCaseId={}, input={}, output={}, context={}",
-        dataPoint.getTestCaseId(), dataPoint.getInput(), dataPoint.getOutput(), dataPoint.getContext());
+        dataPoint.getTestCaseId(),
+        dataPoint.getInput(),
+        dataPoint.getOutput(),
+        dataPoint.getContext());
 
     // Extract question from input
     String question = extractQuestion(dataPoint);
@@ -90,27 +88,33 @@ public class FaithfulnessMetric {
     // Extract answer from output
     String answer = extractAnswer(dataPoint);
     if (answer == null || answer.isEmpty()) {
-      throw new IllegalArgumentException("Output was not provided. DataPoint output: " + dataPoint.getOutput()
-          + ", input: " + dataPoint.getInput());
+      throw new IllegalArgumentException(
+          "Output was not provided. DataPoint output: "
+              + dataPoint.getOutput()
+              + ", input: "
+              + dataPoint.getInput());
     }
 
     // Extract context - try multiple sources
     String context = extractContext(dataPoint);
     if (context == null || context.isEmpty()) {
-      throw new IllegalArgumentException("Context was not provided. Provide context in the input, "
-          + "output, or set it in the EvalDataPoint.context field.");
+      throw new IllegalArgumentException(
+          "Context was not provided. Provide context in the input, "
+              + "output, or set it in the EvalDataPoint.context field.");
     }
 
     // Step 1: Extract statements from the answer
     Map<String, String> longFormVars = new HashMap<>();
     longFormVars.put("question", question);
     longFormVars.put("answer", answer);
-    String longFormPrompt = PromptUtils.loadAndRender("faithfulness_long_form.prompt", longFormVars);
+    String longFormPrompt =
+        PromptUtils.loadAndRender("faithfulness_long_form.prompt", longFormVars);
 
     Model judge = lookupJudge();
     ModelResponse longFormResponse = invokeModel(judge, longFormPrompt);
 
-    LongFormResponse parsedLongForm = parseResponse(longFormResponse.getText(), LongFormResponse.class);
+    LongFormResponse parsedLongForm =
+        parseResponse(longFormResponse.getText(), LongFormResponse.class);
     List<String> statements = parsedLongForm.getStatements();
 
     if (statements == null || statements.isEmpty()) {
@@ -118,7 +122,8 @@ public class FaithfulnessMetric {
     }
 
     // Step 2: NLI check - verify each statement against context
-    String allStatements = statements.stream().map(s -> "statement: " + s).collect(Collectors.joining("\n"));
+    String allStatements =
+        statements.stream().map(s -> "statement: " + s).collect(Collectors.joining("\n"));
 
     Map<String, String> nliVars = new HashMap<>();
     nliVars.put("context", context);
@@ -142,11 +147,15 @@ public class FaithfulnessMetric {
     long faithfulCount = responses.stream().filter(NliResponseItem::isVerdict).count();
 
     double score = (double) faithfulCount / responses.size();
-    String reasoning = responses.stream().map(NliResponseItem::getReason).collect(Collectors.joining("; "));
+    String reasoning =
+        responses.stream().map(NliResponseItem::getReason).collect(Collectors.joining("; "));
 
     EvalStatus status = score > PASS_THRESHOLD ? EvalStatus.PASS : EvalStatus.FAIL;
 
-    return Score.builder().score(score).status(status).details(ScoreDetails.builder().reasoning(reasoning).build())
+    return Score.builder()
+        .score(score)
+        .status(status)
+        .details(ScoreDetails.builder().reasoning(reasoning).build())
         .build();
   }
 
@@ -172,7 +181,8 @@ public class FaithfulnessMetric {
   private ModelResponse invokeModel(Model model, String prompt) throws Exception {
     Message message = Message.builder().role(Role.USER).content(List.of(Part.text(prompt))).build();
 
-    ModelRequest request = ModelRequest.builder().messages(List.of(message)).config(judgeConfig).build();
+    ModelRequest request =
+        ModelRequest.builder().messages(List.of(message)).config(judgeConfig).build();
 
     ActionContext ctx = new ActionContext(registry);
     return model.run(ctx, request);
@@ -201,8 +211,8 @@ public class FaithfulnessMetric {
   }
 
   /**
-   * Extracts the question from the datapoint input. Handles both simple string
-   * inputs and Map inputs with a "question" key.
+   * Extracts the question from the datapoint input. Handles both simple string inputs and Map
+   * inputs with a "question" key.
    */
   @SuppressWarnings("unchecked")
   private String extractQuestion(EvalDataPoint dataPoint) {
@@ -223,8 +233,8 @@ public class FaithfulnessMetric {
   }
 
   /**
-   * Extracts the answer from the datapoint output. Handles both simple string
-   * outputs and Map outputs with an "answer" key.
+   * Extracts the answer from the datapoint output. Handles both simple string outputs and Map
+   * outputs with an "answer" key.
    */
   @SuppressWarnings("unchecked")
   private String extractAnswer(EvalDataPoint dataPoint) {
@@ -245,14 +255,16 @@ public class FaithfulnessMetric {
   }
 
   /**
-   * Extracts context from multiple possible sources: 1. EvalDataPoint.context
-   * field (list) 2. Input map with "context" key 3. Output map with "context" key
+   * Extracts context from multiple possible sources: 1. EvalDataPoint.context field (list) 2. Input
+   * map with "context" key 3. Output map with "context" key
    */
   @SuppressWarnings("unchecked")
   private String extractContext(EvalDataPoint dataPoint) {
     // First, check the context field directly
     if (dataPoint.getContext() != null && !dataPoint.getContext().isEmpty()) {
-      return dataPoint.getContext().stream().map(PromptUtils::stringify).collect(Collectors.joining("\n"));
+      return dataPoint.getContext().stream()
+          .map(PromptUtils::stringify)
+          .collect(Collectors.joining("\n"));
     }
 
     // Check if input is a Map with a "context" key

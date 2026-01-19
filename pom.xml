@@ -139,7 +139,8 @@
         <jsonschema.version>4.38.0</jsonschema.version>
         <handlebars.version>4.5.0</handlebars.version>
         <okhttp.version>5.3.2</okhttp.version>
-        <spotless.version>3.1.0</spotless.version>
+        <fmt.version>2.27</fmt.version>
+        <google-java-format.version>1.27.0</google-java-format.version>
         <checkstyle.version>13.0.0</checkstyle.version>
     </properties>
 
@@ -391,26 +392,25 @@
                         </execution>
                     </executions>
                 </plugin>
-                <!-- Spotless for code formatting (Eclipse JDT) -->
+                <!-- fmt-maven-plugin for code formatting (google-java-format) -->
                 <plugin>
-                    <groupId>com.diffplug.spotless</groupId>
-                    <artifactId>spotless-maven-plugin</artifactId>
-                    <version>${spotless.version}</version>
-                    <configuration>
-                        <java>
-                            <eclipse>
-                                <version>4.29</version>
-                            </eclipse>
-                            <indent>
-                                <spaces>true</spaces>
-                                <spacesPerTab>2</spacesPerTab>
-                            </indent>
-                            <removeUnusedImports/>
-                            <importOrder>
-                                <order>java,javax,org,com,</order>
-                            </importOrder>
-                        </java>
-                    </configuration>
+                    <groupId>com.spotify.fmt</groupId>
+                    <artifactId>fmt-maven-plugin</artifactId>
+                    <version>${fmt.version}</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.google.googlejavaformat</groupId>
+                            <artifactId>google-java-format</artifactId>
+                            <version>${google-java-format.version}</version>
+                        </dependency>
+                    </dependencies>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>format</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                 </plugin>
                 <!-- Checkstyle for code quality -->
                 <plugin>
@@ -438,6 +438,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>com.spotify.fmt</groupId>
+                <artifactId>fmt-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

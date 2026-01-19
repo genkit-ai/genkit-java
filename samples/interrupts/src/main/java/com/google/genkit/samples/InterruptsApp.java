@@ -18,11 +18,6 @@
 
 package com.google.genkit.samples;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
-
 import com.google.genkit.Genkit;
 import com.google.genkit.GenkitOptions;
 import com.google.genkit.ai.GenerateOptions;
@@ -40,24 +35,27 @@ import com.google.genkit.ai.session.Session;
 import com.google.genkit.ai.session.SessionOptions;
 import com.google.genkit.plugins.openai.OpenAIPlugin;
 import com.google.genkit.prompt.ExecutablePrompt;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
 
 /**
  * Human-in-the-Loop Application using Interrupts.
  *
- * <p>
- * This sample demonstrates the interrupt pattern for human-in-the-loop
- * scenarios:
+ * <p>This sample demonstrates the interrupt pattern for human-in-the-loop scenarios:
+ *
  * <ul>
- * <li>Tools that pause execution to request user confirmation</li>
- * <li>Handling interrupt requests and resuming with user input</li>
- * <li>Sensitive operations that require explicit approval</li>
+ *   <li>Tools that pause execution to request user confirmation
+ *   <li>Handling interrupt requests and resuming with user input
+ *   <li>Sensitive operations that require explicit approval
  * </ul>
  *
- * <p>
- * To run:
+ * <p>To run:
+ *
  * <ol>
- * <li>Set the OPENAI_API_KEY environment variable</li>
- * <li>Run: mvn exec:java -pl samples/interrupts</li>
+ *   <li>Set the OPENAI_API_KEY environment variable
+ *   <li>Run: mvn exec:java -pl samples/interrupts
  * </ol>
  */
 public class InterruptsApp {
@@ -68,24 +66,28 @@ public class InterruptsApp {
     private String details;
     private double amount;
 
-    public ConfirmationInput() {
-    }
+    public ConfirmationInput() {}
 
     public String getAction() {
       return action;
     }
+
     public void setAction(String action) {
       this.action = action;
     }
+
     public String getDetails() {
       return details;
     }
+
     public void setDetails(String details) {
       this.details = details;
     }
+
     public double getAmount() {
       return amount;
     }
+
     public void setAmount(double amount) {
       this.amount = amount;
     }
@@ -97,24 +99,28 @@ public class InterruptsApp {
     private double amount;
     private String reason;
 
-    public TransferRequest() {
-    }
+    public TransferRequest() {}
 
     public String getRecipient() {
       return recipient;
     }
+
     public void setRecipient(String recipient) {
       this.recipient = recipient;
     }
+
     public double getAmount() {
       return amount;
     }
+
     public void setAmount(double amount) {
       this.amount = amount;
     }
+
     public String getReason() {
       return reason;
     }
+
     public void setReason(String reason) {
       this.reason = reason;
     }
@@ -125,8 +131,8 @@ public class InterruptsApp {
     private boolean confirmed;
     private String reason;
 
-    public ConfirmationOutput() {
-    }
+    public ConfirmationOutput() {}
+
     public ConfirmationOutput(boolean confirmed, String reason) {
       this.confirmed = confirmed;
       this.reason = reason;
@@ -135,12 +141,15 @@ public class InterruptsApp {
     public boolean isConfirmed() {
       return confirmed;
     }
+
     public void setConfirmed(boolean confirmed) {
       this.confirmed = confirmed;
     }
+
     public String getReason() {
       return reason;
     }
+
     public void setReason(String reason) {
       this.reason = reason;
     }
@@ -160,6 +169,7 @@ public class InterruptsApp {
     public String getAccountId() {
       return accountId;
     }
+
     public double getBalance() {
       return balance;
     }
@@ -175,8 +185,8 @@ public class InterruptsApp {
 
     @Override
     public String toString() {
-      return String.format("Account: %s, Balance: $%.2f, Transactions: %d", accountId, balance,
-          transactions.size());
+      return String.format(
+          "Account: %s, Balance: $%.2f, Transactions: %d", accountId, balance, transactions.size());
     }
   }
 
@@ -184,8 +194,7 @@ public class InterruptsApp {
   public static class BankingInput {
     private String request;
 
-    public BankingInput() {
-    }
+    public BankingInput() {}
 
     public BankingInput(String request) {
       this.request = request;
@@ -210,8 +219,11 @@ public class InterruptsApp {
   private Tool<?, ?> confirmTransferTool;
 
   public InterruptsApp() {
-    this.genkit = Genkit.builder().options(GenkitOptions.builder().devMode(true).reflectionPort(3102).build())
-        .plugin(OpenAIPlugin.create()).build();
+    this.genkit =
+        Genkit.builder()
+            .options(GenkitOptions.builder().devMode(true).reflectionPort(3102).build())
+            .plugin(OpenAIPlugin.create())
+            .build();
 
     this.sessionStore = new InMemorySessionStore<>();
     this.scanner = new Scanner(System.in);
@@ -222,66 +234,121 @@ public class InterruptsApp {
   @SuppressWarnings("unchecked")
   private void initializeTools() {
     // Get Balance Tool - no confirmation needed
-    getBalanceTool = genkit.defineTool("getBalance", "Gets the current account balance",
-        Map.of("type", "object", "properties", Map.of()), (Class<Map<String, Object>>) (Class<?>) Map.class,
-        (ctx, input) -> {
-          // In a real app, we'd get this from session context
-          return Map.of("balance", 5000.00, "currency", "USD");
-        });
+    getBalanceTool =
+        genkit.defineTool(
+            "getBalance",
+            "Gets the current account balance",
+            Map.of("type", "object", "properties", Map.of()),
+            (Class<Map<String, Object>>) (Class<?>) Map.class,
+            (ctx, input) -> {
+              // In a real app, we'd get this from session context
+              return Map.of("balance", 5000.00, "currency", "USD");
+            });
 
     // Use defineInterrupt to create an interrupt tool that pauses for confirmation.
     // This is the preferred way to create interrupt tools - it automatically
     // handles
     // throwing ToolInterruptException with the proper metadata.
-    confirmTransferTool = genkit
-        .defineInterrupt(InterruptConfig.<TransferRequest, ConfirmationOutput>builder().name("confirmTransfer")
-            .description("Request user confirmation before executing a money transfer. "
-                + "ALWAYS use this tool before transferring money.")
-            .inputType(TransferRequest.class).outputType(ConfirmationOutput.class)
-            .inputSchema(Map.of("type", "object", "properties",
-                Map.of("recipient", Map.of("type", "string", "description", "Who to transfer to"),
-                    "amount", Map.of("type", "number", "description", "Amount to transfer"),
-                    "reason", Map.of("type", "string", "description", "Reason for transfer")),
-                "required", new String[]{"recipient", "amount"}))
-            // requestMetadata extracts info from input for the interrupt request
-            .requestMetadata(input -> Map.of("type", "transfer_confirmation", "recipient",
-                input.getRecipient(), "amount", input.getAmount(), "reason",
-                input.getReason() != null ? input.getReason() : ""))
-            .build());
+    confirmTransferTool =
+        genkit.defineInterrupt(
+            InterruptConfig.<TransferRequest, ConfirmationOutput>builder()
+                .name("confirmTransfer")
+                .description(
+                    "Request user confirmation before executing a money transfer. "
+                        + "ALWAYS use this tool before transferring money.")
+                .inputType(TransferRequest.class)
+                .outputType(ConfirmationOutput.class)
+                .inputSchema(
+                    Map.of(
+                        "type",
+                        "object",
+                        "properties",
+                        Map.of(
+                            "recipient",
+                            Map.of("type", "string", "description", "Who to transfer to"),
+                            "amount",
+                            Map.of("type", "number", "description", "Amount to transfer"),
+                            "reason",
+                            Map.of("type", "string", "description", "Reason for transfer")),
+                        "required",
+                        new String[] {"recipient", "amount"}))
+                // requestMetadata extracts info from input for the interrupt request
+                .requestMetadata(
+                    input ->
+                        Map.of(
+                            "type",
+                            "transfer_confirmation",
+                            "recipient",
+                            input.getRecipient(),
+                            "amount",
+                            input.getAmount(),
+                            "reason",
+                            input.getReason() != null ? input.getReason() : ""))
+                .build());
 
     // Transfer Money Tool - executes after confirmation
-    transferMoneyTool = genkit.defineTool("executeTransfer",
-        "Executes a confirmed money transfer. Only call this after confirmation.",
-        Map.of("type", "object", "properties",
-            Map.of("recipient", Map.of("type", "string", "description", "Transfer recipient"), "amount",
-                Map.of("type", "number", "description", "Amount to transfer"), "confirmationCode",
-                Map.of("type", "string", "description", "Confirmation code from user")),
-            "required", new String[]{"recipient", "amount", "confirmationCode"}),
-        (Class<Map<String, Object>>) (Class<?>) Map.class, (ctx, input) -> {
-          String recipient = (String) input.get("recipient");
-          double amount = ((Number) input.get("amount")).doubleValue();
-          String transactionId = "TXN-" + System.currentTimeMillis() % 100000;
+    transferMoneyTool =
+        genkit.defineTool(
+            "executeTransfer",
+            "Executes a confirmed money transfer. Only call this after confirmation.",
+            Map.of(
+                "type",
+                "object",
+                "properties",
+                Map.of(
+                    "recipient",
+                    Map.of("type", "string", "description", "Transfer recipient"),
+                    "amount",
+                    Map.of("type", "number", "description", "Amount to transfer"),
+                    "confirmationCode",
+                    Map.of("type", "string", "description", "Confirmation code from user")),
+                "required",
+                new String[] {"recipient", "amount", "confirmationCode"}),
+            (Class<Map<String, Object>>) (Class<?>) Map.class,
+            (ctx, input) -> {
+              String recipient = (String) input.get("recipient");
+              double amount = ((Number) input.get("amount")).doubleValue();
+              String transactionId = "TXN-" + System.currentTimeMillis() % 100000;
 
-          return Map.of("status", "success", "transactionId", transactionId, "recipient", recipient, "amount",
-              amount, "message", String.format("Successfully transferred $%.2f to %s. Transaction ID: %s",
-                  amount, recipient, transactionId));
-        });
+              return Map.of(
+                  "status",
+                  "success",
+                  "transactionId",
+                  transactionId,
+                  "recipient",
+                  recipient,
+                  "amount",
+                  amount,
+                  "message",
+                  String.format(
+                      "Successfully transferred $%.2f to %s. Transaction ID: %s",
+                      amount, recipient, transactionId));
+            });
   }
 
   /** Creates a chat session. */
   @SuppressWarnings("unchecked")
   public Chat<AccountState> createChat() {
-    Session<AccountState> session = genkit.createSession(
-        SessionOptions.<AccountState>builder().store(sessionStore).initialState(new AccountState()).build());
+    Session<AccountState> session =
+        genkit.createSession(
+            SessionOptions.<AccountState>builder()
+                .store(sessionStore)
+                .initialState(new AccountState())
+                .build());
 
-    String systemPrompt = "You are a helpful banking assistant for SecureBank. "
-        + "You can help customers check their balance and transfer money. "
-        + "IMPORTANT: For any money transfer, you MUST first use the confirmTransfer tool "
-        + "to get user confirmation. Never execute a transfer without confirmation. "
-        + "After the user confirms, use the executeTransfer tool with their confirmation code.";
+    String systemPrompt =
+        "You are a helpful banking assistant for SecureBank. "
+            + "You can help customers check their balance and transfer money. "
+            + "IMPORTANT: For any money transfer, you MUST first use the confirmTransfer tool "
+            + "to get user confirmation. Never execute a transfer without confirmation. "
+            + "After the user confirms, use the executeTransfer tool with their confirmation code.";
 
-    return session.chat(ChatOptions.<AccountState>builder().model("openai/gpt-4o-mini").system(systemPrompt)
-        .tools(List.of(getBalanceTool, confirmTransferTool, transferMoneyTool)).build());
+    return session.chat(
+        ChatOptions.<AccountState>builder()
+            .model("openai/gpt-4o-mini")
+            .system(systemPrompt)
+            .tools(List.of(getBalanceTool, confirmTransferTool, transferMoneyTool))
+            .build());
   }
 
   /** Handles an interrupt by prompting the user. */
@@ -291,7 +358,8 @@ public class InterruptsApp {
     System.out.println("\n╔═══════════════════════════════════════════════════════════╗");
     System.out.println("║           ⚠️  CONFIRMATION REQUIRED ⚠️                      ║");
     System.out.println("╠═══════════════════════════════════════════════════════════╣");
-    System.out.printf("║  Transfer: $%.2f to %s%n", metadata.get("amount"), metadata.get("recipient"));
+    System.out.printf(
+        "║  Transfer: $%.2f to %s%n", metadata.get("amount"), metadata.get("recipient"));
     if (metadata.get("reason") != null) {
       System.out.printf("║  Reason: %s%n", metadata.get("reason"));
     }
@@ -305,7 +373,8 @@ public class InterruptsApp {
 
     if (confirmed) {
       System.out.println("✓ Transfer confirmed");
-      return new ConfirmationOutput(true, "User confirmed with code: CONF-" + System.currentTimeMillis() % 10000);
+      return new ConfirmationOutput(
+          true, "User confirmed with code: CONF-" + System.currentTimeMillis() % 10000);
     } else {
       System.out.println("✗ Transfer cancelled");
       return new ConfirmationOutput(false, "User declined the transfer");
@@ -330,11 +399,12 @@ public class InterruptsApp {
           ResumeOptions resume = ResumeOptions.builder().respond(List.of(toolResponse)).build();
 
           // Resume the conversation with the user's response
-          response = chat.send(
-              userResponse.isConfirmed()
-                  ? "User confirmed. Proceed with the transfer."
-                  : "User declined. Cancel the transfer.",
-              Chat.SendOptions.builder().resumeOptions(resume).build());
+          response =
+              chat.send(
+                  userResponse.isConfirmed()
+                      ? "User confirmed. Proceed with the transfer."
+                      : "User declined. Cancel the transfer.",
+                  Chat.SendOptions.builder().resumeOptions(resume).build());
         }
       }
 
@@ -366,8 +436,7 @@ public class InterruptsApp {
       System.out.print("You: ");
       String input = scanner.nextLine().trim();
 
-      if (input.isEmpty())
-        continue;
+      if (input.isEmpty()) continue;
 
       if (input.equals("/quit") || input.equals("/exit")) {
         System.out.println("\nThank you for banking with SecureBank!");
@@ -407,7 +476,8 @@ public class InterruptsApp {
     System.out.println("\n[The system will now request confirmation...]\n");
 
     // For demo, we'll use a mock confirmation
-    String response2 = sendWithInterruptHandling(chat, "Transfer $250 to John Smith for the concert tickets");
+    String response2 =
+        sendWithInterruptHandling(chat, "Transfer $250 to John Smith for the concert tickets");
     System.out.println("\nAssistant: " + response2);
 
     System.out.println("\n=== Demo Complete ===");
@@ -416,10 +486,9 @@ public class InterruptsApp {
 
   /**
    * Demo using generate() directly with interrupts (without Chat).
-   * 
-   * <p>
-   * This shows how to use interrupts at the lower level generate() API, which is
-   * useful when you don't need session management.
+   *
+   * <p>This shows how to use interrupts at the lower level generate() API, which is useful when you
+   * don't need session management.
    */
   public void runGenerateDemo() {
     System.out.println("╔════════════════════════════════════════════════════════════════╗");
@@ -433,16 +502,22 @@ public class InterruptsApp {
 
     // Create a simple confirm transfer interrupt tool
     @SuppressWarnings("unchecked")
-    Tool<TransferRequest, ConfirmationOutput> confirmTool = (Tool<TransferRequest, ConfirmationOutput>) confirmTransferTool;
+    Tool<TransferRequest, ConfirmationOutput> confirmTool =
+        (Tool<TransferRequest, ConfirmationOutput>) confirmTransferTool;
 
     // Initial request - transfer money
     System.out.println("=== Step 1: Initial Generate Request ===\n");
     System.out.println("Prompt: Transfer $150 to Alice for dinner\n");
 
-    ModelResponse response = genkit
-        .generate(GenerateOptions.builder().model(model).prompt("Transfer $150 to Alice for dinner")
-            .system("You are a banking assistant. Use the confirmTransfer tool for any transfers.")
-            .tools(List.of(confirmTransferTool)).build());
+    ModelResponse response =
+        genkit.generate(
+            GenerateOptions.builder()
+                .model(model)
+                .prompt("Transfer $150 to Alice for dinner")
+                .system(
+                    "You are a banking assistant. Use the confirmTransfer tool for any transfers.")
+                .tools(List.of(confirmTransferTool))
+                .build());
 
     System.out.println("Response finish reason: " + response.getFinishReason());
 
@@ -462,22 +537,27 @@ public class InterruptsApp {
       boolean confirmed = userInput.equals("yes") || userInput.equals("y");
 
       // Create the response to the interrupt
-      ConfirmationOutput userResponse = new ConfirmationOutput(confirmed,
-          confirmed ? "User approved" : "User declined");
+      ConfirmationOutput userResponse =
+          new ConfirmationOutput(confirmed, confirmed ? "User approved" : "User declined");
 
       // Use the tool's respond helper
       Part responseData = confirmTool.respond(interrupt, userResponse);
 
       System.out.println("\n=== Step 3: Resume Generation ===\n");
-      System.out.println("Resuming with user " + (confirmed ? "confirmation" : "rejection") + "...\n");
+      System.out.println(
+          "Resuming with user " + (confirmed ? "confirmation" : "rejection") + "...\n");
 
       // Resume generation with the user's response
-      ModelResponse resumedResponse = genkit
-          .generate(GenerateOptions.builder().model(model).messages(response.getMessages()) // Include
-              // previous
-              // context
-              .tools(List.of(confirmTransferTool))
-              .resume(ResumeOptions.builder().respond(responseData.getToolResponse()).build()).build());
+      ModelResponse resumedResponse =
+          genkit.generate(
+              GenerateOptions.builder()
+                  .model(model)
+                  .messages(response.getMessages()) // Include
+                  // previous
+                  // context
+                  .tools(List.of(confirmTransferTool))
+                  .resume(ResumeOptions.builder().respond(responseData.getToolResponse()).build())
+                  .build());
 
       System.out.println("Final response: " + resumedResponse.getText());
       System.out.println("Finish reason: " + resumedResponse.getFinishReason());
@@ -490,10 +570,9 @@ public class InterruptsApp {
 
   /**
    * Demo using ExecutablePrompt with interrupts.
-   * 
-   * <p>
-   * This shows how to use interrupts with the prompt() API, which allows you to
-   * load and execute .prompt files with tool and interrupt support.
+   *
+   * <p>This shows how to use interrupts with the prompt() API, which allows you to load and execute
+   * .prompt files with tool and interrupt support.
    */
   public void runPromptDemo() {
     System.out.println("╔════════════════════════════════════════════════════════════════╗");
@@ -504,11 +583,13 @@ public class InterruptsApp {
     System.out.println("It loads a .prompt file and adds tools with interrupt support.\n");
 
     // Load the prompt
-    ExecutablePrompt<BankingInput> bankingPrompt = genkit.prompt("banking-assistant", BankingInput.class);
+    ExecutablePrompt<BankingInput> bankingPrompt =
+        genkit.prompt("banking-assistant", BankingInput.class);
 
     // Create a simple confirm transfer interrupt tool
     @SuppressWarnings("unchecked")
-    Tool<TransferRequest, ConfirmationOutput> confirmTool = (Tool<TransferRequest, ConfirmationOutput>) confirmTransferTool;
+    Tool<TransferRequest, ConfirmationOutput> confirmTool =
+        (Tool<TransferRequest, ConfirmationOutput>) confirmTransferTool;
 
     // Initial request - transfer money
     System.out.println("=== Step 1: Execute Prompt with Tools ===\n");
@@ -519,8 +600,9 @@ public class InterruptsApp {
 
     // Generate with tools - the prompt will use Genkit.generate() internally
     // which supports interrupts
-    ModelResponse response = bankingPrompt.generate(input,
-        GenerateOptions.builder().tools(List.of(confirmTransferTool)).build());
+    ModelResponse response =
+        bankingPrompt.generate(
+            input, GenerateOptions.builder().tools(List.of(confirmTransferTool)).build());
 
     System.out.println("Response finish reason: " + response.getFinishReason());
 
@@ -540,20 +622,26 @@ public class InterruptsApp {
       boolean confirmed = userInput.equals("yes") || userInput.equals("y");
 
       // Create the response to the interrupt
-      ConfirmationOutput userResponse = new ConfirmationOutput(confirmed,
-          confirmed ? "User approved" : "User declined");
+      ConfirmationOutput userResponse =
+          new ConfirmationOutput(confirmed, confirmed ? "User approved" : "User declined");
 
       // Use the tool's respond helper
       Part responseData = confirmTool.respond(interrupt, userResponse);
 
       System.out.println("\n=== Step 3: Resume Prompt Execution ===\n");
-      System.out.println("Resuming with user " + (confirmed ? "confirmation" : "rejection") + "...\n");
+      System.out.println(
+          "Resuming with user " + (confirmed ? "confirmation" : "rejection") + "...\n");
 
       // Resume generation with the user's response
       // Note: For full resume, you would use genkit.generate() with the messages
-      ModelResponse resumedResponse = genkit.generate(GenerateOptions.builder().model(bankingPrompt.getModel())
-          .messages(response.getMessages()).tools(List.of(confirmTransferTool))
-          .resume(ResumeOptions.builder().respond(responseData.getToolResponse()).build()).build());
+      ModelResponse resumedResponse =
+          genkit.generate(
+              GenerateOptions.builder()
+                  .model(bankingPrompt.getModel())
+                  .messages(response.getMessages())
+                  .tools(List.of(confirmTransferTool))
+                  .resume(ResumeOptions.builder().respond(responseData.getToolResponse()).build())
+                  .build());
 
       System.out.println("Final response: " + resumedResponse.getText());
       System.out.println("Finish reason: " + resumedResponse.getFinishReason());

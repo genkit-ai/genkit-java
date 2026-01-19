@@ -18,6 +18,8 @@
 
 package com.google.genkit.ai.evaluation;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.genkit.core.JsonUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -25,21 +27,17 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.google.genkit.core.JsonUtils;
-
 /**
  * File-based implementation of EvalStore.
- * 
- * <p>
- * Stores evaluation runs in the .genkit/evals directory with:
+ *
+ * <p>Stores evaluation runs in the .genkit/evals directory with:
+ *
  * <ul>
- * <li>index.json - metadata for all eval runs</li>
- * <li>{evalRunId}.json - actual eval run data</li>
+ *   <li>index.json - metadata for all eval runs
+ *   <li>{evalRunId}.json - actual eval run data
  * </ul>
  */
 public class LocalFileEvalStore implements EvalStore {
@@ -68,9 +66,7 @@ public class LocalFileEvalStore implements EvalStore {
     return instance;
   }
 
-  /**
-   * Creates a new LocalFileEvalStore using the default location.
-   */
+  /** Creates a new LocalFileEvalStore using the default location. */
   public LocalFileEvalStore() {
     this(Paths.get(System.getProperty("user.dir"), GENKIT_DIR, EVALS_DIR));
   }
@@ -78,8 +74,7 @@ public class LocalFileEvalStore implements EvalStore {
   /**
    * Creates a new LocalFileEvalStore with a custom root path.
    *
-   * @param storeRoot
-   *            the root directory for storing eval runs
+   * @param storeRoot the root directory for storing eval runs
    */
   public LocalFileEvalStore(Path storeRoot) {
     this.storeRoot = storeRoot;
@@ -104,9 +99,9 @@ public class LocalFileEvalStore implements EvalStore {
   private void loadIndex() throws IOException {
     if (Files.exists(indexFile)) {
       String content = Files.readString(indexFile);
-      Map<String, EvalRunKey> index = JsonUtils.getObjectMapper().readValue(content,
-          new TypeReference<Map<String, EvalRunKey>>() {
-          });
+      Map<String, EvalRunKey> index =
+          JsonUtils.getObjectMapper()
+              .readValue(content, new TypeReference<Map<String, EvalRunKey>>() {});
       indexCache.clear();
       indexCache.putAll(index);
     }
@@ -161,22 +156,25 @@ public class LocalFileEvalStore implements EvalStore {
     // Reload index to get latest data
     loadIndex();
 
-    return indexCache.values().stream().filter(key -> {
-      if (actionRef != null && !actionRef.equals(key.getActionRef())) {
-        return false;
-      }
-      if (datasetId != null && !datasetId.equals(key.getDatasetId())) {
-        return false;
-      }
-      return true;
-    }).sorted((a, b) -> {
-      // Sort by createdAt descending
-      if (a.getCreatedAt() == null)
-        return 1;
-      if (b.getCreatedAt() == null)
-        return -1;
-      return b.getCreatedAt().compareTo(a.getCreatedAt());
-    }).collect(Collectors.toList());
+    return indexCache.values().stream()
+        .filter(
+            key -> {
+              if (actionRef != null && !actionRef.equals(key.getActionRef())) {
+                return false;
+              }
+              if (datasetId != null && !datasetId.equals(key.getDatasetId())) {
+                return false;
+              }
+              return true;
+            })
+        .sorted(
+            (a, b) -> {
+              // Sort by createdAt descending
+              if (a.getCreatedAt() == null) return 1;
+              if (b.getCreatedAt() == null) return -1;
+              return b.getCreatedAt().compareTo(a.getCreatedAt());
+            })
+        .collect(Collectors.toList());
   }
 
   @Override

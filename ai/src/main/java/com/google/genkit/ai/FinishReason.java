@@ -20,11 +20,8 @@ package com.google.genkit.ai;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * FinishReason indicates why the model stopped generating.
- */
+/** FinishReason indicates why the model stopped generating. */
 public enum FinishReason {
-
   @JsonProperty("stop")
   STOP,
 

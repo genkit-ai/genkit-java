@@ -18,22 +18,11 @@
 
 package com.google.genkit.plugins.mcp;
 
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.genkit.ai.Tool;
 import com.google.genkit.core.GenkitException;
 import com.google.genkit.core.Registry;
-
 import io.modelcontextprotocol.client.McpClient;
 import io.modelcontextprotocol.client.McpSyncClient;
 import io.modelcontextprotocol.client.transport.HttpClientSseClientTransport;
@@ -48,22 +37,28 @@ import io.modelcontextprotocol.spec.McpSchema.ClientCapabilities;
 import io.modelcontextprotocol.spec.McpSchema.ListResourcesResult;
 import io.modelcontextprotocol.spec.McpSchema.ListToolsResult;
 import io.modelcontextprotocol.spec.McpSchema.ReadResourceResult;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * MCP Client that manages connections to MCP servers and provides access to
- * their tools and resources.
+ * MCP Client that manages connections to MCP servers and provides access to their tools and
+ * resources.
  *
- * <p>
- * This client wraps the MCP Java SDK and converts MCP tools to Genkit tools,
- * allowing them to be used seamlessly in Genkit applications.
+ * <p>This client wraps the MCP Java SDK and converts MCP tools to Genkit tools, allowing them to be
+ * used seamlessly in Genkit applications.
  *
- * <p>
- * Example usage:
+ * <p>Example usage:
  *
  * <pre>{@code
  * MCPClient client = new MCPClient("filesystem",
- * 		MCPServerConfig.stdio("npx", "-y", "@modelcontextprotocol/server-filesystem", "/tmp"),
- * 		Duration.ofSeconds(30), false);
+ *     MCPServerConfig.stdio("npx", "-y", "@modelcontextprotocol/server-filesystem", "/tmp"),
+ *     Duration.ofSeconds(30), false);
  *
  * client.connect();
  * List<Tool<?, ?>> tools = client.getTools(registry);
@@ -90,16 +85,16 @@ public class MCPClient {
   /**
    * Creates a new MCP client.
    *
-   * @param serverName
-   *            the name to identify this server
-   * @param config
-   *            the server configuration
-   * @param requestTimeout
-   *            timeout for requests
-   * @param rawToolResponses
-   *            whether to return raw MCP responses
+   * @param serverName the name to identify this server
+   * @param config the server configuration
+   * @param requestTimeout timeout for requests
+   * @param rawToolResponses whether to return raw MCP responses
    */
-  public MCPClient(String serverName, MCPServerConfig config, Duration requestTimeout, boolean rawToolResponses) {
+  public MCPClient(
+      String serverName,
+      MCPServerConfig config,
+      Duration requestTimeout,
+      boolean rawToolResponses) {
     this.serverName = serverName;
     this.config = config;
     this.requestTimeout = requestTimeout;
@@ -109,8 +104,7 @@ public class MCPClient {
   /**
    * Connects to the MCP server.
    *
-   * @throws GenkitException
-   *             if connection fails
+   * @throws GenkitException if connection fails
    */
   public void connect() throws GenkitException {
     if (connected) {
@@ -127,8 +121,11 @@ public class MCPClient {
       logger.info("Connecting to MCP server: {}", serverName);
       transport = createTransport();
 
-      client = McpClient.sync(transport).requestTimeout(requestTimeout)
-          .capabilities(ClientCapabilities.builder().roots(true).build()).build();
+      client =
+          McpClient.sync(transport)
+              .requestTimeout(requestTimeout)
+              .capabilities(ClientCapabilities.builder().roots(true).build())
+              .build();
 
       client.initialize();
       connected = true;
@@ -138,9 +135,7 @@ public class MCPClient {
     }
   }
 
-  /**
-   * Disconnects from the MCP server.
-   */
+  /** Disconnects from the MCP server. */
   public void disconnect() {
     if (!connected || client == null) {
       return;
@@ -160,11 +155,9 @@ public class MCPClient {
   /**
    * Gets tools from the MCP server as Genkit tools.
    *
-   * @param registry
-   *            the Genkit registry for tool registration
+   * @param registry the Genkit registry for tool registration
    * @return list of Genkit tools
-   * @throws GenkitException
-   *             if listing tools fails
+   * @throws GenkitException if listing tools fails
    */
   public List<Tool<?, ?>> getTools(Registry registry) throws GenkitException {
     if (!connected) {
@@ -194,8 +187,7 @@ public class MCPClient {
    * Gets resources from the MCP server.
    *
    * @return list of MCP resources
-   * @throws GenkitException
-   *             if listing resources fails
+   * @throws GenkitException if listing resources fails
    */
   public List<MCPResource> getResources() throws GenkitException {
     if (!connected) {
@@ -208,8 +200,12 @@ public class MCPClient {
       ListResourcesResult result = client.listResources();
 
       for (McpSchema.Resource mcpResource : result.resources()) {
-        MCPResource resource = new MCPResource(mcpResource.uri(), mcpResource.name(),
-            mcpResource.description() != null ? mcpResource.description() : "", mcpResource.mimeType());
+        MCPResource resource =
+            new MCPResource(
+                mcpResource.uri(),
+                mcpResource.name(),
+                mcpResource.description() != null ? mcpResource.description() : "",
+                mcpResource.mimeType());
         resources.add(resource);
       }
 
@@ -224,11 +220,9 @@ public class MCPClient {
   /**
    * Reads a resource by URI.
    *
-   * @param uri
-   *            the resource URI
+   * @param uri the resource URI
    * @return the resource content
-   * @throws GenkitException
-   *             if reading fails
+   * @throws GenkitException if reading fails
    */
   public MCPResourceContent readResource(String uri) throws GenkitException {
     if (!connected) {
@@ -241,9 +235,11 @@ public class MCPClient {
       List<MCPResourceContent.ContentPart> parts = new ArrayList<>();
       for (McpSchema.ResourceContents content : result.contents()) {
         if (content instanceof McpSchema.TextResourceContents textContent) {
-          parts.add(new MCPResourceContent.ContentPart(textContent.text(), null, content.mimeType()));
+          parts.add(
+              new MCPResourceContent.ContentPart(textContent.text(), null, content.mimeType()));
         } else if (content instanceof McpSchema.BlobResourceContents blobContent) {
-          parts.add(new MCPResourceContent.ContentPart(null, blobContent.blob(), content.mimeType()));
+          parts.add(
+              new MCPResourceContent.ContentPart(null, blobContent.blob(), content.mimeType()));
         }
       }
 
@@ -256,13 +252,10 @@ public class MCPClient {
   /**
    * Calls an MCP tool directly.
    *
-   * @param toolName
-   *            the tool name
-   * @param arguments
-   *            the tool arguments
+   * @param toolName the tool name
+   * @param arguments the tool arguments
    * @return the tool result
-   * @throws GenkitException
-   *             if the call fails
+   * @throws GenkitException if the call fails
    */
   @SuppressWarnings("unchecked")
   public Object callTool(String toolName, Map<String, Object> arguments) throws GenkitException {
@@ -309,7 +302,7 @@ public class MCPClient {
     McpJsonMapper jsonMapper = McpJsonMapper.getDefault();
 
     switch (config.getTransportType()) {
-      case STDIO :
+      case STDIO:
         ServerParameters.Builder paramsBuilder = ServerParameters.builder(config.getCommand());
         if (!config.getArgs().isEmpty()) {
           paramsBuilder.args(config.getArgs().toArray(new String[0]));
@@ -319,30 +312,37 @@ public class MCPClient {
         }
         return new StdioClientTransport(paramsBuilder.build(), jsonMapper);
 
-      case HTTP :
+      case HTTP:
         return HttpClientSseClientTransport.builder(config.getUrl()).build();
 
-      case STREAMABLE_HTTP :
+      case STREAMABLE_HTTP:
         return HttpClientStreamableHttpTransport.builder(config.getUrl()).build();
 
-      default :
-        throw new IllegalArgumentException("Unsupported transport type: " + config.getTransportType());
+      default:
+        throw new IllegalArgumentException(
+            "Unsupported transport type: " + config.getTransportType());
     }
   }
 
   @SuppressWarnings("unchecked")
-  private Tool<Map<String, Object>, Object> createGenkitTool(McpSchema.Tool mcpTool, Registry registry) {
+  private Tool<Map<String, Object>, Object> createGenkitTool(
+      McpSchema.Tool mcpTool, Registry registry) {
     String toolName = serverName + "/" + mcpTool.name();
 
     // Convert MCP input schema to Map
     Map<String, Object> inputSchema = convertJsonSchema(mcpTool.inputSchema());
 
-    Tool<Map<String, Object>, Object> tool = Tool.<Map<String, Object>, Object>builder().name(toolName)
-        .description(mcpTool.description() != null ? mcpTool.description() : "")
-        .inputSchema(inputSchema != null ? inputSchema : new HashMap<>())
-        .inputClass((Class<Map<String, Object>>) (Class<?>) Map.class).handler((ctx, input) -> {
-          return callTool(mcpTool.name(), input);
-        }).build();
+    Tool<Map<String, Object>, Object> tool =
+        Tool.<Map<String, Object>, Object>builder()
+            .name(toolName)
+            .description(mcpTool.description() != null ? mcpTool.description() : "")
+            .inputSchema(inputSchema != null ? inputSchema : new HashMap<>())
+            .inputClass((Class<Map<String, Object>>) (Class<?>) Map.class)
+            .handler(
+                (ctx, input) -> {
+                  return callTool(mcpTool.name(), input);
+                })
+            .build();
 
     // Register the tool
     tool.register(registry);
@@ -408,7 +408,8 @@ public class MCPClient {
       if (content instanceof McpSchema.TextContent textContent) {
         return textContent.text();
       } else if (content instanceof McpSchema.ImageContent imageContent) {
-        return Map.of("type", "image", "data", imageContent.data(), "mimeType", imageContent.mimeType());
+        return Map.of(
+            "type", "image", "data", imageContent.data(), "mimeType", imageContent.mimeType());
       }
     }
 
@@ -418,8 +419,9 @@ public class MCPClient {
       if (content instanceof McpSchema.TextContent textContent) {
         contentList.add(Map.of("type", "text", "text", textContent.text()));
       } else if (content instanceof McpSchema.ImageContent imageContent) {
-        contentList
-            .add(Map.of("type", "image", "data", imageContent.data(), "mimeType", imageContent.mimeType()));
+        contentList.add(
+            Map.of(
+                "type", "image", "data", imageContent.data(), "mimeType", imageContent.mimeType()));
       }
     }
     return contentList;

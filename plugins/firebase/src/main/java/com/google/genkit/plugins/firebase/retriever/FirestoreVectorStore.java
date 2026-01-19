@@ -18,12 +18,6 @@
 
 package com.google.genkit.plugins.firebase.retriever;
 
-import java.util.*;
-import java.util.concurrent.ExecutionException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.api.core.ApiFuture;
 import com.google.api.gax.rpc.AlreadyExistsException;
 import com.google.api.gax.rpc.NotFoundException;
@@ -40,26 +34,32 @@ import com.google.genkit.ai.*;
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.GenkitException;
 import com.google.genkit.plugins.firebase.FirebasePlugin;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Firestore vector store implementation for RAG workflows.
- * 
- * <p>
- * Provides vector similarity search using Cloud Firestore's native vector
- * search capabilities. Supports COSINE, EUCLIDEAN, and DOT_PRODUCT distance
- * measures.
- * 
- * <p>
- * Example usage:
- * 
+ *
+ * <p>Provides vector similarity search using Cloud Firestore's native vector search capabilities.
+ * Supports COSINE, EUCLIDEAN, and DOT_PRODUCT distance measures.
+ *
+ * <p>Example usage:
+ *
  * <pre>{@code
  * // Retrieve documents
- * RetrieverResponse response = genkit.retrieve("firebase/my-docs", Document.fromText("What is the meaning of life?"),
- * 		Map.of("limit", 5));
- * 
+ * RetrieverResponse response = genkit.retrieve(
+ *     "firebase/my-docs",
+ *     Document.fromText("What is the meaning of life?"),
+ *     Map.of("limit", 5));
+ *
  * // Index documents
- * genkit.index("firebase/my-docs",
- * 		List.of(Document.fromText("The meaning of life is 42"), Document.fromText("Life is what you make of it")));
+ * genkit.index(
+ *     "firebase/my-docs",
+ *     List.of(
+ *         Document.fromText("The meaning of life is 42"),
+ *         Document.fromText("Life is what you make of it")));
  * }</pre>
  */
 public class FirestoreVectorStore {
@@ -76,14 +76,12 @@ public class FirestoreVectorStore {
   /**
    * Creates a new FirestoreVectorStore.
    *
-   * @param firestore
-   *            the Firestore instance
-   * @param config
-   *            the retriever configuration
-   * @param embedder
-   *            the embedder to use
+   * @param firestore the Firestore instance
+   * @param config the retriever configuration
+   * @param embedder the embedder to use
    */
-  public FirestoreVectorStore(Firestore firestore, FirestoreRetrieverConfig config, Embedder embedder) {
+  public FirestoreVectorStore(
+      Firestore firestore, FirestoreRetrieverConfig config, Embedder embedder) {
     this.firestore = firestore;
     this.config = config;
     this.embedder = embedder;
@@ -93,26 +91,20 @@ public class FirestoreVectorStore {
   /**
    * Creates a new FirestoreVectorStore with explicit project ID.
    *
-   * @param firestore
-   *            the Firestore instance
-   * @param config
-   *            the retriever configuration
-   * @param embedder
-   *            the embedder to use
-   * @param projectId
-   *            the Google Cloud project ID
+   * @param firestore the Firestore instance
+   * @param config the retriever configuration
+   * @param embedder the embedder to use
+   * @param projectId the Google Cloud project ID
    */
-  public FirestoreVectorStore(Firestore firestore, FirestoreRetrieverConfig config, Embedder embedder,
-      String projectId) {
+  public FirestoreVectorStore(
+      Firestore firestore, FirestoreRetrieverConfig config, Embedder embedder, String projectId) {
     this.firestore = firestore;
     this.config = config;
     this.embedder = embedder;
     this.projectId = projectId;
   }
 
-  /**
-   * Extracts project ID from Firestore instance options.
-   */
+  /** Extracts project ID from Firestore instance options. */
   private String extractProjectId(Firestore firestore) {
     try {
       FirestoreOptions options = firestore.getOptions();
@@ -126,8 +118,7 @@ public class FirestoreVectorStore {
   /**
    * Ensures the Firestore database exists, creating it if configured to do so.
    *
-   * @throws GenkitException
-   *             if database creation fails
+   * @throws GenkitException if database creation fails
    */
   public void ensureDatabaseExists() throws GenkitException {
     if (databaseInitialized || !config.isCreateDatabaseIfNotExists()) {
@@ -146,7 +137,8 @@ public class FirestoreVectorStore {
         String databaseName = String.format("projects/%s/databases/%s", projectId, databaseId);
 
         try {
-          GetDatabaseRequest getRequest = GetDatabaseRequest.newBuilder().setName(databaseName).build();
+          GetDatabaseRequest getRequest =
+              GetDatabaseRequest.newBuilder().setName(databaseName).build();
           Database existingDb = adminClient.getDatabase(getRequest);
           logger.info("Firestore database '{}' already exists", databaseId);
           databaseInitialized = true;
@@ -156,12 +148,16 @@ public class FirestoreVectorStore {
         }
 
         // Create the database
-        CreateDatabaseRequest createRequest = CreateDatabaseRequest.newBuilder()
-            .setParent(ProjectName.of(projectId).toString()).setDatabaseId(databaseId)
-            .setDatabase(Database.newBuilder().setType(Database.DatabaseType.FIRESTORE_NATIVE)
-                .setLocationId("nam5") // Multi-region US
-                .build())
-            .build();
+        CreateDatabaseRequest createRequest =
+            CreateDatabaseRequest.newBuilder()
+                .setParent(ProjectName.of(projectId).toString())
+                .setDatabaseId(databaseId)
+                .setDatabase(
+                    Database.newBuilder()
+                        .setType(Database.DatabaseType.FIRESTORE_NATIVE)
+                        .setLocationId("nam5") // Multi-region US
+                        .build())
+                .build();
 
         try {
           Database database = adminClient.createDatabaseAsync(createRequest).get();
@@ -174,17 +170,16 @@ public class FirestoreVectorStore {
         }
 
       } catch (Exception e) {
-        throw new GenkitException("Failed to ensure Firestore database exists: " + e.getMessage(), e);
+        throw new GenkitException(
+            "Failed to ensure Firestore database exists: " + e.getMessage(), e);
       }
     }
   }
 
   /**
-   * Ensures the Firestore vector index exists, creating it if configured to do
-   * so.
+   * Ensures the Firestore vector index exists, creating it if configured to do so.
    *
-   * @throws GenkitException
-   *             if index creation fails
+   * @throws GenkitException if index creation fails
    */
   public void ensureVectorIndexExists() throws GenkitException {
     if (vectorIndexInitialized || !config.isCreateVectorIndexIfNotExists()) {
@@ -208,47 +203,63 @@ public class FirestoreVectorStore {
       }
 
       try (FirestoreAdminClient adminClient = FirestoreAdminClient.create()) {
-        String parent = String.format("projects/%s/databases/%s/collectionGroups/%s", projectId, databaseId,
-            collectionName);
+        String parent =
+            String.format(
+                "projects/%s/databases/%s/collectionGroups/%s",
+                projectId, databaseId, collectionName);
 
         // Check if a vector index already exists for this field
         boolean indexExists = false;
         try {
-          ListIndexesRequest listRequest = ListIndexesRequest.newBuilder().setParent(parent).build();
+          ListIndexesRequest listRequest =
+              ListIndexesRequest.newBuilder().setParent(parent).build();
 
           for (Index existingIndex : adminClient.listIndexes(listRequest).iterateAll()) {
             for (Index.IndexField field : existingIndex.getFieldsList()) {
               if (field.getFieldPath().equals(vectorField) && field.hasVectorConfig()) {
-                logger.info("Vector index already exists for field '{}' in collection '{}'",
-                    vectorField, collectionName);
+                logger.info(
+                    "Vector index already exists for field '{}' in collection '{}'",
+                    vectorField,
+                    collectionName);
                 indexExists = true;
                 break;
               }
             }
-            if (indexExists)
-              break;
+            if (indexExists) break;
           }
         } catch (NotFoundException e) {
           // Collection group doesn't exist yet, which is fine
-          logger.debug("Collection group '{}' not found, index will be created on first write",
+          logger.debug(
+              "Collection group '{}' not found, index will be created on first write",
               collectionName);
         }
 
         if (!indexExists) {
           // Create the vector index
-          logger.info("Creating vector index for field '{}' in collection '{}' with dimension {}",
-              vectorField, collectionName, dimension);
+          logger.info(
+              "Creating vector index for field '{}' in collection '{}' with dimension {}",
+              vectorField,
+              collectionName,
+              dimension);
 
-          Index.IndexField vectorIndexField = Index.IndexField.newBuilder().setFieldPath(vectorField)
-              .setVectorConfig(Index.IndexField.VectorConfig.newBuilder().setDimension(dimension)
-                  .setFlat(Index.IndexField.VectorConfig.FlatIndex.getDefaultInstance()).build())
-              .build();
+          Index.IndexField vectorIndexField =
+              Index.IndexField.newBuilder()
+                  .setFieldPath(vectorField)
+                  .setVectorConfig(
+                      Index.IndexField.VectorConfig.newBuilder()
+                          .setDimension(dimension)
+                          .setFlat(Index.IndexField.VectorConfig.FlatIndex.getDefaultInstance())
+                          .build())
+                  .build();
 
-          Index index = Index.newBuilder().setQueryScope(Index.QueryScope.COLLECTION)
-              .addFields(vectorIndexField).build();
+          Index index =
+              Index.newBuilder()
+                  .setQueryScope(Index.QueryScope.COLLECTION)
+                  .addFields(vectorIndexField)
+                  .build();
 
-          CreateIndexRequest createRequest = CreateIndexRequest.newBuilder().setParent(parent).setIndex(index)
-              .build();
+          CreateIndexRequest createRequest =
+              CreateIndexRequest.newBuilder().setParent(parent).setIndex(index).build();
 
           try {
             Index createdIndex = adminClient.createIndexAsync(createRequest).get();
@@ -258,10 +269,15 @@ public class FirestoreVectorStore {
           } catch (Exception e) {
             // Index creation might fail if collection doesn't exist yet
             // Log warning but don't fail - index can be created later
-            logger.warn("Could not create vector index: {}. You may need to create it manually: "
-                + "gcloud firestore indexes composite create --project={} --collection-group={} "
-                + "--query-scope=COLLECTION --field-config=vector-config='{{\"dimension\":\"{}\",\"flat\": \"{{}}\"}}',field-path={}",
-                e.getMessage(), projectId, collectionName, dimension, vectorField);
+            logger.warn(
+                "Could not create vector index: {}. You may need to create it manually: "
+                    + "gcloud firestore indexes composite create --project={} --collection-group={} "
+                    + "--query-scope=COLLECTION --field-config=vector-config='{{\"dimension\":\"{}\",\"flat\": \"{{}}\"}}',field-path={}",
+                e.getMessage(),
+                projectId,
+                collectionName,
+                dimension,
+                vectorField);
           }
         }
 
@@ -269,7 +285,8 @@ public class FirestoreVectorStore {
 
       } catch (Exception e) {
         // Don't fail on index creation errors - just log warning
-        logger.warn("Failed to ensure vector index exists: {}. You may need to create it manually.",
+        logger.warn(
+            "Failed to ensure vector index exists: {}. You may need to create it manually.",
             e.getMessage());
         vectorIndexInitialized = true; // Mark as initialized to avoid repeated attempts
       }
@@ -301,15 +318,13 @@ public class FirestoreVectorStore {
   /**
    * Retrieves documents from Firestore using vector similarity search.
    *
-   * @param ctx
-   *            the action context
-   * @param request
-   *            the retriever request
+   * @param ctx the action context
+   * @param request the retriever request
    * @return the retriever response with matched documents
-   * @throws GenkitException
-   *             if retrieval fails
+   * @throws GenkitException if retrieval fails
    */
-  public RetrieverResponse retrieve(ActionContext ctx, RetrieverRequest request) throws GenkitException {
+  public RetrieverResponse retrieve(ActionContext ctx, RetrieverRequest request)
+      throws GenkitException {
     // Ensure database and vector index exist before first operation
     ensureDatabaseExists();
     ensureVectorIndexExists();
@@ -325,14 +340,16 @@ public class FirestoreVectorStore {
       logger.debug("Query document text: '{}', content: {}", queryText, queryDoc.getContent());
 
       if (queryText == null || queryText.trim().isEmpty()) {
-        throw new GenkitException("Query document has no text content. Please provide a non-empty query.");
+        throw new GenkitException(
+            "Query document has no text content. Please provide a non-empty query.");
       }
 
       // Get embedding for the query
       EmbedRequest embedRequest = new EmbedRequest(List.of(queryDoc));
       logger.debug("Calling embedder with document: {}", queryText);
       EmbedResponse embedResponse = embedder.run(ctx, embedRequest);
-      logger.debug("Embedder response: embeddings={}",
+      logger.debug(
+          "Embedder response: embeddings={}",
           embedResponse.getEmbeddings() != null ? embedResponse.getEmbeddings().size() : "null");
 
       if (embedResponse.getEmbeddings() == null || embedResponse.getEmbeddings().isEmpty()) {
@@ -345,7 +362,8 @@ public class FirestoreVectorStore {
       RetrieveOptions options = parseRetrieveOptions(request.getOptions());
 
       // Build the query
-      String collectionName = options.collection != null ? options.collection : config.getCollection();
+      String collectionName =
+          options.collection != null ? options.collection : config.getCollection();
       if (collectionName == null) {
         throw new GenkitException("Collection name is required");
       }
@@ -353,12 +371,21 @@ public class FirestoreVectorStore {
       CollectionReference collection = firestore.collection(collectionName);
 
       // Convert distance measure
-      VectorQuery.DistanceMeasure distanceMeasure = toFirestoreDistanceMeasure(
-          options.distanceMeasure != null ? options.distanceMeasure : config.getDistanceMeasure());
+      VectorQuery.DistanceMeasure distanceMeasure =
+          toFirestoreDistanceMeasure(
+              options.distanceMeasure != null
+                  ? options.distanceMeasure
+                  : config.getDistanceMeasure());
 
       // Create vector query
-      VectorQuerySnapshot querySnapshot = executeVectorQuery(collection, queryEmbedding, options.limit,
-          distanceMeasure, options.where, options.distanceThreshold);
+      VectorQuerySnapshot querySnapshot =
+          executeVectorQuery(
+              collection,
+              queryEmbedding,
+              options.limit,
+              distanceMeasure,
+              options.where,
+              options.distanceThreshold);
 
       // Convert results to documents
       List<Document> documents = new ArrayList<>();
@@ -378,13 +405,10 @@ public class FirestoreVectorStore {
   /**
    * Indexes documents into Firestore with their embeddings.
    *
-   * @param ctx
-   *            the action context
-   * @param request
-   *            the indexer request
+   * @param ctx the action context
+   * @param request the indexer request
    * @return the indexer response
-   * @throws GenkitException
-   *             if indexing fails
+   * @throws GenkitException if indexing fails
    */
   public IndexerResponse index(ActionContext ctx, IndexerRequest request) throws GenkitException {
     // Ensure database and vector index exist before first operation
@@ -404,7 +428,10 @@ public class FirestoreVectorStore {
       List<EmbedResponse.Embedding> embeddings = embedResponse.getEmbeddings();
       if (embeddings.size() != documents.size()) {
         throw new GenkitException(
-            "Embedding count mismatch: expected " + documents.size() + ", got " + embeddings.size());
+            "Embedding count mismatch: expected "
+                + documents.size()
+                + ", got "
+                + embeddings.size());
       }
 
       // Get collection
@@ -452,11 +479,14 @@ public class FirestoreVectorStore {
     }
   }
 
-  /**
-   * Executes a vector similarity query.
-   */
-  private VectorQuerySnapshot executeVectorQuery(CollectionReference collection, double[] embedding, int limit,
-      VectorQuery.DistanceMeasure distanceMeasure, Map<String, Object> whereFilters, Double distanceThreshold)
+  /** Executes a vector similarity query. */
+  private VectorQuerySnapshot executeVectorQuery(
+      CollectionReference collection,
+      double[] embedding,
+      int limit,
+      VectorQuery.DistanceMeasure distanceMeasure,
+      Map<String, Object> whereFilters,
+      Double distanceThreshold)
       throws ExecutionException, InterruptedException {
 
     // Start building the query
@@ -470,16 +500,16 @@ public class FirestoreVectorStore {
     }
 
     // Build vector query using findNearest
-    VectorQuery vectorQuery = query.findNearest(config.getVectorField(), embedding, limit, distanceMeasure);
+    VectorQuery vectorQuery =
+        query.findNearest(config.getVectorField(), embedding, limit, distanceMeasure);
 
     ApiFuture<VectorQuerySnapshot> future = vectorQuery.get();
     return future.get();
   }
 
-  /**
-   * Converts a Firestore document to a Genkit Document.
-   */
-  private Document convertToDocument(QueryDocumentSnapshot firestoreDoc, VectorQuerySnapshot snapshot) {
+  /** Converts a Firestore document to a Genkit Document. */
+  private Document convertToDocument(
+      QueryDocumentSnapshot firestoreDoc, VectorQuerySnapshot snapshot) {
     // Extract content
     List<Part> content;
     if (config.getContentExtractor() != null) {
@@ -525,9 +555,7 @@ public class FirestoreVectorStore {
     return doc;
   }
 
-  /**
-   * Parses retrieve options from the request.
-   */
+  /** Parses retrieve options from the request. */
   private RetrieveOptions parseRetrieveOptions(Object options) {
     RetrieveOptions result = new RetrieveOptions();
     result.limit = config.getDefaultLimit();
@@ -568,10 +596,9 @@ public class FirestoreVectorStore {
     return result;
   }
 
-  /**
-   * Converts config distance measure to Firestore distance measure.
-   */
-  private VectorQuery.DistanceMeasure toFirestoreDistanceMeasure(FirestoreRetrieverConfig.DistanceMeasure measure) {
+  /** Converts config distance measure to Firestore distance measure. */
+  private VectorQuery.DistanceMeasure toFirestoreDistanceMeasure(
+      FirestoreRetrieverConfig.DistanceMeasure measure) {
     if (measure == null) {
       return VectorQuery.DistanceMeasure.COSINE;
     }
@@ -582,9 +609,7 @@ public class FirestoreVectorStore {
     };
   }
 
-  /**
-   * Converts float array to double array.
-   */
+  /** Converts float array to double array. */
   private double[] toDoubleArray(float[] floats) {
     double[] doubles = new double[floats.length];
     for (int i = 0; i < floats.length; i++) {
@@ -593,9 +618,7 @@ public class FirestoreVectorStore {
     return doubles;
   }
 
-  /**
-   * Internal class to hold parsed retrieve options.
-   */
+  /** Internal class to hold parsed retrieve options. */
   private static class RetrieveOptions {
     int limit;
     Map<String, Object> where;

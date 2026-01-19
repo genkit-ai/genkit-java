@@ -18,6 +18,11 @@
 
 package com.google.genkit.plugins.localvec;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.genkit.ai.*;
+import com.google.genkit.core.ActionContext;
+import com.google.genkit.core.GenkitException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -25,22 +30,14 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.genkit.ai.*;
-import com.google.genkit.core.ActionContext;
-import com.google.genkit.core.GenkitException;
-
 /**
  * Local file-based document store implementation.
- * 
- * <p>
- * Stores documents and their embeddings in a JSON file for simple similarity
- * search. Uses cosine similarity for retrieval.
+ *
+ * <p>Stores documents and their embeddings in a JSON file for simple similarity search. Uses cosine
+ * similarity for retrieval.
  */
 public class LocalVecDocStore {
 
@@ -53,8 +50,7 @@ public class LocalVecDocStore {
   /**
    * Creates a new LocalVecDocStore.
    *
-   * @param config
-   *            the configuration
+   * @param config the configuration
    */
   public LocalVecDocStore(LocalVecConfig config) {
     this.config = config;
@@ -62,17 +58,14 @@ public class LocalVecDocStore {
     loadFromFile();
   }
 
-  /**
-   * Loads data from the file if it exists.
-   */
+  /** Loads data from the file if it exists. */
   private void loadFromFile() {
     Path filePath = config.getFilePath();
     if (Files.exists(filePath)) {
       try {
         String content = Files.readString(filePath);
-        Map<String, DbValue> loaded = objectMapper.readValue(content,
-            new TypeReference<Map<String, DbValue>>() {
-            });
+        Map<String, DbValue> loaded =
+            objectMapper.readValue(content, new TypeReference<Map<String, DbValue>>() {});
         if (loaded != null) {
           data.putAll(loaded);
           logger.info("Loaded {} documents from {}", data.size(), filePath);
@@ -83,9 +76,7 @@ public class LocalVecDocStore {
     }
   }
 
-  /**
-   * Saves data to the file.
-   */
+  /** Saves data to the file. */
   private synchronized void saveToFile() {
     try {
       Path directory = config.getDirectory();
@@ -104,12 +95,9 @@ public class LocalVecDocStore {
   /**
    * Indexes documents with their embeddings.
    *
-   * @param ctx
-   *            the action context
-   * @param documents
-   *            the documents to index
-   * @throws GenkitException
-   *             if indexing fails
+   * @param ctx the action context
+   * @param documents the documents to index
+   * @throws GenkitException if indexing fails
    */
   public void index(ActionContext ctx, List<Document> documents) throws GenkitException {
     if (documents == null || documents.isEmpty()) {
@@ -124,7 +112,10 @@ public class LocalVecDocStore {
       List<EmbedResponse.Embedding> embeddings = embedResponse.getEmbeddings();
       if (embeddings.size() != documents.size()) {
         throw new GenkitException(
-            "Embedding count mismatch: expected " + documents.size() + ", got " + embeddings.size());
+            "Embedding count mismatch: expected "
+                + documents.size()
+                + ", got "
+                + embeddings.size());
       }
 
       // Store each document with its embedding
@@ -152,15 +143,13 @@ public class LocalVecDocStore {
   /**
    * Retrieves documents similar to the query.
    *
-   * @param ctx
-   *            the action context
-   * @param request
-   *            the retriever request
+   * @param ctx the action context
+   * @param request the retriever request
    * @return the retriever response with matched documents
-   * @throws GenkitException
-   *             if retrieval fails
+   * @throws GenkitException if retrieval fails
    */
-  public RetrieverResponse retrieve(ActionContext ctx, RetrieverRequest request) throws GenkitException {
+  public RetrieverResponse retrieve(ActionContext ctx, RetrieverRequest request)
+      throws GenkitException {
     try {
       // Get query document
       Document queryDoc = request.getQuery();
@@ -171,7 +160,8 @@ public class LocalVecDocStore {
       // Get embedding for the query
       EmbedRequest embedRequest = new EmbedRequest(List.of(queryDoc));
       EmbedResponse embedResponse = config.getEmbedder().run(ctx, embedRequest);
-      List<Float> queryEmbedding = floatArrayToList(embedResponse.getEmbeddings().get(0).getValues());
+      List<Float> queryEmbedding =
+          floatArrayToList(embedResponse.getEmbeddings().get(0).getValues());
 
       // Get k parameter from options
       int k = 3;
@@ -212,9 +202,7 @@ public class LocalVecDocStore {
     }
   }
 
-  /**
-   * Computes the MD5 hash of a document for deduplication.
-   */
+  /** Computes the MD5 hash of a document for deduplication. */
   private String computeDocumentId(Document doc) {
     try {
       MessageDigest md = MessageDigest.getInstance("MD5");
@@ -230,9 +218,7 @@ public class LocalVecDocStore {
     }
   }
 
-  /**
-   * Converts a float array to a List of Float.
-   */
+  /** Converts a float array to a List of Float. */
   private List<Float> floatArrayToList(float[] arr) {
     List<Float> list = new ArrayList<>(arr.length);
     for (float f : arr) {
@@ -241,9 +227,7 @@ public class LocalVecDocStore {
     return list;
   }
 
-  /**
-   * Computes cosine similarity between two vectors.
-   */
+  /** Computes cosine similarity between two vectors. */
   private double cosineSimilarity(List<Float> vec1, List<Float> vec2) {
     if (vec1.size() != vec2.size()) {
       throw new IllegalArgumentException("Vectors must have same length");
@@ -286,10 +270,14 @@ public class LocalVecDocStore {
    */
   public Indexer createIndexer() {
     String name = LocalVecPlugin.PROVIDER + "/" + config.getIndexName();
-    return Indexer.builder().name(name).handler((ctx, request) -> {
-      index(ctx, request.getDocuments());
-      return new IndexerResponse();
-    }).build();
+    return Indexer.builder()
+        .name(name)
+        .handler(
+            (ctx, request) -> {
+              index(ctx, request.getDocuments());
+              return new IndexerResponse();
+            })
+        .build();
   }
 
   /**
@@ -301,17 +289,13 @@ public class LocalVecDocStore {
     return data.size();
   }
 
-  /**
-   * Clears all documents from the store.
-   */
+  /** Clears all documents from the store. */
   public void clear() {
     data.clear();
     saveToFile();
   }
 
-  /**
-   * Internal class for scoring documents.
-   */
+  /** Internal class for scoring documents. */
   private static class ScoredDocument {
     final double score;
     final Document doc;

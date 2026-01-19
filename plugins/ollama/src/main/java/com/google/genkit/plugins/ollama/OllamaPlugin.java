@@ -18,22 +18,20 @@
 
 package com.google.genkit.plugins.ollama;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.genkit.core.Action;
 import com.google.genkit.core.Plugin;
+import java.util.ArrayList;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * OllamaPlugin provides local Ollama model integrations for Genkit.
  *
- * This plugin registers Ollama models running locally (or at a configured host)
- * as Genkit actions for text generation with support for streaming.
- * 
- * Ollama must be installed and running. Install from: https://ollama.ai
+ * <p>This plugin registers Ollama models running locally (or at a configured host) as Genkit
+ * actions for text generation with support for streaming.
+ *
+ * <p>Ollama must be installed and running. Install from: https://ollama.ai
  */
 public class OllamaPlugin implements Plugin {
 
@@ -42,8 +40,7 @@ public class OllamaPlugin implements Plugin {
   private final OllamaPluginOptions options;
 
   /**
-   * Creates an OllamaPlugin with default options. Uses localhost:11434 and
-   * registers common models.
+   * Creates an OllamaPlugin with default options. Uses localhost:11434 and registers common models.
    */
   public OllamaPlugin() {
     this(OllamaPluginOptions.builder().build());
@@ -52,8 +49,7 @@ public class OllamaPlugin implements Plugin {
   /**
    * Creates an OllamaPlugin with the specified options.
    *
-   * @param options
-   *            the plugin options
+   * @param options the plugin options
    */
   public OllamaPlugin(OllamaPluginOptions options) {
     this.options = options;
@@ -62,8 +58,7 @@ public class OllamaPlugin implements Plugin {
   /**
    * Creates an OllamaPlugin with the specified base URL.
    *
-   * @param baseUrl
-   *            the Ollama server URL (e.g., "http://localhost:11434")
+   * @param baseUrl the Ollama server URL (e.g., "http://localhost:11434")
    * @return a new OllamaPlugin
    */
   public static OllamaPlugin create(String baseUrl) {
@@ -73,8 +68,7 @@ public class OllamaPlugin implements Plugin {
   /**
    * Creates an OllamaPlugin with the specified models.
    *
-   * @param models
-   *            the models to register
+   * @param models the models to register
    * @return a new OllamaPlugin
    */
   public static OllamaPlugin create(String... models) {
@@ -82,8 +76,8 @@ public class OllamaPlugin implements Plugin {
   }
 
   /**
-   * Creates an OllamaPlugin using default settings. Uses OLLAMA_HOST environment
-   * variable or localhost:11434.
+   * Creates an OllamaPlugin using default settings. Uses OLLAMA_HOST environment variable or
+   * localhost:11434.
    *
    * @return a new OllamaPlugin
    */
@@ -107,7 +101,10 @@ public class OllamaPlugin implements Plugin {
       logger.debug("Created Ollama model: {}", modelName);
     }
 
-    logger.info("Ollama plugin initialized with {} models at {}", options.getModels().size(), options.getBaseUrl());
+    logger.info(
+        "Ollama plugin initialized with {} models at {}",
+        options.getModels().size(),
+        options.getBaseUrl());
 
     return actions;
   }

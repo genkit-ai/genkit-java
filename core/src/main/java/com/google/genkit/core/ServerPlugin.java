@@ -19,24 +19,20 @@
 package com.google.genkit.core;
 
 /**
- * ServerPlugin is an extended Plugin interface for plugins that provide HTTP
- * server functionality.
- * 
- * <p>
- * This interface adds lifecycle methods for starting and stopping servers. The
- * {@link #start()} method blocks until the server is stopped, similar to
- * Express's app.listen() in JavaScript.
- * 
- * <p>
- * Example usage:
- * 
+ * ServerPlugin is an extended Plugin interface for plugins that provide HTTP server functionality.
+ *
+ * <p>This interface adds lifecycle methods for starting and stopping servers. The {@link #start()}
+ * method blocks until the server is stopped, similar to Express's app.listen() in JavaScript.
+ *
+ * <p>Example usage:
+ *
  * <pre>{@code
  * JettyPlugin jetty = new JettyPlugin(JettyPluginOptions.builder().port(8080).build());
- * 
+ *
  * Genkit genkit = Genkit.builder().plugin(jetty).build();
- * 
+ *
  * // Define your flows here...
- * 
+ *
  * // Start the server and block - this replaces Thread.currentThread().join()
  * jetty.start();
  * }</pre>
@@ -45,22 +41,19 @@ public interface ServerPlugin extends Plugin {
 
   /**
    * Starts the HTTP server and blocks until it is stopped.
-   * 
-   * <p>
-   * This is the recommended way to start a server in a main() method. Similar to
-   * Express's app.listen() in JavaScript, this method will keep your application
-   * running until the server is explicitly stopped.
    *
-   * @throws Exception
-   *             if the server cannot be started or if interrupted while waiting
+   * <p>This is the recommended way to start a server in a main() method. Similar to Express's
+   * app.listen() in JavaScript, this method will keep your application running until the server is
+   * explicitly stopped.
+   *
+   * @throws Exception if the server cannot be started or if interrupted while waiting
    */
   void start() throws Exception;
 
   /**
    * Stops the HTTP server.
    *
-   * @throws Exception
-   *             if the server cannot be stopped
+   * @throws Exception if the server cannot be stopped
    */
   void stop() throws Exception;
 

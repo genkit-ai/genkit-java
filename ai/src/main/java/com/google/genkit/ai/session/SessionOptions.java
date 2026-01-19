@@ -19,11 +19,9 @@
 package com.google.genkit.ai.session;
 
 /**
- * SessionOptions provides configuration options for creating or loading
- * sessions.
+ * SessionOptions provides configuration options for creating or loading sessions.
  *
- * @param <S>
- *            the type of the custom session state
+ * @param <S> the type of the custom session state
  */
 public class SessionOptions<S> {
 
@@ -31,11 +29,8 @@ public class SessionOptions<S> {
   private S initialState;
   private String sessionId;
 
-  /**
-   * Default constructor.
-   */
-  public SessionOptions() {
-  }
+  /** Default constructor. */
+  public SessionOptions() {}
 
   /**
    * Gets the session store.
@@ -49,8 +44,7 @@ public class SessionOptions<S> {
   /**
    * Sets the session store.
    *
-   * @param store
-   *            the session store
+   * @param store the session store
    */
   public void setStore(SessionStore<S> store) {
     this.store = store;
@@ -68,8 +62,7 @@ public class SessionOptions<S> {
   /**
    * Sets the initial state.
    *
-   * @param initialState
-   *            the initial state
+   * @param initialState the initial state
    */
   public void setInitialState(S initialState) {
     this.initialState = initialState;
@@ -87,8 +80,7 @@ public class SessionOptions<S> {
   /**
    * Sets the session ID.
    *
-   * @param sessionId
-   *            the session ID
+   * @param sessionId the session ID
    */
   public void setSessionId(String sessionId) {
     this.sessionId = sessionId;
@@ -97,8 +89,7 @@ public class SessionOptions<S> {
   /**
    * Creates a builder for SessionOptions.
    *
-   * @param <S>
-   *            the state type
+   * @param <S> the state type
    * @return a new builder
    */
   public static <S> Builder<S> builder() {
@@ -108,8 +99,7 @@ public class SessionOptions<S> {
   /**
    * Builder for SessionOptions.
    *
-   * @param <S>
-   *            the state type
+   * @param <S> the state type
    */
   public static class Builder<S> {
     private SessionStore<S> store;
@@ -119,8 +109,7 @@ public class SessionOptions<S> {
     /**
      * Sets the session store.
      *
-     * @param store
-     *            the session store
+     * @param store the session store
      * @return this builder
      */
     public Builder<S> store(SessionStore<S> store) {
@@ -131,8 +120,7 @@ public class SessionOptions<S> {
     /**
      * Sets the initial state.
      *
-     * @param initialState
-     *            the initial state
+     * @param initialState the initial state
      * @return this builder
      */
     public Builder<S> initialState(S initialState) {
@@ -143,8 +131,7 @@ public class SessionOptions<S> {
     /**
      * Sets the session ID.
      *
-     * @param sessionId
-     *            the session ID
+     * @param sessionId the session ID
      * @return this builder
      */
     public Builder<S> sessionId(String sessionId) {

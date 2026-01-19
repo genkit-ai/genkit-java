@@ -26,26 +26,24 @@ import com.google.genkit.plugins.spring.SpringPluginOptions;
 /**
  * Sample application demonstrating Genkit with Spring Boot.
  *
- * <p>
- * This sample shows how to:
+ * <p>This sample shows how to:
+ *
  * <ul>
- * <li>Set up Genkit with the Spring Boot plugin</li>
- * <li>Define simple flows</li>
- * <li>Expose flows as REST endpoints</li>
- * <li>Integrate with Google GenAI for AI-powered flows</li>
+ *   <li>Set up Genkit with the Spring Boot plugin
+ *   <li>Define simple flows
+ *   <li>Expose flows as REST endpoints
+ *   <li>Integrate with Google GenAI for AI-powered flows
  * </ul>
  *
- * <p>
- * Run this sample with:
- * 
+ * <p>Run this sample with:
+ *
  * <pre>
  * cd samples/spring
  * ./run.sh
  * </pre>
  *
- * <p>
- * Then test the endpoints:
- * 
+ * <p>Then test the endpoints:
+ *
  * <pre>
  * # Health check
  * curl http://localhost:8080/health
@@ -68,30 +66,47 @@ public class SpringSample {
 
   public static void main(String[] args) throws Exception {
     // Create the Spring plugin with custom options
-    SpringPlugin spring = new SpringPlugin(
-        SpringPluginOptions.builder().port(8080).host("0.0.0.0").basePath("/api/flows").build());
+    SpringPlugin spring =
+        new SpringPlugin(
+            SpringPluginOptions.builder()
+                .port(8080)
+                .host("0.0.0.0")
+                .basePath("/api/flows")
+                .build());
 
     // Create Genkit instance with plugins
     Genkit genkit = Genkit.builder().plugin(spring).plugin(new GoogleGenAIPlugin()).build();
 
     // Define a simple greeting flow
-    genkit.defineFlow("greet", String.class, String.class, (ctx, name) -> {
-      return "Hello, " + name + "!";
-    });
+    genkit.defineFlow(
+        "greet",
+        String.class,
+        String.class,
+        (ctx, name) -> {
+          return "Hello, " + name + "!";
+        });
 
     // Define a flow that reverses a string
-    genkit.defineFlow("reverse", String.class, String.class, (ctx, input) -> {
-      return new StringBuilder(input).reverse().toString();
-    });
+    genkit.defineFlow(
+        "reverse",
+        String.class,
+        String.class,
+        (ctx, input) -> {
+          return new StringBuilder(input).reverse().toString();
+        });
 
     // Define a flow that returns object data
-    genkit.defineFlow("info", String.class, java.util.Map.class, (ctx, topic) -> {
-      java.util.Map<String, Object> result = new java.util.HashMap<>();
-      result.put("topic", topic);
-      result.put("timestamp", System.currentTimeMillis());
-      result.put("version", "1.0.0");
-      return result;
-    });
+    genkit.defineFlow(
+        "info",
+        String.class,
+        java.util.Map.class,
+        (ctx, topic) -> {
+          java.util.Map<String, Object> result = new java.util.HashMap<>();
+          result.put("topic", topic);
+          result.put("timestamp", System.currentTimeMillis());
+          result.put("version", "1.0.0");
+          return result;
+        });
 
     System.out.println("=".repeat(60));
     System.out.println("Genkit Spring Boot Sample");

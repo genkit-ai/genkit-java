@@ -24,20 +24,21 @@ import java.util.List;
 /**
  * Options for resuming after an interrupt.
  *
- * <p>
- * When generation is interrupted by a tool, you can resume by providing
- * responses to the interrupted tool requests or by restarting them with new
- * inputs.
+ * <p>When generation is interrupted by a tool, you can resume by providing responses to the
+ * interrupted tool requests or by restarting them with new inputs.
  *
- * <p>
- * Example usage:
+ * <p>Example usage:
  *
  * <pre>{@code
  * // Respond to an interrupt
- * ResumeOptions resume = ResumeOptions.builder().respond(interrupt.respond("user confirmed")).build();
+ * ResumeOptions resume = ResumeOptions.builder()
+ *     .respond(interrupt.respond("user confirmed"))
+ *     .build();
  *
  * // Restart an interrupt with new input
- * ResumeOptions resume = ResumeOptions.builder().restart(interrupt.restart(null, newInput)).build();
+ * ResumeOptions resume = ResumeOptions.builder()
+ *     .restart(interrupt.restart(null, newInput))
+ *     .build();
  * }</pre>
  */
 public class ResumeOptions {
@@ -46,8 +47,7 @@ public class ResumeOptions {
   private List<ToolRequest> restart;
 
   /** Default constructor. */
-  public ResumeOptions() {
-  }
+  public ResumeOptions() {}
 
   /**
    * Gets the tool responses for interrupted requests.
@@ -61,8 +61,7 @@ public class ResumeOptions {
   /**
    * Sets the tool responses for interrupted requests.
    *
-   * @param respond
-   *            the tool responses
+   * @param respond the tool responses
    */
   public void setRespond(List<ToolResponse> respond) {
     this.respond = respond;
@@ -80,8 +79,7 @@ public class ResumeOptions {
   /**
    * Sets the tool requests to restart.
    *
-   * @param restart
-   *            the tool requests to restart
+   * @param restart the tool requests to restart
    */
   public void setRestart(List<ToolRequest> restart) {
     this.restart = restart;
@@ -104,8 +102,7 @@ public class ResumeOptions {
     /**
      * Adds a tool response.
      *
-     * @param response
-     *            the tool response
+     * @param response the tool response
      * @return this builder
      */
     public Builder respond(ToolResponse response) {
@@ -119,8 +116,7 @@ public class ResumeOptions {
     /**
      * Sets all tool responses.
      *
-     * @param responses
-     *            the tool responses
+     * @param responses the tool responses
      * @return this builder
      */
     public Builder respond(List<ToolResponse> responses) {
@@ -131,8 +127,7 @@ public class ResumeOptions {
     /**
      * Adds a tool request to restart.
      *
-     * @param request
-     *            the tool request
+     * @param request the tool request
      * @return this builder
      */
     public Builder restart(ToolRequest request) {
@@ -146,8 +141,7 @@ public class ResumeOptions {
     /**
      * Sets all tool requests to restart.
      *
-     * @param requests
-     *            the tool requests
+     * @param requests the tool requests
      * @return this builder
      */
     public Builder restart(List<ToolRequest> requests) {

@@ -19,8 +19,8 @@
 package com.google.genkit.core;
 
 /**
- * GenkitException is the base exception for all Genkit errors. It provides
- * structured error information including error codes and details.
+ * GenkitException is the base exception for all Genkit errors. It provides structured error
+ * information including error codes and details.
  */
 public class GenkitException extends RuntimeException {
 
@@ -31,8 +31,7 @@ public class GenkitException extends RuntimeException {
   /**
    * Creates a new GenkitException.
    *
-   * @param message
-   *            the error message
+   * @param message the error message
    */
   public GenkitException(String message) {
     this(message, null, null, null, null);
@@ -41,10 +40,8 @@ public class GenkitException extends RuntimeException {
   /**
    * Creates a new GenkitException with a cause.
    *
-   * @param message
-   *            the error message
-   * @param cause
-   *            the underlying cause
+   * @param message the error message
+   * @param cause the underlying cause
    */
   public GenkitException(String message, Throwable cause) {
     this(message, cause, null, null, null);
@@ -53,18 +50,14 @@ public class GenkitException extends RuntimeException {
   /**
    * Creates a new GenkitException with full details.
    *
-   * @param message
-   *            the error message
-   * @param cause
-   *            the underlying cause
-   * @param errorCode
-   *            the error code
-   * @param details
-   *            additional error details
-   * @param traceId
-   *            the trace ID for debugging
+   * @param message the error message
+   * @param cause the underlying cause
+   * @param errorCode the error code
+   * @param details additional error details
+   * @param traceId the trace ID for debugging
    */
-  public GenkitException(String message, Throwable cause, String errorCode, Object details, String traceId) {
+  public GenkitException(
+      String message, Throwable cause, String errorCode, Object details, String traceId) {
     super(message, cause);
     this.errorCode = errorCode;
     this.details = details;
@@ -107,9 +100,7 @@ public class GenkitException extends RuntimeException {
     return new Builder();
   }
 
-  /**
-   * Builder for GenkitException.
-   */
+  /** Builder for GenkitException. */
   public static class Builder {
     private String message;
     private Throwable cause;

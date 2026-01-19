@@ -18,20 +18,6 @@
 
 package com.google.genkit.plugins.googlegenai;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Consumer;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.genai.Client;
 import com.google.genai.types.GenerateVideosConfig;
 import com.google.genai.types.GenerateVideosOperation;
@@ -53,46 +39,62 @@ import com.google.genkit.ai.Part;
 import com.google.genkit.ai.Role;
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.GenkitException;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Video generation model using Google Veo.
  *
- * <p>
- * This model generates videos using Google's Veo video generation models. Veo
- * supports both text-to-video and image-to-video generation.
+ * <p>This model generates videos using Google's Veo video generation models. Veo supports both
+ * text-to-video and image-to-video generation.
  *
- * <p>
- * Supported models:
+ * <p>Supported models:
+ *
  * <ul>
- * <li>veo-2.0-generate-001</li>
- * <li>veo-3.0-generate-001</li>
- * <li>veo-3.0-fast-generate-001</li>
- * <li>veo-3.1-generate-preview</li>
- * <li>veo-3.1-fast-generate-preview</li>
+ *   <li>veo-2.0-generate-001
+ *   <li>veo-3.0-generate-001
+ *   <li>veo-3.0-fast-generate-001
+ *   <li>veo-3.1-generate-preview
+ *   <li>veo-3.1-fast-generate-preview
  * </ul>
  *
- * <p>
- * Configuration options (via custom config):
+ * <p>Configuration options (via custom config):
+ *
  * <ul>
- * <li>numberOfVideos - Number of videos to generate (1-4, default: 1)</li>
- * <li>durationSeconds - Video duration (5-8 seconds, default: 5)</li>
- * <li>aspectRatio - Aspect ratio (16:9 or 9:16, default: 16:9)</li>
- * <li>personGeneration - Allow person generation (allowed/disallowed)</li>
- * <li>negativePrompt - Negative prompt for generation</li>
- * <li>enhancePrompt - Enable prompt enhancement (default: true)</li>
- * <li>seed - Random seed for reproducibility</li>
- * <li>outputGcsUri - GCS URI for output</li>
- * <li>generateAudio - Generate audio with video (veo-3.0+ only)</li>
- * <li>pollIntervalMs - Polling interval in ms (default: 5000)</li>
- * <li>timeoutMs - Operation timeout in ms (default: 300000)</li>
+ *   <li>numberOfVideos - Number of videos to generate (1-4, default: 1)
+ *   <li>durationSeconds - Video duration (5-8 seconds, default: 5)
+ *   <li>aspectRatio - Aspect ratio (16:9 or 9:16, default: 16:9)
+ *   <li>personGeneration - Allow person generation (allowed/disallowed)
+ *   <li>negativePrompt - Negative prompt for generation
+ *   <li>enhancePrompt - Enable prompt enhancement (default: true)
+ *   <li>seed - Random seed for reproducibility
+ *   <li>outputGcsUri - GCS URI for output
+ *   <li>generateAudio - Generate audio with video (veo-3.0+ only)
+ *   <li>pollIntervalMs - Polling interval in ms (default: 5000)
+ *   <li>timeoutMs - Operation timeout in ms (default: 300000)
  * </ul>
  */
 public class VeoModel implements Model {
 
   private static final Logger logger = LoggerFactory.getLogger(VeoModel.class);
 
-  private static final Set<String> SUPPORTED_VEO_MODELS = Set.of("veo-2.0-generate-001", "veo-3.0-generate-001",
-      "veo-3.0-fast-generate-001", "veo-3.1-generate-preview", "veo-3.1-fast-generate-preview");
+  private static final Set<String> SUPPORTED_VEO_MODELS =
+      Set.of(
+          "veo-2.0-generate-001",
+          "veo-3.0-generate-001",
+          "veo-3.0-fast-generate-001",
+          "veo-3.1-generate-preview",
+          "veo-3.1-fast-generate-preview");
 
   private static final long DEFAULT_POLL_INTERVAL_MS = 5000;
   private static final long DEFAULT_TIMEOUT_MS = 300000; // 5 minutes
@@ -105,10 +107,8 @@ public class VeoModel implements Model {
   /**
    * Creates a VeoModel for the specified model.
    *
-   * @param modelName
-   *            the Veo model name
-   * @param options
-   *            the plugin options
+   * @param modelName the Veo model name
+   * @param options the plugin options
    */
   public VeoModel(String modelName, GoogleGenAIPluginOptions options) {
     this.modelName = modelName;
@@ -199,7 +199,8 @@ public class VeoModel implements Model {
   }
 
   @Override
-  public ModelResponse run(ActionContext context, ModelRequest request, Consumer<ModelResponseChunk> streamCallback) {
+  public ModelResponse run(
+      ActionContext context, ModelRequest request, Consumer<ModelResponseChunk> streamCallback) {
     // Video generation doesn't support streaming
     return run(context, request);
   }
@@ -209,7 +210,9 @@ public class VeoModel implements Model {
     GenerateVideosConfig config = buildConfig(request);
     GenerateVideosSource source = buildSource(request, prompt);
 
-    logger.debug("Calling Veo model {} with prompt: {}", modelName,
+    logger.debug(
+        "Calling Veo model {} with prompt: {}",
+        modelName,
         prompt.substring(0, Math.min(100, prompt.length())));
 
     // Start video generation operation
@@ -234,8 +237,8 @@ public class VeoModel implements Model {
     return parseResponse(response);
   }
 
-  private GenerateVideosResponse pollForCompletion(GenerateVideosOperation operation, long pollIntervalMs,
-      long timeoutMs) throws Exception {
+  private GenerateVideosResponse pollForCompletion(
+      GenerateVideosOperation operation, long pollIntervalMs, long timeoutMs) throws Exception {
     long startTime = System.currentTimeMillis();
     String operationName = operation.name().orElse("");
 
@@ -249,9 +252,8 @@ public class VeoModel implements Model {
         // Check for error
         if (operation.error().isPresent()) {
           Map<String, Object> error = operation.error().get();
-          String errorMsg = error.containsKey("message")
-              ? String.valueOf(error.get("message"))
-              : "Unknown error";
+          String errorMsg =
+              error.containsKey("message") ? String.valueOf(error.get("message")) : "Unknown error";
           throw new GenkitException("Video generation failed: " + errorMsg);
         }
         throw new GenkitException("Video generation completed but no response");
@@ -410,7 +412,8 @@ public class VeoModel implements Model {
     List<Part> parts = new ArrayList<>();
 
     // Log the raw response for debugging
-    logger.info("Video response: generatedVideos present={}", response.generatedVideos().isPresent());
+    logger.info(
+        "Video response: generatedVideos present={}", response.generatedVideos().isPresent());
     if (response.generatedVideos().isPresent()) {
       logger.info("Number of generated videos: {}", response.generatedVideos().get().size());
     }
@@ -421,8 +424,11 @@ public class VeoModel implements Model {
         logger.info("GeneratedVideo: video present={}", generatedVideo.video().isPresent());
         if (generatedVideo.video().isPresent()) {
           Video video = generatedVideo.video().get();
-          logger.info("Video: uri={}, videoBytes present={}, mimeType={}", video.uri().orElse("none"),
-              video.videoBytes().isPresent(), video.mimeType().orElse("none"));
+          logger.info(
+              "Video: uri={}, videoBytes present={}, mimeType={}",
+              video.uri().orElse("none"),
+              video.videoBytes().isPresent(),
+              video.mimeType().orElse("none"));
           Part videoPart = createVideoPart(video);
           if (videoPart != null) {
             parts.add(videoPart);
@@ -507,7 +513,8 @@ public class VeoModel implements Model {
     connection.setConnectTimeout(30000);
     connection.setReadTimeout(300000); // 5 minutes for large videos
 
-    try (InputStream in = connection.getInputStream(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+    try (InputStream in = connection.getInputStream();
+        ByteArrayOutputStream out = new ByteArrayOutputStream()) {
       byte[] buffer = new byte[8192];
       int bytesRead;
       while ((bytesRead = in.read(buffer)) != -1) {
@@ -522,8 +529,7 @@ public class VeoModel implements Model {
   /**
    * Checks if the given model name is a supported Veo model.
    *
-   * @param modelName
-   *            the model name to check
+   * @param modelName the model name to check
    * @return true if the model is a Veo model
    */
   public static boolean isVeoModel(String modelName) {

@@ -22,14 +22,11 @@ import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.GenkitException;
 
 /**
- * MiddlewareNext represents the next function in the middleware chain. It is
- * used by middleware to pass control to the next middleware or the actual
- * action.
+ * MiddlewareNext represents the next function in the middleware chain. It is used by middleware to
+ * pass control to the next middleware or the actual action.
  *
- * @param <I>
- *            The input type
- * @param <O>
- *            The output type
+ * @param <I> The input type
+ * @param <O> The output type
  */
 @FunctionalInterface
 public interface MiddlewareNext<I, O> {
@@ -37,13 +34,10 @@ public interface MiddlewareNext<I, O> {
   /**
    * Calls the next middleware in the chain or the actual action.
    *
-   * @param request
-   *            the input request (may be modified by the middleware)
-   * @param context
-   *            the action context (may be modified by the middleware)
+   * @param request the input request (may be modified by the middleware)
+   * @param context the action context (may be modified by the middleware)
    * @return the output response
-   * @throws GenkitException
-   *             if processing fails
+   * @throws GenkitException if processing fails
    */
   O apply(I request, ActionContext context) throws GenkitException;
 }

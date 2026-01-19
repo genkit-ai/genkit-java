@@ -26,8 +26,11 @@ class CompatOAIPluginOptionsTest {
 
   @Test
   void testBuilderWithRequiredFields() {
-    CompatOAIPluginOptions options = CompatOAIPluginOptions.builder().apiKey("test-key")
-        .baseUrl("https://api.test.com/v1").build();
+    CompatOAIPluginOptions options =
+        CompatOAIPluginOptions.builder()
+            .apiKey("test-key")
+            .baseUrl("https://api.test.com/v1")
+            .build();
 
     assertNotNull(options);
     assertEquals("test-key", options.getApiKey());
@@ -36,40 +39,59 @@ class CompatOAIPluginOptionsTest {
 
   @Test
   void testBuilderWithApiKey() {
-    CompatOAIPluginOptions options = CompatOAIPluginOptions.builder().apiKey("test-key-123")
-        .baseUrl("https://api.test.com/v1").build();
+    CompatOAIPluginOptions options =
+        CompatOAIPluginOptions.builder()
+            .apiKey("test-key-123")
+            .baseUrl("https://api.test.com/v1")
+            .build();
 
     assertEquals("test-key-123", options.getApiKey());
   }
 
   @Test
   void testBuilderWithBaseUrl() {
-    CompatOAIPluginOptions options = CompatOAIPluginOptions.builder().apiKey("test-key")
-        .baseUrl("https://api.custom.com/v1").build();
+    CompatOAIPluginOptions options =
+        CompatOAIPluginOptions.builder()
+            .apiKey("test-key")
+            .baseUrl("https://api.custom.com/v1")
+            .build();
 
     assertEquals("https://api.custom.com/v1", options.getBaseUrl());
   }
 
   @Test
   void testBuilderWithOrganization() {
-    CompatOAIPluginOptions options = CompatOAIPluginOptions.builder().apiKey("test-key")
-        .baseUrl("https://api.test.com/v1").organization("test-org").build();
+    CompatOAIPluginOptions options =
+        CompatOAIPluginOptions.builder()
+            .apiKey("test-key")
+            .baseUrl("https://api.test.com/v1")
+            .organization("test-org")
+            .build();
 
     assertEquals("test-org", options.getOrganization());
   }
 
   @Test
   void testBuilderWithTimeout() {
-    CompatOAIPluginOptions options = CompatOAIPluginOptions.builder().apiKey("test-key")
-        .baseUrl("https://api.test.com/v1").timeout(120).build();
+    CompatOAIPluginOptions options =
+        CompatOAIPluginOptions.builder()
+            .apiKey("test-key")
+            .baseUrl("https://api.test.com/v1")
+            .timeout(120)
+            .build();
 
     assertEquals(120, options.getTimeout());
   }
 
   @Test
   void testBuilderWithAllOptions() {
-    CompatOAIPluginOptions options = CompatOAIPluginOptions.builder().apiKey("test-key")
-        .baseUrl("https://api.test.com/v1").organization("test-org").timeout(90).build();
+    CompatOAIPluginOptions options =
+        CompatOAIPluginOptions.builder()
+            .apiKey("test-key")
+            .baseUrl("https://api.test.com/v1")
+            .organization("test-org")
+            .timeout(90)
+            .build();
 
     assertEquals("test-key", options.getApiKey());
     assertEquals("https://api.test.com/v1", options.getBaseUrl());
@@ -79,8 +101,13 @@ class CompatOAIPluginOptionsTest {
 
   @Test
   void testBuilderChaining() {
-    CompatOAIPluginOptions options = CompatOAIPluginOptions.builder().apiKey("key").baseUrl("url")
-        .organization("org").timeout(60).build();
+    CompatOAIPluginOptions options =
+        CompatOAIPluginOptions.builder()
+            .apiKey("key")
+            .baseUrl("url")
+            .organization("org")
+            .timeout(60)
+            .build();
 
     assertNotNull(options);
     assertEquals("key", options.getApiKey());

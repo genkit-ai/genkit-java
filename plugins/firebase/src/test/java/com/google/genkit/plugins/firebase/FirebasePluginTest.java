@@ -20,11 +20,9 @@ package com.google.genkit.plugins.firebase;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.List;
-
-import org.junit.jupiter.api.Test;
-
 import com.google.genkit.core.Action;
+import java.util.List;
+import org.junit.jupiter.api.Test;
 
 class FirebasePluginTest {
 
@@ -45,7 +43,8 @@ class FirebasePluginTest {
 
   @Test
   void testBuilderWithTelemetry() {
-    FirebasePlugin plugin = FirebasePlugin.builder().projectId("test-project").enableTelemetry(true).build();
+    FirebasePlugin plugin =
+        FirebasePlugin.builder().projectId("test-project").enableTelemetry(true).build();
 
     assertNotNull(plugin);
     assertEquals("firebase", plugin.getName());
@@ -75,7 +74,8 @@ class FirebasePluginTest {
 
   @Test
   void testBuilderChaining() {
-    FirebasePlugin plugin = FirebasePlugin.builder().projectId("test-project").enableTelemetry(true).build();
+    FirebasePlugin plugin =
+        FirebasePlugin.builder().projectId("test-project").enableTelemetry(true).build();
 
     assertNotNull(plugin);
   }

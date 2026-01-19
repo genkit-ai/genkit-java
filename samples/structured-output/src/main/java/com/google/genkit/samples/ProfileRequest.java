@@ -21,17 +21,14 @@ package com.google.genkit.samples;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 
-/**
- * Input for generating a character profile.
- */
+/** Input for generating a character profile. */
 public class ProfileRequest {
 
   @JsonProperty(required = true)
   @JsonPropertyDescription("Description of the character to generate")
   private String characterDescription;
 
-  public ProfileRequest() {
-  }
+  public ProfileRequest() {}
 
   public ProfileRequest(String characterDescription) {
     this.characterDescription = characterDescription;

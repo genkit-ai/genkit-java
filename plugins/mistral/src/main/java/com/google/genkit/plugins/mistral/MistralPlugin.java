@@ -18,66 +18,68 @@
 
 package com.google.genkit.plugins.mistral;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.genkit.core.Action;
 import com.google.genkit.core.Plugin;
 import com.google.genkit.plugins.compatoai.CompatOAIModel;
 import com.google.genkit.plugins.compatoai.CompatOAIPluginOptions;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * MistralPlugin provides Mistral AI model integrations for Genkit.
  *
- * This plugin registers Mistral models as Genkit actions using the
- * OpenAI-compatible API.
+ * <p>This plugin registers Mistral models as Genkit actions using the OpenAI-compatible API.
  */
 public class MistralPlugin implements Plugin {
 
   private static final Logger logger = LoggerFactory.getLogger(MistralPlugin.class);
 
-  /**
-   * Supported Mistral models.
-   */
-  public static final List<String> SUPPORTED_MODELS = Arrays.asList(
-      // Flagship models
-      "mistral-large-2512", "mistral-medium-2508", "mistral-small-2506",
+  /** Supported Mistral models. */
+  public static final List<String> SUPPORTED_MODELS =
+      Arrays.asList(
+          // Flagship models
+          "mistral-large-2512",
+          "mistral-medium-2508",
+          "mistral-small-2506",
 
-      // Reasoning models
-      "magistral-medium-2509", "magistral-small-2509",
+          // Reasoning models
+          "magistral-medium-2509",
+          "magistral-small-2509",
 
-      // Compact models
-      "ministral-3b-2512", "ministral-8b-2512", "ministral-14b-2512",
+          // Compact models
+          "ministral-3b-2512",
+          "ministral-8b-2512",
+          "ministral-14b-2512",
 
-      // Vision models
-      "pixtral-large-2411",
+          // Vision models
+          "pixtral-large-2411",
 
-      // Code models
-      "codestral-2508", "devstral-2512",
+          // Code models
+          "codestral-2508",
+          "devstral-2512",
 
-      // Open source
-      "open-mistral-nemo");
+          // Open source
+          "open-mistral-nemo");
 
   private final CompatOAIPluginOptions options;
   private final List<String> customModels = new ArrayList<>();
 
-  /**
-   * Creates a MistralPlugin with default options (using MISTRAL_API_KEY
-   * environment variable).
-   */
+  /** Creates a MistralPlugin with default options (using MISTRAL_API_KEY environment variable). */
   public MistralPlugin() {
-    this(CompatOAIPluginOptions.builder().apiKey(getApiKeyFromEnv()).baseUrl("https://api.mistral.ai/v1").build());
+    this(
+        CompatOAIPluginOptions.builder()
+            .apiKey(getApiKeyFromEnv())
+            .baseUrl("https://api.mistral.ai/v1")
+            .build());
   }
 
   /**
    * Creates a MistralPlugin with the specified options.
    *
-   * @param options
-   *            the plugin options
+   * @param options the plugin options
    */
   public MistralPlugin(CompatOAIPluginOptions options) {
     this.options = options;
@@ -86,13 +88,15 @@ public class MistralPlugin implements Plugin {
   /**
    * Creates a MistralPlugin with the specified API key.
    *
-   * @param apiKey
-   *            the Mistral API key
+   * @param apiKey the Mistral API key
    * @return a new MistralPlugin
    */
   public static MistralPlugin create(String apiKey) {
     return new MistralPlugin(
-        CompatOAIPluginOptions.builder().apiKey(apiKey).baseUrl("https://api.mistral.ai/v1").build());
+        CompatOAIPluginOptions.builder()
+            .apiKey(apiKey)
+            .baseUrl("https://api.mistral.ai/v1")
+            .build());
   }
 
   /**
@@ -124,32 +128,37 @@ public class MistralPlugin implements Plugin {
 
     // Register Mistral models
     for (String modelName : SUPPORTED_MODELS) {
-      CompatOAIModel model = new CompatOAIModel("mistral/" + modelName, modelName, // API model name without
-          // prefix
-          "Mistral " + modelName, options);
+      CompatOAIModel model =
+          new CompatOAIModel(
+              "mistral/" + modelName,
+              modelName, // API model name
+              // without
+              // prefix
+              "Mistral " + modelName,
+              options);
       actions.add(model);
       logger.debug("Created Mistral model: {}", modelName);
     }
 
     // Register custom models added via customModel()
     for (String modelName : customModels) {
-      CompatOAIModel model = new CompatOAIModel("mistral/" + modelName, modelName, "Mistral " + modelName,
-          options);
+      CompatOAIModel model =
+          new CompatOAIModel("mistral/" + modelName, modelName, "Mistral " + modelName, options);
       actions.add(model);
       logger.debug("Created custom Mistral model: {}", modelName);
     }
 
-    logger.info("Mistral plugin initialized with {} models", SUPPORTED_MODELS.size() + customModels.size());
+    logger.info(
+        "Mistral plugin initialized with {} models", SUPPORTED_MODELS.size() + customModels.size());
 
     return actions;
   }
 
   /**
-   * Registers a custom model name. Use this to work with models not in the
-   * default list. Call this method before passing the plugin to Genkit.builder().
-   * 
-   * @param modelName
-   *            the model name (e.g., "mistral-large-2601")
+   * Registers a custom model name. Use this to work with models not in the default list. Call this
+   * method before passing the plugin to Genkit.builder().
+   *
+   * @param modelName the model name (e.g., "mistral-large-2601")
    * @return this plugin instance for method chaining
    */
   public MistralPlugin customModel(String modelName) {

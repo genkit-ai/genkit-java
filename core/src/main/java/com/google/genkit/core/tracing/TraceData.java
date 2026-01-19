@@ -18,15 +18,14 @@
 
 package com.google.genkit.core.tracing;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
- * TraceData represents a complete trace with all its spans. This format matches
- * the telemetry server API expectations.
+ * TraceData represents a complete trace with all its spans. This format matches the telemetry
+ * server API expectations.
  */
 public class TraceData {
 

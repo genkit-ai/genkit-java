@@ -21,9 +21,7 @@ package com.google.genkit.core.tracing;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * SpanMetadata contains metadata for a tracing span.
- */
+/** SpanMetadata contains metadata for a tracing span. */
 public class SpanMetadata {
 
   private String name;
@@ -31,9 +29,7 @@ public class SpanMetadata {
   private String subtype;
   private Map<String, Object> attributes;
 
-  /**
-   * Creates a new SpanMetadata.
-   */
+  /** Creates a new SpanMetadata. */
   public SpanMetadata() {
     this.attributes = new HashMap<>();
   }
@@ -41,14 +37,10 @@ public class SpanMetadata {
   /**
    * Creates a new SpanMetadata with the specified values.
    *
-   * @param name
-   *            the span name
-   * @param type
-   *            the span type
-   * @param subtype
-   *            the span subtype
-   * @param attributes
-   *            additional attributes
+   * @param name the span name
+   * @param type the span type
+   * @param subtype the span subtype
+   * @param attributes additional attributes
    */
   public SpanMetadata(String name, String type, String subtype, Map<String, Object> attributes) {
     this.name = name;
@@ -103,10 +95,8 @@ public class SpanMetadata {
   /**
    * Adds an attribute to the span metadata.
    *
-   * @param key
-   *            the attribute key
-   * @param value
-   *            the attribute value
+   * @param key the attribute key
+   * @param value the attribute value
    * @return this SpanMetadata for chaining
    */
   public SpanMetadata addAttribute(String key, Object value) {
@@ -114,9 +104,7 @@ public class SpanMetadata {
     return this;
   }
 
-  /**
-   * Builder for SpanMetadata.
-   */
+  /** Builder for SpanMetadata. */
   public static class Builder {
     private String name;
     private String type;

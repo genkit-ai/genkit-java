@@ -20,11 +20,9 @@ package com.google.genkit.plugins.compatoai;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.List;
-
-import org.junit.jupiter.api.Test;
-
 import com.google.genkit.core.Action;
+import java.util.List;
+import org.junit.jupiter.api.Test;
 
 class CompatOAIPluginTest {
 
@@ -37,8 +35,13 @@ class CompatOAIPluginTest {
 
   @Test
   void testBuilderWithMinimalConfig() {
-    CompatOAIPlugin plugin = CompatOAIPlugin.builder().pluginName("test-provider").apiKey("test-key")
-        .baseUrl("https://api.test.com/v1").addModel("model-v1").build();
+    CompatOAIPlugin plugin =
+        CompatOAIPlugin.builder()
+            .pluginName("test-provider")
+            .apiKey("test-key")
+            .baseUrl("https://api.test.com/v1")
+            .addModel("model-v1")
+            .build();
 
     assertNotNull(plugin);
     assertEquals("test-provider", plugin.getName());
@@ -46,9 +49,15 @@ class CompatOAIPluginTest {
 
   @Test
   void testBuilderWithMultipleModels() {
-    CompatOAIPlugin plugin = CompatOAIPlugin.builder().pluginName("test-provider").apiKey("test-key")
-        .baseUrl("https://api.test.com/v1").addModel("model-v1").addModel("model-v2").addModel("model-v3")
-        .build();
+    CompatOAIPlugin plugin =
+        CompatOAIPlugin.builder()
+            .pluginName("test-provider")
+            .apiKey("test-key")
+            .baseUrl("https://api.test.com/v1")
+            .addModel("model-v1")
+            .addModel("model-v2")
+            .addModel("model-v3")
+            .build();
 
     assertNotNull(plugin);
     assertEquals("test-provider", plugin.getName());
@@ -56,8 +65,13 @@ class CompatOAIPluginTest {
 
   @Test
   void testBuilderWithModelsVarargs() {
-    CompatOAIPlugin plugin = CompatOAIPlugin.builder().pluginName("test-provider").apiKey("test-key")
-        .baseUrl("https://api.test.com/v1").addModels("model-v1", "model-v2", "model-v3").build();
+    CompatOAIPlugin plugin =
+        CompatOAIPlugin.builder()
+            .pluginName("test-provider")
+            .apiKey("test-key")
+            .baseUrl("https://api.test.com/v1")
+            .addModels("model-v1", "model-v2", "model-v3")
+            .build();
 
     assertNotNull(plugin);
     assertEquals("test-provider", plugin.getName());
@@ -65,8 +79,13 @@ class CompatOAIPluginTest {
 
   @Test
   void testBuilderWithCustomLabel() {
-    CompatOAIPlugin plugin = CompatOAIPlugin.builder().pluginName("test-provider").apiKey("test-key")
-        .baseUrl("https://api.test.com/v1").addModel("model-v1", "Custom Model Label").build();
+    CompatOAIPlugin plugin =
+        CompatOAIPlugin.builder()
+            .pluginName("test-provider")
+            .apiKey("test-key")
+            .baseUrl("https://api.test.com/v1")
+            .addModel("model-v1", "Custom Model Label")
+            .build();
 
     assertNotNull(plugin);
     assertEquals("test-provider", plugin.getName());
@@ -74,8 +93,15 @@ class CompatOAIPluginTest {
 
   @Test
   void testBuilderWithAllOptions() {
-    CompatOAIPlugin plugin = CompatOAIPlugin.builder().pluginName("test-provider").apiKey("test-key")
-        .baseUrl("https://api.test.com/v1").organization("test-org").timeout(120).addModel("model-v1").build();
+    CompatOAIPlugin plugin =
+        CompatOAIPlugin.builder()
+            .pluginName("test-provider")
+            .apiKey("test-key")
+            .baseUrl("https://api.test.com/v1")
+            .organization("test-org")
+            .timeout(120)
+            .addModel("model-v1")
+            .build();
 
     assertNotNull(plugin);
     assertEquals("test-provider", plugin.getName());
@@ -90,8 +116,13 @@ class CompatOAIPluginTest {
 
   @Test
   void testInitializesActions() {
-    CompatOAIPlugin plugin = CompatOAIPlugin.builder().pluginName("test-provider").apiKey("test-key")
-        .baseUrl("https://api.test.com/v1").addModels("model-v1", "model-v2").build();
+    CompatOAIPlugin plugin =
+        CompatOAIPlugin.builder()
+            .pluginName("test-provider")
+            .apiKey("test-key")
+            .baseUrl("https://api.test.com/v1")
+            .addModels("model-v1", "model-v2")
+            .build();
 
     List<Action<?, ?, ?>> actions = plugin.init();
 
@@ -101,31 +132,51 @@ class CompatOAIPluginTest {
 
   @Test
   void testBuilderThrowsExceptionWhenPluginNameMissing() {
-    assertThrows(IllegalStateException.class, () -> {
-      CompatOAIPlugin.builder().apiKey("test-key").baseUrl("https://api.test.com/v1").addModel("model-v1")
-          .build();
-    });
+    assertThrows(
+        IllegalStateException.class,
+        () -> {
+          CompatOAIPlugin.builder()
+              .apiKey("test-key")
+              .baseUrl("https://api.test.com/v1")
+              .addModel("model-v1")
+              .build();
+        });
   }
 
   @Test
   void testBuilderThrowsExceptionWhenNoModels() {
-    assertThrows(IllegalStateException.class, () -> {
-      CompatOAIPlugin.builder().pluginName("test-provider").apiKey("test-key").baseUrl("https://api.test.com/v1")
-          .build();
-    });
+    assertThrows(
+        IllegalStateException.class,
+        () -> {
+          CompatOAIPlugin.builder()
+              .pluginName("test-provider")
+              .apiKey("test-key")
+              .baseUrl("https://api.test.com/v1")
+              .build();
+        });
   }
 
   @Test
   void testBuilderThrowsExceptionWhenAddingModelBeforePluginName() {
-    assertThrows(IllegalStateException.class, () -> {
-      CompatOAIPlugin.builder().apiKey("test-key").baseUrl("https://api.test.com/v1").addModel("model-v1");
-    });
+    assertThrows(
+        IllegalStateException.class,
+        () -> {
+          CompatOAIPlugin.builder()
+              .apiKey("test-key")
+              .baseUrl("https://api.test.com/v1")
+              .addModel("model-v1");
+        });
   }
 
   @Test
   void testGetOptions() {
-    CompatOAIPlugin plugin = CompatOAIPlugin.builder().pluginName("test-provider").apiKey("test-key")
-        .baseUrl("https://api.test.com/v1").addModel("model-v1").build();
+    CompatOAIPlugin plugin =
+        CompatOAIPlugin.builder()
+            .pluginName("test-provider")
+            .apiKey("test-key")
+            .baseUrl("https://api.test.com/v1")
+            .addModel("model-v1")
+            .build();
 
     CompatOAIPluginOptions options = plugin.getOptions();
 
@@ -136,7 +187,8 @@ class CompatOAIPluginTest {
 
   @Test
   void testModelDefinitionWithDefaultLabel() {
-    CompatOAIPlugin.ModelDefinition modelDef = new CompatOAIPlugin.ModelDefinition("test-provider", "model-v1");
+    CompatOAIPlugin.ModelDefinition modelDef =
+        new CompatOAIPlugin.ModelDefinition("test-provider", "model-v1");
 
     assertEquals("test-provider/model-v1", modelDef.getFullName());
     assertEquals("test-provider model-v1", modelDef.getLabel());
@@ -144,8 +196,8 @@ class CompatOAIPluginTest {
 
   @Test
   void testModelDefinitionWithCustomLabel() {
-    CompatOAIPlugin.ModelDefinition modelDef = new CompatOAIPlugin.ModelDefinition("test-provider", "model-v1",
-        "Custom Label");
+    CompatOAIPlugin.ModelDefinition modelDef =
+        new CompatOAIPlugin.ModelDefinition("test-provider", "model-v1", "Custom Label");
 
     assertEquals("test-provider/model-v1", modelDef.getFullName());
     assertEquals("Custom Label", modelDef.getLabel());

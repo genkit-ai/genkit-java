@@ -18,11 +18,12 @@
 
 package com.google.genkit.plugins.jetty;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.genkit.core.*;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
@@ -34,24 +35,21 @@ import org.eclipse.jetty.util.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.genkit.core.*;
-
 /**
  * JettyPlugin provides HTTP endpoints for Genkit flows.
  *
- * <p>
- * This plugin exposes registered flows as HTTP endpoints, making it easy to
- * deploy Genkit applications as web services.
+ * <p>This plugin exposes registered flows as HTTP endpoints, making it easy to deploy Genkit
+ * applications as web services.
  *
- * <p>
- * Example usage:
- * 
+ * <p>Example usage:
+ *
  * <pre>{@code
- * Genkit genkit = Genkit.builder().plugin(new JettyPlugin(JettyPluginOptions.builder().port(8080).build())).build();
- * 
+ * Genkit genkit = Genkit.builder()
+ *     .plugin(new JettyPlugin(JettyPluginOptions.builder().port(8080).build()))
+ *     .build();
+ *
  * // Define your flows...
- * 
+ *
  * // Start the server and block (keeps application running)
  * genkit.start();
  * }</pre>
@@ -65,9 +63,7 @@ public class JettyPlugin implements ServerPlugin {
   private Registry registry;
   private ObjectMapper objectMapper;
 
-  /**
-   * Creates a JettyPlugin with default options.
-   */
+  /** Creates a JettyPlugin with default options. */
   public JettyPlugin() {
     this(JettyPluginOptions.builder().build());
   }
@@ -75,8 +71,7 @@ public class JettyPlugin implements ServerPlugin {
   /**
    * Creates a JettyPlugin with the specified options.
    *
-   * @param options
-   *            the plugin options
+   * @param options the plugin options
    */
   public JettyPlugin(JettyPluginOptions options) {
     this.options = options;
@@ -86,8 +81,7 @@ public class JettyPlugin implements ServerPlugin {
   /**
    * Creates a JettyPlugin with the specified port.
    *
-   * @param port
-   *            the HTTP port
+   * @param port the HTTP port
    * @return a new JettyPlugin
    */
   public static JettyPlugin create(int port) {
@@ -113,28 +107,25 @@ public class JettyPlugin implements ServerPlugin {
 
   /**
    * Starts the Jetty server and blocks until it is stopped.
-   * 
-   * <p>
-   * This is the recommended way to start the server in a main() method. Similar
-   * to Express's app.listen() in JavaScript, this method will keep your
-   * application running until the server is explicitly stopped.
-   * 
-   * <p>
-   * Example usage:
-   * 
+   *
+   * <p>This is the recommended way to start the server in a main() method. Similar to Express's
+   * app.listen() in JavaScript, this method will keep your application running until the server is
+   * explicitly stopped.
+   *
+   * <p>Example usage:
+   *
    * <pre>{@code
    * JettyPlugin jetty = new JettyPlugin(JettyPluginOptions.builder().port(8080).build());
-   * 
+   *
    * Genkit genkit = Genkit.builder().plugin(jetty).build();
-   * 
+   *
    * // Define your flows...
-   * 
+   *
    * // Start and block
    * jetty.start();
    * }</pre>
    *
-   * @throws Exception
-   *             if the server cannot be started or if interrupted while waiting
+   * @throws Exception if the server cannot be started or if interrupted while waiting
    */
   @Override
   public void start() throws Exception {
@@ -150,8 +141,7 @@ public class JettyPlugin implements ServerPlugin {
   /**
    * Starts the Jetty server without blocking.
    *
-   * @throws Exception
-   *             if the server cannot be started
+   * @throws Exception if the server cannot be started
    */
   private void startServer() throws Exception {
     if (server != null) {
@@ -190,8 +180,7 @@ public class JettyPlugin implements ServerPlugin {
   /**
    * Stops the Jetty server.
    *
-   * @throws Exception
-   *             if the server cannot be stopped
+   * @throws Exception if the server cannot be stopped
    */
   @Override
   public void stop() throws Exception {
@@ -222,9 +211,7 @@ public class JettyPlugin implements ServerPlugin {
     return server != null && server.isRunning();
   }
 
-  /**
-   * Adds HTTP handlers for all registered flows.
-   */
+  /** Adds HTTP handlers for all registered flows. */
   private void addFlowHandlers(ContextHandlerCollection handlers) {
     List<Action<?, ?, ?>> flows = registry.listActions(ActionType.FLOW);
 
@@ -240,9 +227,7 @@ public class JettyPlugin implements ServerPlugin {
     }
   }
 
-  /**
-   * Handler for health check endpoint.
-   */
+  /** Handler for health check endpoint. */
   private class HealthHandler extends Handler.Abstract {
     @Override
     public boolean handle(Request request, Response response, Callback callback) throws Exception {
@@ -256,9 +241,7 @@ public class JettyPlugin implements ServerPlugin {
     }
   }
 
-  /**
-   * Handler for flow endpoints.
-   */
+  /** Handler for flow endpoints. */
   private class FlowHandler extends Handler.Abstract {
     private final Action<Object, Object, Object> action;
 
@@ -317,8 +300,14 @@ public class JettyPlugin implements ServerPlugin {
         String stacktrace = sw.toString();
 
         Map<String, Object> errorDetails = Map.of("stack", stacktrace);
-        Map<String, Object> errorStatus = Map.of("code", 2, // INTERNAL error code
-            "message", errorMessage, "details", errorDetails);
+        Map<String, Object> errorStatus =
+            Map.of(
+                "code",
+                2, // INTERNAL error code
+                "message",
+                errorMessage,
+                "details",
+                errorDetails);
 
         String json = objectMapper.writeValueAsString(errorStatus);
         response.write(true, ByteBuffer.wrap(json.getBytes(StandardCharsets.UTF_8)), callback);

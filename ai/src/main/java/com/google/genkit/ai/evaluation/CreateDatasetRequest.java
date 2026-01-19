@@ -18,56 +18,40 @@
 
 package com.google.genkit.ai.evaluation;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import java.util.List;
 
-/**
- * Request to create a new dataset.
- */
+/** Request to create a new dataset. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CreateDatasetRequest {
 
-  /**
-   * The dataset samples.
-   */
+  /** The dataset samples. */
   @JsonProperty("data")
   private List<DatasetSample> data;
 
-  /**
-   * Optional ID for the dataset. If not provided, one will be generated.
-   */
+  /** Optional ID for the dataset. If not provided, one will be generated. */
   @JsonProperty("datasetId")
   private String datasetId;
 
-  /**
-   * The type of dataset.
-   */
+  /** The type of dataset. */
   @JsonProperty("datasetType")
   private DatasetType datasetType;
 
-  /**
-   * Optional schema for the dataset.
-   */
+  /** Optional schema for the dataset. */
   @JsonProperty("schema")
   private JsonNode schema;
 
-  /**
-   * References to metrics/evaluators for this dataset.
-   */
+  /** References to metrics/evaluators for this dataset. */
   @JsonProperty("metricRefs")
   private List<String> metricRefs;
 
-  /**
-   * The target action this dataset is designed for.
-   */
+  /** The target action this dataset is designed for. */
   @JsonProperty("targetAction")
   private String targetAction;
 
-  public CreateDatasetRequest() {
-  }
+  public CreateDatasetRequest() {}
 
   private CreateDatasetRequest(Builder builder) {
     this.data = builder.data;

@@ -17,31 +17,35 @@
  */
 
 /**
- * PostgreSQL plugin for Genkit providing vector database integration using
- * pgvector extension.
+ * PostgreSQL plugin for Genkit providing vector database integration using pgvector extension.
  *
- * <p>
- * This plugin provides:
+ * <p>This plugin provides:
+ *
  * <ul>
- * <li>PostgreSQL with pgvector extension for vector similarity search</li>
- * <li>Document indexing with automatic embedding generation</li>
- * <li>Support for multiple distance strategies (cosine, L2, inner product)</li>
- * <li>Automatic table and index creation</li>
- * <li>Connection pooling with HikariCP</li>
+ *   <li>PostgreSQL with pgvector extension for vector similarity search
+ *   <li>Document indexing with automatic embedding generation
+ *   <li>Support for multiple distance strategies (cosine, L2, inner product)
+ *   <li>Automatic table and index creation
+ *   <li>Connection pooling with HikariCP
  * </ul>
  *
- * <p>
- * Example usage:
- * 
+ * <p>Example usage:
+ *
  * <pre>{@code
- * Genkit genkit = Genkit
- * 		.builder().plugin(
- * 				GoogleGenAIPlugin.create(apiKey))
- * 		.plugin(PostgresPlugin.builder().connectionString("jdbc:postgresql://localhost:5432/mydb").username("user")
- * 				.password("pass").addTable(PostgresTableConfig.builder().tableName("documents")
- * 						.embedderName("googleai/text-embedding-004").build())
- * 				.build())
- * 		.build();
+ * Genkit genkit = Genkit.builder()
+ *     .plugin(GoogleGenAIPlugin.create(apiKey))
+ *     .plugin(
+ *         PostgresPlugin.builder()
+ *             .connectionString("jdbc:postgresql://localhost:5432/mydb")
+ *             .username("user")
+ *             .password("pass")
+ *             .addTable(
+ *                 PostgresTableConfig.builder()
+ *                     .tableName("documents")
+ *                     .embedderName("googleai/text-embedding-004")
+ *                     .build())
+ *             .build())
+ *     .build();
  * }</pre>
  */
 package com.google.genkit.plugins.postgresql;

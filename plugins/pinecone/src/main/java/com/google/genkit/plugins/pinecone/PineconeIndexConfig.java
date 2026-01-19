@@ -24,37 +24,29 @@ import java.util.Map;
 /**
  * Configuration for a Pinecone index used for vector storage.
  *
- * <p>
- * This class configures how documents are stored and retrieved from a Pinecone
- * index.
+ * <p>This class configures how documents are stored and retrieved from a Pinecone index.
  *
- * <p>
- * Example usage:
- * 
+ * <p>Example usage:
+ *
  * <pre>{@code
- * PineconeIndexConfig config = PineconeIndexConfig.builder().indexName("my-index")
- * 		.embedderName("googleai/text-embedding-004").namespace("production").build();
+ * PineconeIndexConfig config = PineconeIndexConfig.builder()
+ *     .indexName("my-index")
+ *     .embedderName("googleai/text-embedding-004")
+ *     .namespace("production")
+ *     .build();
  * }</pre>
  */
 public class PineconeIndexConfig {
 
-  /**
-   * Metric types for vector similarity search.
-   */
+  /** Metric types for vector similarity search. */
   public enum Metric {
-    /**
-     * Cosine similarity.
-     */
+    /** Cosine similarity. */
     COSINE("cosine"),
 
-    /**
-     * Euclidean (L2) distance.
-     */
+    /** Euclidean (L2) distance. */
     EUCLIDEAN("euclidean"),
 
-    /**
-     * Dot product similarity.
-     */
+    /** Dot product similarity. */
     DOT_PRODUCT("dotproduct");
 
     private final String value;
@@ -68,11 +60,11 @@ public class PineconeIndexConfig {
     }
   }
 
-  /**
-   * Cloud providers for serverless indexes.
-   */
+  /** Cloud providers for serverless indexes. */
   public enum Cloud {
-    AWS("aws"), GCP("gcp"), AZURE("azure");
+    AWS("aws"),
+    GCP("gcp"),
+    AZURE("azure");
 
     private final String value;
 
@@ -109,86 +101,62 @@ public class PineconeIndexConfig {
     this.additionalMetadata = new HashMap<>(builder.additionalMetadata);
   }
 
-  /**
-   * Creates a new builder for PineconeIndexConfig.
-   */
+  /** Creates a new builder for PineconeIndexConfig. */
   public static Builder builder() {
     return new Builder();
   }
 
-  /**
-   * Gets the index name.
-   */
+  /** Gets the index name. */
   public String getIndexName() {
     return indexName;
   }
 
-  /**
-   * Gets the embedder name for generating vectors.
-   */
+  /** Gets the embedder name for generating vectors. */
   public String getEmbedderName() {
     return embedderName;
   }
 
-  /**
-   * Gets the namespace for this configuration.
-   */
+  /** Gets the namespace for this configuration. */
   public String getNamespace() {
     return namespace;
   }
 
-  /**
-   * Gets the vector dimension.
-   */
+  /** Gets the vector dimension. */
   public int getDimension() {
     return dimension;
   }
 
-  /**
-   * Gets the similarity metric.
-   */
+  /** Gets the similarity metric. */
   public Metric getMetric() {
     return metric;
   }
 
-  /**
-   * Gets the cloud provider for serverless index.
-   */
+  /** Gets the cloud provider for serverless index. */
   public Cloud getCloud() {
     return cloud;
   }
 
-  /**
-   * Gets the region for serverless index.
-   */
+  /** Gets the region for serverless index. */
   public String getRegion() {
     return region;
   }
 
-  /**
-   * Returns whether to create the index if it doesn't exist.
-   */
+  /** Returns whether to create the index if it doesn't exist. */
   public boolean isCreateIndexIfNotExists() {
     return createIndexIfNotExists;
   }
 
-  /**
-   * Gets the metadata field name used to store document text.
-   */
+  /** Gets the metadata field name used to store document text. */
   public String getTextField() {
     return textField;
   }
 
-  /**
-   * Gets additional metadata to add to all indexed documents.
-   */
+  /** Gets additional metadata to add to all indexed documents. */
   public Map<String, Object> getAdditionalMetadata() {
     return additionalMetadata;
   }
 
-  /**
-   * Builder for PineconeIndexConfig.
-   */
+  /** Builder for PineconeIndexConfig. */
   public static class Builder {
     private String indexName;
     private String embedderName;
@@ -201,89 +169,67 @@ public class PineconeIndexConfig {
     private String textField = "text";
     private Map<String, Object> additionalMetadata = new HashMap<>();
 
-    /**
-     * Sets the index name (required).
-     */
+    /** Sets the index name (required). */
     public Builder indexName(String indexName) {
       this.indexName = indexName;
       return this;
     }
 
-    /**
-     * Sets the embedder name for generating vectors (required).
-     */
+    /** Sets the embedder name for generating vectors (required). */
     public Builder embedderName(String embedderName) {
       this.embedderName = embedderName;
       return this;
     }
 
-    /**
-     * Sets the namespace (default: "" - default namespace).
-     */
+    /** Sets the namespace (default: "" - default namespace). */
     public Builder namespace(String namespace) {
       this.namespace = namespace;
       return this;
     }
 
-    /**
-     * Sets the vector dimension (default: 768).
-     */
+    /** Sets the vector dimension (default: 768). */
     public Builder dimension(int dimension) {
       this.dimension = dimension;
       return this;
     }
 
-    /**
-     * Sets the similarity metric (default: COSINE).
-     */
+    /** Sets the similarity metric (default: COSINE). */
     public Builder metric(Metric metric) {
       this.metric = metric;
       return this;
     }
 
-    /**
-     * Sets the cloud provider for serverless index (default: AWS).
-     */
+    /** Sets the cloud provider for serverless index (default: AWS). */
     public Builder cloud(Cloud cloud) {
       this.cloud = cloud;
       return this;
     }
 
-    /**
-     * Sets the region for serverless index (default: "us-east-1").
-     */
+    /** Sets the region for serverless index (default: "us-east-1"). */
     public Builder region(String region) {
       this.region = region;
       return this;
     }
 
-    /**
-     * Sets whether to create the index if it doesn't exist (default: false).
-     */
+    /** Sets whether to create the index if it doesn't exist (default: false). */
     public Builder createIndexIfNotExists(boolean createIndexIfNotExists) {
       this.createIndexIfNotExists = createIndexIfNotExists;
       return this;
     }
 
-    /**
-     * Sets the metadata field name for storing document text (default: "text").
-     */
+    /** Sets the metadata field name for storing document text (default: "text"). */
     public Builder textField(String textField) {
       this.textField = textField;
       return this;
     }
 
-    /**
-     * Adds additional metadata to include with all indexed documents.
-     */
+    /** Adds additional metadata to include with all indexed documents. */
     public Builder additionalMetadata(String key, Object value) {
       this.additionalMetadata.put(key, value);
       return this;
     }
 
-    /**
-     * Sets all additional metadata to include with indexed documents.
-     */
+    /** Sets all additional metadata to include with indexed documents. */
     public Builder additionalMetadata(Map<String, Object> metadata) {
       this.additionalMetadata = new HashMap<>(metadata);
       return this;
@@ -292,8 +238,7 @@ public class PineconeIndexConfig {
     /**
      * Builds the PineconeIndexConfig.
      *
-     * @throws IllegalStateException
-     *             if required fields are not set
+     * @throws IllegalStateException if required fields are not set
      */
     public PineconeIndexConfig build() {
       if (indexName == null || indexName.isBlank()) {

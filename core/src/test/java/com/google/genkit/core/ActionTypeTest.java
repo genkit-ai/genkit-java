@@ -24,9 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
-/**
- * Unit tests for ActionType.
- */
+/** Unit tests for ActionType. */
 class ActionTypeTest {
 
   @Test
@@ -157,8 +155,11 @@ class ActionTypeTest {
 
     for (int i = 0; i < types.length; i++) {
       for (int j = i + 1; j < types.length; j++) {
-        assertNotEquals(types[i].toString(), types[j].toString(), String
-            .format("ActionTypes %s and %s have same string value", types[i].name(), types[j].name()));
+        assertNotEquals(
+            types[i].toString(),
+            types[j].toString(),
+            String.format(
+                "ActionTypes %s and %s have same string value", types[i].name(), types[j].name()));
       }
     }
   }

@@ -18,17 +18,6 @@
 
 package com.google.genkit.plugins.openai;
 
-import java.io.IOException;
-import java.util.*;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -36,15 +25,21 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.genkit.ai.*;
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.GenkitException;
-
+import java.io.IOException;
+import java.util.*;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import okhttp3.*;
 import okhttp3.sse.EventSource;
 import okhttp3.sse.EventSourceListener;
 import okhttp3.sse.EventSources;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * OpenAI model implementation for Genkit.
- */
+/** OpenAI model implementation for Genkit. */
 public class OpenAIModel implements Model {
 
   private static final Logger logger = LoggerFactory.getLogger(OpenAIModel.class);
@@ -59,18 +54,19 @@ public class OpenAIModel implements Model {
   /**
    * Creates a new OpenAIModel.
    *
-   * @param modelName
-   *            the model name
-   * @param options
-   *            the plugin options
+   * @param modelName the model name
+   * @param options the plugin options
    */
   public OpenAIModel(String modelName, OpenAIPluginOptions options) {
     this.modelName = modelName;
     this.options = options;
     this.objectMapper = new ObjectMapper();
-    this.client = new OkHttpClient.Builder().connectTimeout(options.getTimeout(), TimeUnit.SECONDS)
-        .readTimeout(options.getTimeout(), TimeUnit.SECONDS)
-        .writeTimeout(options.getTimeout(), TimeUnit.SECONDS).build();
+    this.client =
+        new OkHttpClient.Builder()
+            .connectTimeout(options.getTimeout(), TimeUnit.SECONDS)
+            .readTimeout(options.getTimeout(), TimeUnit.SECONDS)
+            .writeTimeout(options.getTimeout(), TimeUnit.SECONDS)
+            .build();
     this.info = createModelInfo();
   }
 
@@ -114,7 +110,8 @@ public class OpenAIModel implements Model {
   }
 
   @Override
-  public ModelResponse run(ActionContext context, ModelRequest request, Consumer<ModelResponseChunk> streamCallback) {
+  public ModelResponse run(
+      ActionContext context, ModelRequest request, Consumer<ModelResponseChunk> streamCallback) {
     if (streamCallback == null) {
       return run(context, request);
     }
@@ -128,12 +125,17 @@ public class OpenAIModel implements Model {
   private ModelResponse callOpenAI(ModelRequest request) throws IOException {
     ObjectNode requestBody = buildRequestBody(request);
 
-    Request httpRequest = new Request.Builder().url(options.getBaseUrl() + "/chat/completions")
-        .header("Authorization", "Bearer " + options.getApiKey()).header("Content-Type", "application/json")
-        .post(RequestBody.create(requestBody.toString(), JSON_MEDIA_TYPE)).build();
+    Request httpRequest =
+        new Request.Builder()
+            .url(options.getBaseUrl() + "/chat/completions")
+            .header("Authorization", "Bearer " + options.getApiKey())
+            .header("Content-Type", "application/json")
+            .post(RequestBody.create(requestBody.toString(), JSON_MEDIA_TYPE))
+            .build();
 
     if (options.getOrganization() != null) {
-      httpRequest = httpRequest.newBuilder().header("OpenAI-Organization", options.getOrganization()).build();
+      httpRequest =
+          httpRequest.newBuilder().header("OpenAI-Organization", options.getOrganization()).build();
     }
 
     try (Response response = client.newCall(httpRequest).execute()) {
@@ -147,18 +149,24 @@ public class OpenAIModel implements Model {
     }
   }
 
-  private ModelResponse callOpenAIStreaming(ModelRequest request, Consumer<ModelResponseChunk> streamCallback)
+  private ModelResponse callOpenAIStreaming(
+      ModelRequest request, Consumer<ModelResponseChunk> streamCallback)
       throws IOException, InterruptedException {
     ObjectNode requestBody = buildRequestBody(request);
     requestBody.put("stream", true);
 
-    Request httpRequest = new Request.Builder().url(options.getBaseUrl() + "/chat/completions")
-        .header("Authorization", "Bearer " + options.getApiKey()).header("Content-Type", "application/json")
-        .header("Accept", "text/event-stream").post(RequestBody.create(requestBody.toString(), JSON_MEDIA_TYPE))
-        .build();
+    Request httpRequest =
+        new Request.Builder()
+            .url(options.getBaseUrl() + "/chat/completions")
+            .header("Authorization", "Bearer " + options.getApiKey())
+            .header("Content-Type", "application/json")
+            .header("Accept", "text/event-stream")
+            .post(RequestBody.create(requestBody.toString(), JSON_MEDIA_TYPE))
+            .build();
 
     if (options.getOrganization() != null) {
-      httpRequest = httpRequest.newBuilder().header("OpenAI-Organization", options.getOrganization()).build();
+      httpRequest =
+          httpRequest.newBuilder().header("OpenAI-Organization", options.getOrganization()).build();
     }
 
     StringBuilder fullContent = new StringBuilder();
@@ -169,101 +177,103 @@ public class OpenAIModel implements Model {
     // Track tool calls being streamed (tool calls come in chunks)
     List<Map<String, Object>> toolCallsInProgress = new ArrayList<>();
 
-    EventSourceListener listener = new EventSourceListener() {
-      @Override
-      public void onEvent(EventSource eventSource, String id, String type, String data) {
-        if ("[DONE]".equals(data)) {
-          latch.countDown();
-          return;
-        }
+    EventSourceListener listener =
+        new EventSourceListener() {
+          @Override
+          public void onEvent(EventSource eventSource, String id, String type, String data) {
+            if ("[DONE]".equals(data)) {
+              latch.countDown();
+              return;
+            }
 
-        try {
-          JsonNode chunk = objectMapper.readTree(data);
-          JsonNode choices = chunk.get("choices");
-          if (choices != null && choices.isArray() && choices.size() > 0) {
-            JsonNode choice = choices.get(0);
-            JsonNode delta = choice.get("delta");
+            try {
+              JsonNode chunk = objectMapper.readTree(data);
+              JsonNode choices = chunk.get("choices");
+              if (choices != null && choices.isArray() && choices.size() > 0) {
+                JsonNode choice = choices.get(0);
+                JsonNode delta = choice.get("delta");
 
-            if (delta != null) {
-              // Handle text content
-              JsonNode contentNode = delta.get("content");
-              if (contentNode != null && !contentNode.isNull()) {
-                String text = contentNode.asText();
-                fullContent.append(text);
+                if (delta != null) {
+                  // Handle text content
+                  JsonNode contentNode = delta.get("content");
+                  if (contentNode != null && !contentNode.isNull()) {
+                    String text = contentNode.asText();
+                    fullContent.append(text);
 
-                // Create and send chunk
-                ModelResponseChunk responseChunk = ModelResponseChunk.text(text);
-                responseChunk.setIndex(choice.has("index") ? choice.get("index").asInt() : 0);
-                streamCallback.accept(responseChunk);
-              }
-
-              // Handle tool calls (streamed incrementally)
-              JsonNode toolCallsNode = delta.get("tool_calls");
-              if (toolCallsNode != null && toolCallsNode.isArray()) {
-                for (JsonNode toolCallDelta : toolCallsNode) {
-                  int index = toolCallDelta.has("index") ? toolCallDelta.get("index").asInt() : 0;
-
-                  // Expand list if needed
-                  while (toolCallsInProgress.size() <= index) {
-                    Map<String, Object> newToolCall = new java.util.HashMap<>();
-                    newToolCall.put("arguments", new StringBuilder());
-                    toolCallsInProgress.add(newToolCall);
+                    // Create and send chunk
+                    ModelResponseChunk responseChunk = ModelResponseChunk.text(text);
+                    responseChunk.setIndex(choice.has("index") ? choice.get("index").asInt() : 0);
+                    streamCallback.accept(responseChunk);
                   }
 
-                  Map<String, Object> toolCall = toolCallsInProgress.get(index);
+                  // Handle tool calls (streamed incrementally)
+                  JsonNode toolCallsNode = delta.get("tool_calls");
+                  if (toolCallsNode != null && toolCallsNode.isArray()) {
+                    for (JsonNode toolCallDelta : toolCallsNode) {
+                      int index =
+                          toolCallDelta.has("index") ? toolCallDelta.get("index").asInt() : 0;
 
-                  // Capture id if present
-                  if (toolCallDelta.has("id")) {
-                    toolCall.put("id", toolCallDelta.get("id").asText());
-                  }
+                      // Expand list if needed
+                      while (toolCallsInProgress.size() <= index) {
+                        Map<String, Object> newToolCall = new java.util.HashMap<>();
+                        newToolCall.put("arguments", new StringBuilder());
+                        toolCallsInProgress.add(newToolCall);
+                      }
 
-                  // Capture function name and arguments
-                  JsonNode functionNode = toolCallDelta.get("function");
-                  if (functionNode != null) {
-                    if (functionNode.has("name")) {
-                      toolCall.put("name", functionNode.get("name").asText());
-                    }
-                    if (functionNode.has("arguments")) {
-                      StringBuilder args = (StringBuilder) toolCall.get("arguments");
-                      args.append(functionNode.get("arguments").asText());
+                      Map<String, Object> toolCall = toolCallsInProgress.get(index);
+
+                      // Capture id if present
+                      if (toolCallDelta.has("id")) {
+                        toolCall.put("id", toolCallDelta.get("id").asText());
+                      }
+
+                      // Capture function name and arguments
+                      JsonNode functionNode = toolCallDelta.get("function");
+                      if (functionNode != null) {
+                        if (functionNode.has("name")) {
+                          toolCall.put("name", functionNode.get("name").asText());
+                        }
+                        if (functionNode.has("arguments")) {
+                          StringBuilder args = (StringBuilder) toolCall.get("arguments");
+                          args.append(functionNode.get("arguments").asText());
+                        }
+                      }
                     }
                   }
                 }
+
+                JsonNode finishReasonNode = choice.get("finish_reason");
+                if (finishReasonNode != null && !finishReasonNode.isNull()) {
+                  finishReason.set(finishReasonNode.asText());
+                }
+              }
+            } catch (Exception e) {
+              logger.error("Error parsing streaming chunk", e);
+            }
+          }
+
+          @Override
+          public void onFailure(EventSource eventSource, Throwable t, Response response) {
+            String errorMsg = "Streaming failed";
+            if (response != null) {
+              try {
+                errorMsg = "Streaming failed: " + response.code();
+                if (response.body() != null) {
+                  errorMsg += " - " + response.body().string();
+                }
+              } catch (IOException e) {
+                // Ignore
               }
             }
-
-            JsonNode finishReasonNode = choice.get("finish_reason");
-            if (finishReasonNode != null && !finishReasonNode.isNull()) {
-              finishReason.set(finishReasonNode.asText());
-            }
+            error.set(new GenkitException(errorMsg, t));
+            latch.countDown();
           }
-        } catch (Exception e) {
-          logger.error("Error parsing streaming chunk", e);
-        }
-      }
 
-      @Override
-      public void onFailure(EventSource eventSource, Throwable t, Response response) {
-        String errorMsg = "Streaming failed";
-        if (response != null) {
-          try {
-            errorMsg = "Streaming failed: " + response.code();
-            if (response.body() != null) {
-              errorMsg += " - " + response.body().string();
-            }
-          } catch (IOException e) {
-            // Ignore
+          @Override
+          public void onClosed(EventSource eventSource) {
+            latch.countDown();
           }
-        }
-        error.set(new GenkitException(errorMsg, t));
-        latch.countDown();
-      }
-
-      @Override
-      public void onClosed(EventSource eventSource) {
-        latch.countDown();
-      }
-    };
+        };
 
     EventSource.Factory factory = EventSources.createFactory(client);
     EventSource eventSource = factory.newEventSource(httpRequest, listener);
@@ -332,16 +342,16 @@ public class OpenAIModel implements Model {
     String reason = finishReason.get();
     if (reason != null) {
       switch (reason) {
-        case "stop" :
+        case "stop":
           candidate.setFinishReason(FinishReason.STOP);
           break;
-        case "length" :
+        case "length":
           candidate.setFinishReason(FinishReason.LENGTH);
           break;
-        case "tool_calls" :
+        case "tool_calls":
           candidate.setFinishReason(FinishReason.OTHER);
           break;
-        default :
+        default:
           candidate.setFinishReason(FinishReason.OTHER);
       }
     }
@@ -376,7 +386,10 @@ public class OpenAIModel implements Model {
       boolean hasToolResponses = content.stream().anyMatch(p -> p.getToolResponse() != null);
 
       // Add context prefix to the first user message
-      if (!contextPrefixAdded && contextPrefix != null && message.getRole() == Role.USER && !hasToolResponses) {
+      if (!contextPrefixAdded
+          && contextPrefix != null
+          && message.getRole() == Role.USER
+          && !hasToolResponses) {
         contextPrefixAdded = true;
         // Prepend context to the message content
         if (content.size() == 1 && content.get(0).getText() != null) {
@@ -388,8 +401,12 @@ public class OpenAIModel implements Model {
       if (hasToolRequests) {
         // Assistant message with tool calls
         // Add text content if present
-        String textContent = content.stream().filter(p -> p.getText() != null).map(Part::getText).findFirst()
-            .orElse(null);
+        String textContent =
+            content.stream()
+                .filter(p -> p.getText() != null)
+                .map(Part::getText)
+                .findFirst()
+                .orElse(null);
         if (textContent != null) {
           msg.put("content", textContent);
         } else {
@@ -557,7 +574,8 @@ public class OpenAIModel implements Model {
 
             if (contentNode.isTextual()) {
               String content = contentNode.asText();
-              ((ObjectNode) message).put("content", content + " Return the response in JSON format.");
+              ((ObjectNode) message)
+                  .put("content", content + " Return the response in JSON format.");
               logger.debug("Auto-injected JSON format instruction for structured output");
               break;
             } else if (contentNode.isArray()) {
@@ -583,22 +601,22 @@ public class OpenAIModel implements Model {
 
   private String convertRole(Role role) {
     switch (role) {
-      case SYSTEM :
+      case SYSTEM:
         return "system";
-      case USER :
+      case USER:
         return "user";
-      case MODEL :
+      case MODEL:
         return "assistant";
-      case TOOL :
+      case TOOL:
         return "tool";
-      default :
+      default:
         return "user";
     }
   }
 
   /**
-   * Builds a context prefix string from the documents in the request. Returns
-   * null if no context documents are present.
+   * Builds a context prefix string from the documents in the request. Returns null if no context
+   * documents are present.
    */
   private String buildContextPrefix(ModelRequest request) {
     List<Document> contextDocs = request.getContext();
@@ -679,19 +697,19 @@ public class OpenAIModel implements Model {
         if (finishReasonNode != null) {
           String reason = finishReasonNode.asText();
           switch (reason) {
-            case "stop" :
+            case "stop":
               candidate.setFinishReason(FinishReason.STOP);
               break;
-            case "length" :
+            case "length":
               candidate.setFinishReason(FinishReason.LENGTH);
               break;
-            case "tool_calls" :
+            case "tool_calls":
               candidate.setFinishReason(FinishReason.STOP);
               break;
-            case "content_filter" :
+            case "content_filter":
               candidate.setFinishReason(FinishReason.BLOCKED);
               break;
-            default :
+            default:
               candidate.setFinishReason(FinishReason.OTHER);
           }
         }

@@ -18,14 +18,11 @@
 
 package com.google.genkit.samples;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import java.util.List;
 
-/**
- * Request object for recipe generation with dietary preferences.
- */
+/** Request object for recipe generation with dietary preferences. */
 public class RecipeRequest {
   @JsonProperty(required = true)
   @JsonPropertyDescription("The type of cuisine (e.g., Italian, Japanese, Mexican)")
@@ -37,8 +34,7 @@ public class RecipeRequest {
   @JsonPropertyDescription("Dietary restrictions to consider")
   private List<String> dietaryRestrictions;
 
-  public RecipeRequest() {
-  }
+  public RecipeRequest() {}
 
   public RecipeRequest(String cuisine, Integer maxPrepTime, List<String> dietaryRestrictions) {
     this.cuisine = cuisine;
@@ -49,6 +45,7 @@ public class RecipeRequest {
   public String getCuisine() {
     return cuisine;
   }
+
   public void setCuisine(String cuisine) {
     this.cuisine = cuisine;
   }
@@ -56,6 +53,7 @@ public class RecipeRequest {
   public Integer getMaxPrepTime() {
     return maxPrepTime;
   }
+
   public void setMaxPrepTime(Integer maxPrepTime) {
     this.maxPrepTime = maxPrepTime;
   }
@@ -63,6 +61,7 @@ public class RecipeRequest {
   public List<String> getDietaryRestrictions() {
     return dietaryRestrictions;
   }
+
   public void setDietaryRestrictions(List<String> dietaryRestrictions) {
     this.dietaryRestrictions = dietaryRestrictions;
   }

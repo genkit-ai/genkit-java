@@ -18,30 +18,27 @@
 
 package com.google.genkit.ai.telemetry;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.LongHistogram;
 import io.opentelemetry.api.metrics.Meter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * FeatureTelemetry provides metrics collection for top-level feature (flow)
- * execution.
- * 
- * <p>
- * This class tracks:
+ * FeatureTelemetry provides metrics collection for top-level feature (flow) execution.
+ *
+ * <p>This class tracks:
+ *
  * <ul>
- * <li>Feature request counts</li>
- * <li>Feature latency histograms</li>
- * <li>Path-level metrics for observability</li>
+ *   <li>Feature request counts
+ *   <li>Feature latency histograms
+ *   <li>Path-level metrics for observability
  * </ul>
- * 
- * <p>
- * Features in Genkit are the entry points to AI functionality, typically flows
- * that users interact with directly.
+ *
+ * <p>Features in Genkit are the entry points to AI functionality, typically flows that users
+ * interact with directly.
  */
 public class FeatureTelemetry {
 
@@ -79,17 +76,35 @@ public class FeatureTelemetry {
   private FeatureTelemetry() {
     Meter meter = GlobalOpenTelemetry.getMeter(METER_NAME);
 
-    featureRequestCounter = meter.counterBuilder(METRIC_FEATURE_REQUESTS)
-        .setDescription("Counts calls to genkit features (flows).").setUnit("1").build();
+    featureRequestCounter =
+        meter
+            .counterBuilder(METRIC_FEATURE_REQUESTS)
+            .setDescription("Counts calls to genkit features (flows).")
+            .setUnit("1")
+            .build();
 
-    featureLatencyHistogram = meter.histogramBuilder(METRIC_FEATURE_LATENCY)
-        .setDescription("Latencies when executing Genkit features.").setUnit("ms").ofLongs().build();
+    featureLatencyHistogram =
+        meter
+            .histogramBuilder(METRIC_FEATURE_LATENCY)
+            .setDescription("Latencies when executing Genkit features.")
+            .setUnit("ms")
+            .ofLongs()
+            .build();
 
-    pathRequestCounter = meter.counterBuilder(METRIC_PATH_REQUESTS)
-        .setDescription("Tracks unique flow paths per flow.").setUnit("1").build();
+    pathRequestCounter =
+        meter
+            .counterBuilder(METRIC_PATH_REQUESTS)
+            .setDescription("Tracks unique flow paths per flow.")
+            .setUnit("1")
+            .build();
 
-    pathLatencyHistogram = meter.histogramBuilder(METRIC_PATH_LATENCY).setDescription("Latencies per flow path.")
-        .setUnit("ms").ofLongs().build();
+    pathLatencyHistogram =
+        meter
+            .histogramBuilder(METRIC_PATH_LATENCY)
+            .setDescription("Latencies per flow path.")
+            .setUnit("ms")
+            .ofLongs()
+            .build();
 
     logger.debug("FeatureTelemetry initialized with OpenTelemetry metrics");
   }
@@ -97,55 +112,57 @@ public class FeatureTelemetry {
   /**
    * Records metrics for a feature (root flow) execution.
    *
-   * @param featureName
-   *            the feature name
-   * @param path
-   *            the span path
-   * @param latencyMs
-   *            the latency in milliseconds
-   * @param error
-   *            the error name if failed, null otherwise
+   * @param featureName the feature name
+   * @param path the span path
+   * @param latencyMs the latency in milliseconds
+   * @param error the error name if failed, null otherwise
    */
   public void recordFeatureMetrics(String featureName, String path, long latencyMs, String error) {
     String status = error != null ? "failure" : "success";
 
-    Attributes attrs = Attributes.builder().put("featureName", truncate(featureName, 256))
-        .put("path", truncate(path, 2048)).put("status", status).put("source", SOURCE).build();
+    Attributes attrs =
+        Attributes.builder()
+            .put("featureName", truncate(featureName, 256))
+            .put("path", truncate(path, 2048))
+            .put("status", status)
+            .put("source", SOURCE)
+            .build();
 
-    featureRequestCounter.add(1,
-        error != null ? attrs.toBuilder().put("error", truncate(error, 256)).build() : attrs);
+    featureRequestCounter.add(
+        1, error != null ? attrs.toBuilder().put("error", truncate(error, 256)).build() : attrs);
     featureLatencyHistogram.record(latencyMs, attrs);
   }
 
   /**
    * Records metrics for a path within a flow.
    *
-   * @param featureName
-   *            the feature name
-   * @param path
-   *            the full path including step types
-   * @param latencyMs
-   *            the latency in milliseconds
-   * @param error
-   *            the error name if failed, null otherwise
+   * @param featureName the feature name
+   * @param path the full path including step types
+   * @param latencyMs the latency in milliseconds
+   * @param error the error name if failed, null otherwise
    */
   public void recordPathMetrics(String featureName, String path, long latencyMs, String error) {
     String status = error != null ? "failure" : "success";
     String simplePath = extractSimplePathFromQualified(path);
 
-    Attributes attrs = Attributes.builder().put("featureName", truncate(featureName, 256))
-        .put("path", truncate(simplePath, 2048)).put("status", status).put("source", SOURCE).build();
+    Attributes attrs =
+        Attributes.builder()
+            .put("featureName", truncate(featureName, 256))
+            .put("path", truncate(simplePath, 2048))
+            .put("status", status)
+            .put("source", SOURCE)
+            .build();
 
-    pathRequestCounter.add(1, error != null ? attrs.toBuilder().put("error", truncate(error, 256)).build() : attrs);
+    pathRequestCounter.add(
+        1, error != null ? attrs.toBuilder().put("error", truncate(error, 256)).build() : attrs);
     pathLatencyHistogram.record(latencyMs, attrs);
   }
 
   /**
-   * Extracts a simple path name from a qualified path. For example:
-   * /{flow,t:flow}/{step,t:action} -> flow/step
+   * Extracts a simple path name from a qualified path. For example: /{flow,t:flow}/{step,t:action}
+   * -> flow/step
    *
-   * @param qualifiedPath
-   *            the qualified path with type annotations
+   * @param qualifiedPath the qualified path with type annotations
    * @return the simple path
    */
   private String extractSimplePathFromQualified(String qualifiedPath) {
@@ -157,8 +174,7 @@ public class FeatureTelemetry {
     String[] parts = qualifiedPath.split("/");
 
     for (String part : parts) {
-      if (part.isEmpty())
-        continue;
+      if (part.isEmpty()) continue;
 
       // Extract name from {name,t:type} format
       if (part.startsWith("{") && part.contains(",")) {
@@ -182,10 +198,8 @@ public class FeatureTelemetry {
   /**
    * Truncates a string to the specified maximum length.
    *
-   * @param value
-   *            the string to truncate
-   * @param maxLength
-   *            the maximum length
+   * @param value the string to truncate
+   * @param maxLength the maximum length
    * @return the truncated string
    */
   private String truncate(String value, int maxLength) {

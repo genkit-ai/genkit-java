@@ -18,19 +18,17 @@
 
 package com.google.genkit.ai.session;
 
-import java.util.List;
-import java.util.Map;
-
 import com.google.genkit.ai.Agent;
 import com.google.genkit.ai.GenerationConfig;
 import com.google.genkit.ai.OutputConfig;
 import com.google.genkit.ai.Tool;
+import java.util.List;
+import java.util.Map;
 
 /**
  * ChatOptions provides configuration options for creating a Chat instance.
  *
- * @param <S>
- *            the type of the session state
+ * @param <S> the type of the session state
  */
 public class ChatOptions<S> {
 
@@ -43,11 +41,8 @@ public class ChatOptions<S> {
   private Integer maxTurns;
   private Map<String, Agent> agentRegistry;
 
-  /**
-   * Default constructor.
-   */
-  public ChatOptions() {
-  }
+  /** Default constructor. */
+  public ChatOptions() {}
 
   /**
    * Gets the model name.
@@ -61,8 +56,7 @@ public class ChatOptions<S> {
   /**
    * Sets the model name.
    *
-   * @param model
-   *            the model name
+   * @param model the model name
    */
   public void setModel(String model) {
     this.model = model;
@@ -80,8 +74,7 @@ public class ChatOptions<S> {
   /**
    * Sets the system prompt.
    *
-   * @param system
-   *            the system prompt
+   * @param system the system prompt
    */
   public void setSystem(String system) {
     this.system = system;
@@ -99,8 +92,7 @@ public class ChatOptions<S> {
   /**
    * Sets the available tools.
    *
-   * @param tools
-   *            the tools
+   * @param tools the tools
    */
   public void setTools(List<Tool<?, ?>> tools) {
     this.tools = tools;
@@ -118,8 +110,7 @@ public class ChatOptions<S> {
   /**
    * Sets the output configuration.
    *
-   * @param output
-   *            the output configuration
+   * @param output the output configuration
    */
   public void setOutput(OutputConfig output) {
     this.output = output;
@@ -137,8 +128,7 @@ public class ChatOptions<S> {
   /**
    * Sets the generation configuration.
    *
-   * @param config
-   *            the generation configuration
+   * @param config the generation configuration
    */
   public void setConfig(GenerationConfig config) {
     this.config = config;
@@ -156,8 +146,7 @@ public class ChatOptions<S> {
   /**
    * Sets the additional context.
    *
-   * @param context
-   *            the context
+   * @param context the context
    */
   public void setContext(Map<String, Object> context) {
     this.context = context;
@@ -175,8 +164,7 @@ public class ChatOptions<S> {
   /**
    * Sets the maximum conversation turns.
    *
-   * @param maxTurns
-   *            the max turns
+   * @param maxTurns the max turns
    */
   public void setMaxTurns(Integer maxTurns) {
     this.maxTurns = maxTurns;
@@ -194,8 +182,7 @@ public class ChatOptions<S> {
   /**
    * Sets the agent registry for multi-agent handoffs.
    *
-   * @param agentRegistry
-   *            the agent registry
+   * @param agentRegistry the agent registry
    */
   public void setAgentRegistry(Map<String, Agent> agentRegistry) {
     this.agentRegistry = agentRegistry;
@@ -204,8 +191,7 @@ public class ChatOptions<S> {
   /**
    * Creates a builder for ChatOptions.
    *
-   * @param <S>
-   *            the state type
+   * @param <S> the state type
    * @return a new builder
    */
   public static <S> Builder<S> builder() {
@@ -215,8 +201,7 @@ public class ChatOptions<S> {
   /**
    * Builder for ChatOptions.
    *
-   * @param <S>
-   *            the state type
+   * @param <S> the state type
    */
   public static class Builder<S> {
     private String model;
@@ -231,8 +216,7 @@ public class ChatOptions<S> {
     /**
      * Sets the model name.
      *
-     * @param model
-     *            the model name
+     * @param model the model name
      * @return this builder
      */
     public Builder<S> model(String model) {
@@ -243,8 +227,7 @@ public class ChatOptions<S> {
     /**
      * Sets the system prompt.
      *
-     * @param system
-     *            the system prompt
+     * @param system the system prompt
      * @return this builder
      */
     public Builder<S> system(String system) {
@@ -255,8 +238,7 @@ public class ChatOptions<S> {
     /**
      * Sets the available tools.
      *
-     * @param tools
-     *            the tools
+     * @param tools the tools
      * @return this builder
      */
     public Builder<S> tools(List<Tool<?, ?>> tools) {
@@ -267,8 +249,7 @@ public class ChatOptions<S> {
     /**
      * Sets the output configuration.
      *
-     * @param output
-     *            the output configuration
+     * @param output the output configuration
      * @return this builder
      */
     public Builder<S> output(OutputConfig output) {
@@ -279,8 +260,7 @@ public class ChatOptions<S> {
     /**
      * Sets the generation configuration.
      *
-     * @param config
-     *            the generation configuration
+     * @param config the generation configuration
      * @return this builder
      */
     public Builder<S> config(GenerationConfig config) {
@@ -291,8 +271,7 @@ public class ChatOptions<S> {
     /**
      * Sets the additional context.
      *
-     * @param context
-     *            the context
+     * @param context the context
      * @return this builder
      */
     public Builder<S> context(Map<String, Object> context) {
@@ -303,8 +282,7 @@ public class ChatOptions<S> {
     /**
      * Sets the maximum conversation turns.
      *
-     * @param maxTurns
-     *            the max turns
+     * @param maxTurns the max turns
      * @return this builder
      */
     public Builder<S> maxTurns(Integer maxTurns) {
@@ -315,8 +293,7 @@ public class ChatOptions<S> {
     /**
      * Sets the agent registry for multi-agent handoffs.
      *
-     * @param agentRegistry
-     *            the agent registry
+     * @param agentRegistry the agent registry
      * @return this builder
      */
     public Builder<S> agentRegistry(Map<String, Agent> agentRegistry) {

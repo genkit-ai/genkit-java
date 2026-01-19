@@ -23,9 +23,7 @@ import java.util.List;
 /**
  * Represents the content of an MCP resource.
  *
- * <p>
- * Resource content can contain multiple parts, each of which can be text or
- * binary data.
+ * <p>Resource content can contain multiple parts, each of which can be text or binary data.
  */
 public class MCPResourceContent {
 
@@ -35,10 +33,8 @@ public class MCPResourceContent {
   /**
    * Creates a new resource content.
    *
-   * @param uri
-   *            the resource URI
-   * @param parts
-   *            the content parts
+   * @param uri the resource URI
+   * @param parts the content parts
    */
   public MCPResourceContent(String uri, List<ContentPart> parts) {
     this.uri = uri;
@@ -81,9 +77,7 @@ public class MCPResourceContent {
     return text.length() > 0 ? text.toString() : null;
   }
 
-  /**
-   * Represents a single part of resource content.
-   */
+  /** Represents a single part of resource content. */
   public static class ContentPart {
 
     private final String text;
@@ -93,12 +87,9 @@ public class MCPResourceContent {
     /**
      * Creates a new content part.
      *
-     * @param text
-     *            the text content (or null for binary)
-     * @param blob
-     *            the base64-encoded binary content (or null for text)
-     * @param mimeType
-     *            the MIME type
+     * @param text the text content (or null for binary)
+     * @param blob the base64-encoded binary content (or null for text)
+     * @param mimeType the MIME type
      */
     public ContentPart(String text, String blob, String mimeType) {
       this.text = text;

@@ -20,15 +20,13 @@ package com.google.genkit.plugins.evaluators.metrics;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.List;
-import java.util.Map;
-
-import org.junit.jupiter.api.Test;
-
 import com.google.genkit.ai.evaluation.EvalDataPoint;
 import com.google.genkit.ai.evaluation.EvalResponse;
 import com.google.genkit.ai.evaluation.EvalStatus;
 import com.google.genkit.ai.evaluation.Score;
+import java.util.List;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
 
 class DeepEqualMetricTest {
 
@@ -40,8 +38,12 @@ class DeepEqualMetricTest {
 
   @Test
   void testEqualStrings() {
-    EvalDataPoint dataPoint = EvalDataPoint.builder().testCaseId("test-1").output("Hello World")
-        .reference("Hello World").build();
+    EvalDataPoint dataPoint =
+        EvalDataPoint.builder()
+            .testCaseId("test-1")
+            .output("Hello World")
+            .reference("Hello World")
+            .build();
 
     EvalResponse response = metric.evaluate(dataPoint);
     Score score = getScore(response);
@@ -53,8 +55,12 @@ class DeepEqualMetricTest {
 
   @Test
   void testDifferentStrings() {
-    EvalDataPoint dataPoint = EvalDataPoint.builder().testCaseId("test-2").output("Hello World")
-        .reference("Goodbye World").build();
+    EvalDataPoint dataPoint =
+        EvalDataPoint.builder()
+            .testCaseId("test-2")
+            .output("Hello World")
+            .reference("Goodbye World")
+            .build();
 
     EvalResponse response = metric.evaluate(dataPoint);
     Score score = getScore(response);
@@ -65,7 +71,8 @@ class DeepEqualMetricTest {
 
   @Test
   void testEqualNumbers() {
-    EvalDataPoint dataPoint = EvalDataPoint.builder().testCaseId("test-3").output(42).reference(42).build();
+    EvalDataPoint dataPoint =
+        EvalDataPoint.builder().testCaseId("test-3").output(42).reference(42).build();
 
     EvalResponse response = metric.evaluate(dataPoint);
     Score score = getScore(response);
@@ -76,8 +83,12 @@ class DeepEqualMetricTest {
 
   @Test
   void testEqualLists() {
-    EvalDataPoint dataPoint = EvalDataPoint.builder().testCaseId("test-4").output(List.of("a", "b", "c"))
-        .reference(List.of("a", "b", "c")).build();
+    EvalDataPoint dataPoint =
+        EvalDataPoint.builder()
+            .testCaseId("test-4")
+            .output(List.of("a", "b", "c"))
+            .reference(List.of("a", "b", "c"))
+            .build();
 
     EvalResponse response = metric.evaluate(dataPoint);
     Score score = getScore(response);
@@ -88,8 +99,12 @@ class DeepEqualMetricTest {
 
   @Test
   void testDifferentLists() {
-    EvalDataPoint dataPoint = EvalDataPoint.builder().testCaseId("test-5").output(List.of("a", "b", "c"))
-        .reference(List.of("a", "b", "d")).build();
+    EvalDataPoint dataPoint =
+        EvalDataPoint.builder()
+            .testCaseId("test-5")
+            .output(List.of("a", "b", "c"))
+            .reference(List.of("a", "b", "d"))
+            .build();
 
     EvalResponse response = metric.evaluate(dataPoint);
     Score score = getScore(response);
@@ -100,8 +115,12 @@ class DeepEqualMetricTest {
 
   @Test
   void testEqualMaps() {
-    EvalDataPoint dataPoint = EvalDataPoint.builder().testCaseId("test-6").output(Map.of("key", "value", "num", 42))
-        .reference(Map.of("key", "value", "num", 42)).build();
+    EvalDataPoint dataPoint =
+        EvalDataPoint.builder()
+            .testCaseId("test-6")
+            .output(Map.of("key", "value", "num", 42))
+            .reference(Map.of("key", "value", "num", 42))
+            .build();
 
     EvalResponse response = metric.evaluate(dataPoint);
     Score score = getScore(response);
@@ -112,10 +131,11 @@ class DeepEqualMetricTest {
 
   @Test
   void testNestedStructures() {
-    Map<String, Object> nested = Map.of("name", "test", "values", List.of(1, 2, 3), "metadata",
-        Map.of("active", true));
+    Map<String, Object> nested =
+        Map.of("name", "test", "values", List.of(1, 2, 3), "metadata", Map.of("active", true));
 
-    EvalDataPoint dataPoint = EvalDataPoint.builder().testCaseId("test-7").output(nested).reference(nested).build();
+    EvalDataPoint dataPoint =
+        EvalDataPoint.builder().testCaseId("test-7").output(nested).reference(nested).build();
 
     EvalResponse response = metric.evaluate(dataPoint);
     Score score = getScore(response);
@@ -126,7 +146,8 @@ class DeepEqualMetricTest {
 
   @Test
   void testMissingOutput() {
-    EvalDataPoint dataPoint = EvalDataPoint.builder().testCaseId("test-8").reference("test").build();
+    EvalDataPoint dataPoint =
+        EvalDataPoint.builder().testCaseId("test-8").reference("test").build();
 
     assertThrows(IllegalArgumentException.class, () -> metric.evaluate(dataPoint));
   }

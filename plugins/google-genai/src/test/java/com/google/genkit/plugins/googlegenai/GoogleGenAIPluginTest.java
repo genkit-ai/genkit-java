@@ -20,17 +20,16 @@ package com.google.genkit.plugins.googlegenai;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.List;
-
-import org.junit.jupiter.api.Test;
-
 import com.google.genkit.core.Action;
+import java.util.List;
+import org.junit.jupiter.api.Test;
 
 class GoogleGenAIPluginTest {
 
   @Test
   void testDefaultConstruction() {
-    GoogleGenAIPluginOptions options = GoogleGenAIPluginOptions.builder().apiKey("test-key").build();
+    GoogleGenAIPluginOptions options =
+        GoogleGenAIPluginOptions.builder().apiKey("test-key").build();
     GoogleGenAIPlugin plugin = new GoogleGenAIPlugin(options);
 
     assertNotNull(plugin);
@@ -39,7 +38,8 @@ class GoogleGenAIPluginTest {
 
   @Test
   void testConstructionWithOptions() {
-    GoogleGenAIPluginOptions options = GoogleGenAIPluginOptions.builder().apiKey("test-key").build();
+    GoogleGenAIPluginOptions options =
+        GoogleGenAIPluginOptions.builder().apiKey("test-key").build();
 
     GoogleGenAIPlugin plugin = new GoogleGenAIPlugin(options);
 
@@ -65,7 +65,8 @@ class GoogleGenAIPluginTest {
 
   @Test
   void testInitializesActions() {
-    GoogleGenAIPlugin plugin = new GoogleGenAIPlugin(GoogleGenAIPluginOptions.builder().apiKey("test-key").build());
+    GoogleGenAIPlugin plugin =
+        new GoogleGenAIPlugin(GoogleGenAIPluginOptions.builder().apiKey("test-key").build());
 
     List<Action<?, ?, ?>> actions = plugin.init();
 
@@ -81,7 +82,8 @@ class GoogleGenAIPluginTest {
 
   @Test
   void testGetOptions() {
-    GoogleGenAIPluginOptions options = GoogleGenAIPluginOptions.builder().apiKey("test-key").build();
+    GoogleGenAIPluginOptions options =
+        GoogleGenAIPluginOptions.builder().apiKey("test-key").build();
 
     GoogleGenAIPlugin plugin = new GoogleGenAIPlugin(options);
     GoogleGenAIPluginOptions retrievedOptions = plugin.getOptions();

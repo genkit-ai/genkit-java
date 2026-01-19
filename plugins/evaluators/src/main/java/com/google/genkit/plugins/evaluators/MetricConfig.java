@@ -18,18 +18,16 @@
 
 package com.google.genkit.plugins.evaluators;
 
+import com.google.genkit.ai.evaluation.EvalStatus;
+import com.google.genkit.ai.evaluation.Score;
 import java.util.Map;
 import java.util.function.Function;
 
-import com.google.genkit.ai.evaluation.EvalStatus;
-import com.google.genkit.ai.evaluation.Score;
-
 /**
  * Configuration for a specific evaluation metric.
- * 
- * <p>
- * This class allows configuring individual metrics with their required
- * dependencies like judge models and embedders.
+ *
+ * <p>This class allows configuring individual metrics with their required dependencies like judge
+ * models and embedders.
  */
 public class MetricConfig {
 
@@ -56,8 +54,7 @@ public class MetricConfig {
   /**
    * Creates a simple metric configuration with just the metric type.
    *
-   * @param metricType
-   *            the type of metric
+   * @param metricType the type of metric
    * @return a new MetricConfig
    */
   public static MetricConfig of(GenkitMetric metricType) {
@@ -67,10 +64,8 @@ public class MetricConfig {
   /**
    * Creates a metric configuration with a judge model.
    *
-   * @param metricType
-   *            the type of metric
-   * @param judge
-   *            the judge model name
+   * @param metricType the type of metric
+   * @param judge the judge model name
    * @return a new MetricConfig
    */
   public static MetricConfig withJudge(GenkitMetric metricType, String judge) {
@@ -80,15 +75,13 @@ public class MetricConfig {
   /**
    * Creates a metric configuration with a judge model and embedder.
    *
-   * @param metricType
-   *            the type of metric
-   * @param judge
-   *            the judge model name
-   * @param embedder
-   *            the embedder name
+   * @param metricType the type of metric
+   * @param judge the judge model name
+   * @param embedder the embedder name
    * @return a new MetricConfig
    */
-  public static MetricConfig withJudgeAndEmbedder(GenkitMetric metricType, String judge, String embedder) {
+  public static MetricConfig withJudgeAndEmbedder(
+      GenkitMetric metricType, String judge, String embedder) {
     return builder().metricType(metricType).judge(judge).embedder(embedder).build();
   }
 

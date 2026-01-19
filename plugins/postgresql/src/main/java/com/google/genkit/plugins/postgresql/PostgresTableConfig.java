@@ -24,39 +24,30 @@ import java.util.Map;
 /**
  * Configuration for a PostgreSQL table used for vector storage.
  *
- * <p>
- * This class configures how documents are stored in a PostgreSQL table with
- * pgvector support.
+ * <p>This class configures how documents are stored in a PostgreSQL table with pgvector support.
  *
- * <p>
- * Example usage:
- * 
+ * <p>Example usage:
+ *
  * <pre>{@code
- * PostgresTableConfig config = PostgresTableConfig.builder().tableName("documents")
- * 		.embedderName("googleai/text-embedding-004").vectorDimension(768).distanceStrategy(DistanceStrategy.COSINE)
- * 		.build();
+ * PostgresTableConfig config = PostgresTableConfig.builder()
+ *     .tableName("documents")
+ *     .embedderName("googleai/text-embedding-004")
+ *     .vectorDimension(768)
+ *     .distanceStrategy(DistanceStrategy.COSINE)
+ *     .build();
  * }</pre>
  */
 public class PostgresTableConfig {
 
-  /**
-   * Distance strategies for vector similarity search.
-   */
+  /** Distance strategies for vector similarity search. */
   public enum DistanceStrategy {
-    /**
-     * Cosine distance (1 - cosine similarity). Best for normalized vectors.
-     */
+    /** Cosine distance (1 - cosine similarity). Best for normalized vectors. */
     COSINE("vector_cosine_ops", "<=>"),
 
-    /**
-     * L2 (Euclidean) distance. Best for comparing actual distances.
-     */
+    /** L2 (Euclidean) distance. Best for comparing actual distances. */
     L2("vector_l2_ops", "<->"),
 
-    /**
-     * Inner product (negative dot product for distance). Best when vectors are not
-     * normalized.
-     */
+    /** Inner product (negative dot product for distance). Best when vectors are not normalized. */
     INNER_PRODUCT("vector_ip_ops", "<#>");
 
     private final String indexOpsClass;
@@ -67,16 +58,12 @@ public class PostgresTableConfig {
       this.operator = operator;
     }
 
-    /**
-     * Gets the pgvector operator class for index creation.
-     */
+    /** Gets the pgvector operator class for index creation. */
     public String getIndexOpsClass() {
       return indexOpsClass;
     }
 
-    /**
-     * Gets the SQL operator for distance calculation.
-     */
+    /** Gets the SQL operator for distance calculation. */
     public String getOperator() {
       return operator;
     }
@@ -110,100 +97,72 @@ public class PostgresTableConfig {
     this.additionalMetadata = new HashMap<>(builder.additionalMetadata);
   }
 
-  /**
-   * Creates a new builder for PostgresTableConfig.
-   */
+  /** Creates a new builder for PostgresTableConfig. */
   public static Builder builder() {
     return new Builder();
   }
 
-  /**
-   * Gets the table name.
-   */
+  /** Gets the table name. */
   public String getTableName() {
     return tableName;
   }
 
-  /**
-   * Gets the embedder name for generating vectors.
-   */
+  /** Gets the embedder name for generating vectors. */
   public String getEmbedderName() {
     return embedderName;
   }
 
-  /**
-   * Gets the vector dimension.
-   */
+  /** Gets the vector dimension. */
   public int getVectorDimension() {
     return vectorDimension;
   }
 
-  /**
-   * Gets the distance strategy for similarity search.
-   */
+  /** Gets the distance strategy for similarity search. */
   public DistanceStrategy getDistanceStrategy() {
     return distanceStrategy;
   }
 
-  /**
-   * Gets the ID column name.
-   */
+  /** Gets the ID column name. */
   public String getIdColumn() {
     return idColumn;
   }
 
-  /**
-   * Gets the content column name.
-   */
+  /** Gets the content column name. */
   public String getContentColumn() {
     return contentColumn;
   }
 
-  /**
-   * Gets the embedding column name.
-   */
+  /** Gets the embedding column name. */
   public String getEmbeddingColumn() {
     return embeddingColumn;
   }
 
-  /**
-   * Gets the metadata column name.
-   */
+  /** Gets the metadata column name. */
   public String getMetadataColumn() {
     return metadataColumn;
   }
 
-  /**
-   * Returns whether to create the table if it doesn't exist.
-   */
+  /** Returns whether to create the table if it doesn't exist. */
   public boolean isCreateTableIfNotExists() {
     return createTableIfNotExists;
   }
 
-  /**
-   * Returns whether to create the index if it doesn't exist.
-   */
+  /** Returns whether to create the index if it doesn't exist. */
   public boolean isCreateIndexIfNotExists() {
     return createIndexIfNotExists;
   }
 
-  /**
-   * Gets the number of lists for IVFFlat index.
-   */
+  /** Gets the number of lists for IVFFlat index. */
   public int getIndexLists() {
     return indexLists;
   }
 
-  /**
-   * Gets additional metadata to add to all indexed documents.
-   */
+  /** Gets additional metadata to add to all indexed documents. */
   public Map<String, Object> getAdditionalMetadata() {
     return additionalMetadata;
   }
 
-  /**
-   * Builder for PostgresTableConfig.
-   */
+  /** Builder for PostgresTableConfig. */
   public static class Builder {
     private String tableName;
     private String embedderName;
@@ -218,106 +177,82 @@ public class PostgresTableConfig {
     private int indexLists = 100;
     private Map<String, Object> additionalMetadata = new HashMap<>();
 
-    /**
-     * Sets the table name (required).
-     */
+    /** Sets the table name (required). */
     public Builder tableName(String tableName) {
       this.tableName = tableName;
       return this;
     }
 
-    /**
-     * Sets the embedder name for generating vectors (required).
-     */
+    /** Sets the embedder name for generating vectors (required). */
     public Builder embedderName(String embedderName) {
       this.embedderName = embedderName;
       return this;
     }
 
-    /**
-     * Sets the vector dimension (default: 768).
-     */
+    /** Sets the vector dimension (default: 768). */
     public Builder vectorDimension(int vectorDimension) {
       this.vectorDimension = vectorDimension;
       return this;
     }
 
-    /**
-     * Sets the distance strategy (default: COSINE).
-     */
+    /** Sets the distance strategy (default: COSINE). */
     public Builder distanceStrategy(DistanceStrategy distanceStrategy) {
       this.distanceStrategy = distanceStrategy;
       return this;
     }
 
-    /**
-     * Sets the ID column name (default: "id").
-     */
+    /** Sets the ID column name (default: "id"). */
     public Builder idColumn(String idColumn) {
       this.idColumn = idColumn;
       return this;
     }
 
-    /**
-     * Sets the content column name (default: "content").
-     */
+    /** Sets the content column name (default: "content"). */
     public Builder contentColumn(String contentColumn) {
       this.contentColumn = contentColumn;
       return this;
     }
 
-    /**
-     * Sets the embedding column name (default: "embedding").
-     */
+    /** Sets the embedding column name (default: "embedding"). */
     public Builder embeddingColumn(String embeddingColumn) {
       this.embeddingColumn = embeddingColumn;
       return this;
     }
 
-    /**
-     * Sets the metadata column name (default: "metadata").
-     */
+    /** Sets the metadata column name (default: "metadata"). */
     public Builder metadataColumn(String metadataColumn) {
       this.metadataColumn = metadataColumn;
       return this;
     }
 
-    /**
-     * Sets whether to create the table if it doesn't exist (default: true).
-     */
+    /** Sets whether to create the table if it doesn't exist (default: true). */
     public Builder createTableIfNotExists(boolean createTableIfNotExists) {
       this.createTableIfNotExists = createTableIfNotExists;
       return this;
     }
 
-    /**
-     * Sets whether to create the index if it doesn't exist (default: true).
-     */
+    /** Sets whether to create the index if it doesn't exist (default: true). */
     public Builder createIndexIfNotExists(boolean createIndexIfNotExists) {
       this.createIndexIfNotExists = createIndexIfNotExists;
       return this;
     }
 
     /**
-     * Sets the number of lists for IVFFlat index (default: 100). Higher values give
-     * better recall but slower builds.
+     * Sets the number of lists for IVFFlat index (default: 100). Higher values give better recall
+     * but slower builds.
      */
     public Builder indexLists(int indexLists) {
       this.indexLists = indexLists;
       return this;
     }
 
-    /**
-     * Adds additional metadata to include with all indexed documents.
-     */
+    /** Adds additional metadata to include with all indexed documents. */
     public Builder additionalMetadata(String key, Object value) {
       this.additionalMetadata.put(key, value);
       return this;
     }
 
-    /**
-     * Sets all additional metadata to include with indexed documents.
-     */
+    /** Sets all additional metadata to include with indexed documents. */
     public Builder additionalMetadata(Map<String, Object> metadata) {
       this.additionalMetadata = new HashMap<>(metadata);
       return this;
@@ -326,8 +261,7 @@ public class PostgresTableConfig {
     /**
      * Builds the PostgresTableConfig.
      *
-     * @throws IllegalStateException
-     *             if required fields are not set
+     * @throws IllegalStateException if required fields are not set
      */
     public PostgresTableConfig build() {
       if (tableName == null || tableName.isBlank()) {

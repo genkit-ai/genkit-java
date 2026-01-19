@@ -21,50 +21,35 @@ package com.google.genkit.ai.evaluation;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * Key that uniquely identifies an evaluation run.
- */
+/** Key that uniquely identifies an evaluation run. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class EvalRunKey {
 
-  /**
-   * The action that was evaluated.
-   */
+  /** The action that was evaluated. */
   @JsonProperty("actionRef")
   private String actionRef;
 
-  /**
-   * The dataset used for evaluation.
-   */
+  /** The dataset used for evaluation. */
   @JsonProperty("datasetId")
   private String datasetId;
 
-  /**
-   * The version of the dataset used.
-   */
+  /** The version of the dataset used. */
   @JsonProperty("datasetVersion")
   private Integer datasetVersion;
 
-  /**
-   * Unique identifier for this evaluation run.
-   */
+  /** Unique identifier for this evaluation run. */
   @JsonProperty("evalRunId")
   private String evalRunId;
 
-  /**
-   * When the evaluation was created.
-   */
+  /** When the evaluation was created. */
   @JsonProperty("createdAt")
   private String createdAt;
 
-  /**
-   * Configuration used for the action.
-   */
+  /** Configuration used for the action. */
   @JsonProperty("actionConfig")
   private Object actionConfig;
 
-  public EvalRunKey() {
-  }
+  public EvalRunKey() {}
 
   private EvalRunKey(Builder builder) {
     this.actionRef = builder.actionRef;

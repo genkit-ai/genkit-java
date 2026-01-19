@@ -18,11 +18,6 @@
 
 package com.google.genkit.ai;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.genkit.core.Action;
 import com.google.genkit.core.ActionContext;
@@ -32,15 +27,18 @@ import com.google.genkit.core.ActionType;
 import com.google.genkit.core.GenkitException;
 import com.google.genkit.core.JsonUtils;
 import com.google.genkit.core.Registry;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
 /**
  * Prompt is a template that generates ModelRequests from input variables.
  *
- * Prompts are registered as actions and can be rendered with different input
- * values to create model requests.
+ * <p>Prompts are registered as actions and can be rendered with different input values to create
+ * model requests.
  *
- * @param <I>
- *            the input type for the prompt
+ * @param <I> the input type for the prompt
  */
 public class Prompt<I> implements Action<I, ModelRequest, Void> {
 
@@ -56,23 +54,22 @@ public class Prompt<I> implements Action<I, ModelRequest, Void> {
   /**
    * Creates a new Prompt.
    *
-   * @param name
-   *            the prompt name
-   * @param model
-   *            the default model name
-   * @param template
-   *            the prompt template
-   * @param inputSchema
-   *            the input JSON schema
-   * @param config
-   *            the default generation config
-   * @param inputClass
-   *            the input class for JSON deserialization
-   * @param renderer
-   *            the function that renders the prompt
+   * @param name the prompt name
+   * @param model the default model name
+   * @param template the prompt template
+   * @param inputSchema the input JSON schema
+   * @param config the default generation config
+   * @param inputClass the input class for JSON deserialization
+   * @param renderer the function that renders the prompt
    */
-  public Prompt(String name, String model, String template, Map<String, Object> inputSchema, GenerationConfig config,
-      Class<I> inputClass, BiFunction<ActionContext, I, ModelRequest> renderer) {
+  public Prompt(
+      String name,
+      String model,
+      String template,
+      Map<String, Object> inputSchema,
+      GenerationConfig config,
+      Class<I> inputClass,
+      BiFunction<ActionContext, I, ModelRequest> renderer) {
     this.name = name;
     this.model = model;
     this.template = template;
@@ -104,8 +101,7 @@ public class Prompt<I> implements Action<I, ModelRequest, Void> {
   /**
    * Creates a builder for Prompt.
    *
-   * @param <I>
-   *            the input type
+   * @param <I> the input type
    * @return a new builder
    */
   public static <I> Builder<I> builder() {
@@ -124,8 +120,12 @@ public class Prompt<I> implements Action<I, ModelRequest, Void> {
 
   @Override
   public ActionDesc getDesc() {
-    return ActionDesc.builder().type(ActionType.EXECUTABLE_PROMPT).name(name).inputSchema(inputSchema)
-        .metadata(metadata).build();
+    return ActionDesc.builder()
+        .type(ActionType.EXECUTABLE_PROMPT)
+        .name(name)
+        .inputSchema(inputSchema)
+        .metadata(metadata)
+        .build();
   }
 
   @Override
@@ -138,7 +138,8 @@ public class Prompt<I> implements Action<I, ModelRequest, Void> {
   }
 
   @Override
-  public ModelRequest run(ActionContext ctx, I input, Consumer<Void> streamCallback) throws GenkitException {
+  public ModelRequest run(ActionContext ctx, I input, Consumer<Void> streamCallback)
+      throws GenkitException {
     return run(ctx, input);
   }
 
@@ -152,8 +153,8 @@ public class Prompt<I> implements Action<I, ModelRequest, Void> {
   }
 
   @Override
-  public ActionRunResult<JsonNode> runJsonWithTelemetry(ActionContext ctx, JsonNode input,
-      Consumer<JsonNode> streamCallback) throws GenkitException {
+  public ActionRunResult<JsonNode> runJsonWithTelemetry(
+      ActionContext ctx, JsonNode input, Consumer<JsonNode> streamCallback) throws GenkitException {
     JsonNode result = runJson(ctx, input, streamCallback);
     return new ActionRunResult<>(result, null, null);
   }
@@ -208,8 +209,7 @@ public class Prompt<I> implements Action<I, ModelRequest, Void> {
   /**
    * Builder for Prompt.
    *
-   * @param <I>
-   *            the input type
+   * @param <I> the input type
    */
   public static class Builder<I> {
     private String name;

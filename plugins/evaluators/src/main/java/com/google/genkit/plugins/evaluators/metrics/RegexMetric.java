@@ -18,37 +18,32 @@
 
 package com.google.genkit.plugins.evaluators.metrics;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.genkit.ai.evaluation.EvalDataPoint;
 import com.google.genkit.ai.evaluation.EvalResponse;
 import com.google.genkit.ai.evaluation.EvalStatus;
 import com.google.genkit.ai.evaluation.Score;
 import com.google.genkit.ai.evaluation.ScoreDetails;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Regex metric evaluator.
- * 
- * <p>
- * Evaluates whether the output matches a regular expression pattern provided in
- * the reference field.
+ *
+ * <p>Evaluates whether the output matches a regular expression pattern provided in the reference
+ * field.
  */
 public class RegexMetric {
 
   private static final Logger logger = LoggerFactory.getLogger(RegexMetric.class);
 
-  public RegexMetric() {
-  }
+  public RegexMetric() {}
 
   /**
    * Evaluates whether the output matches the regex pattern in the reference.
    *
-   * @param dataPoint
-   *            the evaluation data point
+   * @param dataPoint the evaluation data point
    * @return the evaluation response
    */
   public EvalResponse evaluate(EvalDataPoint dataPoint) {
@@ -72,18 +67,25 @@ public class RegexMetric {
       matches = matcher.find();
 
       if (matches) {
-        reasoning = String.format("Output matches regex pattern '%s' at position %d-%d: '%s'", regexPattern,
-            matcher.start(), matcher.end(), matcher.group());
+        reasoning =
+            String.format(
+                "Output matches regex pattern '%s' at position %d-%d: '%s'",
+                regexPattern, matcher.start(), matcher.end(), matcher.group());
       } else {
         reasoning = String.format("Output does not match regex pattern '%s'", regexPattern);
       }
     } catch (Exception e) {
       logger.error("Invalid regex pattern: {}", regexPattern, e);
-      return EvalResponse.builder().testCaseId(dataPoint.getTestCaseId())
+      return EvalResponse.builder()
+          .testCaseId(dataPoint.getTestCaseId())
           .evaluation(
-              Score.builder().score(0.0).status(EvalStatus.UNKNOWN)
-                  .details(ScoreDetails.builder()
-                      .reasoning("Invalid regex pattern: " + e.getMessage()).build())
+              Score.builder()
+                  .score(0.0)
+                  .status(EvalStatus.UNKNOWN)
+                  .details(
+                      ScoreDetails.builder()
+                          .reasoning("Invalid regex pattern: " + e.getMessage())
+                          .build())
                   .build())
           .build();
     }
@@ -91,7 +93,14 @@ public class RegexMetric {
     double score = matches ? 1.0 : 0.0;
     EvalStatus status = matches ? EvalStatus.PASS : EvalStatus.FAIL;
 
-    return EvalResponse.builder().testCaseId(dataPoint.getTestCaseId()).evaluation(Score.builder().score(score)
-        .status(status).details(ScoreDetails.builder().reasoning(reasoning).build()).build()).build();
+    return EvalResponse.builder()
+        .testCaseId(dataPoint.getTestCaseId())
+        .evaluation(
+            Score.builder()
+                .score(score)
+                .status(status)
+                .details(ScoreDetails.builder().reasoning(reasoning).build())
+                .build())
+        .build();
   }
 }

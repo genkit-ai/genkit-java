@@ -20,19 +20,21 @@ package com.google.genkit.plugins.cohere;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.List;
-
-import org.junit.jupiter.api.Test;
-
 import com.google.genkit.core.Action;
 import com.google.genkit.plugins.compatoai.CompatOAIPluginOptions;
+import java.util.List;
+import org.junit.jupiter.api.Test;
 
 class CoherePluginTest {
 
   @Test
   void testDefaultConstruction() {
-    CoherePlugin plugin = new CoherePlugin(CompatOAIPluginOptions.builder().apiKey("test-key")
-        .baseUrl("https://api.cohere.ai/compatibility/v1").build());
+    CoherePlugin plugin =
+        new CoherePlugin(
+            CompatOAIPluginOptions.builder()
+                .apiKey("test-key")
+                .baseUrl("https://api.cohere.ai/compatibility/v1")
+                .build());
 
     assertNotNull(plugin);
     assertEquals("cohere", plugin.getName());
@@ -40,8 +42,11 @@ class CoherePluginTest {
 
   @Test
   void testConstructionWithOptions() {
-    CompatOAIPluginOptions options = CompatOAIPluginOptions.builder().apiKey("test-key")
-        .baseUrl("https://api.cohere.ai/compatibility/v1").build();
+    CompatOAIPluginOptions options =
+        CompatOAIPluginOptions.builder()
+            .apiKey("test-key")
+            .baseUrl("https://api.cohere.ai/compatibility/v1")
+            .build();
 
     CoherePlugin plugin = new CoherePlugin(options);
 
@@ -67,8 +72,12 @@ class CoherePluginTest {
 
   @Test
   void testInitializesActions() {
-    CoherePlugin plugin = new CoherePlugin(CompatOAIPluginOptions.builder().apiKey("test-key")
-        .baseUrl("https://api.cohere.ai/compatibility/v1").build());
+    CoherePlugin plugin =
+        new CoherePlugin(
+            CompatOAIPluginOptions.builder()
+                .apiKey("test-key")
+                .baseUrl("https://api.cohere.ai/compatibility/v1")
+                .build());
 
     List<Action<?, ?, ?>> actions = plugin.init();
 
@@ -85,8 +94,12 @@ class CoherePluginTest {
 
   @Test
   void testCustomModel() {
-    CoherePlugin plugin = new CoherePlugin(CompatOAIPluginOptions.builder().apiKey("test-key")
-        .baseUrl("https://api.cohere.ai/compatibility/v1").build());
+    CoherePlugin plugin =
+        new CoherePlugin(
+            CompatOAIPluginOptions.builder()
+                .apiKey("test-key")
+                .baseUrl("https://api.cohere.ai/compatibility/v1")
+                .build());
 
     plugin.customModel("custom-cohere-model");
 
@@ -95,8 +108,11 @@ class CoherePluginTest {
 
   @Test
   void testGetOptions() {
-    CompatOAIPluginOptions options = CompatOAIPluginOptions.builder().apiKey("test-key")
-        .baseUrl("https://api.cohere.ai/compatibility/v1").build();
+    CompatOAIPluginOptions options =
+        CompatOAIPluginOptions.builder()
+            .apiKey("test-key")
+            .baseUrl("https://api.cohere.ai/compatibility/v1")
+            .build();
 
     CoherePlugin plugin = new CoherePlugin(options);
     CompatOAIPluginOptions retrievedOptions = plugin.getOptions();

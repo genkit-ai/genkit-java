@@ -23,46 +23,34 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Score represents the result of an evaluation.
- * 
- * <p>
- * A score can contain a numeric value, a string value, or a boolean value,
- * along with an optional status and detailed information about the evaluation.
+ *
+ * <p>A score can contain a numeric value, a string value, or a boolean value, along with an
+ * optional status and detailed information about the evaluation.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Score {
 
-  /**
-   * Optional identifier to differentiate scores in multi-score evaluations.
-   */
+  /** Optional identifier to differentiate scores in multi-score evaluations. */
   @JsonProperty("id")
   private String id;
 
-  /**
-   * The numeric score value. Can be null if using string or boolean score.
-   */
+  /** The numeric score value. Can be null if using string or boolean score. */
   @JsonProperty("score")
   private Object score;
 
-  /**
-   * The status of the evaluation (PASS, FAIL, UNKNOWN).
-   */
+  /** The status of the evaluation (PASS, FAIL, UNKNOWN). */
   @JsonProperty("status")
   private EvalStatus status;
 
-  /**
-   * Error message if the evaluation failed.
-   */
+  /** Error message if the evaluation failed. */
   @JsonProperty("error")
   private String error;
 
-  /**
-   * Additional details about the evaluation including reasoning.
-   */
+  /** Additional details about the evaluation including reasoning. */
   @JsonProperty("details")
   private ScoreDetails details;
 
-  public Score() {
-  }
+  public Score() {}
 
   private Score(Builder builder) {
     this.id = builder.id;

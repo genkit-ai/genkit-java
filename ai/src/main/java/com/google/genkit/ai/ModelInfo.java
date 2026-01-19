@@ -18,15 +18,12 @@
 
 package com.google.genkit.ai;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.Set;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-/**
- * ModelInfo contains metadata about a model's capabilities.
- */
+/** ModelInfo contains metadata about a model's capabilities. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ModelInfo {
 
@@ -39,11 +36,8 @@ public class ModelInfo {
   @JsonProperty("versions")
   private List<String> versions;
 
-  /**
-   * Default constructor.
-   */
-  public ModelInfo() {
-  }
+  /** Default constructor. */
+  public ModelInfo() {}
 
   // Getters and setters
 
@@ -71,9 +65,7 @@ public class ModelInfo {
     this.versions = versions;
   }
 
-  /**
-   * ModelCapabilities describes what a model can do.
-   */
+  /** ModelCapabilities describes what a model can do. */
   @JsonInclude(JsonInclude.Include.NON_NULL)
   public static class ModelCapabilities {
 

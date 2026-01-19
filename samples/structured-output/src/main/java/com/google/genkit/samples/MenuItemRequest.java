@@ -21,17 +21,14 @@ package com.google.genkit.samples;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 
-/**
- * Input for generating a menu item.
- */
+/** Input for generating a menu item. */
 public class MenuItemRequest {
 
   @JsonProperty(required = true)
   @JsonPropertyDescription("Description of the desired menu item")
   private String description;
 
-  public MenuItemRequest() {
-  }
+  public MenuItemRequest() {}
 
   public MenuItemRequest(String description) {
     this.description = description;

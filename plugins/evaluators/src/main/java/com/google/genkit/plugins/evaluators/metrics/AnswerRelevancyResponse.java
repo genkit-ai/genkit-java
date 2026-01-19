@@ -20,9 +20,7 @@ package com.google.genkit.plugins.evaluators.metrics;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * Response schema for answer relevancy evaluation.
- */
+/** Response schema for answer relevancy evaluation. */
 public class AnswerRelevancyResponse {
 
   @JsonProperty("question")
@@ -34,8 +32,7 @@ public class AnswerRelevancyResponse {
   @JsonProperty("noncommittal")
   private boolean noncommittal;
 
-  public AnswerRelevancyResponse() {
-  }
+  public AnswerRelevancyResponse() {}
 
   public AnswerRelevancyResponse(String question, boolean answered, boolean noncommittal) {
     this.question = question;

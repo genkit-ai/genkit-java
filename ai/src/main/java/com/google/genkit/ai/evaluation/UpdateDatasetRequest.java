@@ -18,50 +18,36 @@
 
 package com.google.genkit.ai.evaluation;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import java.util.List;
 
-/**
- * Request to update an existing dataset.
- */
+/** Request to update an existing dataset. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class UpdateDatasetRequest {
 
-  /**
-   * The ID of the dataset to update.
-   */
+  /** The ID of the dataset to update. */
   @JsonProperty("datasetId")
   private String datasetId;
 
-  /**
-   * New dataset samples (replaces existing data).
-   */
+  /** New dataset samples (replaces existing data). */
   @JsonProperty("data")
   private List<DatasetSample> data;
 
-  /**
-   * New schema for the dataset.
-   */
+  /** New schema for the dataset. */
   @JsonProperty("schema")
   private JsonNode schema;
 
-  /**
-   * New metric references.
-   */
+  /** New metric references. */
   @JsonProperty("metricRefs")
   private List<String> metricRefs;
 
-  /**
-   * New target action.
-   */
+  /** New target action. */
   @JsonProperty("targetAction")
   private String targetAction;
 
-  public UpdateDatasetRequest() {
-  }
+  public UpdateDatasetRequest() {}
 
   private UpdateDatasetRequest(Builder builder) {
     this.datasetId = builder.datasetId;

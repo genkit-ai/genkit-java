@@ -21,9 +21,7 @@ package com.google.genkit.ai;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * Media represents media content in a message part.
- */
+/** Media represents media content in a message part. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Media {
 
@@ -33,19 +31,14 @@ public class Media {
   @JsonProperty("url")
   private String url;
 
-  /**
-   * Default constructor.
-   */
-  public Media() {
-  }
+  /** Default constructor. */
+  public Media() {}
 
   /**
    * Creates a Media with the given content type and URL.
    *
-   * @param contentType
-   *            the MIME type
-   * @param url
-   *            the media URL or data URI
+   * @param contentType the MIME type
+   * @param url the media URL or data URI
    */
   public Media(String contentType, String url) {
     this.contentType = contentType;

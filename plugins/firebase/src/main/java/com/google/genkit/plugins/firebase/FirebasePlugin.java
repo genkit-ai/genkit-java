@@ -18,13 +18,6 @@
 
 package com.google.genkit.plugins.firebase;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.firestore.Firestore;
 import com.google.firebase.FirebaseApp;
@@ -38,29 +31,42 @@ import com.google.genkit.core.Registry;
 import com.google.genkit.plugins.firebase.retriever.FirestoreRetrieverConfig;
 import com.google.genkit.plugins.firebase.retriever.FirestoreVectorStore;
 import com.google.genkit.plugins.firebase.telemetry.FirebaseTelemetry;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Firebase plugin for Genkit providing integration with Firebase services.
- * 
- * <p>
- * This plugin provides:
+ *
+ * <p>This plugin provides:
+ *
  * <ul>
- * <li>Firestore vector search for RAG (Retrieval Augmented Generation)</li>
- * <li>Firebase Cloud Functions integration for deploying flows</li>
- * <li>Firebase telemetry for Google Cloud observability</li>
+ *   <li>Firestore vector search for RAG (Retrieval Augmented Generation)
+ *   <li>Firebase Cloud Functions integration for deploying flows
+ *   <li>Firebase telemetry for Google Cloud observability
  * </ul>
- * 
- * <p>
- * Example usage:
- * 
+ *
+ * <p>Example usage:
+ *
  * <pre>{@code
- * Genkit genkit = Genkit.builder().plugin(GoogleGenAIPlugin.create(apiKey))
- * 		.plugin(FirebasePlugin.builder().projectId("my-project").enableTelemetry(true)
- * 				.addRetriever(FirestoreRetrieverConfig.builder().name("my-docs").collection("documents")
- * 						.embedderName("googleai/text-embedding-004").vectorField("embedding").contentField("content")
- * 						.build())
- * 				.build())
- * 		.build();
+ * Genkit genkit = Genkit.builder()
+ *     .plugin(GoogleGenAIPlugin.create(apiKey))
+ *     .plugin(
+ *         FirebasePlugin.builder()
+ *             .projectId("my-project")
+ *             .enableTelemetry(true)
+ *             .addRetriever(
+ *                 FirestoreRetrieverConfig.builder()
+ *                     .name("my-docs")
+ *                     .collection("documents")
+ *                     .embedderName("googleai/text-embedding-004")
+ *                     .vectorField("embedding")
+ *                     .contentField("content")
+ *                     .build())
+ *             .build())
+ *     .build();
  * }</pre>
  */
 public class FirebasePlugin implements Plugin {
@@ -89,8 +95,7 @@ public class FirebasePlugin implements Plugin {
   /**
    * Creates a simple FirebasePlugin with just the project ID.
    *
-   * @param projectId
-   *            the Firebase project ID
+   * @param projectId the Firebase project ID
    * @return a new FirebasePlugin
    */
   public static FirebasePlugin create(String projectId) {
@@ -134,7 +139,8 @@ public class FirebasePlugin implements Plugin {
         actions.addAll(initializeRetriever(registry, retrieverConfig));
       }
 
-      logger.info("Firebase plugin initialized successfully for project: {}", config.getProjectId());
+      logger.info(
+          "Firebase plugin initialized successfully for project: {}", config.getProjectId());
 
     } catch (Exception e) {
       throw new RuntimeException("Failed to initialize Firebase plugin: " + e.getMessage(), e);
@@ -143,9 +149,7 @@ public class FirebasePlugin implements Plugin {
     return actions;
   }
 
-  /**
-   * Initializes the Firebase Admin SDK.
-   */
+  /** Initializes the Firebase Admin SDK. */
   private void initializeFirebase() throws IOException {
     // Check if Firebase is already initialized
     try {
@@ -178,29 +182,30 @@ public class FirebasePlugin implements Plugin {
     firestore = FirestoreClient.getFirestore(firebaseApp);
   }
 
-  /**
-   * Initializes Firebase telemetry for Google Cloud observability.
-   */
+  /** Initializes Firebase telemetry for Google Cloud observability. */
   private void initializeTelemetry() {
-    telemetry = FirebaseTelemetry.builder().projectId(config.getProjectId())
-        .forceDevExport(config.isForceDevExport())
-        .metricExportIntervalMillis(config.getMetricExportIntervalMillis()).build();
+    telemetry =
+        FirebaseTelemetry.builder()
+            .projectId(config.getProjectId())
+            .forceDevExport(config.isForceDevExport())
+            .metricExportIntervalMillis(config.getMetricExportIntervalMillis())
+            .build();
 
     telemetry.enable();
     logger.info("Firebase telemetry enabled for project: {}", config.getProjectId());
   }
 
-  /**
-   * Initializes a Firestore retriever and indexer.
-   */
-  private List<Action<?, ?, ?>> initializeRetriever(Registry registry, FirestoreRetrieverConfig retrieverConfig) {
+  /** Initializes a Firestore retriever and indexer. */
+  private List<Action<?, ?, ?>> initializeRetriever(
+      Registry registry, FirestoreRetrieverConfig retrieverConfig) {
     List<Action<?, ?, ?>> actions = new ArrayList<>();
 
     // Resolve embedder
     Embedder embedder = resolveEmbedder(registry, retrieverConfig);
 
     // Create vector store
-    FirestoreVectorStore vectorStore = new FirestoreVectorStore(firestore, retrieverConfig, embedder);
+    FirestoreVectorStore vectorStore =
+        new FirestoreVectorStore(firestore, retrieverConfig, embedder);
 
     // Create and add retriever
     Retriever retriever = vectorStore.createRetriever();
@@ -215,9 +220,7 @@ public class FirebasePlugin implements Plugin {
     return actions;
   }
 
-  /**
-   * Resolves an embedder by name or uses the provided embedder.
-   */
+  /** Resolves an embedder by name or uses the provided embedder. */
   private Embedder resolveEmbedder(Registry registry, FirestoreRetrieverConfig config) {
     if (config.getEmbedder() != null) {
       return config.getEmbedder();
@@ -225,7 +228,8 @@ public class FirebasePlugin implements Plugin {
 
     if (config.getEmbedderName() == null) {
       throw new IllegalStateException(
-          "Either embedder or embedderName must be specified for Firestore retriever: " + config.getName());
+          "Either embedder or embedderName must be specified for Firestore retriever: "
+              + config.getName());
     }
 
     if (registry == null) {
@@ -237,15 +241,18 @@ public class FirebasePlugin implements Plugin {
     Action<?, ?, ?> embedderAction = registry.lookupAction(embedderKey);
 
     if (embedderAction == null) {
-      throw new IllegalStateException("Embedder not found: " + config.getEmbedderName()
-          + ". Make sure the embedder plugin is registered before FirebasePlugin.");
+      throw new IllegalStateException(
+          "Embedder not found: "
+              + config.getEmbedderName()
+              + ". Make sure the embedder plugin is registered before FirebasePlugin.");
     }
 
     if (!(embedderAction instanceof Embedder)) {
       throw new IllegalStateException("Action " + config.getEmbedderName() + " is not an Embedder");
     }
 
-    logger.debug("Resolved embedder: {} for retriever: {}", config.getEmbedderName(), config.getName());
+    logger.debug(
+        "Resolved embedder: {} for retriever: {}", config.getEmbedderName(), config.getName());
     return (Embedder) embedderAction;
   }
 
@@ -276,17 +283,14 @@ public class FirebasePlugin implements Plugin {
     return telemetry;
   }
 
-  /**
-   * Builder for FirebasePlugin.
-   */
+  /** Builder for FirebasePlugin. */
   public static class Builder {
     private final FirebasePluginConfig.Builder configBuilder = FirebasePluginConfig.builder();
 
     /**
      * Sets the Firebase project ID.
      *
-     * @param projectId
-     *            the project ID
+     * @param projectId the project ID
      * @return this builder
      */
     public Builder projectId(String projectId) {
@@ -297,8 +301,7 @@ public class FirebasePlugin implements Plugin {
     /**
      * Sets the Google credentials.
      *
-     * @param credentials
-     *            the credentials
+     * @param credentials the credentials
      * @return this builder
      */
     public Builder credentials(GoogleCredentials credentials) {
@@ -309,8 +312,7 @@ public class FirebasePlugin implements Plugin {
     /**
      * Sets the Firebase Realtime Database URL.
      *
-     * @param databaseUrl
-     *            the database URL
+     * @param databaseUrl the database URL
      * @return this builder
      */
     public Builder databaseUrl(String databaseUrl) {
@@ -321,8 +323,7 @@ public class FirebasePlugin implements Plugin {
     /**
      * Enables or disables Firebase telemetry.
      *
-     * @param enable
-     *            true to enable telemetry
+     * @param enable true to enable telemetry
      * @return this builder
      */
     public Builder enableTelemetry(boolean enable) {
@@ -333,8 +334,7 @@ public class FirebasePlugin implements Plugin {
     /**
      * Forces telemetry export in development mode.
      *
-     * @param forceDevExport
-     *            true to force export in dev mode
+     * @param forceDevExport true to force export in dev mode
      * @return this builder
      */
     public Builder forceDevExport(boolean forceDevExport) {
@@ -345,8 +345,7 @@ public class FirebasePlugin implements Plugin {
     /**
      * Sets the metric export interval in milliseconds.
      *
-     * @param intervalMillis
-     *            the interval in milliseconds
+     * @param intervalMillis the interval in milliseconds
      * @return this builder
      */
     public Builder metricExportIntervalMillis(long intervalMillis) {
@@ -357,8 +356,7 @@ public class FirebasePlugin implements Plugin {
     /**
      * Adds a Firestore retriever configuration.
      *
-     * @param config
-     *            the retriever configuration
+     * @param config the retriever configuration
      * @return this builder
      */
     public Builder addRetriever(FirestoreRetrieverConfig config) {

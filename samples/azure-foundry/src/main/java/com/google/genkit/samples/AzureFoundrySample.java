@@ -18,10 +18,6 @@
 
 package com.google.genkit.samples;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.google.genkit.Genkit;
 import com.google.genkit.GenkitOptions;
 import com.google.genkit.ai.*;
@@ -30,22 +26,25 @@ import com.google.genkit.plugins.azurefoundry.AzureFoundryPlugin;
 import com.google.genkit.plugins.azurefoundry.AzureFoundryPluginOptions;
 import com.google.genkit.plugins.jetty.JettyPlugin;
 import com.google.genkit.plugins.jetty.JettyPluginOptions;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Sample application demonstrating Genkit with Azure AI Foundry models.
  *
- * This example shows how to: - Configure Genkit with the Azure Foundry plugin -
- * Define flows - Use tools with GPT-4o and o1 models - Generate text with
- * various Azure Foundry models - Use streaming for real-time responses - Use
- * Azure Managed Identity for authentication - Expose flows via HTTP endpoints
+ * <p>This example shows how to: - Configure Genkit with the Azure Foundry plugin - Define flows -
+ * Use tools with GPT-4o and o1 models - Generate text with various Azure Foundry models - Use
+ * streaming for real-time responses - Use Azure Managed Identity for authentication - Expose flows
+ * via HTTP endpoints
  *
- * Supported models include: - Azure OpenAI: gpt-5-turbo, o1, o3-mini, gpt-4o,
- * gpt-4o-mini, gpt-4, gpt-35-turbo - Azure Direct: MAI-DS-R1, Grok-4,
- * Llama-3.3, DeepSeek-V3/R1, GPT-OSS - Partner: Claude Opus/Sonnet/Haiku 4.x
+ * <p>Supported models include: - Azure OpenAI: gpt-5-turbo, o1, o3-mini, gpt-4o, gpt-4o-mini,
+ * gpt-4, gpt-35-turbo - Azure Direct: MAI-DS-R1, Grok-4, Llama-3.3, DeepSeek-V3/R1, GPT-OSS -
+ * Partner: Claude Opus/Sonnet/Haiku 4.x
  *
- * To run: 1. Set AZURE_AI_FOUNDRY_ENDPOINT environment variable 2. Configure
- * authentication (API key or Azure credentials) 3. Ensure models are deployed
- * in your Azure AI Foundry project 4. Run: ./run.sh or mvn exec:java
+ * <p>To run: 1. Set AZURE_AI_FOUNDRY_ENDPOINT environment variable 2. Configure authentication (API
+ * key or Azure credentials) 3. Ensure models are deployed in your Azure AI Foundry project 4. Run:
+ * ./run.sh or mvn exec:java
  */
 public class AzureFoundrySample {
 
@@ -62,13 +61,17 @@ public class AzureFoundrySample {
     String apiKey = System.getenv("AZURE_AI_FOUNDRY_API_KEY");
 
     // Create Azure Foundry plugin with custom deployment
-    AzureFoundryPlugin azureFoundry = new AzureFoundryPlugin(
-        AzureFoundryPluginOptions.builder().endpoint(endpoint).apiKey(apiKey).apiVersion("2025-01-01-preview") // Optional:
-            // specify
-            // API
-            // version
-            .build())
-        .customModel("gpt-4.1"); // Register custom deployment
+    AzureFoundryPlugin azureFoundry =
+        new AzureFoundryPlugin(
+                AzureFoundryPluginOptions.builder()
+                    .endpoint(endpoint)
+                    .apiKey(apiKey)
+                    .apiVersion("2025-01-01-preview") // Optional:
+                    // specify
+                    // API
+                    // version
+                    .build())
+            .customModel("gpt-4.1"); // Register custom deployment
 
     // Create Genkit with Azure Foundry plugin
     // This uses DefaultAzureCredential which works with:
@@ -77,92 +80,146 @@ public class AzureFoundrySample {
     // - Environment variables (AZURE_CLIENT_ID, AZURE_CLIENT_SECRET,
     // AZURE_TENANT_ID)
     // - Or use apiKey() if you have an API key
-    Genkit genkit = Genkit.builder().options(GenkitOptions.builder().devMode(true).reflectionPort(3100).build())
-        .plugin(azureFoundry).plugin(jetty).build();
+    Genkit genkit =
+        Genkit.builder()
+            .options(GenkitOptions.builder().devMode(true).reflectionPort(3100).build())
+            .plugin(azureFoundry)
+            .plugin(jetty)
+            .build();
 
     // Define a simple greeting flow
-    Flow<String, String, Void> greetingFlow = genkit.defineFlow("greeting", String.class, String.class,
-        (name) -> "Hello, " + name + "!");
+    Flow<String, String, Void> greetingFlow =
+        genkit.defineFlow("greeting", String.class, String.class, (name) -> "Hello, " + name + "!");
 
     // Define a joke generator flow using GPT-4
-    Flow<String, String, Void> jokeFlow = genkit.defineFlow("tellJoke", String.class, String.class,
-        (ctx, topic) -> {
-          ModelResponse response = genkit.generate(GenerateOptions.builder().model("azure-foundry/gpt-4.1")
-              .prompt("Tell me a short, funny joke about: " + topic)
-              .config(GenerationConfig.builder().temperature(0.9).maxOutputTokens(200).build()).build());
+    Flow<String, String, Void> jokeFlow =
+        genkit.defineFlow(
+            "tellJoke",
+            String.class,
+            String.class,
+            (ctx, topic) -> {
+              ModelResponse response =
+                  genkit.generate(
+                      GenerateOptions.builder()
+                          .model("azure-foundry/gpt-4.1")
+                          .prompt("Tell me a short, funny joke about: " + topic)
+                          .config(
+                              GenerationConfig.builder()
+                                  .temperature(0.9)
+                                  .maxOutputTokens(200)
+                                  .build())
+                          .build());
 
-          return response.getText();
-        });
+              return response.getText();
+            });
 
     // Define a tool for getting current weather (mock implementation)
     @SuppressWarnings("unchecked")
-    Tool<Map<String, Object>, Map<String, Object>> weatherTool = genkit.defineTool("getWeather",
-        "Gets the current weather for a location",
-        Map.of("type", "object", "properties",
-            Map.of("location", Map.of("type", "string", "description", "The city name")), "required",
-            new String[]{"location"}),
-        (Class<Map<String, Object>>) (Class<?>) Map.class, (ctx, input) -> {
-          String location = (String) input.get("location");
-          Map<String, Object> weather = new HashMap<>();
-          weather.put("location", location);
-          weather.put("temperature", "72°F");
-          weather.put("conditions", "Sunny");
-          return weather;
-        });
+    Tool<Map<String, Object>, Map<String, Object>> weatherTool =
+        genkit.defineTool(
+            "getWeather",
+            "Gets the current weather for a location",
+            Map.of(
+                "type",
+                "object",
+                "properties",
+                Map.of("location", Map.of("type", "string", "description", "The city name")),
+                "required",
+                new String[] {"location"}),
+            (Class<Map<String, Object>>) (Class<?>) Map.class,
+            (ctx, input) -> {
+              String location = (String) input.get("location");
+              Map<String, Object> weather = new HashMap<>();
+              weather.put("location", location);
+              weather.put("temperature", "72°F");
+              weather.put("conditions", "Sunny");
+              return weather;
+            });
 
     // Define a chat flow using GPT-4
-    Flow<String, String, Void> chatFlow = genkit.defineFlow("chat", String.class, String.class,
-        (ctx, userMessage) -> {
-          ModelResponse response = genkit.generate(GenerateOptions.builder().model("azure-foundry/gpt-4.1")
-              .system("You are a helpful AI assistant running on Azure AI Foundry.").prompt(userMessage)
-              .build());
+    Flow<String, String, Void> chatFlow =
+        genkit.defineFlow(
+            "chat",
+            String.class,
+            String.class,
+            (ctx, userMessage) -> {
+              ModelResponse response =
+                  genkit.generate(
+                      GenerateOptions.builder()
+                          .model("azure-foundry/gpt-4.1")
+                          .system("You are a helpful AI assistant running on Azure AI Foundry.")
+                          .prompt(userMessage)
+                          .build());
 
-          return response.getText();
-        });
+              return response.getText();
+            });
 
     // Define a flow that uses the weather tool
-    Flow<String, String, Void> weatherAssistantFlow = genkit.defineFlow("weatherAssistant", String.class,
-        String.class, (ctx, userMessage) -> {
-          ModelResponse response = genkit.generate(GenerateOptions.builder().model("azure-foundry/gpt-4.1")
-              .system("You are a helpful weather assistant. Use the getWeather tool to provide weather information when asked about the weather in a specific location.")
-              .prompt(userMessage).tools(List.of(weatherTool)).build());
+    Flow<String, String, Void> weatherAssistantFlow =
+        genkit.defineFlow(
+            "weatherAssistant",
+            String.class,
+            String.class,
+            (ctx, userMessage) -> {
+              ModelResponse response =
+                  genkit.generate(
+                      GenerateOptions.builder()
+                          .model("azure-foundry/gpt-4.1")
+                          .system(
+                              "You are a helpful weather assistant. Use the getWeather tool to provide weather information when asked about the weather in a specific location.")
+                          .prompt(userMessage)
+                          .tools(List.of(weatherTool))
+                          .build());
 
-          return response.getText();
-        });
+              return response.getText();
+            });
 
     // Define a multi-model comparison flow
-    Flow<String, String, Void> compareModelsFlow = genkit.defineFlow("compareModels", String.class, String.class,
-        (ctx, question) -> {
-          StringBuilder result = new StringBuilder();
+    Flow<String, String, Void> compareModelsFlow =
+        genkit.defineFlow(
+            "compareModels",
+            String.class,
+            String.class,
+            (ctx, question) -> {
+              StringBuilder result = new StringBuilder();
 
-          // GPT-4 response
-          try {
-            ModelResponse gpt4Response = genkit.generate(
-                GenerateOptions.builder().model("azure-foundry/gpt-4.1").prompt(question).build());
-            result.append("GPT-4.1:\n").append(gpt4Response.getText()).append("\n\n");
-          } catch (Exception e) {
-            result.append("GPT-4.1: Not available or not deployed\n\n");
-          }
+              // GPT-4 response
+              try {
+                ModelResponse gpt4Response =
+                    genkit.generate(
+                        GenerateOptions.builder()
+                            .model("azure-foundry/gpt-4.1")
+                            .prompt(question)
+                            .build());
+                result.append("GPT-4.1:\n").append(gpt4Response.getText()).append("\n\n");
+              } catch (Exception e) {
+                result.append("GPT-4.1: Not available or not deployed\n\n");
+              }
 
-          return result.toString();
-        });
+              return result.toString();
+            });
 
     // Define a streaming example flow
-    Flow<String, String, Void> streamingFlow = genkit.defineFlow("streamingDemo", String.class, String.class,
-        (ctx, prompt) -> {
-          System.out.println("\n=== Streaming Response ===");
-          StringBuilder fullResponse = new StringBuilder();
+    Flow<String, String, Void> streamingFlow =
+        genkit.defineFlow(
+            "streamingDemo",
+            String.class,
+            String.class,
+            (ctx, prompt) -> {
+              System.out.println("\n=== Streaming Response ===");
+              StringBuilder fullResponse = new StringBuilder();
 
-          genkit.generateStream(
-              GenerateOptions.builder().model("azure-foundry/gpt-4.1").prompt(prompt).build(), chunk -> {
-                String text = chunk.getText();
-                System.out.print(text);
-                fullResponse.append(text);
-              });
+              genkit.generateStream(
+                  GenerateOptions.builder().model("azure-foundry/gpt-4.1").prompt(prompt).build(),
+                  chunk -> {
+                    String text = chunk.getText();
+                    System.out.print(text);
+                    fullResponse.append(text);
+                  });
 
-          System.out.println("\n=== End of Stream ===\n");
-          return fullResponse.toString();
-        });
+              System.out.println("\n=== End of Stream ===\n");
+              return fullResponse.toString();
+            });
 
     System.out.println("Azure AI Foundry Sample Started!");
     System.out.println("=================================");

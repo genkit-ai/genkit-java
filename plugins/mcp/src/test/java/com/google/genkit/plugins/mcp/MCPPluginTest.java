@@ -20,11 +20,9 @@ package com.google.genkit.plugins.mcp;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.List;
-
-import org.junit.jupiter.api.Test;
-
 import com.google.genkit.ai.Tool;
+import java.util.List;
+import org.junit.jupiter.api.Test;
 
 class MCPPluginTest {
 
@@ -51,8 +49,8 @@ class MCPPluginTest {
   void testCreateWithServerConfig() {
     MCPServerConfig serverConfig = MCPServerConfig.stdio("npx", "-y", "test-server");
 
-    MCPPluginOptions options = MCPPluginOptions.builder().name("test-host").addServer("test-server", serverConfig)
-        .build();
+    MCPPluginOptions options =
+        MCPPluginOptions.builder().name("test-host").addServer("test-server", serverConfig).build();
 
     MCPPlugin plugin = MCPPlugin.create(options);
 
@@ -63,8 +61,8 @@ class MCPPluginTest {
   void testCreateWithHttpServerConfig() {
     MCPServerConfig serverConfig = MCPServerConfig.http("http://localhost:3001/mcp");
 
-    MCPPluginOptions options = MCPPluginOptions.builder().name("test-host").addServer("http-server", serverConfig)
-        .build();
+    MCPPluginOptions options =
+        MCPPluginOptions.builder().name("test-host").addServer("http-server", serverConfig).build();
 
     MCPPlugin plugin = MCPPlugin.create(options);
 
@@ -80,5 +78,4 @@ class MCPPluginTest {
 
     assertNotNull(tools);
   }
-
 }

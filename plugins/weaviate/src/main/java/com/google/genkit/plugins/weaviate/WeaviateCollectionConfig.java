@@ -23,20 +23,20 @@ import com.google.genkit.ai.Embedder;
 /**
  * Configuration for a Weaviate collection (class) in the plugin.
  *
- * <p>
- * Example:
- * 
+ * <p>Example:
+ *
  * <pre>{@code
- * WeaviateCollectionConfig config = WeaviateCollectionConfig.builder().name("documents")
- * 		.embedderName("googleai/text-embedding-004").distanceMeasure(DistanceMeasure.COSINE)
- * 		.createCollectionIfMissing(true).build();
+ * WeaviateCollectionConfig config = WeaviateCollectionConfig.builder()
+ *     .name("documents")
+ *     .embedderName("googleai/text-embedding-004")
+ *     .distanceMeasure(DistanceMeasure.COSINE)
+ *     .createCollectionIfMissing(true)
+ *     .build();
  * }</pre>
  */
 public class WeaviateCollectionConfig {
 
-  /**
-   * Distance measure options for vector similarity search.
-   */
+  /** Distance measure options for vector similarity search. */
   public enum DistanceMeasure {
     /** Cosine similarity (default). */
     COSINE,
@@ -119,9 +119,7 @@ public class WeaviateCollectionConfig {
     return vectorDimension > 0 ? vectorDimension : 768;
   }
 
-  /**
-   * Builder for WeaviateCollectionConfig.
-   */
+  /** Builder for WeaviateCollectionConfig. */
   public static class Builder {
     private String name;
     private String label;
@@ -137,8 +135,7 @@ public class WeaviateCollectionConfig {
     /**
      * Sets the collection name.
      *
-     * @param name
-     *            the collection name
+     * @param name the collection name
      * @return this builder
      */
     public Builder name(String name) {
@@ -149,8 +146,7 @@ public class WeaviateCollectionConfig {
     /**
      * Sets the collection label for display.
      *
-     * @param label
-     *            the display label
+     * @param label the display label
      * @return this builder
      */
     public Builder label(String label) {
@@ -161,8 +157,7 @@ public class WeaviateCollectionConfig {
     /**
      * Sets the field name for document content.
      *
-     * @param contentField
-     *            the content field name
+     * @param contentField the content field name
      * @return this builder
      */
     public Builder contentField(String contentField) {
@@ -173,8 +168,7 @@ public class WeaviateCollectionConfig {
     /**
      * Sets the field name for document metadata.
      *
-     * @param metadataField
-     *            the metadata field name
+     * @param metadataField the metadata field name
      * @return this builder
      */
     public Builder metadataField(String metadataField) {
@@ -185,8 +179,7 @@ public class WeaviateCollectionConfig {
     /**
      * Sets the distance measure for similarity search.
      *
-     * @param distanceMeasure
-     *            the distance measure
+     * @param distanceMeasure the distance measure
      * @return this builder
      */
     public Builder distanceMeasure(DistanceMeasure distanceMeasure) {
@@ -197,8 +190,7 @@ public class WeaviateCollectionConfig {
     /**
      * Sets the embedder instance directly.
      *
-     * @param embedder
-     *            the embedder
+     * @param embedder the embedder
      * @return this builder
      */
     public Builder embedder(Embedder embedder) {
@@ -209,8 +201,7 @@ public class WeaviateCollectionConfig {
     /**
      * Sets the embedder name to resolve from registry.
      *
-     * @param embedderName
-     *            the embedder name (e.g., "googleai/text-embedding-004")
+     * @param embedderName the embedder name (e.g., "googleai/text-embedding-004")
      * @return this builder
      */
     public Builder embedderName(String embedderName) {
@@ -221,8 +212,7 @@ public class WeaviateCollectionConfig {
     /**
      * Sets the default limit for retrieval.
      *
-     * @param defaultLimit
-     *            the default limit
+     * @param defaultLimit the default limit
      * @return this builder
      */
     public Builder defaultLimit(int defaultLimit) {
@@ -233,8 +223,7 @@ public class WeaviateCollectionConfig {
     /**
      * Sets whether to create the collection if it doesn't exist.
      *
-     * @param createCollectionIfMissing
-     *            true to create if missing
+     * @param createCollectionIfMissing true to create if missing
      * @return this builder
      */
     public Builder createCollectionIfMissing(boolean createCollectionIfMissing) {
@@ -245,8 +234,7 @@ public class WeaviateCollectionConfig {
     /**
      * Sets the vector dimension for the collection.
      *
-     * @param vectorDimension
-     *            the vector dimension
+     * @param vectorDimension the vector dimension
      * @return this builder
      */
     public Builder vectorDimension(int vectorDimension) {

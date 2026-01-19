@@ -18,11 +18,10 @@
 
 /**
  * Firebase telemetry integration for Genkit Monitoring.
- * 
- * <p>
- * Provides telemetry export to Google Cloud Logging, Metrics, and Trace, backed
- * by Firebase Genkit Monitoring.
- * 
+ *
+ * <p>Provides telemetry export to Google Cloud Logging, Metrics, and Trace, backed by Firebase
+ * Genkit Monitoring.
+ *
  * @see com.google.genkit.plugins.firebase.telemetry.FirebaseTelemetry
  */
 package com.google.genkit.plugins.firebase.telemetry;

@@ -21,80 +21,56 @@ package com.google.genkit.plugins.openai;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * Configuration options for OpenAI image generation models (DALL-E, gpt-image).
- */
+/** Configuration options for OpenAI image generation models (DALL-E, gpt-image). */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ImageGenerationConfig {
 
   /**
-   * Size of the generated image. For DALL-E 3: "1024x1024", "1792x1024",
-   * "1024x1792" For DALL-E 2: "256x256", "512x512", "1024x1024" For gpt-image-1:
-   * "1024x1024", "1536x1024", "1024x1536", "auto"
+   * Size of the generated image. For DALL-E 3: "1024x1024", "1792x1024", "1024x1792" For DALL-E 2:
+   * "256x256", "512x512", "1024x1024" For gpt-image-1: "1024x1024", "1536x1024", "1024x1536",
+   * "auto"
    */
   @JsonProperty("size")
   private String size;
 
-  /**
-   * Image quality: "standard" or "hd" (DALL-E 3 only). For gpt-image-1: "low",
-   * "medium", "high"
-   */
+  /** Image quality: "standard" or "hd" (DALL-E 3 only). For gpt-image-1: "low", "medium", "high" */
   @JsonProperty("quality")
   private String quality;
 
-  /**
-   * Image style: "vivid" or "natural" (DALL-E 3 only).
-   */
+  /** Image style: "vivid" or "natural" (DALL-E 3 only). */
   @JsonProperty("style")
   private String style;
 
-  /**
-   * Number of images to generate (1-10). Default is 1.
-   */
+  /** Number of images to generate (1-10). Default is 1. */
   @JsonProperty("n")
   private Integer n;
 
-  /**
-   * Response format: "url" or "b64_json". Default is "b64_json".
-   */
+  /** Response format: "url" or "b64_json". Default is "b64_json". */
   @JsonProperty("responseFormat")
   private String responseFormat;
 
-  /**
-   * User identifier for abuse monitoring.
-   */
+  /** User identifier for abuse monitoring. */
   @JsonProperty("user")
   private String user;
 
-  /**
-   * Background setting for gpt-image-1: "transparent", "opaque", "auto".
-   */
+  /** Background setting for gpt-image-1: "transparent", "opaque", "auto". */
   @JsonProperty("background")
   private String background;
 
-  /**
-   * Output format for gpt-image-1: "png", "jpeg", "webp".
-   */
+  /** Output format for gpt-image-1: "png", "jpeg", "webp". */
   @JsonProperty("outputFormat")
   private String outputFormat;
 
-  /**
-   * Output compression for gpt-image-1 (1-100).
-   */
+  /** Output compression for gpt-image-1 (1-100). */
   @JsonProperty("outputCompression")
   private Integer outputCompression;
 
-  /**
-   * Moderation level for gpt-image-1: "low", "auto".
-   */
+  /** Moderation level for gpt-image-1: "low", "auto". */
   @JsonProperty("moderation")
   private String moderation;
 
-  /**
-   * Default constructor.
-   */
-  public ImageGenerationConfig() {
-  }
+  /** Default constructor. */
+  public ImageGenerationConfig() {}
 
   /**
    * Creates a builder for ImageGenerationConfig.
@@ -187,9 +163,7 @@ public class ImageGenerationConfig {
     this.moderation = moderation;
   }
 
-  /**
-   * Builder for ImageGenerationConfig.
-   */
+  /** Builder for ImageGenerationConfig. */
   public static class Builder {
     private final ImageGenerationConfig config = new ImageGenerationConfig();
 

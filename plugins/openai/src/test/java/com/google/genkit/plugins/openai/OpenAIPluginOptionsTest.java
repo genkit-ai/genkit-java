@@ -42,31 +42,40 @@ class OpenAIPluginOptionsTest {
 
   @Test
   void testBuilderWithBaseUrl() {
-    OpenAIPluginOptions options = OpenAIPluginOptions.builder().apiKey("test-key")
-        .baseUrl("https://custom.openai.com/v1").build();
+    OpenAIPluginOptions options =
+        OpenAIPluginOptions.builder()
+            .apiKey("test-key")
+            .baseUrl("https://custom.openai.com/v1")
+            .build();
 
     assertEquals("https://custom.openai.com/v1", options.getBaseUrl());
   }
 
   @Test
   void testBuilderWithOrganization() {
-    OpenAIPluginOptions options = OpenAIPluginOptions.builder().apiKey("test-key").organization("org-test-123")
-        .build();
+    OpenAIPluginOptions options =
+        OpenAIPluginOptions.builder().apiKey("test-key").organization("org-test-123").build();
 
     assertEquals("org-test-123", options.getOrganization());
   }
 
   @Test
   void testBuilderWithTimeout() {
-    OpenAIPluginOptions options = OpenAIPluginOptions.builder().apiKey("test-key").timeout(120).build();
+    OpenAIPluginOptions options =
+        OpenAIPluginOptions.builder().apiKey("test-key").timeout(120).build();
 
     assertEquals(120, options.getTimeout());
   }
 
   @Test
   void testBuilderWithAllOptions() {
-    OpenAIPluginOptions options = OpenAIPluginOptions.builder().apiKey("test-key").baseUrl("https://test.com/v1")
-        .organization("org-123").timeout(30).build();
+    OpenAIPluginOptions options =
+        OpenAIPluginOptions.builder()
+            .apiKey("test-key")
+            .baseUrl("https://test.com/v1")
+            .organization("org-123")
+            .timeout(30)
+            .build();
 
     assertEquals("test-key", options.getApiKey());
     assertEquals("https://test.com/v1", options.getBaseUrl());

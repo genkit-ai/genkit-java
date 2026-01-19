@@ -18,43 +18,48 @@
 
 package com.google.genkit.plugins.weaviate;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.genkit.ai.Embedder;
 import com.google.genkit.core.Action;
 import com.google.genkit.core.ActionType;
 import com.google.genkit.core.Plugin;
 import com.google.genkit.core.Registry;
-
 import io.weaviate.client.Config;
 import io.weaviate.client.WeaviateAuthClient;
 import io.weaviate.client.WeaviateClient;
 import io.weaviate.client.v1.auth.exception.AuthException;
+import java.util.ArrayList;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Weaviate plugin for Genkit providing vector database integration.
  *
- * <p>
- * This plugin provides:
+ * <p>This plugin provides:
+ *
  * <ul>
- * <li>Weaviate vector similarity search for retrieval</li>
- * <li>Document indexing with automatic embedding generation</li>
- * <li>Support for both local and Weaviate Cloud instances</li>
- * <li>Configurable distance measures (cosine, L2, dot product)</li>
+ *   <li>Weaviate vector similarity search for retrieval
+ *   <li>Document indexing with automatic embedding generation
+ *   <li>Support for both local and Weaviate Cloud instances
+ *   <li>Configurable distance measures (cosine, L2, dot product)
  * </ul>
  *
- * <p>
- * Example usage:
- * 
+ * <p>Example usage:
+ *
  * <pre>{@code
- * Genkit genkit = Genkit.builder().plugin(GoogleGenAIPlugin.create(apiKey))
- * 		.plugin(WeaviatePlugin.builder().host("localhost").port(8080).addCollection(WeaviateCollectionConfig
- * 				.builder().name("documents").embedderName("googleai/text-embedding-004").build()).build())
- * 		.build();
+ * Genkit genkit = Genkit.builder()
+ *     .plugin(GoogleGenAIPlugin.create(apiKey))
+ *     .plugin(
+ *         WeaviatePlugin.builder()
+ *             .host("localhost")
+ *             .port(8080)
+ *             .addCollection(
+ *                 WeaviateCollectionConfig.builder()
+ *                     .name("documents")
+ *                     .embedderName("googleai/text-embedding-004")
+ *                     .build())
+ *             .build())
+ *     .build();
  *
  * // Index documents
  * genkit.index("weaviate/documents", documents);
@@ -100,8 +105,7 @@ public class WeaviatePlugin implements Plugin {
   /**
    * Creates a simple WeaviatePlugin for local development.
    *
-   * @param host
-   *            the Weaviate host
+   * @param host the Weaviate host
    * @return a new WeaviatePlugin
    */
   public static Builder local(String host) {
@@ -153,9 +157,7 @@ public class WeaviatePlugin implements Plugin {
     return actions;
   }
 
-  /**
-   * Initializes the Weaviate client.
-   */
+  /** Initializes the Weaviate client. */
   private void initializeClient() throws AuthException {
     String hostUrl = scheme + "://" + host;
     if (port > 0) {
@@ -173,10 +175,9 @@ public class WeaviatePlugin implements Plugin {
     }
   }
 
-  /**
-   * Initializes a collection with retriever and indexer.
-   */
-  private List<Action<?, ?, ?>> initializeCollection(Registry registry, WeaviateCollectionConfig config) {
+  /** Initializes a collection with retriever and indexer. */
+  private List<Action<?, ?, ?>> initializeCollection(
+      Registry registry, WeaviateCollectionConfig config) {
     List<Action<?, ?, ?>> actions = new ArrayList<>();
 
     // Resolve embedder
@@ -189,15 +190,15 @@ public class WeaviatePlugin implements Plugin {
     actions.add(vectorStore.createRetriever());
     actions.add(vectorStore.createIndexer());
 
-    logger.info("Initialized Weaviate collection: {} with embedder: {}", config.getName(),
+    logger.info(
+        "Initialized Weaviate collection: {} with embedder: {}",
+        config.getName(),
         config.getEmbedderName() != null ? config.getEmbedderName() : "direct");
 
     return actions;
   }
 
-  /**
-   * Resolves the embedder from config or registry.
-   */
+  /** Resolves the embedder from config or registry. */
   private Embedder resolveEmbedder(Registry registry, WeaviateCollectionConfig config) {
     if (config.getEmbedder() != null) {
       return config.getEmbedder();
@@ -211,14 +212,15 @@ public class WeaviatePlugin implements Plugin {
       }
     }
 
-    throw new RuntimeException("Could not resolve embedder for collection: " + config.getName()
-        + ". Either provide an embedder directly or ensure the embedder '" + config.getEmbedderName()
-        + "' is registered.");
+    throw new RuntimeException(
+        "Could not resolve embedder for collection: "
+            + config.getName()
+            + ". Either provide an embedder directly or ensure the embedder '"
+            + config.getEmbedderName()
+            + "' is registered.");
   }
 
-  /**
-   * Builder for WeaviatePlugin.
-   */
+  /** Builder for WeaviatePlugin. */
   public static class Builder {
     private String host = "localhost";
     private int port = 8080;
@@ -230,8 +232,7 @@ public class WeaviatePlugin implements Plugin {
     /**
      * Sets the Weaviate host.
      *
-     * @param host
-     *            the host (without protocol)
+     * @param host the host (without protocol)
      * @return this builder
      */
     public Builder host(String host) {
@@ -242,8 +243,7 @@ public class WeaviatePlugin implements Plugin {
     /**
      * Sets the HTTP port.
      *
-     * @param port
-     *            the port
+     * @param port the port
      * @return this builder
      */
     public Builder port(int port) {
@@ -254,8 +254,7 @@ public class WeaviatePlugin implements Plugin {
     /**
      * Sets the gRPC port.
      *
-     * @param grpcPort
-     *            the gRPC port
+     * @param grpcPort the gRPC port
      * @return this builder
      */
     public Builder grpcPort(int grpcPort) {
@@ -266,8 +265,7 @@ public class WeaviatePlugin implements Plugin {
     /**
      * Sets whether to use secure connection (HTTPS).
      *
-     * @param secure
-     *            true for HTTPS
+     * @param secure true for HTTPS
      * @return this builder
      */
     public Builder secure(boolean secure) {
@@ -278,8 +276,7 @@ public class WeaviatePlugin implements Plugin {
     /**
      * Sets the API key for Weaviate Cloud authentication.
      *
-     * @param apiKey
-     *            the API key
+     * @param apiKey the API key
      * @return this builder
      */
     public Builder apiKey(String apiKey) {
@@ -290,8 +287,7 @@ public class WeaviatePlugin implements Plugin {
     /**
      * Adds a collection configuration.
      *
-     * @param config
-     *            the collection config
+     * @param config the collection config
      * @return this builder
      */
     public Builder addCollection(WeaviateCollectionConfig config) {

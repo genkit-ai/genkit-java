@@ -21,9 +21,8 @@ package com.google.genkit.core;
 import com.google.genkit.core.tracing.SpanContext;
 
 /**
- * ActionContext provides context for action execution including tracing and
- * flow information. It is passed to all action executions and carries
- * request-scoped state.
+ * ActionContext provides context for action execution including tracing and flow information. It is
+ * passed to all action executions and carries request-scoped state.
  */
 public class ActionContext {
 
@@ -37,20 +36,19 @@ public class ActionContext {
   /**
    * Creates a new ActionContext.
    *
-   * @param spanContext
-   *            the tracing span context, may be null
-   * @param flowName
-   *            the name of the enclosing flow, may be null
-   * @param spanPath
-   *            the current span path for tracing
-   * @param registry
-   *            the Genkit registry
-   * @param sessionId
-   *            the session ID for multi-turn conversations
-   * @param threadName
-   *            the thread name for grouping related requests
+   * @param spanContext the tracing span context, may be null
+   * @param flowName the name of the enclosing flow, may be null
+   * @param spanPath the current span path for tracing
+   * @param registry the Genkit registry
+   * @param sessionId the session ID for multi-turn conversations
+   * @param threadName the thread name for grouping related requests
    */
-  public ActionContext(SpanContext spanContext, String flowName, String spanPath, Registry registry, String sessionId,
+  public ActionContext(
+      SpanContext spanContext,
+      String flowName,
+      String spanPath,
+      Registry registry,
+      String sessionId,
       String threadName) {
     this.spanContext = spanContext;
     this.flowName = flowName;
@@ -63,28 +61,22 @@ public class ActionContext {
   /**
    * Creates a new ActionContext.
    *
-   * @param spanContext
-   *            the tracing span context, may be null
-   * @param flowName
-   *            the name of the enclosing flow, may be null
-   * @param spanPath
-   *            the current span path for tracing
-   * @param registry
-   *            the Genkit registry
+   * @param spanContext the tracing span context, may be null
+   * @param flowName the name of the enclosing flow, may be null
+   * @param spanPath the current span path for tracing
+   * @param registry the Genkit registry
    */
-  public ActionContext(SpanContext spanContext, String flowName, String spanPath, Registry registry) {
+  public ActionContext(
+      SpanContext spanContext, String flowName, String spanPath, Registry registry) {
     this(spanContext, flowName, spanPath, registry, null, null);
   }
 
   /**
    * Creates a new ActionContext.
    *
-   * @param spanContext
-   *            the tracing span context, may be null
-   * @param flowName
-   *            the name of the enclosing flow, may be null
-   * @param registry
-   *            the Genkit registry
+   * @param spanContext the tracing span context, may be null
+   * @param flowName the name of the enclosing flow, may be null
+   * @param registry the Genkit registry
    */
   public ActionContext(SpanContext spanContext, String flowName, Registry registry) {
     this(spanContext, flowName, null, registry);
@@ -93,8 +85,7 @@ public class ActionContext {
   /**
    * Creates a new ActionContext with default values.
    *
-   * @param registry
-   *            the Genkit registry
+   * @param registry the Genkit registry
    */
   public ActionContext(Registry registry) {
     this(null, null, null, registry);
@@ -157,61 +148,56 @@ public class ActionContext {
   /**
    * Creates a new ActionContext with a different flow name.
    *
-   * @param flowName
-   *            the new flow name
+   * @param flowName the new flow name
    * @return a new ActionContext with the updated flow name
    */
   public ActionContext withFlowName(String flowName) {
-    return new ActionContext(this.spanContext, flowName, this.spanPath, this.registry, this.sessionId,
-        this.threadName);
+    return new ActionContext(
+        this.spanContext, flowName, this.spanPath, this.registry, this.sessionId, this.threadName);
   }
 
   /**
    * Creates a new ActionContext with a different span context.
    *
-   * @param spanContext
-   *            the new span context
+   * @param spanContext the new span context
    * @return a new ActionContext with the updated span context
    */
   public ActionContext withSpanContext(SpanContext spanContext) {
-    return new ActionContext(spanContext, this.flowName, this.spanPath, this.registry, this.sessionId,
-        this.threadName);
+    return new ActionContext(
+        spanContext, this.flowName, this.spanPath, this.registry, this.sessionId, this.threadName);
   }
 
   /**
    * Creates a new ActionContext with a different span path.
    *
-   * @param spanPath
-   *            the new span path
+   * @param spanPath the new span path
    * @return a new ActionContext with the updated span path
    */
   public ActionContext withSpanPath(String spanPath) {
-    return new ActionContext(this.spanContext, this.flowName, spanPath, this.registry, this.sessionId,
-        this.threadName);
+    return new ActionContext(
+        this.spanContext, this.flowName, spanPath, this.registry, this.sessionId, this.threadName);
   }
 
   /**
    * Creates a new ActionContext with a session ID.
    *
-   * @param sessionId
-   *            the session ID
+   * @param sessionId the session ID
    * @return a new ActionContext with the session ID
    */
   public ActionContext withSessionId(String sessionId) {
-    return new ActionContext(this.spanContext, this.flowName, this.spanPath, this.registry, sessionId,
-        this.threadName);
+    return new ActionContext(
+        this.spanContext, this.flowName, this.spanPath, this.registry, sessionId, this.threadName);
   }
 
   /**
    * Creates a new ActionContext with a thread name.
    *
-   * @param threadName
-   *            the thread name
+   * @param threadName the thread name
    * @return a new ActionContext with the thread name
    */
   public ActionContext withThreadName(String threadName) {
-    return new ActionContext(this.spanContext, this.flowName, this.spanPath, this.registry, this.sessionId,
-        threadName);
+    return new ActionContext(
+        this.spanContext, this.flowName, this.spanPath, this.registry, this.sessionId, threadName);
   }
 
   /**
@@ -223,9 +209,7 @@ public class ActionContext {
     return new Builder();
   }
 
-  /**
-   * Builder for ActionContext.
-   */
+  /** Builder for ActionContext. */
   public static class Builder {
     private SpanContext spanContext;
     private String flowName;

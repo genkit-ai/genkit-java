@@ -18,32 +18,26 @@
 
 package com.google.genkit.core;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 /**
- * Action is the interface that all Genkit primitives (e.g., flows, models,
- * tools) have in common. An Action represents a named, observable operation
- * that can be executed and traced.
+ * Action is the interface that all Genkit primitives (e.g., flows, models, tools) have in common.
+ * An Action represents a named, observable operation that can be executed and traced.
  *
- * <p>
- * Actions are the fundamental building blocks of Genkit applications. They
- * provide:
+ * <p>Actions are the fundamental building blocks of Genkit applications. They provide:
+ *
  * <ul>
- * <li>Named operations that can be discovered and invoked</li>
- * <li>Input/output schema validation</li>
- * <li>Automatic tracing and observability</li>
- * <li>Registry integration for reflection API support</li>
+ *   <li>Named operations that can be discovered and invoked
+ *   <li>Input/output schema validation
+ *   <li>Automatic tracing and observability
+ *   <li>Registry integration for reflection API support
  * </ul>
  *
- * @param <I>
- *            The input type for the action
- * @param <O>
- *            The output type for the action
- * @param <S>
- *            The streaming chunk type (use Void for non-streaming actions)
+ * @param <I> The input type for the action
+ * @param <O> The output type for the action
+ * @param <S> The streaming chunk type (use Void for non-streaming actions)
  */
 public interface Action<I, O, S> extends Registerable {
 
@@ -71,62 +65,47 @@ public interface Action<I, O, S> extends Registerable {
   /**
    * Runs the action with the given input.
    *
-   * @param ctx
-   *            the action context
-   * @param input
-   *            the input to the action
+   * @param ctx the action context
+   * @param input the input to the action
    * @return the output of the action
-   * @throws GenkitException
-   *             if the action fails
+   * @throws GenkitException if the action fails
    */
   O run(ActionContext ctx, I input) throws GenkitException;
 
   /**
    * Runs the action with the given input and streaming callback.
    *
-   * @param ctx
-   *            the action context
-   * @param input
-   *            the input to the action
-   * @param streamCallback
-   *            callback for receiving streaming chunks, may be null
+   * @param ctx the action context
+   * @param input the input to the action
+   * @param streamCallback callback for receiving streaming chunks, may be null
    * @return the output of the action
-   * @throws GenkitException
-   *             if the action fails
+   * @throws GenkitException if the action fails
    */
   O run(ActionContext ctx, I input, Consumer<S> streamCallback) throws GenkitException;
 
   /**
    * Runs the action with JSON input and returns JSON output.
    *
-   * @param ctx
-   *            the action context
-   * @param input
-   *            the JSON input
-   * @param streamCallback
-   *            callback for receiving streaming JSON chunks, may be null
+   * @param ctx the action context
+   * @param input the JSON input
+   * @param streamCallback callback for receiving streaming JSON chunks, may be null
    * @return the JSON output
-   * @throws GenkitException
-   *             if the action fails
+   * @throws GenkitException if the action fails
    */
-  JsonNode runJson(ActionContext ctx, JsonNode input, Consumer<JsonNode> streamCallback) throws GenkitException;
+  JsonNode runJson(ActionContext ctx, JsonNode input, Consumer<JsonNode> streamCallback)
+      throws GenkitException;
 
   /**
-   * Runs the action with JSON input and returns the result with telemetry
-   * information.
+   * Runs the action with JSON input and returns the result with telemetry information.
    *
-   * @param ctx
-   *            the action context
-   * @param input
-   *            the JSON input
-   * @param streamCallback
-   *            callback for receiving streaming JSON chunks, may be null
+   * @param ctx the action context
+   * @param input the JSON input
+   * @param streamCallback callback for receiving streaming JSON chunks, may be null
    * @return the action result including telemetry data
-   * @throws GenkitException
-   *             if the action fails
+   * @throws GenkitException if the action fails
    */
-  ActionRunResult<JsonNode> runJsonWithTelemetry(ActionContext ctx, JsonNode input, Consumer<JsonNode> streamCallback)
-      throws GenkitException;
+  ActionRunResult<JsonNode> runJsonWithTelemetry(
+      ActionContext ctx, JsonNode input, Consumer<JsonNode> streamCallback) throws GenkitException;
 
   /**
    * Returns the JSON schema for the action's input type.

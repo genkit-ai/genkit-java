@@ -18,19 +18,6 @@
 
 package com.google.genkit.samples;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.genkit.Genkit;
 import com.google.genkit.GenkitOptions;
 import com.google.genkit.ai.*;
@@ -40,36 +27,44 @@ import com.google.genkit.plugins.jetty.JettyPluginOptions;
 import com.google.genkit.plugins.localvec.LocalVecConfig;
 import com.google.genkit.plugins.localvec.LocalVecPlugin;
 import com.google.genkit.plugins.openai.OpenAIPlugin;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Sample application demonstrating RAG (Retrieval Augmented Generation) with
- * Genkit Java.
+ * Sample application demonstrating RAG (Retrieval Augmented Generation) with Genkit Java.
  *
- * <p>
- * This example shows how to:
+ * <p>This example shows how to:
+ *
  * <ul>
- * <li>Use the local vector store plugin for development</li>
- * <li>Index documents from text files</li>
- * <li>Create retriever flows to fetch relevant documents</li>
- * <li>Build RAG flows that combine retrieval with generation</li>
+ *   <li>Use the local vector store plugin for development
+ *   <li>Index documents from text files
+ *   <li>Create retriever flows to fetch relevant documents
+ *   <li>Build RAG flows that combine retrieval with generation
  * </ul>
  *
- * <p>
- * To run:
+ * <p>To run:
+ *
  * <ol>
- * <li>Set the OPENAI_API_KEY environment variable</li>
- * <li>Run: mvn exec:java</li>
+ *   <li>Set the OPENAI_API_KEY environment variable
+ *   <li>Run: mvn exec:java
  * </ol>
  */
 public class RagSample {
 
   private static final Logger logger = LoggerFactory.getLogger(RagSample.class);
 
-  /**
-   * System prompt for RAG queries. Documents are automatically injected via the
-   * .docs() option.
-   */
-  private static final String RAG_SYSTEM_PROMPT = """
+  /** System prompt for RAG queries. Documents are automatically injected via the .docs() option. */
+  private static final String RAG_SYSTEM_PROMPT =
+      """
       You are a helpful assistant that answers questions based on the provided context documents.
 
       Please provide a helpful answer based only on the context provided. If the context doesn't contain
@@ -81,106 +76,177 @@ public class RagSample {
     // init)
     Path storageDir = Paths.get(System.getProperty("java.io.tmpdir"), "genkit-rag-sample");
 
-    LocalVecConfig worldCapitalsConfig = LocalVecConfig.builder().indexName("world-capitals")
-        .embedderName("openai/text-embedding-3-small").directory(storageDir).build();
+    LocalVecConfig worldCapitalsConfig =
+        LocalVecConfig.builder()
+            .indexName("world-capitals")
+            .embedderName("openai/text-embedding-3-small")
+            .directory(storageDir)
+            .build();
 
-    LocalVecConfig dogBreedsConfig = LocalVecConfig.builder().indexName("dog-breeds")
-        .embedderName("openai/text-embedding-3-small").directory(storageDir).build();
+    LocalVecConfig dogBreedsConfig =
+        LocalVecConfig.builder()
+            .indexName("dog-breeds")
+            .embedderName("openai/text-embedding-3-small")
+            .directory(storageDir)
+            .build();
 
-    LocalVecConfig coffeeFactsConfig = LocalVecConfig.builder().indexName("coffee-facts")
-        .embedderName("openai/text-embedding-3-small").directory(storageDir).build();
+    LocalVecConfig coffeeFactsConfig =
+        LocalVecConfig.builder()
+            .indexName("coffee-facts")
+            .embedderName("openai/text-embedding-3-small")
+            .directory(storageDir)
+            .build();
 
     // Create the Jetty server plugin
     JettyPlugin jetty = new JettyPlugin(JettyPluginOptions.builder().port(8080).build());
 
     // Create Genkit with all plugins - LocalVec embedders are resolved
     // automatically
-    Genkit genkit = Genkit.builder().options(GenkitOptions.builder().devMode(true).reflectionPort(3100).build())
-        .plugin(OpenAIPlugin.create()).plugin(LocalVecPlugin.builder().addStore(worldCapitalsConfig)
-            .addStore(dogBreedsConfig).addStore(coffeeFactsConfig).build())
-        .plugin(jetty).build();
+    Genkit genkit =
+        Genkit.builder()
+            .options(GenkitOptions.builder().devMode(true).reflectionPort(3100).build())
+            .plugin(OpenAIPlugin.create())
+            .plugin(
+                LocalVecPlugin.builder()
+                    .addStore(worldCapitalsConfig)
+                    .addStore(dogBreedsConfig)
+                    .addStore(coffeeFactsConfig)
+                    .build())
+            .plugin(jetty)
+            .build();
 
     // Define flow to index world capitals data
-    Flow<Void, String, Void> indexWorldCapitalsFlow = genkit.defineFlow("indexWorldCapitals", Void.class,
-        String.class, (ctx, input) -> {
-          List<Document> documents = loadDocumentsFromResource("/data/world-capitals.txt");
-          genkit.index("devLocalVectorStore/world-capitals", documents);
-          return "Indexed " + documents.size() + " world capitals documents";
-        });
+    Flow<Void, String, Void> indexWorldCapitalsFlow =
+        genkit.defineFlow(
+            "indexWorldCapitals",
+            Void.class,
+            String.class,
+            (ctx, input) -> {
+              List<Document> documents = loadDocumentsFromResource("/data/world-capitals.txt");
+              genkit.index("devLocalVectorStore/world-capitals", documents);
+              return "Indexed " + documents.size() + " world capitals documents";
+            });
 
     // Define flow to index dog breeds data
-    Flow<Void, String, Void> indexDogBreedsFlow = genkit.defineFlow("indexDogBreeds", Void.class, String.class,
-        (ctx, input) -> {
-          List<Document> documents = loadDocumentsFromResource("/data/dog-breeds.txt");
-          genkit.index("devLocalVectorStore/dog-breeds", documents);
-          return "Indexed " + documents.size() + " dog breeds documents";
-        });
+    Flow<Void, String, Void> indexDogBreedsFlow =
+        genkit.defineFlow(
+            "indexDogBreeds",
+            Void.class,
+            String.class,
+            (ctx, input) -> {
+              List<Document> documents = loadDocumentsFromResource("/data/dog-breeds.txt");
+              genkit.index("devLocalVectorStore/dog-breeds", documents);
+              return "Indexed " + documents.size() + " dog breeds documents";
+            });
 
     // Define flow to index coffee facts data
-    Flow<Void, String, Void> indexCoffeeFactsFlow = genkit.defineFlow("indexCoffeeFacts", Void.class, String.class,
-        (ctx, input) -> {
-          List<Document> documents = loadDocumentsFromResource("/data/coffee-facts.txt");
-          genkit.index("devLocalVectorStore/coffee-facts", documents);
-          return "Indexed " + documents.size() + " coffee facts documents";
-        });
+    Flow<Void, String, Void> indexCoffeeFactsFlow =
+        genkit.defineFlow(
+            "indexCoffeeFacts",
+            Void.class,
+            String.class,
+            (ctx, input) -> {
+              List<Document> documents = loadDocumentsFromResource("/data/coffee-facts.txt");
+              genkit.index("devLocalVectorStore/coffee-facts", documents);
+              return "Indexed " + documents.size() + " coffee facts documents";
+            });
 
     // Define RAG flow for world capitals
-    Flow<String, String, Void> askAboutCapitalsFlow = genkit.defineFlow("askAboutCapitals", String.class,
-        String.class, (ctx, question) -> {
-          // Retrieve relevant documents
-          List<Document> docs = genkit.retrieve("devLocalVectorStore/world-capitals", question);
+    Flow<String, String, Void> askAboutCapitalsFlow =
+        genkit.defineFlow(
+            "askAboutCapitals",
+            String.class,
+            String.class,
+            (ctx, question) -> {
+              // Retrieve relevant documents
+              List<Document> docs = genkit.retrieve("devLocalVectorStore/world-capitals", question);
 
-          // Generate answer with retrieved documents as context
-          ModelResponse modelResponse = genkit.generate(GenerateOptions.builder().model("openai/gpt-4o-mini")
-              .system(RAG_SYSTEM_PROMPT).prompt(question).docs(docs)
-              .config(GenerationConfig.builder().temperature(0.3).build()).build());
+              // Generate answer with retrieved documents as context
+              ModelResponse modelResponse =
+                  genkit.generate(
+                      GenerateOptions.builder()
+                          .model("openai/gpt-4o-mini")
+                          .system(RAG_SYSTEM_PROMPT)
+                          .prompt(question)
+                          .docs(docs)
+                          .config(GenerationConfig.builder().temperature(0.3).build())
+                          .build());
 
-          return modelResponse.getText();
-        });
+              return modelResponse.getText();
+            });
 
     // Define RAG flow for dog breeds
-    Flow<String, String, Void> askAboutDogsFlow = genkit.defineFlow("askAboutDogs", String.class, String.class,
-        (ctx, question) -> {
-          List<Document> docs = genkit.retrieve("devLocalVectorStore/dog-breeds", question);
+    Flow<String, String, Void> askAboutDogsFlow =
+        genkit.defineFlow(
+            "askAboutDogs",
+            String.class,
+            String.class,
+            (ctx, question) -> {
+              List<Document> docs = genkit.retrieve("devLocalVectorStore/dog-breeds", question);
 
-          ModelResponse modelResponse = genkit.generate(GenerateOptions.builder().model("openai/gpt-4o-mini")
-              .system(RAG_SYSTEM_PROMPT).prompt(question).docs(docs)
-              .config(GenerationConfig.builder().temperature(0.3).build()).build());
+              ModelResponse modelResponse =
+                  genkit.generate(
+                      GenerateOptions.builder()
+                          .model("openai/gpt-4o-mini")
+                          .system(RAG_SYSTEM_PROMPT)
+                          .prompt(question)
+                          .docs(docs)
+                          .config(GenerationConfig.builder().temperature(0.3).build())
+                          .build());
 
-          return modelResponse.getText();
-        });
+              return modelResponse.getText();
+            });
 
     // Define RAG flow for coffee facts
-    Flow<String, String, Void> askAboutCoffeeFlow = genkit.defineFlow("askAboutCoffee", String.class, String.class,
-        (ctx, question) -> {
-          List<Document> docs = genkit.retrieve("devLocalVectorStore/coffee-facts", question);
+    Flow<String, String, Void> askAboutCoffeeFlow =
+        genkit.defineFlow(
+            "askAboutCoffee",
+            String.class,
+            String.class,
+            (ctx, question) -> {
+              List<Document> docs = genkit.retrieve("devLocalVectorStore/coffee-facts", question);
 
-          ModelResponse modelResponse = genkit.generate(GenerateOptions.builder().model("openai/gpt-4o-mini")
-              .system(RAG_SYSTEM_PROMPT).prompt(question).docs(docs)
-              .config(GenerationConfig.builder().temperature(0.3).build()).build());
+              ModelResponse modelResponse =
+                  genkit.generate(
+                      GenerateOptions.builder()
+                          .model("openai/gpt-4o-mini")
+                          .system(RAG_SYSTEM_PROMPT)
+                          .prompt(question)
+                          .docs(docs)
+                          .config(GenerationConfig.builder().temperature(0.3).build())
+                          .build());
 
-          return modelResponse.getText();
-        });
+              return modelResponse.getText();
+            });
 
     // Define a generic indexing flow that accepts documents
-    Flow<List<String>, String, Void> indexDocumentsFlow = genkit.defineFlow("indexDocuments",
-        (Class<List<String>>) (Class<?>) List.class, String.class, (ctx, texts) -> {
-          List<Document> documents = texts.stream().map(Document::fromText).collect(Collectors.toList());
+    Flow<List<String>, String, Void> indexDocumentsFlow =
+        genkit.defineFlow(
+            "indexDocuments",
+            (Class<List<String>>) (Class<?>) List.class,
+            String.class,
+            (ctx, texts) -> {
+              List<Document> documents =
+                  texts.stream().map(Document::fromText).collect(Collectors.toList());
 
-          genkit.index("devLocalVectorStore/world-capitals", documents);
-          return "Indexed " + documents.size() + " documents";
-        });
+              genkit.index("devLocalVectorStore/world-capitals", documents);
+              return "Indexed " + documents.size() + " documents";
+            });
 
     // Define a simple retrieval-only flow
-    Flow<Map, List<String>, Void> retrieveDocumentsFlow = genkit.defineFlow("retrieveDocuments", Map.class,
-        (Class<List<String>>) (Class<?>) List.class, (ctx, input) -> {
-          String query = (String) input.get("query");
-          String store = (String) input.getOrDefault("store", "world-capitals");
+    Flow<Map, List<String>, Void> retrieveDocumentsFlow =
+        genkit.defineFlow(
+            "retrieveDocuments",
+            Map.class,
+            (Class<List<String>>) (Class<?>) List.class,
+            (ctx, input) -> {
+              String query = (String) input.get("query");
+              String store = (String) input.getOrDefault("store", "world-capitals");
 
-          List<Document> docs = genkit.retrieve("devLocalVectorStore/" + store, query);
+              List<Document> docs = genkit.retrieve("devLocalVectorStore/" + store, query);
 
-          return docs.stream().map(Document::text).collect(Collectors.toList());
-        });
+              return docs.stream().map(Document::text).collect(Collectors.toList());
+            });
 
     logger.info("=".repeat(60));
     logger.info("Genkit RAG Sample Started");
@@ -236,8 +302,8 @@ public class RagSample {
   }
 
   /**
-   * Loads documents from a text resource file. Each paragraph (separated by blank
-   * lines) becomes a separate document.
+   * Loads documents from a text resource file. Each paragraph (separated by blank lines) becomes a
+   * separate document.
    */
   private static List<Document> loadDocumentsFromResource(String resourcePath) {
     List<Document> documents = new ArrayList<>();

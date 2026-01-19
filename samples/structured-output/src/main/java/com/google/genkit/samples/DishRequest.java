@@ -21,9 +21,7 @@ package com.google.genkit.samples;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 
-/**
- * Input for requesting a dish by cuisine.
- */
+/** Input for requesting a dish by cuisine. */
 public class DishRequest {
 
   @JsonProperty(required = true)
@@ -33,8 +31,7 @@ public class DishRequest {
   @JsonPropertyDescription("Optional dietary restriction (e.g., vegetarian, gluten-free)")
   private String dietary;
 
-  public DishRequest() {
-  }
+  public DishRequest() {}
 
   public DishRequest(String cuisine) {
     this.cuisine = cuisine;

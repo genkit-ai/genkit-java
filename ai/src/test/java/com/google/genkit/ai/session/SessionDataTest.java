@@ -20,14 +20,12 @@ package com.google.genkit.ai.session;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.google.genkit.ai.Message;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.junit.jupiter.api.Test;
-
-import com.google.genkit.ai.Message;
 
 /** Unit tests for SessionData. */
 class SessionDataTest {
@@ -168,7 +166,8 @@ class SessionDataTest {
 
   @Test
   void testBuilder() {
-    SessionData<String> data = SessionData.<String>builder().id("builder-session").state("builder-state").build();
+    SessionData<String> data =
+        SessionData.<String>builder().id("builder-session").state("builder-state").build();
 
     assertEquals("builder-session", data.getId());
     assertEquals("builder-state", data.getState());
@@ -193,7 +192,8 @@ class SessionDataTest {
     List<Message> messages = new ArrayList<>();
     messages.add(Message.system("System prompt"));
 
-    SessionData<String> data = SessionData.<String>builder().id("session").thread("custom", messages).build();
+    SessionData<String> data =
+        SessionData.<String>builder().id("session").thread("custom", messages).build();
 
     assertNotNull(data.getThread("custom"));
     assertEquals(1, data.getThread("custom").size());

@@ -18,15 +18,12 @@
 
 package com.google.genkit.ai;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.genkit.core.SchemaUtils;
+import java.util.Map;
 
-/**
- * OutputConfig contains configuration for model output generation.
- */
+/** OutputConfig contains configuration for model output generation. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class OutputConfig {
 
@@ -45,17 +42,13 @@ public class OutputConfig {
   @JsonProperty("instructions")
   private String instructions;
 
-  /**
-   * Default constructor.
-   */
-  public OutputConfig() {
-  }
+  /** Default constructor. */
+  public OutputConfig() {}
 
   /**
    * Creates an OutputConfig with the given format.
    *
-   * @param format
-   *            the output format
+   * @param format the output format
    */
   public OutputConfig(OutputFormat format) {
     this.format = format;
@@ -64,8 +57,7 @@ public class OutputConfig {
   /**
    * Creates an OutputConfig for JSON output with schema.
    *
-   * @param schema
-   *            the JSON schema
+   * @param schema the JSON schema
    * @return an OutputConfig configured for JSON
    */
   public static OutputConfig json(Map<String, Object> schema) {
@@ -77,28 +69,26 @@ public class OutputConfig {
 
   /**
    * Creates an OutputConfig for JSON output from a class.
-   * 
-   * <p>
-   * The schema is automatically generated from the class using reflection. You
-   * can add descriptions to fields using {@code @JsonPropertyDescription}:
-   * 
+   *
+   * <p>The schema is automatically generated from the class using reflection. You can add
+   * descriptions to fields using {@code @JsonPropertyDescription}:
+   *
    * <pre>{@code
    * public class MenuItem {
-   * 	@JsonPropertyDescription("The name of the menu item")
-   * 	private String name;
-   * 
-   * 	@JsonPropertyDescription("The estimated number of calories")
-   * 	private int calories;
-   * 
-   * 	// getters/setters...
+   *   @JsonPropertyDescription("The name of the menu item")
+   *   private String name;
+   *
+   *   @JsonPropertyDescription("The estimated number of calories")
+   *   private int calories;
+   *
+   *   // getters/setters...
    * }
-   * 
+   *
    * // Usage:
    * OutputConfig output = OutputConfig.fromClass(MenuItem.class);
    * }</pre>
    *
-   * @param clazz
-   *            the class to generate schema from
+   * @param clazz the class to generate schema from
    * @return an OutputConfig configured for JSON with inferred schema
    */
   public static OutputConfig fromClass(Class<?> clazz) {

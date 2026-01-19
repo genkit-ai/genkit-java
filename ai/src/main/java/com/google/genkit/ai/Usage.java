@@ -21,9 +21,7 @@ package com.google.genkit.ai;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * Usage represents token usage statistics from a model response.
- */
+/** Usage represents token usage statistics from a model response. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Usage {
 
@@ -66,21 +64,15 @@ public class Usage {
   @JsonProperty("cachedContentTokens")
   private Integer cachedContentTokens;
 
-  /**
-   * Default constructor.
-   */
-  public Usage() {
-  }
+  /** Default constructor. */
+  public Usage() {}
 
   /**
    * Creates a Usage with token counts.
    *
-   * @param inputTokens
-   *            number of input tokens
-   * @param outputTokens
-   *            number of output tokens
-   * @param totalTokens
-   *            total number of tokens
+   * @param inputTokens number of input tokens
+   * @param outputTokens number of output tokens
+   * @param totalTokens total number of tokens
    */
   public Usage(Integer inputTokens, Integer outputTokens, Integer totalTokens) {
     this.inputTokens = inputTokens;

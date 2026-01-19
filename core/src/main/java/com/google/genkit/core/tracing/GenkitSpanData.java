@@ -18,18 +18,17 @@
 
 package com.google.genkit.core.tracing;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
- * GenkitSpanData represents information about a trace span. This format matches
- * the telemetry server API expectations.
+ * GenkitSpanData represents information about a trace span. This format matches the telemetry
+ * server API expectations.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class GenkitSpanData {
@@ -199,15 +198,12 @@ public class GenkitSpanData {
     this.timeEvents = timeEvents;
   }
 
-  /**
-   * BoolValue wraps a boolean to match the expected JSON format.
-   */
+  /** BoolValue wraps a boolean to match the expected JSON format. */
   public static class BoolValue {
     @JsonProperty("value")
     private boolean value;
 
-    public BoolValue() {
-    }
+    public BoolValue() {}
 
     public BoolValue(boolean value) {
       this.value = value;
@@ -222,9 +218,7 @@ public class GenkitSpanData {
     }
   }
 
-  /**
-   * Status represents the span status.
-   */
+  /** Status represents the span status. */
   public static class Status {
     @JsonProperty("code")
     private int code;
@@ -259,9 +253,7 @@ public class GenkitSpanData {
     }
   }
 
-  /**
-   * InstrumentationScope represents the instrumentation library.
-   */
+  /** InstrumentationScope represents the instrumentation library. */
   public static class InstrumentationScope {
     @JsonProperty("name")
     private String name;
@@ -273,8 +265,7 @@ public class GenkitSpanData {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private String schemaUrl;
 
-    public InstrumentationScope() {
-    }
+    public InstrumentationScope() {}
 
     public InstrumentationScope(String name, String version) {
       this.name = name;
@@ -306,9 +297,7 @@ public class GenkitSpanData {
     }
   }
 
-  /**
-   * Link describes the relationship between two Spans.
-   */
+  /** Link describes the relationship between two Spans. */
   public static class Link {
     @JsonProperty("context")
     private SpanContextData context;
@@ -344,9 +333,7 @@ public class GenkitSpanData {
     }
   }
 
-  /**
-   * SpanContextData contains identifying trace information about a Span.
-   */
+  /** SpanContextData contains identifying trace information about a Span. */
   public static class SpanContextData {
     @JsonProperty("traceId")
     private String traceId;
@@ -393,9 +380,7 @@ public class GenkitSpanData {
     }
   }
 
-  /**
-   * TimeEvents holds time-based events.
-   */
+  /** TimeEvents holds time-based events. */
   public static class TimeEvents {
     @JsonProperty("timeEvent")
     private List<TimeEvent> timeEvent;
@@ -409,9 +394,7 @@ public class GenkitSpanData {
     }
   }
 
-  /**
-   * TimeEvent represents a time-based event.
-   */
+  /** TimeEvent represents a time-based event. */
   public static class TimeEvent {
     @JsonProperty("time")
     private long time;
@@ -436,9 +419,7 @@ public class GenkitSpanData {
     }
   }
 
-  /**
-   * Annotation represents an annotation.
-   */
+  /** Annotation represents an annotation. */
   public static class Annotation {
     @JsonProperty("attributes")
     private Map<String, Object> attributes;

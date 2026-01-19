@@ -18,11 +18,6 @@
 
 package com.google.genkit.plugins.evaluators.metrics;
 
-import java.util.Objects;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.genkit.ai.evaluation.EvalDataPoint;
@@ -30,27 +25,27 @@ import com.google.genkit.ai.evaluation.EvalResponse;
 import com.google.genkit.ai.evaluation.EvalStatus;
 import com.google.genkit.ai.evaluation.Score;
 import com.google.genkit.ai.evaluation.ScoreDetails;
+import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Deep Equal metric evaluator.
- * 
- * <p>
- * Evaluates whether the output is deeply equal to the reference. Supports JSON
- * comparison for structured data.
+ *
+ * <p>Evaluates whether the output is deeply equal to the reference. Supports JSON comparison for
+ * structured data.
  */
 public class DeepEqualMetric {
 
   private static final Logger logger = LoggerFactory.getLogger(DeepEqualMetric.class);
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
-  public DeepEqualMetric() {
-  }
+  public DeepEqualMetric() {}
 
   /**
    * Evaluates whether the output is deeply equal to the reference.
    *
-   * @param dataPoint
-   *            the evaluation data point
+   * @param dataPoint the evaluation data point
    * @return the evaluation response
    */
   public EvalResponse evaluate(EvalDataPoint dataPoint) {
@@ -78,8 +73,11 @@ public class DeepEqualMetric {
       if (isEqual) {
         reasoning = "Output is deeply equal to reference";
       } else {
-        reasoning = String.format("Output differs from reference.\nOutput: %s\nReference: %s",
-            objectMapper.writeValueAsString(outputNode), objectMapper.writeValueAsString(referenceNode));
+        reasoning =
+            String.format(
+                "Output differs from reference.\nOutput: %s\nReference: %s",
+                objectMapper.writeValueAsString(outputNode),
+                objectMapper.writeValueAsString(referenceNode));
       }
     } catch (Exception e) {
       // Fall back to standard equality check
@@ -88,15 +86,24 @@ public class DeepEqualMetric {
       if (isEqual) {
         reasoning = "Output is equal to reference (using Object.equals)";
       } else {
-        reasoning = String.format("Output differs from reference.\nOutput: %s\nReference: %s",
-            output.toString(), reference.toString());
+        reasoning =
+            String.format(
+                "Output differs from reference.\nOutput: %s\nReference: %s",
+                output.toString(), reference.toString());
       }
     }
 
     double score = isEqual ? 1.0 : 0.0;
     EvalStatus status = isEqual ? EvalStatus.PASS : EvalStatus.FAIL;
 
-    return EvalResponse.builder().testCaseId(dataPoint.getTestCaseId()).evaluation(Score.builder().score(score)
-        .status(status).details(ScoreDetails.builder().reasoning(reasoning).build()).build()).build();
+    return EvalResponse.builder()
+        .testCaseId(dataPoint.getTestCaseId())
+        .evaluation(
+            Score.builder()
+                .score(score)
+                .status(status)
+                .details(ScoreDetails.builder().reasoning(reasoning).build())
+                .build())
+        .build();
   }
 }

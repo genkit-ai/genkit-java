@@ -17,26 +17,33 @@
  */
 
 /**
- * Weaviate plugin for Genkit providing vector database integration for RAG
- * workflows.
+ * Weaviate plugin for Genkit providing vector database integration for RAG workflows.
  *
- * <p>
- * This plugin provides:
+ * <p>This plugin provides:
+ *
  * <ul>
- * <li>Weaviate vector similarity search for retrieval</li>
- * <li>Document indexing with automatic embedding generation</li>
- * <li>Support for both local and Weaviate Cloud instances</li>
- * <li>Configurable distance measures (cosine, L2, dot product)</li>
+ *   <li>Weaviate vector similarity search for retrieval
+ *   <li>Document indexing with automatic embedding generation
+ *   <li>Support for both local and Weaviate Cloud instances
+ *   <li>Configurable distance measures (cosine, L2, dot product)
  * </ul>
  *
- * <p>
- * Example usage:
- * 
+ * <p>Example usage:
+ *
  * <pre>{@code
- * Genkit genkit = Genkit.builder().plugin(GoogleGenAIPlugin.create(apiKey))
- * 		.plugin(WeaviatePlugin.builder().host("localhost").port(8080).addCollection(WeaviateCollectionConfig
- * 				.builder().name("documents").embedderName("googleai/text-embedding-004").build()).build())
- * 		.build();
+ * Genkit genkit = Genkit.builder()
+ *     .plugin(GoogleGenAIPlugin.create(apiKey))
+ *     .plugin(
+ *         WeaviatePlugin.builder()
+ *             .host("localhost")
+ *             .port(8080)
+ *             .addCollection(
+ *                 WeaviateCollectionConfig.builder()
+ *                     .name("documents")
+ *                     .embedderName("googleai/text-embedding-004")
+ *                     .build())
+ *             .build())
+ *     .build();
  * }</pre>
  */
 package com.google.genkit.plugins.weaviate;

@@ -18,13 +18,10 @@
 
 package com.google.genkit.samples.types;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-/**
- * Validation result with errors and warnings.
- */
+/** Validation result with errors and warnings. */
 public class ValidationResult {
 
   @JsonProperty("valid")
@@ -60,24 +57,31 @@ public class ValidationResult {
     public String getField() {
       return field;
     }
+
     public void setField(String field) {
       this.field = field;
     }
+
     public String getMessage() {
       return message;
     }
+
     public void setMessage(String message) {
       this.message = message;
     }
+
     public String getSeverity() {
       return severity;
     }
+
     public void setSeverity(String severity) {
       this.severity = severity;
     }
+
     public String getCode() {
       return code;
     }
+
     public void setCode(String code) {
       this.code = code;
     }
@@ -94,12 +98,15 @@ public class ValidationResult {
     public String getField() {
       return field;
     }
+
     public void setField(String field) {
       this.field = field;
     }
+
     public String getMessage() {
       return message;
     }
+
     public void setMessage(String message) {
       this.message = message;
     }
@@ -109,30 +116,39 @@ public class ValidationResult {
   public Boolean getValid() {
     return valid;
   }
+
   public void setValid(Boolean valid) {
     this.valid = valid;
   }
+
   public List<ValidationError> getErrors() {
     return errors;
   }
+
   public void setErrors(List<ValidationError> errors) {
     this.errors = errors;
   }
+
   public List<ValidationWarning> getWarnings() {
     return warnings;
   }
+
   public void setWarnings(List<ValidationWarning> warnings) {
     this.warnings = warnings;
   }
+
   public Integer getErrorCount() {
     return errorCount;
   }
+
   public void setErrorCount(Integer errorCount) {
     this.errorCount = errorCount;
   }
+
   public Integer getWarningCount() {
     return warningCount;
   }
+
   public void setWarningCount(Integer warningCount) {
     this.warningCount = warningCount;
   }

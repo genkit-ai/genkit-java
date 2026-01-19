@@ -18,97 +18,114 @@
 
 package com.google.genkit.plugins.googlegenai;
 
+import com.google.genkit.core.Action;
+import com.google.genkit.core.Plugin;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.genkit.core.Action;
-import com.google.genkit.core.Plugin;
 
 /**
  * Google GenAI plugin for Genkit using the official Google GenAI SDK.
  *
- * <p>
- * This plugin provides access to Google's Gemini models for:
+ * <p>This plugin provides access to Google's Gemini models for:
+ *
  * <ul>
- * <li>Text generation (Gemini 2.0, 2.5, 3.0 series)</li>
- * <li>Multimodal content (images, video, audio)</li>
- * <li>Embeddings (text-embedding-004, gemini-embedding-001)</li>
- * <li>Function calling/tools</li>
+ *   <li>Text generation (Gemini 2.0, 2.5, 3.0 series)
+ *   <li>Multimodal content (images, video, audio)
+ *   <li>Embeddings (text-embedding-004, gemini-embedding-001)
+ *   <li>Function calling/tools
  * </ul>
  *
- * <p>
- * Supports both:
+ * <p>Supports both:
+ *
  * <ul>
- * <li>Gemini Developer API (with API key)</li>
- * <li>Vertex AI API (with GCP credentials)</li>
+ *   <li>Gemini Developer API (with API key)
+ *   <li>Vertex AI API (with GCP credentials)
  * </ul>
  *
- * <p>
- * Example usage:
- * 
+ * <p>Example usage:
+ *
  * <pre>{@code
  * // Using Gemini Developer API with API key
- * Genkit genkit = Genkit.builder().addPlugin(GoogleGenAIPlugin.create()) // Uses GOOGLE_API_KEY env var
- * 		.build();
+ * Genkit genkit = Genkit.builder()
+ *     .addPlugin(GoogleGenAIPlugin.create()) // Uses GOOGLE_API_KEY env var
+ *     .build();
  *
  * // Using Vertex AI
- * Genkit genkit = Genkit.builder().addPlugin(GoogleGenAIPlugin.create(
- * 		GoogleGenAIPluginOptions.builder().vertexAI(true).project("my-project").location("us-central1").build()))
- * 		.build();
+ * Genkit genkit = Genkit.builder()
+ *     .addPlugin(
+ *         GoogleGenAIPlugin.create(
+ *             GoogleGenAIPluginOptions.builder()
+ *                 .vertexAI(true)
+ *                 .project("my-project")
+ *                 .location("us-central1")
+ *                 .build()))
+ *     .build();
  *
  * // Generate content
- * GenerateResponse response = genkit
- * 		.generate(GenerateOptions.builder().model("googleai/gemini-2.0-flash").prompt("Hello, world!").build());
+ * GenerateResponse response = genkit.generate(
+ *     GenerateOptions.builder()
+ *         .model("googleai/gemini-2.0-flash")
+ *         .prompt("Hello, world!")
+ *         .build());
  * }</pre>
  */
 public class GoogleGenAIPlugin implements Plugin {
 
   private static final Logger logger = LoggerFactory.getLogger(GoogleGenAIPlugin.class);
 
-  /**
-   * Supported Gemini models for text/multimodal generation.
-   */
-  public static final List<String> SUPPORTED_MODELS = Arrays.asList(
-      // Gemini 3.0 series
-      "gemini-3-pro-preview",
-      // Gemini 2.5 series
-      "gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.5-flash-lite",
-      // Gemini 2.0 series
-      "gemini-2.0-flash", "gemini-2.0-flash-lite",
-      // Gemini 1.5 series (still widely used)
-      "gemini-1.5-pro", "gemini-1.5-flash", "gemini-1.5-flash-8b",
-      // Gemma models
-      "gemma-3-12b-it", "gemma-3-27b-it", "gemma-3-4b-it", "gemma-3-1b-it", "gemma-3n-e4b-it");
+  /** Supported Gemini models for text/multimodal generation. */
+  public static final List<String> SUPPORTED_MODELS =
+      Arrays.asList(
+          // Gemini 3.0 series
+          "gemini-3-pro-preview",
+          // Gemini 2.5 series
+          "gemini-2.5-pro",
+          "gemini-2.5-flash",
+          "gemini-2.5-flash-lite",
+          // Gemini 2.0 series
+          "gemini-2.0-flash",
+          "gemini-2.0-flash-lite",
+          // Gemini 1.5 series (still widely used)
+          "gemini-1.5-pro",
+          "gemini-1.5-flash",
+          "gemini-1.5-flash-8b",
+          // Gemma models
+          "gemma-3-12b-it",
+          "gemma-3-27b-it",
+          "gemma-3-4b-it",
+          "gemma-3-1b-it",
+          "gemma-3n-e4b-it");
+
+  /** Supported embedding models. */
+  public static final List<String> SUPPORTED_EMBEDDING_MODELS =
+      Arrays.asList(
+          "text-embedding-004",
+          "text-embedding-005",
+          "gemini-embedding-001",
+          "text-multilingual-embedding-002");
 
   /**
-   * Supported embedding models.
+   * Supported image generation models (Imagen). Note: imagen-4.0-* models are supported by the
+   * Gemini Developer API. imagen-3.0-* models require Vertex AI.
    */
-  public static final List<String> SUPPORTED_EMBEDDING_MODELS = Arrays.asList("text-embedding-004",
-      "text-embedding-005", "gemini-embedding-001", "text-multilingual-embedding-002");
+  public static final List<String> SUPPORTED_IMAGE_MODELS =
+      Arrays.asList("imagen-4.0-generate-001", "imagen-4.0-fast-generate-001");
 
-  /**
-   * Supported image generation models (Imagen). Note: imagen-4.0-* models are
-   * supported by the Gemini Developer API. imagen-3.0-* models require Vertex AI.
-   */
-  public static final List<String> SUPPORTED_IMAGE_MODELS = Arrays.asList("imagen-4.0-generate-001",
-      "imagen-4.0-fast-generate-001");
+  /** Supported TTS models. */
+  public static final List<String> SUPPORTED_TTS_MODELS =
+      Arrays.asList("gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts");
 
-  /**
-   * Supported TTS models.
-   */
-  public static final List<String> SUPPORTED_TTS_MODELS = Arrays.asList("gemini-2.5-flash-preview-tts",
-      "gemini-2.5-pro-preview-tts");
-
-  /**
-   * Supported video generation models (Veo).
-   */
-  public static final List<String> SUPPORTED_VEO_MODELS = Arrays.asList("veo-2.0-generate-001",
-      "veo-3.0-generate-001", "veo-3.0-fast-generate-001", "veo-3.1-generate-preview",
-      "veo-3.1-fast-generate-preview");
+  /** Supported video generation models (Veo). */
+  public static final List<String> SUPPORTED_VEO_MODELS =
+      Arrays.asList(
+          "veo-2.0-generate-001",
+          "veo-3.0-generate-001",
+          "veo-3.0-fast-generate-001",
+          "veo-3.1-generate-preview",
+          "veo-3.1-fast-generate-preview");
 
   private final GoogleGenAIPluginOptions options;
   private final List<String> customModels = new ArrayList<>();
@@ -118,8 +135,8 @@ public class GoogleGenAIPlugin implements Plugin {
   private final List<String> customVeoModels = new ArrayList<>();
 
   /**
-   * Creates a GoogleGenAIPlugin with default options. Reads API key from
-   * GOOGLE_API_KEY or GEMINI_API_KEY environment variable.
+   * Creates a GoogleGenAIPlugin with default options. Reads API key from GOOGLE_API_KEY or
+   * GEMINI_API_KEY environment variable.
    */
   public GoogleGenAIPlugin() {
     this(GoogleGenAIPluginOptions.builder().build());
@@ -128,8 +145,7 @@ public class GoogleGenAIPlugin implements Plugin {
   /**
    * Creates a GoogleGenAIPlugin with the specified options.
    *
-   * @param options
-   *            the plugin options
+   * @param options the plugin options
    */
   public GoogleGenAIPlugin(GoogleGenAIPluginOptions options) {
     this.options = options;
@@ -138,8 +154,7 @@ public class GoogleGenAIPlugin implements Plugin {
   /**
    * Creates a GoogleGenAIPlugin with the specified API key.
    *
-   * @param apiKey
-   *            the Google API key
+   * @param apiKey the Google API key
    * @return a new GoogleGenAIPlugin
    */
   public static GoogleGenAIPlugin create(String apiKey) {
@@ -158,8 +173,7 @@ public class GoogleGenAIPlugin implements Plugin {
   /**
    * Creates a GoogleGenAIPlugin with the specified options.
    *
-   * @param options
-   *            the plugin options
+   * @param options the plugin options
    * @return a new GoogleGenAIPlugin
    */
   public static GoogleGenAIPlugin create(GoogleGenAIPluginOptions options) {
@@ -169,15 +183,17 @@ public class GoogleGenAIPlugin implements Plugin {
   /**
    * Creates a GoogleGenAIPlugin configured for Vertex AI.
    *
-   * @param project
-   *            the GCP project ID
-   * @param location
-   *            the GCP location
+   * @param project the GCP project ID
+   * @param location the GCP location
    * @return a new GoogleGenAIPlugin configured for Vertex AI
    */
   public static GoogleGenAIPlugin vertexAI(String project, String location) {
     return new GoogleGenAIPlugin(
-        GoogleGenAIPluginOptions.builder().vertexAI(true).project(project).location(location).build());
+        GoogleGenAIPluginOptions.builder()
+            .vertexAI(true)
+            .project(project)
+            .location(location)
+            .build());
   }
 
   @Override
@@ -266,18 +282,17 @@ public class GoogleGenAIPlugin implements Plugin {
         SUPPORTED_EMBEDDING_MODELS.size() + customEmbeddingModels.size(),
         SUPPORTED_IMAGE_MODELS.size() + customImageModels.size(),
         SUPPORTED_TTS_MODELS.size() + customTtsModels.size(),
-        SUPPORTED_VEO_MODELS.size() + customVeoModels.size(), backend);
+        SUPPORTED_VEO_MODELS.size() + customVeoModels.size(),
+        backend);
 
     return actions;
   }
 
   /**
-   * Registers a custom chat/generation model name. Use this to work with models
-   * not in the default list. Call this method before passing the plugin to
-   * Genkit.builder().
-   * 
-   * @param modelName
-   *            the model name (e.g., "gemini-3-flash")
+   * Registers a custom chat/generation model name. Use this to work with models not in the default
+   * list. Call this method before passing the plugin to Genkit.builder().
+   *
+   * @param modelName the model name (e.g., "gemini-3-flash")
    * @return this plugin instance for method chaining
    */
   public GoogleGenAIPlugin customModel(String modelName) {
@@ -287,12 +302,10 @@ public class GoogleGenAIPlugin implements Plugin {
   }
 
   /**
-   * Registers a custom embedding model name. Use this to work with embedding
-   * models not in the default list. Call this method before passing the plugin to
-   * Genkit.builder().
-   * 
-   * @param modelName
-   *            the embedding model name (e.g., "text-embedding-006")
+   * Registers a custom embedding model name. Use this to work with embedding models not in the
+   * default list. Call this method before passing the plugin to Genkit.builder().
+   *
+   * @param modelName the embedding model name (e.g., "text-embedding-006")
    * @return this plugin instance for method chaining
    */
   public GoogleGenAIPlugin customEmbeddingModel(String modelName) {
@@ -302,12 +315,10 @@ public class GoogleGenAIPlugin implements Plugin {
   }
 
   /**
-   * Registers a custom image generation model name. Use this to work with Imagen
-   * models not in the default list. Call this method before passing the plugin to
-   * Genkit.builder().
-   * 
-   * @param modelName
-   *            the image model name (e.g., "imagen-5.0-generate-001")
+   * Registers a custom image generation model name. Use this to work with Imagen models not in the
+   * default list. Call this method before passing the plugin to Genkit.builder().
+   *
+   * @param modelName the image model name (e.g., "imagen-5.0-generate-001")
    * @return this plugin instance for method chaining
    */
   public GoogleGenAIPlugin customImageModel(String modelName) {
@@ -317,12 +328,10 @@ public class GoogleGenAIPlugin implements Plugin {
   }
 
   /**
-   * Registers a custom TTS model name. Use this to work with TTS models not in
-   * the default list. Call this method before passing the plugin to
-   * Genkit.builder().
-   * 
-   * @param modelName
-   *            the TTS model name (e.g., "gemini-3-preview-tts")
+   * Registers a custom TTS model name. Use this to work with TTS models not in the default list.
+   * Call this method before passing the plugin to Genkit.builder().
+   *
+   * @param modelName the TTS model name (e.g., "gemini-3-preview-tts")
    * @return this plugin instance for method chaining
    */
   public GoogleGenAIPlugin customTtsModel(String modelName) {
@@ -332,12 +341,10 @@ public class GoogleGenAIPlugin implements Plugin {
   }
 
   /**
-   * Registers a custom video generation model name. Use this to work with Veo
-   * models not in the default list. Call this method before passing the plugin to
-   * Genkit.builder().
-   * 
-   * @param modelName
-   *            the video model name (e.g., "veo-4.0-generate-001")
+   * Registers a custom video generation model name. Use this to work with Veo models not in the
+   * default list. Call this method before passing the plugin to Genkit.builder().
+   *
+   * @param modelName the video model name (e.g., "veo-4.0-generate-001")
    * @return this plugin instance for method chaining
    */
   public GoogleGenAIPlugin customVeoModel(String modelName) {

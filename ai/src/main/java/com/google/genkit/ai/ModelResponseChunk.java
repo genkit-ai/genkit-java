@@ -18,15 +18,12 @@
 
 package com.google.genkit.ai;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-/**
- * ModelResponseChunk represents a streaming chunk from a generative AI model.
- */
+/** ModelResponseChunk represents a streaming chunk from a generative AI model. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ModelResponseChunk {
 
@@ -36,17 +33,13 @@ public class ModelResponseChunk {
   @JsonProperty("index")
   private Integer index;
 
-  /**
-   * Default constructor.
-   */
-  public ModelResponseChunk() {
-  }
+  /** Default constructor. */
+  public ModelResponseChunk() {}
 
   /**
    * Creates a ModelResponseChunk with the given content.
    *
-   * @param content
-   *            the content parts
+   * @param content the content parts
    */
   public ModelResponseChunk(List<Part> content) {
     this.content = content != null ? new ArrayList<>(content) : new ArrayList<>();
@@ -55,8 +48,7 @@ public class ModelResponseChunk {
   /**
    * Creates a ModelResponseChunk with text content.
    *
-   * @param text
-   *            the text content
+   * @param text the text content
    * @return a new chunk
    */
   public static ModelResponseChunk text(String text) {

@@ -18,74 +18,52 @@
 
 package com.google.genkit.ai.evaluation;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import java.util.List;
 
-/**
- * Metadata about a dataset stored in the dataset store.
- */
+/** Metadata about a dataset stored in the dataset store. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DatasetMetadata {
 
-  /**
-   * Unique identifier for the dataset.
-   */
+  /** Unique identifier for the dataset. */
   @JsonProperty("datasetId")
   private String datasetId;
 
-  /**
-   * Number of samples in the dataset.
-   */
+  /** Number of samples in the dataset. */
   @JsonProperty("size")
   private int size;
 
-  /**
-   * Optional schema definition for the dataset.
-   */
+  /** Optional schema definition for the dataset. */
   @JsonProperty("schema")
   private JsonNode schema;
 
-  /**
-   * The type of dataset (FLOW, MODEL, etc.).
-   */
+  /** The type of dataset (FLOW, MODEL, etc.). */
   @JsonProperty("datasetType")
   private DatasetType datasetType;
 
-  /**
-   * The action this dataset is designed for.
-   */
+  /** The action this dataset is designed for. */
   @JsonProperty("targetAction")
   private String targetAction;
 
-  /**
-   * References to metrics/evaluators to use with this dataset.
-   */
+  /** References to metrics/evaluators to use with this dataset. */
   @JsonProperty("metricRefs")
   private List<String> metricRefs;
 
-  /**
-   * Version number of the dataset.
-   */
+  /** Version number of the dataset. */
   @JsonProperty("version")
   private int version;
 
-  /**
-   * Timestamp when the dataset was created.
-   */
+  /** Timestamp when the dataset was created. */
   @JsonProperty("createTime")
   private String createTime;
 
-  /**
-   * Timestamp when the dataset was last updated.
-   */
+  /** Timestamp when the dataset was last updated. */
   @JsonProperty("updateTime")
   private String updateTime;
 
-  public DatasetMetadata() {
-  }
+  public DatasetMetadata() {}
 
   private DatasetMetadata(Builder builder) {
     this.datasetId = builder.datasetId;

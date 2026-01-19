@@ -26,24 +26,30 @@ import java.util.Map;
 /**
  * Represents an agent that can be used as a tool in multi-agent systems.
  *
- * <p>
- * An Agent wraps an AgentConfig and provides a Tool interface for delegation.
- * When the model calls an agent as a tool, the agent's configuration (system
- * prompt, model, tools) is applied to the conversation, effectively
- * "transferring" control to the specialized agent.
+ * <p>An Agent wraps an AgentConfig and provides a Tool interface for delegation. When the model
+ * calls an agent as a tool, the agent's configuration (system prompt, model, tools) is applied to
+ * the conversation, effectively "transferring" control to the specialized agent.
  *
- * <p>
- * Example usage:
+ * <p>Example usage:
  *
  * <pre>{@code
  * // Define a specialized agent
- * Agent reservationAgent = genkit
- * 		.defineAgent(AgentConfig.builder().name("reservationAgent").description("Handles restaurant reservations")
- * 				.system("You are a reservation specialist...").tools(List.of(reservationTool)).build());
+ * Agent reservationAgent = genkit.defineAgent(
+ *     AgentConfig.builder()
+ *         .name("reservationAgent")
+ *         .description("Handles restaurant reservations")
+ *         .system("You are a reservation specialist...")
+ *         .tools(List.of(reservationTool))
+ *         .build());
  *
  * // Use in a parent agent
- * Agent triageAgent = genkit.defineAgent(AgentConfig.builder().name("triageAgent").description("Routes requests")
- * 		.system("Route customer requests to specialists").agents(List.of(reservationAgent.getConfig())).build());
+ * Agent triageAgent = genkit.defineAgent(
+ *     AgentConfig.builder()
+ *         .name("triageAgent")
+ *         .description("Routes requests")
+ *         .system("Route customer requests to specialists")
+ *         .agents(List.of(reservationAgent.getConfig()))
+ *         .build());
  *
  * // Start chat with triage agent
  * Chat chat = genkit.chat(triageAgent);
@@ -57,8 +63,7 @@ public class Agent {
   /**
    * Creates a new Agent.
    *
-   * @param config
-   *            the agent configuration
+   * @param config the agent configuration
    */
   @SuppressWarnings("unchecked")
   public Agent(AgentConfig config) {
@@ -132,14 +137,11 @@ public class Agent {
   /**
    * Gets all tools including sub-agent tools for handoff pattern.
    *
-   * <p>
-   * This method collects all tools that should be available to the agent,
-   * including the agent's own tools and sub-agents as tools (for handoff). When a
-   * sub-agent tool is called, the Chat will handle the handoff by switching
-   * context to that agent.
+   * <p>This method collects all tools that should be available to the agent, including the agent's
+   * own tools and sub-agents as tools (for handoff). When a sub-agent tool is called, the Chat will
+   * handle the handoff by switching context to that agent.
    *
-   * @param agentRegistry
-   *            map of agent name to Agent instance
+   * @param agentRegistry map of agent name to Agent instance
    * @return combined list of all tools from this agent and sub-agents as tools
    */
   public List<Tool<?, ?>> getAllTools(Map<String, Agent> agentRegistry) {
@@ -193,12 +195,20 @@ public class Agent {
 
     Map<String, Object> outputSchema = new HashMap<>();
     outputSchema.put("type", "object");
-    outputSchema.put("properties",
-        Map.of("transferredTo", Map.of("type", "string"), "transferred", Map.of("type", "boolean")));
+    outputSchema.put(
+        "properties",
+        Map.of(
+            "transferredTo", Map.of("type", "string"), "transferred", Map.of("type", "boolean")));
 
-    return new Tool<>(config.getName(),
-        config.getDescription() != null ? config.getDescription() : "Transfer to " + config.getName(),
-        inputSchema, outputSchema, (Class<Map<String, Object>>) (Class<?>) Map.class, (ctx, input) -> {
+    return new Tool<>(
+        config.getName(),
+        config.getDescription() != null
+            ? config.getDescription()
+            : "Transfer to " + config.getName(),
+        inputSchema,
+        outputSchema,
+        (Class<Map<String, Object>>) (Class<?>) Map.class,
+        (ctx, input) -> {
           // Throw handoff exception to signal the chat to switch to this agent
           throw new AgentHandoffException(config.getName(), config, input);
         });

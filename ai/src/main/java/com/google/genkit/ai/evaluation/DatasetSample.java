@@ -23,41 +23,33 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Represents a single sample in an inference dataset.
- * 
- * <p>
- * A sample contains the input to run through the AI system and an optional
- * reference output for comparison during evaluation.
+ *
+ * <p>A sample contains the input to run through the AI system and an optional reference output for
+ * comparison during evaluation.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DatasetSample {
 
-  /**
-   * Optional identifier for this test case.
-   */
+  /** Optional identifier for this test case. */
   @JsonProperty("testCaseId")
   private String testCaseId;
 
-  /**
-   * The input to provide to the AI system.
-   */
+  /** The input to provide to the AI system. */
   @JsonProperty("input")
   private Object input;
 
   /**
-   * The actual output from the AI system. For evaluation datasets without a
-   * target action, this should be pre-populated.
+   * The actual output from the AI system. For evaluation datasets without a target action, this
+   * should be pre-populated.
    */
   @JsonProperty("output")
   private Object output;
 
-  /**
-   * The expected/reference output for comparison.
-   */
+  /** The expected/reference output for comparison. */
   @JsonProperty("reference")
   private Object reference;
 
-  public DatasetSample() {
-  }
+  public DatasetSample() {}
 
   private DatasetSample(Builder builder) {
     this.testCaseId = builder.testCaseId;

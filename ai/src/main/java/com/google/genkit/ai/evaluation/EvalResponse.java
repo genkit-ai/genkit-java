@@ -18,50 +18,37 @@
 
 package com.google.genkit.ai.evaluation;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 
-/**
- * Response from an evaluator for a single test case.
- */
+/** Response from an evaluator for a single test case. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class EvalResponse {
 
-  /**
-   * Index of this sample in the batch (optional).
-   */
+  /** Index of this sample in the batch (optional). */
   @JsonProperty("sampleIndex")
   private Integer sampleIndex;
 
-  /**
-   * The test case ID that was evaluated.
-   */
+  /** The test case ID that was evaluated. */
   @JsonProperty("testCaseId")
   private String testCaseId;
 
-  /**
-   * The trace ID associated with this evaluation.
-   */
+  /** The trace ID associated with this evaluation. */
   @JsonProperty("traceId")
   private String traceId;
 
-  /**
-   * The span ID within the trace.
-   */
+  /** The span ID within the trace. */
   @JsonProperty("spanId")
   private String spanId;
 
   /**
-   * The evaluation score(s). Can be a single Score or a list of Scores for
-   * multi-metric evaluators.
+   * The evaluation score(s). Can be a single Score or a list of Scores for multi-metric evaluators.
    */
   @JsonProperty("evaluation")
   private Object evaluation;
 
-  public EvalResponse() {
-  }
+  public EvalResponse() {}
 
   private EvalResponse(Builder builder) {
     this.sampleIndex = builder.sampleIndex;
@@ -113,7 +100,7 @@ public class EvalResponse {
 
   /**
    * Gets the evaluation as a single Score.
-   * 
+   *
    * @return the score, or null if the evaluation is a list
    */
   public Score getEvaluationAsScore() {
@@ -125,7 +112,7 @@ public class EvalResponse {
 
   /**
    * Gets the evaluation as a list of Scores.
-   * 
+   *
    * @return the list of scores, or null if the evaluation is a single score
    */
   @SuppressWarnings("unchecked")

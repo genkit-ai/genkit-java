@@ -26,8 +26,11 @@ class CompatOAIModelTest {
 
   @Test
   void testModelCreation() {
-    CompatOAIPluginOptions options = CompatOAIPluginOptions.builder().apiKey("test-key")
-        .baseUrl("https://api.test.com/v1").build();
+    CompatOAIPluginOptions options =
+        CompatOAIPluginOptions.builder()
+            .apiKey("test-key")
+            .baseUrl("https://api.test.com/v1")
+            .build();
 
     CompatOAIModel model = new CompatOAIModel("test-provider/model-v1", "Test Model", options);
 
@@ -36,8 +39,11 @@ class CompatOAIModelTest {
 
   @Test
   void testModelGetName() {
-    CompatOAIPluginOptions options = CompatOAIPluginOptions.builder().apiKey("test-key")
-        .baseUrl("https://api.test.com/v1").build();
+    CompatOAIPluginOptions options =
+        CompatOAIPluginOptions.builder()
+            .apiKey("test-key")
+            .baseUrl("https://api.test.com/v1")
+            .build();
 
     CompatOAIModel model = new CompatOAIModel("test-provider/model-v1", "Test Model", options);
 
@@ -46,8 +52,11 @@ class CompatOAIModelTest {
 
   @Test
   void testModelWithCustomLabel() {
-    CompatOAIPluginOptions options = CompatOAIPluginOptions.builder().apiKey("test-key")
-        .baseUrl("https://api.test.com/v1").build();
+    CompatOAIPluginOptions options =
+        CompatOAIPluginOptions.builder()
+            .apiKey("test-key")
+            .baseUrl("https://api.test.com/v1")
+            .build();
 
     CompatOAIModel model = new CompatOAIModel("test-provider/model-v1", "Custom Label", options);
 
@@ -57,10 +66,14 @@ class CompatOAIModelTest {
 
   @Test
   void testModelWithSeparateApiModelName() {
-    CompatOAIPluginOptions options = CompatOAIPluginOptions.builder().apiKey("test-key")
-        .baseUrl("https://api.test.com/v1").build();
+    CompatOAIPluginOptions options =
+        CompatOAIPluginOptions.builder()
+            .apiKey("test-key")
+            .baseUrl("https://api.test.com/v1")
+            .build();
 
-    CompatOAIModel model = new CompatOAIModel("test-provider/model-v1", "api-model-v1", "Test Model", options);
+    CompatOAIModel model =
+        new CompatOAIModel("test-provider/model-v1", "api-model-v1", "Test Model", options);
 
     assertNotNull(model);
     assertEquals("test-provider/model-v1", model.getName());

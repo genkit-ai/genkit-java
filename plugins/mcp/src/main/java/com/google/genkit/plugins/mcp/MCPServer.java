@@ -18,20 +18,12 @@
 
 package com.google.genkit.plugins.mcp;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.genkit.ai.Tool;
 import com.google.genkit.core.Action;
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.ActionType;
 import com.google.genkit.core.GenkitException;
 import com.google.genkit.core.Registry;
-
 import io.modelcontextprotocol.json.McpJsonMapper;
 import io.modelcontextprotocol.server.McpServer;
 import io.modelcontextprotocol.server.McpServerFeatures;
@@ -41,16 +33,19 @@ import io.modelcontextprotocol.spec.McpSchema;
 import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
 import io.modelcontextprotocol.spec.McpSchema.ServerCapabilities;
 import io.modelcontextprotocol.spec.McpServerTransportProvider;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * MCP Server that exposes Genkit tools, prompts, and flows as MCP endpoints.
  *
- * <p>
- * This server allows external MCP clients (like Claude Desktop, or other AI
- * agents) to discover and invoke Genkit tools.
+ * <p>This server allows external MCP clients (like Claude Desktop, or other AI agents) to discover
+ * and invoke Genkit tools.
  *
- * <p>
- * Example usage:
+ * <p>Example usage:
  *
  * <pre>{@code
  * // Create Genkit and define some tools
@@ -90,10 +85,8 @@ public class MCPServer {
   /**
    * Creates a new MCP server.
    *
-   * @param registry
-   *            the Genkit registry containing tools to expose
-   * @param options
-   *            the server options
+   * @param registry the Genkit registry containing tools to expose
+   * @param options the server options
    */
   public MCPServer(Registry registry, MCPServerOptions options) {
     this.registry = registry;
@@ -103,8 +96,7 @@ public class MCPServer {
   /**
    * Creates a new MCP server with default options.
    *
-   * @param registry
-   *            the Genkit registry containing tools to expose
+   * @param registry the Genkit registry containing tools to expose
    */
   public MCPServer(Registry registry) {
     this(registry, MCPServerOptions.builder().build());
@@ -113,12 +105,10 @@ public class MCPServer {
   /**
    * Starts the MCP server with STDIO transport.
    *
-   * <p>
-   * This is the standard transport for use with Claude Desktop and other MCP
-   * clients that launch the server as a subprocess.
+   * <p>This is the standard transport for use with Claude Desktop and other MCP clients that launch
+   * the server as a subprocess.
    *
-   * @throws GenkitException
-   *             if the server fails to start
+   * @throws GenkitException if the server fails to start
    */
   public void start() throws GenkitException {
     start(new StdioServerTransportProvider(jsonMapper));
@@ -127,10 +117,8 @@ public class MCPServer {
   /**
    * Starts the MCP server with a custom transport provider.
    *
-   * @param transportProvider
-   *            the transport provider to use
-   * @throws GenkitException
-   *             if the server fails to start
+   * @param transportProvider the transport provider to use
+   * @throws GenkitException if the server fails to start
    */
   public void start(McpServerTransportProvider transportProvider) throws GenkitException {
     if (running) {
@@ -142,13 +130,17 @@ public class MCPServer {
       logger.info("Starting MCP server: {} v{}", options.getName(), options.getVersion());
 
       // Build the server with capabilities
-      server = McpServer.sync(transportProvider).serverInfo(options.getName(), options.getVersion())
-          .capabilities(ServerCapabilities.builder().tools(true) // Enable tool support
-              .resources(false, false) // Resources not yet supported
-              .prompts(false) // Prompts not yet fully supported
-              .logging() // Enable logging
-              .build())
-          .build();
+      server =
+          McpServer.sync(transportProvider)
+              .serverInfo(options.getName(), options.getVersion())
+              .capabilities(
+                  ServerCapabilities.builder()
+                      .tools(true) // Enable tool support
+                      .resources(false, false) // Resources not yet supported
+                      .prompts(false) // Prompts not yet fully supported
+                      .logging() // Enable logging
+                      .build())
+              .build();
 
       // Register all tools from the registry
       registerTools();
@@ -161,9 +153,7 @@ public class MCPServer {
     }
   }
 
-  /**
-   * Stops the MCP server.
-   */
+  /** Stops the MCP server. */
   public void stop() {
     if (!running || server == null) {
       return;
@@ -225,50 +215,60 @@ public class MCPServer {
     try {
       Map<String, Object> schema = tool.getInputSchema();
       if (schema == null || schema.isEmpty()) {
-        inputSchema = new McpSchema.JsonSchema("object", Collections.emptyMap(), null, null, null, null);
+        inputSchema =
+            new McpSchema.JsonSchema("object", Collections.emptyMap(), null, null, null, null);
       } else {
         String schemaJson = jsonMapper.writeValueAsString(schema);
         inputSchema = jsonMapper.readValue(schemaJson, McpSchema.JsonSchema.class);
       }
     } catch (Exception e) {
       logger.warn("Failed to serialize input schema for tool {}, using empty schema", name);
-      inputSchema = new McpSchema.JsonSchema("object", Collections.emptyMap(), null, null, null, null);
+      inputSchema =
+          new McpSchema.JsonSchema("object", Collections.emptyMap(), null, null, null, null);
     }
 
     // Create MCP tool using the builder
-    McpSchema.Tool mcpTool = McpSchema.Tool.builder().name(name).description(description).inputSchema(inputSchema)
-        .build();
+    McpSchema.Tool mcpTool =
+        McpSchema.Tool.builder()
+            .name(name)
+            .description(description)
+            .inputSchema(inputSchema)
+            .build();
 
     // Create MCP tool specification
-    McpServerFeatures.SyncToolSpecification toolSpec = new McpServerFeatures.SyncToolSpecification(mcpTool,
-        (exchange, arguments) -> {
-          try {
-            logger.debug("Executing tool: {} with arguments: {}", name, arguments);
+    McpServerFeatures.SyncToolSpecification toolSpec =
+        new McpServerFeatures.SyncToolSpecification(
+            mcpTool,
+            (exchange, arguments) -> {
+              try {
+                logger.debug("Executing tool: {} with arguments: {}", name, arguments);
 
-            // Create action context with registry
-            ActionContext ctx = new ActionContext(registry);
+                // Create action context with registry
+                ActionContext ctx = new ActionContext(registry);
 
-            // Execute the tool
-            Object result = tool.run(ctx, arguments);
+                // Execute the tool
+                Object result = tool.run(ctx, arguments);
 
-            // Convert result to text content
-            String resultText;
-            if (result instanceof String) {
-              resultText = (String) result;
-            } else {
-              resultText = jsonMapper.writeValueAsString(result);
-            }
+                // Convert result to text content
+                String resultText;
+                if (result instanceof String) {
+                  resultText = (String) result;
+                } else {
+                  resultText = jsonMapper.writeValueAsString(result);
+                }
 
-            logger.debug("Tool {} completed successfully", name);
+                logger.debug("Tool {} completed successfully", name);
 
-            return CallToolResult.builder().addTextContent(resultText).isError(false).build();
+                return CallToolResult.builder().addTextContent(resultText).isError(false).build();
 
-          } catch (Exception e) {
-            logger.error("Tool {} failed: {}", name, e.getMessage());
-            return CallToolResult.builder().addTextContent("Error: " + e.getMessage()).isError(true)
-                .build();
-          }
-        });
+              } catch (Exception e) {
+                logger.error("Tool {} failed: {}", name, e.getMessage());
+                return CallToolResult.builder()
+                    .addTextContent("Error: " + e.getMessage())
+                    .isError(true)
+                    .build();
+              }
+            });
 
     server.addTool(toolSpec);
     logger.debug("Registered MCP tool: {}", name);

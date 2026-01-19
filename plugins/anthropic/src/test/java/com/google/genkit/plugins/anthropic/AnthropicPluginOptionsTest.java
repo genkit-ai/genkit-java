@@ -35,38 +35,48 @@ class AnthropicPluginOptionsTest {
 
   @Test
   void testBuilderWithApiKey() {
-    AnthropicPluginOptions options = AnthropicPluginOptions.builder().apiKey("test-key-123").build();
+    AnthropicPluginOptions options =
+        AnthropicPluginOptions.builder().apiKey("test-key-123").build();
 
     assertEquals("test-key-123", options.getApiKey());
   }
 
   @Test
   void testBuilderWithBaseUrl() {
-    AnthropicPluginOptions options = AnthropicPluginOptions.builder().apiKey("test-key")
-        .baseUrl("https://custom.anthropic.com").build();
+    AnthropicPluginOptions options =
+        AnthropicPluginOptions.builder()
+            .apiKey("test-key")
+            .baseUrl("https://custom.anthropic.com")
+            .build();
 
     assertEquals("https://custom.anthropic.com", options.getBaseUrl());
   }
 
   @Test
   void testBuilderWithTimeout() {
-    AnthropicPluginOptions options = AnthropicPluginOptions.builder().apiKey("test-key").timeout(120).build();
+    AnthropicPluginOptions options =
+        AnthropicPluginOptions.builder().apiKey("test-key").timeout(120).build();
 
     assertEquals(120, options.getTimeout());
   }
 
   @Test
   void testBuilderWithAnthropicVersion() {
-    AnthropicPluginOptions options = AnthropicPluginOptions.builder().apiKey("test-key")
-        .anthropicVersion("2024-01-01").build();
+    AnthropicPluginOptions options =
+        AnthropicPluginOptions.builder().apiKey("test-key").anthropicVersion("2024-01-01").build();
 
     assertEquals("2024-01-01", options.getAnthropicVersion());
   }
 
   @Test
   void testBuilderWithAllOptions() {
-    AnthropicPluginOptions options = AnthropicPluginOptions.builder().apiKey("test-key").baseUrl("https://test.com")
-        .timeout(30).anthropicVersion("2024-03-01").build();
+    AnthropicPluginOptions options =
+        AnthropicPluginOptions.builder()
+            .apiKey("test-key")
+            .baseUrl("https://test.com")
+            .timeout(30)
+            .anthropicVersion("2024-03-01")
+            .build();
 
     assertEquals("test-key", options.getApiKey());
     assertEquals("https://test.com", options.getBaseUrl());

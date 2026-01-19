@@ -18,14 +18,11 @@
 
 package com.google.genkit.plugins.localvec;
 
+import com.google.genkit.ai.Embedder;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import com.google.genkit.ai.Embedder;
-
-/**
- * Configuration for a local vector store.
- */
+/** Configuration for a local vector store. */
 public class LocalVecConfig {
 
   private final String indexName;
@@ -81,8 +78,7 @@ public class LocalVecConfig {
   /**
    * Sets the embedder (used for deferred resolution).
    *
-   * @param embedder
-   *            the embedder
+   * @param embedder the embedder
    */
   void setEmbedder(Embedder embedder) {
     this.embedder = embedder;
@@ -124,9 +120,7 @@ public class LocalVecConfig {
     return directory.resolve(getFilename());
   }
 
-  /**
-   * Builder for LocalVecConfig.
-   */
+  /** Builder for LocalVecConfig. */
   public static class Builder {
     private String indexName;
     private Embedder embedder;
@@ -137,8 +131,7 @@ public class LocalVecConfig {
     /**
      * Sets the index name.
      *
-     * @param indexName
-     *            the index name
+     * @param indexName the index name
      * @return this builder
      */
     public Builder indexName(String indexName) {
@@ -149,8 +142,7 @@ public class LocalVecConfig {
     /**
      * Sets the embedder.
      *
-     * @param embedder
-     *            the embedder
+     * @param embedder the embedder
      * @return this builder
      */
     public Builder embedder(Embedder embedder) {
@@ -159,11 +151,10 @@ public class LocalVecConfig {
     }
 
     /**
-     * Sets the embedder by name for deferred resolution. The embedder will be
-     * resolved from the registry during plugin initialization.
+     * Sets the embedder by name for deferred resolution. The embedder will be resolved from the
+     * registry during plugin initialization.
      *
-     * @param embedderName
-     *            the embedder name (e.g., "openai/text-embedding-3-small")
+     * @param embedderName the embedder name (e.g., "openai/text-embedding-3-small")
      * @return this builder
      */
     public Builder embedderName(String embedderName) {
@@ -174,8 +165,7 @@ public class LocalVecConfig {
     /**
      * Sets the directory for storing data.
      *
-     * @param directory
-     *            the directory path
+     * @param directory the directory path
      * @return this builder
      */
     public Builder directory(Path directory) {
@@ -186,8 +176,7 @@ public class LocalVecConfig {
     /**
      * Sets the directory for storing data.
      *
-     * @param directory
-     *            the directory path as string
+     * @param directory the directory path as string
      * @return this builder
      */
     public Builder directory(String directory) {
@@ -198,8 +187,7 @@ public class LocalVecConfig {
     /**
      * Sets the embedder options.
      *
-     * @param embedderOptions
-     *            the embedder options
+     * @param embedderOptions the embedder options
      * @return this builder
      */
     public Builder embedderOptions(Object embedderOptions) {

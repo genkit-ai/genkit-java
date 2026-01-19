@@ -18,13 +18,10 @@
 
 package com.google.genkit.samples.types;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-/**
- * Analytics dashboard request with complex filtering options.
- */
+/** Analytics dashboard request with complex filtering options. */
 public class AnalyticsRequest {
 
   @JsonProperty("dashboardId")
@@ -69,24 +66,31 @@ public class AnalyticsRequest {
     public String getStart() {
       return start;
     }
+
     public void setStart(String start) {
       this.start = start;
     }
+
     public String getEnd() {
       return end;
     }
+
     public void setEnd(String end) {
       this.end = end;
     }
+
     public String getTimezone() {
       return timezone;
     }
+
     public void setTimezone(String timezone) {
       this.timezone = timezone;
     }
+
     public String getPreset() {
       return preset;
     }
+
     public void setPreset(String preset) {
       this.preset = preset;
     }
@@ -115,36 +119,47 @@ public class AnalyticsRequest {
     public String getField() {
       return field;
     }
+
     public void setField(String field) {
       this.field = field;
     }
+
     public String getOperator() {
       return operator;
     }
+
     public void setOperator(String operator) {
       this.operator = operator;
     }
+
     public Object getValue() {
       return value;
     }
+
     public void setValue(Object value) {
       this.value = value;
     }
+
     public List<Object> getValues() {
       return values;
     }
+
     public void setValues(List<Object> values) {
       this.values = values;
     }
+
     public String getLogicalOperator() {
       return logicalOperator;
     }
+
     public void setLogicalOperator(String logicalOperator) {
       this.logicalOperator = logicalOperator;
     }
+
     public List<Filter> getNestedFilters() {
       return nestedFilters;
     }
+
     public void setNestedFilters(List<Filter> nestedFilters) {
       this.nestedFilters = nestedFilters;
     }
@@ -164,18 +179,23 @@ public class AnalyticsRequest {
     public String getField() {
       return field;
     }
+
     public void setField(String field) {
       this.field = field;
     }
+
     public String getInterval() {
       return interval;
     }
+
     public void setInterval(String interval) {
       this.interval = interval;
     }
+
     public String getAlias() {
       return alias;
     }
+
     public void setAlias(String alias) {
       this.alias = alias;
     }
@@ -201,30 +221,39 @@ public class AnalyticsRequest {
     public String getName() {
       return name;
     }
+
     public void setName(String name) {
       this.name = name;
     }
+
     public String getField() {
       return field;
     }
+
     public void setField(String field) {
       this.field = field;
     }
+
     public String getAggregation() {
       return aggregation;
     }
+
     public void setAggregation(String aggregation) {
       this.aggregation = aggregation;
     }
+
     public String getFormat() {
       return format;
     }
+
     public void setFormat(String format) {
       this.format = format;
     }
+
     public String getCustomFormula() {
       return customFormula;
     }
+
     public void setCustomFormula(String customFormula) {
       this.customFormula = customFormula;
     }
@@ -241,12 +270,15 @@ public class AnalyticsRequest {
     public String getField() {
       return field;
     }
+
     public void setField(String field) {
       this.field = field;
     }
+
     public String getDirection() {
       return direction;
     }
+
     public void setDirection(String direction) {
       this.direction = direction;
     }
@@ -266,18 +298,23 @@ public class AnalyticsRequest {
     public Integer getPage() {
       return page;
     }
+
     public void setPage(Integer page) {
       this.page = page;
     }
+
     public Integer getPageSize() {
       return pageSize;
     }
+
     public void setPageSize(Integer pageSize) {
       this.pageSize = pageSize;
     }
+
     public Integer getOffset() {
       return offset;
     }
+
     public void setOffset(Integer offset) {
       this.offset = offset;
     }
@@ -300,24 +337,31 @@ public class AnalyticsRequest {
     public String getFormat() {
       return format;
     }
+
     public void setFormat(String format) {
       this.format = format;
     }
+
     public Boolean getIncludeHeaders() {
       return includeHeaders;
     }
+
     public void setIncludeHeaders(Boolean includeHeaders) {
       this.includeHeaders = includeHeaders;
     }
+
     public String getFilename() {
       return filename;
     }
+
     public void setFilename(String filename) {
       this.filename = filename;
     }
+
     public String getCompression() {
       return compression;
     }
+
     public void setCompression(String compression) {
       this.compression = compression;
     }
@@ -327,48 +371,63 @@ public class AnalyticsRequest {
   public String getDashboardId() {
     return dashboardId;
   }
+
   public void setDashboardId(String dashboardId) {
     this.dashboardId = dashboardId;
   }
+
   public DateRange getDateRange() {
     return dateRange;
   }
+
   public void setDateRange(DateRange dateRange) {
     this.dateRange = dateRange;
   }
+
   public List<Filter> getFilters() {
     return filters;
   }
+
   public void setFilters(List<Filter> filters) {
     this.filters = filters;
   }
+
   public List<GroupByOption> getGroupBy() {
     return groupBy;
   }
+
   public void setGroupBy(List<GroupByOption> groupBy) {
     this.groupBy = groupBy;
   }
+
   public List<MetricDefinition> getMetrics() {
     return metrics;
   }
+
   public void setMetrics(List<MetricDefinition> metrics) {
     this.metrics = metrics;
   }
+
   public List<SortOption> getSorting() {
     return sorting;
   }
+
   public void setSorting(List<SortOption> sorting) {
     this.sorting = sorting;
   }
+
   public Pagination getPagination() {
     return pagination;
   }
+
   public void setPagination(Pagination pagination) {
     this.pagination = pagination;
   }
+
   public ExportOptions getExportOptions() {
     return exportOptions;
   }
+
   public void setExportOptions(ExportOptions exportOptions) {
     this.exportOptions = exportOptions;
   }

@@ -20,13 +20,12 @@ package com.google.genkit.core;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * DefaultRegistry is the default implementation of the Registry interface. It
- * provides thread-safe storage and lookup of Genkit primitives.
+ * DefaultRegistry is the default implementation of the Registry interface. It provides thread-safe
+ * storage and lookup of Genkit primitives.
  */
 public class DefaultRegistry implements Registry {
 
@@ -40,9 +39,7 @@ public class DefaultRegistry implements Registry {
   private final Map<String, String> partials = new ConcurrentHashMap<>();
   private final Map<String, Object> helpers = new ConcurrentHashMap<>();
 
-  /**
-   * Creates a new root registry.
-   */
+  /** Creates a new root registry. */
   public DefaultRegistry() {
     this(null);
   }
@@ -50,8 +47,7 @@ public class DefaultRegistry implements Registry {
   /**
    * Creates a new child registry with the given parent.
    *
-   * @param parent
-   *            the parent registry, or null for a root registry
+   * @param parent the parent registry, or null for a root registry
    */
   public DefaultRegistry(Registry parent) {
     this.parent = parent;

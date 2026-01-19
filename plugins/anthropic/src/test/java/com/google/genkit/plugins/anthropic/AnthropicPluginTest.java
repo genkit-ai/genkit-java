@@ -20,11 +20,9 @@ package com.google.genkit.plugins.anthropic;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.List;
-
-import org.junit.jupiter.api.Test;
-
 import com.google.genkit.core.Action;
+import java.util.List;
+import org.junit.jupiter.api.Test;
 
 class AnthropicPluginTest {
 
@@ -39,8 +37,12 @@ class AnthropicPluginTest {
 
   @Test
   void testConstructionWithOptions() {
-    AnthropicPluginOptions options = AnthropicPluginOptions.builder().apiKey("test-key")
-        .baseUrl("https://test.api.com").timeout(30).build();
+    AnthropicPluginOptions options =
+        AnthropicPluginOptions.builder()
+            .apiKey("test-key")
+            .baseUrl("https://test.api.com")
+            .timeout(30)
+            .build();
 
     AnthropicPlugin plugin = new AnthropicPlugin(options);
 
@@ -66,7 +68,8 @@ class AnthropicPluginTest {
 
   @Test
   void testInitializesActions() {
-    AnthropicPlugin plugin = new AnthropicPlugin(AnthropicPluginOptions.builder().apiKey("test-key").build());
+    AnthropicPlugin plugin =
+        new AnthropicPlugin(AnthropicPluginOptions.builder().apiKey("test-key").build());
 
     List<Action<?, ?, ?>> actions = plugin.init();
 
@@ -84,7 +87,8 @@ class AnthropicPluginTest {
 
   @Test
   void testCustomModel() {
-    AnthropicPlugin plugin = new AnthropicPlugin(AnthropicPluginOptions.builder().apiKey("test-key").build());
+    AnthropicPlugin plugin =
+        new AnthropicPlugin(AnthropicPluginOptions.builder().apiKey("test-key").build());
 
     plugin.customModel("custom-claude-model");
 
@@ -93,7 +97,8 @@ class AnthropicPluginTest {
 
   @Test
   void testGetOptions() {
-    AnthropicPluginOptions options = AnthropicPluginOptions.builder().apiKey("test-key").timeout(45).build();
+    AnthropicPluginOptions options =
+        AnthropicPluginOptions.builder().apiKey("test-key").timeout(45).build();
 
     AnthropicPlugin plugin = new AnthropicPlugin(options);
     AnthropicPluginOptions retrievedOptions = plugin.getOptions();

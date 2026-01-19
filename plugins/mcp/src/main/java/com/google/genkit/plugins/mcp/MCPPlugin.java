@@ -18,59 +18,65 @@
 
 package com.google.genkit.plugins.mcp;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.genkit.ai.Tool;
 import com.google.genkit.core.Action;
 import com.google.genkit.core.GenkitException;
 import com.google.genkit.core.Plugin;
 import com.google.genkit.core.Registry;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * MCP Plugin for Genkit.
  *
- * <p>
- * This plugin enables Genkit to connect to MCP (Model Context Protocol) servers
- * and use their tools. MCP provides a standardized way for AI applications to
- * interact with external tools and data sources.
+ * <p>This plugin enables Genkit to connect to MCP (Model Context Protocol) servers and use their
+ * tools. MCP provides a standardized way for AI applications to interact with external tools and
+ * data sources.
  *
- * <p>
- * Features:
+ * <p>Features:
+ *
  * <ul>
- * <li>Connect to multiple MCP servers (STDIO or HTTP transports)</li>
- * <li>Automatic conversion of MCP tools to Genkit tools</li>
- * <li>Access MCP resources programmatically</li>
- * <li>Support for tool caching and lazy loading</li>
+ *   <li>Connect to multiple MCP servers (STDIO or HTTP transports)
+ *   <li>Automatic conversion of MCP tools to Genkit tools
+ *   <li>Access MCP resources programmatically
+ *   <li>Support for tool caching and lazy loading
  * </ul>
  *
- * <p>
- * Example usage:
+ * <p>Example usage:
  *
  * <pre>{@code
  * // Create the MCP plugin with server configurations
- * MCPPlugin mcpPlugin = MCPPlugin.create(MCPPluginOptions.builder().name("my-mcp-host")
- * 		.addServer("filesystem",
- * 				MCPServerConfig.stdio("npx", "-y", "@modelcontextprotocol/server-filesystem", "/tmp"))
- * 		.addServer("weather", MCPServerConfig.http("http://localhost:3001/mcp")).build());
+ * MCPPlugin mcpPlugin = MCPPlugin.create(
+ *     MCPPluginOptions.builder()
+ *         .name("my-mcp-host")
+ *         .addServer(
+ *             "filesystem",
+ *             MCPServerConfig
+ *                 .stdio("npx", "-y", "@modelcontextprotocol/server-filesystem", "/tmp"))
+ *         .addServer("weather", MCPServerConfig.http("http://localhost:3001/mcp"))
+ *         .build());
  *
  * // Create Genkit with the MCP plugin
  * Genkit genkit = Genkit.builder().plugin(mcpPlugin).build();
  *
  * // Use MCP tools in flows
- * Flow<String, String, Void> myFlow = genkit.defineFlow("myFlow", String.class, String.class, (ctx, input) -> {
- * 	// MCP tools are available as: "serverName/toolName"
- * 	// e.g., "filesystem/readFile", "weather/getForecast"
- * 	ModelResponse response = genkit.generate(
- * 			GenerateOptions.builder().model("openai/gpt-4o").prompt(input).tools(mcpPlugin.getTools()).build());
- * 	return response.getText();
- * });
+ * Flow<String, String, Void> myFlow = genkit
+ *     .defineFlow("myFlow", String.class, String.class, (ctx, input) -> {
+ *       // MCP tools are available as: "serverName/toolName"
+ *       // e.g., "filesystem/readFile", "weather/getForecast"
+ *       ModelResponse response = genkit.generate(
+ *           GenerateOptions.builder()
+ *               .model("openai/gpt-4o")
+ *               .prompt(input)
+ *               .tools(mcpPlugin.getTools())
+ *               .build());
+ *       return response.getText();
+ *     });
  * }</pre>
  *
  * @see MCPPluginOptions
@@ -90,8 +96,7 @@ public class MCPPlugin implements Plugin {
   /**
    * Creates a new MCP plugin with the given options.
    *
-   * @param options
-   *            the plugin options
+   * @param options the plugin options
    */
   public MCPPlugin(MCPPluginOptions options) {
     this.options = options;
@@ -100,8 +105,7 @@ public class MCPPlugin implements Plugin {
   /**
    * Creates an MCP plugin with the given options.
    *
-   * @param options
-   *            the plugin options
+   * @param options the plugin options
    * @return a new MCPPlugin
    */
   public static MCPPlugin create(MCPPluginOptions options) {
@@ -111,29 +115,28 @@ public class MCPPlugin implements Plugin {
   /**
    * Creates an MCP plugin with a single STDIO server.
    *
-   * @param serverName
-   *            the name for the server
-   * @param command
-   *            the command to execute
-   * @param args
-   *            the command arguments
+   * @param serverName the name for the server
+   * @param command the command to execute
+   * @param args the command arguments
    * @return a new MCPPlugin
    */
   public static MCPPlugin stdio(String serverName, String command, String... args) {
-    return create(MCPPluginOptions.builder().addServer(serverName, MCPServerConfig.stdio(command, args)).build());
+    return create(
+        MCPPluginOptions.builder()
+            .addServer(serverName, MCPServerConfig.stdio(command, args))
+            .build());
   }
 
   /**
    * Creates an MCP plugin with a single HTTP server.
    *
-   * @param serverName
-   *            the name for the server
-   * @param url
-   *            the server URL
+   * @param serverName the name for the server
+   * @param url the server URL
    * @return a new MCPPlugin
    */
   public static MCPPlugin http(String serverName, String url) {
-    return create(MCPPluginOptions.builder().addServer(serverName, MCPServerConfig.http(url)).build());
+    return create(
+        MCPPluginOptions.builder().addServer(serverName, MCPServerConfig.http(url)).build());
   }
 
   @Override
@@ -166,8 +169,9 @@ public class MCPPlugin implements Plugin {
       }
 
       try {
-        MCPClient client = new MCPClient(serverName, config, options.getRequestTimeout(),
-            options.isRawToolResponses());
+        MCPClient client =
+            new MCPClient(
+                serverName, config, options.getRequestTimeout(), options.isRawToolResponses());
 
         client.connect();
         clients.put(serverName, client);
@@ -185,7 +189,10 @@ public class MCPPlugin implements Plugin {
     }
 
     initialized = true;
-    logger.info("MCP plugin initialized with {} servers and {} total tools", clients.size(), allTools.size());
+    logger.info(
+        "MCP plugin initialized with {} servers and {} total tools",
+        clients.size(),
+        allTools.size());
 
     return actions;
   }
@@ -202,11 +209,9 @@ public class MCPPlugin implements Plugin {
   /**
    * Gets tools from a specific MCP server.
    *
-   * @param serverName
-   *            the server name
+   * @param serverName the server name
    * @return list of tools from that server
-   * @throws GenkitException
-   *             if the server is not found or not connected
+   * @throws GenkitException if the server is not found or not connected
    */
   public List<Tool<?, ?>> getTools(String serverName) throws GenkitException {
     MCPClient client = clients.get(serverName);
@@ -219,11 +224,9 @@ public class MCPPlugin implements Plugin {
   /**
    * Gets resources from a specific MCP server.
    *
-   * @param serverName
-   *            the server name
+   * @param serverName the server name
    * @return list of resources
-   * @throws GenkitException
-   *             if the server is not found or not connected
+   * @throws GenkitException if the server is not found or not connected
    */
   public List<MCPResource> getResources(String serverName) throws GenkitException {
     MCPClient client = clients.get(serverName);
@@ -236,13 +239,10 @@ public class MCPPlugin implements Plugin {
   /**
    * Reads a resource from an MCP server.
    *
-   * @param serverName
-   *            the server name
-   * @param uri
-   *            the resource URI
+   * @param serverName the server name
+   * @param uri the resource URI
    * @return the resource content
-   * @throws GenkitException
-   *             if reading fails
+   * @throws GenkitException if reading fails
    */
   public MCPResourceContent readResource(String serverName, String uri) throws GenkitException {
     MCPClient client = clients.get(serverName);
@@ -255,17 +255,14 @@ public class MCPPlugin implements Plugin {
   /**
    * Calls an MCP tool directly.
    *
-   * @param serverName
-   *            the server name
-   * @param toolName
-   *            the tool name (without server prefix)
-   * @param arguments
-   *            the tool arguments
+   * @param serverName the server name
+   * @param toolName the tool name (without server prefix)
+   * @param arguments the tool arguments
    * @return the tool result
-   * @throws GenkitException
-   *             if the call fails
+   * @throws GenkitException if the call fails
    */
-  public Object callTool(String serverName, String toolName, Map<String, Object> arguments) throws GenkitException {
+  public Object callTool(String serverName, String toolName, Map<String, Object> arguments)
+      throws GenkitException {
     MCPClient client = clients.get(serverName);
     if (client == null) {
       throw new GenkitException("MCP server not found: " + serverName);
@@ -276,8 +273,7 @@ public class MCPPlugin implements Plugin {
   /**
    * Gets the client for a specific server.
    *
-   * @param serverName
-   *            the server name
+   * @param serverName the server name
    * @return the client, or null if not found
    */
   public MCPClient getClient(String serverName) {
@@ -293,16 +289,15 @@ public class MCPPlugin implements Plugin {
     return new HashMap<>(clients);
   }
 
-  /**
-   * Disconnects all MCP clients.
-   */
+  /** Disconnects all MCP clients. */
   public void disconnect() {
     logger.info("Disconnecting all MCP clients");
     for (MCPClient client : clients.values()) {
       try {
         client.disconnect();
       } catch (Exception e) {
-        logger.warn("Error disconnecting MCP client {}: {}", client.getServerName(), e.getMessage());
+        logger.warn(
+            "Error disconnecting MCP client {}: {}", client.getServerName(), e.getMessage());
       }
     }
     clients.clear();

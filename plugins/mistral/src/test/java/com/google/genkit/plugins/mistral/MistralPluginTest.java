@@ -20,19 +20,21 @@ package com.google.genkit.plugins.mistral;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.List;
-
-import org.junit.jupiter.api.Test;
-
 import com.google.genkit.core.Action;
 import com.google.genkit.plugins.compatoai.CompatOAIPluginOptions;
+import java.util.List;
+import org.junit.jupiter.api.Test;
 
 class MistralPluginTest {
 
   @Test
   void testDefaultConstruction() {
-    MistralPlugin plugin = new MistralPlugin(
-        CompatOAIPluginOptions.builder().apiKey("test-key").baseUrl("https://api.mistral.ai/v1").build());
+    MistralPlugin plugin =
+        new MistralPlugin(
+            CompatOAIPluginOptions.builder()
+                .apiKey("test-key")
+                .baseUrl("https://api.mistral.ai/v1")
+                .build());
 
     assertNotNull(plugin);
     assertEquals("mistral", plugin.getName());
@@ -40,8 +42,11 @@ class MistralPluginTest {
 
   @Test
   void testConstructionWithOptions() {
-    CompatOAIPluginOptions options = CompatOAIPluginOptions.builder().apiKey("test-key")
-        .baseUrl("https://api.mistral.ai/v1").build();
+    CompatOAIPluginOptions options =
+        CompatOAIPluginOptions.builder()
+            .apiKey("test-key")
+            .baseUrl("https://api.mistral.ai/v1")
+            .build();
 
     MistralPlugin plugin = new MistralPlugin(options);
 
@@ -67,8 +72,12 @@ class MistralPluginTest {
 
   @Test
   void testInitializesActions() {
-    MistralPlugin plugin = new MistralPlugin(
-        CompatOAIPluginOptions.builder().apiKey("test-key").baseUrl("https://api.mistral.ai/v1").build());
+    MistralPlugin plugin =
+        new MistralPlugin(
+            CompatOAIPluginOptions.builder()
+                .apiKey("test-key")
+                .baseUrl("https://api.mistral.ai/v1")
+                .build());
 
     List<Action<?, ?, ?>> actions = plugin.init();
 
@@ -85,8 +94,12 @@ class MistralPluginTest {
 
   @Test
   void testCustomModel() {
-    MistralPlugin plugin = new MistralPlugin(
-        CompatOAIPluginOptions.builder().apiKey("test-key").baseUrl("https://api.mistral.ai/v1").build());
+    MistralPlugin plugin =
+        new MistralPlugin(
+            CompatOAIPluginOptions.builder()
+                .apiKey("test-key")
+                .baseUrl("https://api.mistral.ai/v1")
+                .build());
 
     plugin.customModel("custom-mistral-model");
 
@@ -95,8 +108,11 @@ class MistralPluginTest {
 
   @Test
   void testGetOptions() {
-    CompatOAIPluginOptions options = CompatOAIPluginOptions.builder().apiKey("test-key")
-        .baseUrl("https://api.mistral.ai/v1").build();
+    CompatOAIPluginOptions options =
+        CompatOAIPluginOptions.builder()
+            .apiKey("test-key")
+            .baseUrl("https://api.mistral.ai/v1")
+            .build();
 
     MistralPlugin plugin = new MistralPlugin(options);
     CompatOAIPluginOptions retrievedOptions = plugin.getOptions();

@@ -18,15 +18,12 @@
 
 package com.google.genkit.plugins.localvec;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.genkit.ai.Document;
+import java.util.List;
 
-/**
- * Represents a stored document value with its embedding.
- */
+/** Represents a stored document value with its embedding. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DbValue {
 
@@ -36,19 +33,14 @@ public class DbValue {
   @JsonProperty("embedding")
   private List<Float> embedding;
 
-  /**
-   * Default constructor for Jackson.
-   */
-  public DbValue() {
-  }
+  /** Default constructor for Jackson. */
+  public DbValue() {}
 
   /**
    * Creates a new DbValue.
    *
-   * @param doc
-   *            the document
-   * @param embedding
-   *            the embedding vector
+   * @param doc the document
+   * @param embedding the embedding vector
    */
   public DbValue(Document doc, List<Float> embedding) {
     this.doc = doc;
@@ -67,8 +59,7 @@ public class DbValue {
   /**
    * Sets the document.
    *
-   * @param doc
-   *            the document
+   * @param doc the document
    */
   public void setDoc(Document doc) {
     this.doc = doc;
@@ -86,8 +77,7 @@ public class DbValue {
   /**
    * Sets the embedding.
    *
-   * @param embedding
-   *            the embedding vector
+   * @param embedding the embedding vector
    */
   public void setEmbedding(List<Float> embedding) {
     this.embedding = embedding;

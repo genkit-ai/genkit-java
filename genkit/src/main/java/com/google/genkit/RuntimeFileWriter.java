@@ -18,6 +18,7 @@
 
 package com.google.genkit;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.file.*;
 import java.time.Instant;
@@ -25,17 +26,14 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * RuntimeFileWriter writes runtime discovery files for the Genkit Dev UI.
  *
- * The Dev UI discovers running Genkit instances by looking for JSON files in
- * the .genkit/runtimes directory.
+ * <p>The Dev UI discovers running Genkit instances by looking for JSON files in the
+ * .genkit/runtimes directory.
  */
 public class RuntimeFileWriter {
 
@@ -44,13 +42,11 @@ public class RuntimeFileWriter {
   private static Path currentRuntimeFile;
 
   /**
-   * Writes a runtime file for Dev UI discovery. Uses findProjectRoot() to locate
-   * the project root by searching up for pom.xml.
+   * Writes a runtime file for Dev UI discovery. Uses findProjectRoot() to locate the project root
+   * by searching up for pom.xml.
    *
-   * @param port
-   *            the reflection server port
-   * @param runtimeId
-   *            the runtime ID from the reflection server
+   * @param port the reflection server port
+   * @param runtimeId the runtime ID from the reflection server
    */
   public static void write(int port, String runtimeId) {
     String projectRoot = findProjectRoot();
@@ -58,10 +54,10 @@ public class RuntimeFileWriter {
   }
 
   /**
-   * Finds the project root by searching up from the current directory.
-   * Prioritizes package.json to match the genkit CLI's behavior - this ensures
-   * the Java runtime writes to the same .genkit directory the CLI reads from.
-   * Falls back to pom.xml/build.gradle only if no package.json is found.
+   * Finds the project root by searching up from the current directory. Prioritizes package.json to
+   * match the genkit CLI's behavior - this ensures the Java runtime writes to the same .genkit
+   * directory the CLI reads from. Falls back to pom.xml/build.gradle only if no package.json is
+   * found.
    *
    * @return the project root directory path
    */
@@ -94,7 +90,9 @@ public class RuntimeFileWriter {
     }
 
     // Second pass: Fall back to Java/other markers if no package.json found
-    String[] fallbackMarkers = {"pom.xml", "build.gradle", "go.mod", "pyproject.toml", "requirements.txt"};
+    String[] fallbackMarkers = {
+      "pom.xml", "build.gradle", "go.mod", "pyproject.toml", "requirements.txt"
+    };
     currentDir = dir;
     while (currentDir != null) {
       for (String marker : fallbackMarkers) {
@@ -119,12 +117,9 @@ public class RuntimeFileWriter {
   /**
    * Writes a runtime file for Dev UI discovery.
    *
-   * @param port
-   *            the reflection server port
-   * @param projectRoot
-   *            the project root directory
-   * @param runtimeId
-   *            the runtime ID
+   * @param port the reflection server port
+   * @param projectRoot the project root directory
+   * @param runtimeId the runtime ID
    */
   public static void writeRuntimeFile(int port, String projectRoot, String runtimeId) {
     try {
@@ -135,8 +130,11 @@ public class RuntimeFileWriter {
 
       // Use ISO 8601 format like Go does: 2025-12-21T16:12:32Z
       // Replace colons with underscores for filename compatibility
-      String timestamp = Instant.now().atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT).replace(":",
-          "_");
+      String timestamp =
+          Instant.now()
+              .atOffset(ZoneOffset.UTC)
+              .format(DateTimeFormatter.ISO_INSTANT)
+              .replace(":", "_");
 
       Map<String, Object> runtimeInfo = new HashMap<>();
       runtimeInfo.put("id", runtimeId);
@@ -156,9 +154,7 @@ public class RuntimeFileWriter {
     }
   }
 
-  /**
-   * Cleans up the runtime file using the current directory as project root.
-   */
+  /** Cleans up the runtime file using the current directory as project root. */
   public static void cleanup() {
     if (currentRuntimeFile != null) {
       try {
@@ -176,8 +172,7 @@ public class RuntimeFileWriter {
   /**
    * Removes the runtime file.
    *
-   * @param projectRoot
-   *            the project root directory
+   * @param projectRoot the project root directory
    */
   public static void removeRuntimeFile(String projectRoot) {
     try {
@@ -206,9 +201,7 @@ public class RuntimeFileWriter {
     }
   }
 
-  /**
-   * Gets the runtimes directory path.
-   */
+  /** Gets the runtimes directory path. */
   private static Path getRuntimesDir(String projectRoot) {
     return Paths.get(projectRoot, ".genkit", "runtimes");
   }

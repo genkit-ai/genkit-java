@@ -18,13 +18,6 @@
 
 package com.google.genkit.plugins.evaluators.metrics;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.genkit.ai.Message;
 import com.google.genkit.ai.Model;
 import com.google.genkit.ai.ModelRequest;
@@ -40,13 +33,17 @@ import com.google.genkit.core.Action;
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.ActionType;
 import com.google.genkit.core.Registry;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Answer Accuracy metric evaluator.
- * 
- * <p>
- * Measures the accuracy of the generated answer against a reference answer.
- * Uses bidirectional comparison for semantic equivalence.
+ *
+ * <p>Measures the accuracy of the generated answer against a reference answer. Uses bidirectional
+ * comparison for semantic equivalence.
  */
 public class AnswerAccuracyMetric {
 
@@ -57,7 +54,8 @@ public class AnswerAccuracyMetric {
   private final String judgeName;
   private final Map<String, Object> judgeConfig;
 
-  public AnswerAccuracyMetric(Registry registry, String judgeName, Map<String, Object> judgeConfig) {
+  public AnswerAccuracyMetric(
+      Registry registry, String judgeName, Map<String, Object> judgeConfig) {
     this.registry = registry;
     this.judgeName = judgeName;
     this.judgeConfig = judgeConfig;
@@ -66,11 +64,9 @@ public class AnswerAccuracyMetric {
   /**
    * Evaluates the accuracy of the output against the reference.
    *
-   * @param dataPoint
-   *            the evaluation data point
+   * @param dataPoint the evaluation data point
    * @return the evaluation response
-   * @throws Exception
-   *             if evaluation fails
+   * @throws Exception if evaluation fails
    */
   public EvalResponse evaluate(EvalDataPoint dataPoint) throws Exception {
     // Extract answer from output
@@ -123,14 +119,19 @@ public class AnswerAccuracyMetric {
 
     EvalStatus status = score > PASS_THRESHOLD ? EvalStatus.PASS : EvalStatus.FAIL;
 
-    return EvalResponse.builder().testCaseId(dataPoint.getTestCaseId())
+    return EvalResponse.builder()
+        .testCaseId(dataPoint.getTestCaseId())
         .evaluation(
-            Score.builder().score(score).status(status)
-                .details(ScoreDetails.builder()
-                    .reasoning(String.format(
-                        "Original score: %d/5, Inverted score: %d/5, Harmonic mean: %.2f",
-                        origScore, invScore, score))
-                    .build())
+            Score.builder()
+                .score(score)
+                .status(status)
+                .details(
+                    ScoreDetails.builder()
+                        .reasoning(
+                            String.format(
+                                "Original score: %d/5, Inverted score: %d/5, Harmonic mean: %.2f",
+                                origScore, invScore, score))
+                        .build())
                 .build())
         .build();
   }
@@ -171,15 +172,16 @@ public class AnswerAccuracyMetric {
   private ModelResponse invokeModel(Model model, String prompt) throws Exception {
     Message message = Message.builder().role(Role.USER).content(List.of(Part.text(prompt))).build();
 
-    ModelRequest request = ModelRequest.builder().messages(List.of(message)).config(judgeConfig).build();
+    ModelRequest request =
+        ModelRequest.builder().messages(List.of(message)).config(judgeConfig).build();
 
     ActionContext ctx = new ActionContext(registry);
     return model.run(ctx, request);
   }
 
   /**
-   * Extracts the question from the datapoint input. Handles both simple string
-   * inputs and Map inputs with a "question" key.
+   * Extracts the question from the datapoint input. Handles both simple string inputs and Map
+   * inputs with a "question" key.
    */
   @SuppressWarnings("unchecked")
   private String extractQuestion(EvalDataPoint dataPoint) {
@@ -199,8 +201,8 @@ public class AnswerAccuracyMetric {
   }
 
   /**
-   * Extracts the answer from the datapoint output. Handles both simple string
-   * outputs and Map outputs with an "answer" key.
+   * Extracts the answer from the datapoint output. Handles both simple string outputs and Map
+   * outputs with an "answer" key.
    */
   @SuppressWarnings("unchecked")
   private String extractAnswer(EvalDataPoint dataPoint) {

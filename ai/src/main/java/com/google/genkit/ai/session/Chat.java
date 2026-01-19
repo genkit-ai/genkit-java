@@ -18,13 +18,6 @@
 
 package com.google.genkit.ai.session;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
-
 import com.google.genkit.ai.*;
 import com.google.genkit.ai.telemetry.ModelTelemetryHelper;
 import com.google.genkit.core.Action;
@@ -33,34 +26,39 @@ import com.google.genkit.core.ActionType;
 import com.google.genkit.core.GenkitException;
 import com.google.genkit.core.JsonUtils;
 import com.google.genkit.core.Registry;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * Chat represents a conversation within a session thread.
  *
- * <p>
- * Chat provides a simple interface for multi-turn conversations with automatic
- * history management. Messages are persisted to the session store after each
- * interaction.
+ * <p>Chat provides a simple interface for multi-turn conversations with automatic history
+ * management. Messages are persisted to the session store after each interaction.
  *
- * <p>
- * Example usage:
- * 
+ * <p>Example usage:
+ *
  * <pre>{@code
  * // Simple chat
  * Chat<MyState> chat = session.chat();
  * ModelResponse response = chat.send("Hello!");
- * 
+ *
  * // Chat with system prompt
- * Chat<MyState> chat = session
- * 		.chat(ChatOptions.<MyState>builder().model("openai/gpt-4o").system("You are a helpful assistant.").build());
- * 
+ * Chat<MyState> chat = session.chat(
+ *     ChatOptions.<MyState>builder()
+ *         .model("openai/gpt-4o")
+ *         .system("You are a helpful assistant.")
+ *         .build());
+ *
  * // Multi-turn conversation
  * chat.send("What is the capital of France?");
  * chat.send("And what about Germany?"); // Context is preserved
  * }</pre>
  *
- * @param <S>
- *            the type of the session state
+ * @param <S> the type of the session state
  */
 public class Chat<S> {
 
@@ -78,6 +76,7 @@ public class Chat<S> {
 
   /** Current agent context (mutable for handoffs). */
   private String currentAgentName;
+
   private String currentSystem;
   private String currentModel;
   private List<Tool<?, ?>> currentTools;
@@ -85,18 +84,17 @@ public class Chat<S> {
   /**
    * Creates a new Chat instance.
    *
-   * @param session
-   *            the parent session
-   * @param threadName
-   *            the thread name
-   * @param options
-   *            the chat options
-   * @param registry
-   *            the Genkit registry
-   * @param sessionAgentRegistry
-   *            the agent registry from the session (may be null)
+   * @param session the parent session
+   * @param threadName the thread name
+   * @param options the chat options
+   * @param registry the Genkit registry
+   * @param sessionAgentRegistry the agent registry from the session (may be null)
    */
-  Chat(Session<S> session, String threadName, ChatOptions<S> options, Registry registry,
+  Chat(
+      Session<S> session,
+      String threadName,
+      ChatOptions<S> options,
+      Registry registry,
       Map<String, Agent> sessionAgentRegistry) {
     this.session = session;
     this.threadName = threadName;
@@ -104,9 +102,8 @@ public class Chat<S> {
     this.registry = registry;
     // Use agent registry from options if provided, otherwise fall back to session's
     // registry
-    this.effectiveAgentRegistry = options.getAgentRegistry() != null
-        ? options.getAgentRegistry()
-        : sessionAgentRegistry;
+    this.effectiveAgentRegistry =
+        options.getAgentRegistry() != null ? options.getAgentRegistry() : sessionAgentRegistry;
     this.history = new ArrayList<>(session.getMessages(threadName));
     this.pendingInterrupts = new ArrayList<>();
 
@@ -120,21 +117,19 @@ public class Chat<S> {
   /**
    * Sends a message and gets a response.
    *
-   * <p>
-   * This method:
+   * <p>This method:
+   *
    * <ol>
-   * <li>Adds the user message to history</li>
-   * <li>Builds a request with all conversation history</li>
-   * <li>Sends to the model and gets a response</li>
-   * <li>Adds the model response to history</li>
-   * <li>Persists the updated history</li>
+   *   <li>Adds the user message to history
+   *   <li>Builds a request with all conversation history
+   *   <li>Sends to the model and gets a response
+   *   <li>Adds the model response to history
+   *   <li>Persists the updated history
    * </ol>
    *
-   * @param text
-   *            the user message
+   * @param text the user message
    * @return the model response
-   * @throws GenkitException
-   *             if generation fails
+   * @throws GenkitException if generation fails
    */
   public ModelResponse send(String text) throws GenkitException {
     return send(Message.user(text));
@@ -143,11 +138,9 @@ public class Chat<S> {
   /**
    * Sends a message and gets a response.
    *
-   * @param message
-   *            the message to send
+   * @param message the message to send
    * @return the model response
-   * @throws GenkitException
-   *             if generation fails
+   * @throws GenkitException if generation fails
    */
   public ModelResponse send(Message message) throws GenkitException {
     return send(message, null);
@@ -156,13 +149,10 @@ public class Chat<S> {
   /**
    * Sends a message with send options and gets a response.
    *
-   * @param text
-   *            the user message
-   * @param sendOptions
-   *            additional options for this send
+   * @param text the user message
+   * @param sendOptions additional options for this send
    * @return the model response
-   * @throws GenkitException
-   *             if generation fails
+   * @throws GenkitException if generation fails
    */
   public ModelResponse send(String text, SendOptions sendOptions) throws GenkitException {
     return send(Message.user(text), sendOptions);
@@ -171,13 +161,10 @@ public class Chat<S> {
   /**
    * Sends a message with send options and gets a response.
    *
-   * @param message
-   *            the message to send
-   * @param sendOptions
-   *            additional options for this send
+   * @param message the message to send
+   * @param sendOptions additional options for this send
    * @return the model response
-   * @throws GenkitException
-   *             if generation fails
+   * @throws GenkitException if generation fails
    */
   public ModelResponse send(Message message, SendOptions sendOptions) throws GenkitException {
     // Clear any pending interrupts from previous send
@@ -198,13 +185,10 @@ public class Chat<S> {
   /**
    * Resumes generation after an interrupt.
    *
-   * @param resumeOptions
-   *            the resume options containing tool responses
-   * @param sendOptions
-   *            additional send options
+   * @param resumeOptions the resume options containing tool responses
+   * @param sendOptions additional send options
    * @return the model response
-   * @throws GenkitException
-   *             if generation fails
+   * @throws GenkitException if generation fails
    */
   private ModelResponse resumeFromInterrupt(ResumeOptions resumeOptions, SendOptions sendOptions)
       throws GenkitException {
@@ -225,7 +209,8 @@ public class Chat<S> {
     // Handle restart requests by re-executing those tools
     if (resumeOptions.getRestart() != null && !resumeOptions.getRestart().isEmpty()) {
       ActionContext ctx = new ActionContext(registry);
-      List<Part> restartParts = executeToolsWithInterruptHandling(ctx, resumeOptions.getRestart(), sendOptions);
+      List<Part> restartParts =
+          executeToolsWithInterruptHandling(ctx, resumeOptions.getRestart(), sendOptions);
 
       // Check if any restarts also triggered interrupts
       if (!pendingInterrupts.isEmpty()) {
@@ -242,9 +227,7 @@ public class Chat<S> {
     return executeGenerationLoop(sendOptions);
   }
 
-  /**
-   * Executes the main generation loop with tool handling.
-   */
+  /** Executes the main generation loop with tool handling. */
   private ModelResponse executeGenerationLoop(SendOptions sendOptions) throws GenkitException {
     // Build the request
     ModelRequest request = buildRequest(sendOptions);
@@ -268,10 +251,16 @@ public class Chat<S> {
       final String flowName = ctx.getFlowName();
       ModelResponse response;
       try {
-        response = SessionContext.runWithSession(session,
-            () -> ModelTelemetryHelper.runWithTelemetry(modelName, flowName != null ? flowName : "chat",
-                "/chat/" + (threadName != null ? threadName : "default"), finalRequest,
-                r -> model.run(ctx, r)));
+        response =
+            SessionContext.runWithSession(
+                session,
+                () ->
+                    ModelTelemetryHelper.runWithTelemetry(
+                        modelName,
+                        flowName != null ? flowName : "chat",
+                        "/chat/" + (threadName != null ? threadName : "default"),
+                        finalRequest,
+                        r -> model.run(ctx, r)));
       } catch (GenkitException e) {
         throw e;
       } catch (Exception e) {
@@ -291,7 +280,8 @@ public class Chat<S> {
       }
 
       // Execute tools with interrupt handling
-      List<Part> toolResponseParts = executeToolsWithInterruptHandling(ctx, toolRequests, sendOptions);
+      List<Part> toolResponseParts =
+          executeToolsWithInterruptHandling(ctx, toolRequests, sendOptions);
 
       // Add assistant message with tool requests to history
       Message assistantMessage = response.getMessage();
@@ -322,33 +312,28 @@ public class Chat<S> {
   /**
    * Sends a message with streaming response.
    *
-   * @param text
-   *            the user message
-   * @param streamCallback
-   *            callback for each response chunk
+   * @param text the user message
+   * @param streamCallback callback for each response chunk
    * @return the final aggregated response
-   * @throws GenkitException
-   *             if generation fails
+   * @throws GenkitException if generation fails
    */
-  public ModelResponse sendStream(String text, Consumer<ModelResponseChunk> streamCallback) throws GenkitException {
+  public ModelResponse sendStream(String text, Consumer<ModelResponseChunk> streamCallback)
+      throws GenkitException {
     return sendStream(Message.user(text), null, streamCallback);
   }
 
   /**
    * Sends a message with streaming response.
    *
-   * @param message
-   *            the message to send
-   * @param sendOptions
-   *            additional options for this send
-   * @param streamCallback
-   *            callback for each response chunk
+   * @param message the message to send
+   * @param sendOptions additional options for this send
+   * @param streamCallback callback for each response chunk
    * @return the final aggregated response
-   * @throws GenkitException
-   *             if generation fails
+   * @throws GenkitException if generation fails
    */
-  public ModelResponse sendStream(Message message, SendOptions sendOptions,
-      Consumer<ModelResponseChunk> streamCallback) throws GenkitException {
+  public ModelResponse sendStream(
+      Message message, SendOptions sendOptions, Consumer<ModelResponseChunk> streamCallback)
+      throws GenkitException {
     // Add user message to history
     history.add(message);
 
@@ -368,9 +353,13 @@ public class Chat<S> {
 
     ActionContext ctx = new ActionContext(registry);
     final String flowName = ctx.getFlowName();
-    ModelResponse response = ModelTelemetryHelper.runWithTelemetryStreaming(modelName,
-        flowName != null ? flowName : "chat", "/chat/" + (threadName != null ? threadName : "default"), request,
-        r -> model.run(ctx, r, streamCallback));
+    ModelResponse response =
+        ModelTelemetryHelper.runWithTelemetryStreaming(
+            modelName,
+            flowName != null ? flowName : "chat",
+            "/chat/" + (threadName != null ? threadName : "default"),
+            request,
+            r -> model.run(ctx, r, streamCallback));
 
     // Add response to history and persist
     Message responseMessage = response.getMessage();
@@ -412,9 +401,8 @@ public class Chat<S> {
   /**
    * Gets the pending interrupt requests from the last send.
    *
-   * <p>
-   * If the last {@link #send} call returned with interrupts, this method returns
-   * the list of pending interrupts that need to be resolved before continuing.
+   * <p>If the last {@link #send} call returned with interrupts, this method returns the list of
+   * pending interrupts that need to be resolved before continuing.
    *
    * @return the list of pending interrupt requests (empty if none)
    */
@@ -434,9 +422,8 @@ public class Chat<S> {
   /**
    * Gets the current agent name.
    *
-   * <p>
-   * Returns null if no agent handoff has occurred, otherwise returns the name of
-   * the agent that the conversation was most recently handed off to.
+   * <p>Returns null if no agent handoff has occurred, otherwise returns the name of the agent that
+   * the conversation was most recently handed off to.
    *
    * @return the current agent name, or null if no handoff has occurred
    */
@@ -444,9 +431,7 @@ public class Chat<S> {
     return currentAgentName;
   }
 
-  /**
-   * Builds a ModelRequest from current history and options.
-   */
+  /** Builds a ModelRequest from current history and options. */
   private ModelRequest buildRequest(SendOptions sendOptions) {
     ModelRequest.Builder builder = ModelRequest.builder();
 
@@ -496,9 +481,7 @@ public class Chat<S> {
     return builder.build();
   }
 
-  /**
-   * Checks if a message is a preamble (system prompt).
-   */
+  /** Checks if a message is a preamble (system prompt). */
   private boolean isPreamble(Message message) {
     if (message.getMetadata() == null) {
       return false;
@@ -507,9 +490,7 @@ public class Chat<S> {
     return Boolean.TRUE.equals(preamble);
   }
 
-  /**
-   * Resolves the model name from options.
-   */
+  /** Resolves the model name from options. */
   private String resolveModelName(SendOptions sendOptions) {
     if (sendOptions != null && sendOptions.getModel() != null) {
       return sendOptions.getModel();
@@ -518,9 +499,7 @@ public class Chat<S> {
     return currentModel;
   }
 
-  /**
-   * Resolves the max turns from options.
-   */
+  /** Resolves the max turns from options. */
   private int resolveMaxTurns(SendOptions sendOptions) {
     if (sendOptions != null && sendOptions.getMaxTurns() != null) {
       return sendOptions.getMaxTurns();
@@ -531,9 +510,7 @@ public class Chat<S> {
     return 5; // Default
   }
 
-  /**
-   * Resolves the tools from options.
-   */
+  /** Resolves the tools from options. */
   private List<Tool<?, ?>> resolveTools(SendOptions sendOptions) {
     if (sendOptions != null && sendOptions.getTools() != null) {
       return sendOptions.getTools();
@@ -542,9 +519,7 @@ public class Chat<S> {
     return currentTools;
   }
 
-  /**
-   * Gets a model by name from the registry.
-   */
+  /** Gets a model by name from the registry. */
   private Model getModel(String name) {
     Action<?, ?, ?> action = registry.lookupAction(ActionType.MODEL, name);
     if (action == null) {
@@ -553,9 +528,7 @@ public class Chat<S> {
     return (Model) action;
   }
 
-  /**
-   * Extracts tool requests from a model response.
-   */
+  /** Extracts tool requests from a model response. */
   private List<ToolRequest> extractToolRequests(ModelResponse response) {
     List<ToolRequest> requests = new ArrayList<>();
     if (response.getCandidates() != null) {
@@ -572,10 +545,9 @@ public class Chat<S> {
     return requests;
   }
 
-  /**
-   * Executes tools and returns response parts.
-   */
-  private List<Part> executeTools(ActionContext ctx, List<ToolRequest> toolRequests, SendOptions sendOptions) {
+  /** Executes tools and returns response parts. */
+  private List<Part> executeTools(
+      ActionContext ctx, List<ToolRequest> toolRequests, SendOptions sendOptions) {
     List<Part> responseParts = new ArrayList<>();
     List<Tool<?, ?>> tools = resolveTools(sendOptions);
 
@@ -586,8 +558,11 @@ public class Chat<S> {
       Tool<?, ?> tool = findTool(toolName, tools);
       if (tool == null) {
         Part errorPart = new Part();
-        ToolResponse errorResponse = new ToolResponse(toolRequest.getRef(), toolName,
-            Collections.singletonMap("error", "Tool not found: " + toolName));
+        ToolResponse errorResponse =
+            new ToolResponse(
+                toolRequest.getRef(),
+                toolName,
+                Collections.singletonMap("error", "Tool not found: " + toolName));
         errorPart.setToolResponse(errorResponse);
         responseParts.add(errorPart);
         continue;
@@ -606,7 +581,8 @@ public class Chat<S> {
           convertedInput = toolInput;
         }
 
-        Object result = SessionContext.runWithSession(session, () -> typedTool.run(ctx, convertedInput));
+        Object result =
+            SessionContext.runWithSession(session, () -> typedTool.run(ctx, convertedInput));
 
         Part responsePart = new Part();
         ToolResponse toolResponse = new ToolResponse(toolRequest.getRef(), toolName, result);
@@ -614,8 +590,11 @@ public class Chat<S> {
         responseParts.add(responsePart);
       } catch (Exception e) {
         Part errorPart = new Part();
-        ToolResponse errorResponse = new ToolResponse(toolRequest.getRef(), toolName,
-            Collections.singletonMap("error", "Tool execution failed: " + e.getMessage()));
+        ToolResponse errorResponse =
+            new ToolResponse(
+                toolRequest.getRef(),
+                toolName,
+                Collections.singletonMap("error", "Tool execution failed: " + e.getMessage()));
         errorPart.setToolResponse(errorResponse);
         responseParts.add(errorPart);
       }
@@ -626,20 +605,16 @@ public class Chat<S> {
 
   /**
    * Executes tools with interrupt handling and returns response parts.
-   * 
-   * <p>
-   * When a tool throws {@link ToolInterruptException}, the interrupt is captured
-   * and added to the pending interrupts list. The tool execution continues for
-   * other tools, and an interrupt response is returned after all tools have been
-   * processed.
    *
-   * <p>
-   * When a tool throws {@link AgentHandoffException}, the chat context is
-   * switched to the target agent (system prompt, tools, model), enabling
-   * multi-agent conversations.
+   * <p>When a tool throws {@link ToolInterruptException}, the interrupt is captured and added to
+   * the pending interrupts list. The tool execution continues for other tools, and an interrupt
+   * response is returned after all tools have been processed.
+   *
+   * <p>When a tool throws {@link AgentHandoffException}, the chat context is switched to the target
+   * agent (system prompt, tools, model), enabling multi-agent conversations.
    */
-  private List<Part> executeToolsWithInterruptHandling(ActionContext ctx, List<ToolRequest> toolRequests,
-      SendOptions sendOptions) {
+  private List<Part> executeToolsWithInterruptHandling(
+      ActionContext ctx, List<ToolRequest> toolRequests, SendOptions sendOptions) {
     List<Part> responseParts = new ArrayList<>();
     List<Tool<?, ?>> tools = resolveTools(sendOptions);
 
@@ -650,8 +625,11 @@ public class Chat<S> {
       Tool<?, ?> tool = findTool(toolName, tools);
       if (tool == null) {
         Part errorPart = new Part();
-        ToolResponse errorResponse = new ToolResponse(toolRequest.getRef(), toolName,
-            Collections.singletonMap("error", "Tool not found: " + toolName));
+        ToolResponse errorResponse =
+            new ToolResponse(
+                toolRequest.getRef(),
+                toolName,
+                Collections.singletonMap("error", "Tool not found: " + toolName));
         errorPart.setToolResponse(errorResponse);
         responseParts.add(errorPart);
         continue;
@@ -670,7 +648,8 @@ public class Chat<S> {
           convertedInput = toolInput;
         }
 
-        Object result = SessionContext.runWithSession(session, () -> typedTool.run(ctx, convertedInput));
+        Object result =
+            SessionContext.runWithSession(session, () -> typedTool.run(ctx, convertedInput));
 
         Part responsePart = new Part();
         ToolResponse toolResponse = new ToolResponse(toolRequest.getRef(), toolName, result);
@@ -686,7 +665,8 @@ public class Chat<S> {
         handoffOutput.put("transferred", true);
         handoffOutput.put("transferredTo", e.getTargetAgentName());
         handoffOutput.put("message", "Conversation transferred to " + e.getTargetAgentName());
-        ToolResponse handoffResponse = new ToolResponse(toolRequest.getRef(), toolName, handoffOutput);
+        ToolResponse handoffResponse =
+            new ToolResponse(toolRequest.getRef(), toolName, handoffOutput);
         handoffPart.setToolResponse(handoffResponse);
         responseParts.add(handoffPart);
       } catch (ToolInterruptException e) {
@@ -699,13 +679,17 @@ public class Chat<S> {
         Map<String, Object> interruptOutput = new HashMap<>();
         interruptOutput.put("__interrupt", true);
         interruptOutput.put("metadata", e.getMetadata());
-        ToolResponse interruptResponse = new ToolResponse(toolRequest.getRef(), toolName, interruptOutput);
+        ToolResponse interruptResponse =
+            new ToolResponse(toolRequest.getRef(), toolName, interruptOutput);
         interruptPart.setToolResponse(interruptResponse);
         responseParts.add(interruptPart);
       } catch (Exception e) {
         Part errorPart = new Part();
-        ToolResponse errorResponse = new ToolResponse(toolRequest.getRef(), toolName,
-            Collections.singletonMap("error", "Tool execution failed: " + e.getMessage()));
+        ToolResponse errorResponse =
+            new ToolResponse(
+                toolRequest.getRef(),
+                toolName,
+                Collections.singletonMap("error", "Tool execution failed: " + e.getMessage()));
         errorPart.setToolResponse(errorResponse);
         responseParts.add(errorPart);
       }
@@ -714,9 +698,7 @@ public class Chat<S> {
     return responseParts;
   }
 
-  /**
-   * Handles an agent handoff by switching the chat context.
-   */
+  /** Handles an agent handoff by switching the chat context. */
   private void handleAgentHandoff(AgentHandoffException handoff) {
     AgentConfig targetConfig = handoff.getTargetAgentConfig();
     currentAgentName = handoff.getTargetAgentName();
@@ -750,9 +732,7 @@ public class Chat<S> {
     currentTools = newTools;
   }
 
-  /**
-   * Creates a response indicating the generation was interrupted.
-   */
+  /** Creates a response indicating the generation was interrupted. */
   private ModelResponse createInterruptResponse() {
     ModelResponse response = new ModelResponse();
 
@@ -789,9 +769,7 @@ public class Chat<S> {
     return response;
   }
 
-  /**
-   * Finds a tool by name.
-   */
+  /** Finds a tool by name. */
   private Tool<?, ?> findTool(String toolName, List<Tool<?, ?>> tools) {
     if (tools != null) {
       for (Tool<?, ?> tool : tools) {
@@ -810,16 +788,12 @@ public class Chat<S> {
     return null;
   }
 
-  /**
-   * Persists the current history to the session store.
-   */
+  /** Persists the current history to the session store. */
   private void persistHistory() {
     session.updateMessages(threadName, history).join();
   }
 
-  /**
-   * Converts GenerationConfig to a Map for the ModelRequest.
-   */
+  /** Converts GenerationConfig to a Map for the ModelRequest. */
   private Map<String, Object> convertConfigToMap(GenerationConfig config) {
     Map<String, Object> configMap = new HashMap<>();
     if (config.getTemperature() != null) {
@@ -852,20 +826,15 @@ public class Chat<S> {
     return configMap;
   }
 
-  /**
-   * Options for individual send operations.
-   */
+  /** Options for individual send operations. */
   public static class SendOptions {
     private String model;
     private List<Tool<?, ?>> tools;
     private Integer maxTurns;
     private ResumeOptions resumeOptions;
 
-    /**
-     * Default constructor.
-     */
-    public SendOptions() {
-    }
+    /** Default constructor. */
+    public SendOptions() {}
 
     /**
      * Gets the model name.
@@ -879,8 +848,7 @@ public class Chat<S> {
     /**
      * Sets the model name.
      *
-     * @param model
-     *            the model name
+     * @param model the model name
      */
     public void setModel(String model) {
       this.model = model;
@@ -898,8 +866,7 @@ public class Chat<S> {
     /**
      * Sets the tools.
      *
-     * @param tools
-     *            the tools
+     * @param tools the tools
      */
     public void setTools(List<Tool<?, ?>> tools) {
       this.tools = tools;
@@ -917,8 +884,7 @@ public class Chat<S> {
     /**
      * Sets the max turns.
      *
-     * @param maxTurns
-     *            the max turns
+     * @param maxTurns the max turns
      */
     public void setMaxTurns(Integer maxTurns) {
       this.maxTurns = maxTurns;
@@ -936,8 +902,7 @@ public class Chat<S> {
     /**
      * Sets the resume options.
      *
-     * @param resumeOptions
-     *            the resume options
+     * @param resumeOptions the resume options
      */
     public void setResumeOptions(ResumeOptions resumeOptions) {
       this.resumeOptions = resumeOptions;
@@ -952,9 +917,7 @@ public class Chat<S> {
       return new Builder();
     }
 
-    /**
-     * Builder for SendOptions.
-     */
+    /** Builder for SendOptions. */
     public static class Builder {
       private String model;
       private List<Tool<?, ?>> tools;
@@ -964,8 +927,7 @@ public class Chat<S> {
       /**
        * Sets the model name.
        *
-       * @param model
-       *            the model name
+       * @param model the model name
        * @return this builder
        */
       public Builder model(String model) {
@@ -976,8 +938,7 @@ public class Chat<S> {
       /**
        * Sets the tools.
        *
-       * @param tools
-       *            the tools
+       * @param tools the tools
        * @return this builder
        */
       public Builder tools(List<Tool<?, ?>> tools) {
@@ -988,8 +949,7 @@ public class Chat<S> {
       /**
        * Sets the max turns.
        *
-       * @param maxTurns
-       *            the max turns
+       * @param maxTurns the max turns
        * @return this builder
        */
       public Builder maxTurns(Integer maxTurns) {
@@ -1000,8 +960,7 @@ public class Chat<S> {
       /**
        * Sets the resume options for resuming after an interrupt.
        *
-       * @param resumeOptions
-       *            the resume options
+       * @param resumeOptions the resume options
        * @return this builder
        */
       public Builder resumeOptions(ResumeOptions resumeOptions) {

@@ -18,18 +18,17 @@
 
 package com.google.genkit.plugins.googlegenai;
 
-import java.util.Map;
-
 import com.google.genai.types.HttpOptions;
+import java.util.Map;
 
 /**
  * Options for configuring the Google GenAI plugin.
  *
- * <p>
- * The plugin can be configured to use either:
+ * <p>The plugin can be configured to use either:
+ *
  * <ul>
- * <li>Gemini Developer API (default): Set the API key</li>
- * <li>Vertex AI API: Set project, location, and enable vertexAI</li>
+ *   <li>Gemini Developer API (default): Set the API key
+ *   <li>Vertex AI API: Set project, location, and enable vertexAI
  * </ul>
  */
 public class GoogleGenAIPluginOptions {
@@ -141,13 +140,14 @@ public class GoogleGenAIPluginOptions {
       builder.timeout(timeout);
     }
 
-    builder.headers(Map.of(GenkitClientHeaders.X_GOOG_API_CLIENT_HEADER, GenkitClientHeaders.GENKIT_CLIENT_HEADER));
+    builder.headers(
+        Map.of(
+            GenkitClientHeaders.X_GOOG_API_CLIENT_HEADER,
+            GenkitClientHeaders.GENKIT_CLIENT_HEADER));
     return builder.build();
   }
 
-  /**
-   * Builder for GoogleGenAIPluginOptions.
-   */
+  /** Builder for GoogleGenAIPluginOptions. */
   public static class Builder {
     private String apiKey = getApiKeyFromEnv();
     private String project = getProjectFromEnv();
@@ -183,8 +183,7 @@ public class GoogleGenAIPluginOptions {
     /**
      * Sets the API key for Gemini Developer API.
      *
-     * @param apiKey
-     *            the API key
+     * @param apiKey the API key
      * @return this builder
      */
     public Builder apiKey(String apiKey) {
@@ -195,8 +194,7 @@ public class GoogleGenAIPluginOptions {
     /**
      * Sets the Google Cloud project ID for Vertex AI.
      *
-     * @param project
-     *            the project ID
+     * @param project the project ID
      * @return this builder
      */
     public Builder project(String project) {
@@ -207,8 +205,7 @@ public class GoogleGenAIPluginOptions {
     /**
      * Sets the Google Cloud location for Vertex AI.
      *
-     * @param location
-     *            the location
+     * @param location the location
      * @return this builder
      */
     public Builder location(String location) {
@@ -219,8 +216,7 @@ public class GoogleGenAIPluginOptions {
     /**
      * Sets whether to use Vertex AI backend.
      *
-     * @param vertexAI
-     *            true to use Vertex AI, false for Gemini Developer API
+     * @param vertexAI true to use Vertex AI, false for Gemini Developer API
      * @return this builder
      */
     public Builder vertexAI(boolean vertexAI) {
@@ -231,8 +227,7 @@ public class GoogleGenAIPluginOptions {
     /**
      * Sets the API version.
      *
-     * @param apiVersion
-     *            the API version (e.g., "v1", "v1beta")
+     * @param apiVersion the API version (e.g., "v1", "v1beta")
      * @return this builder
      */
     public Builder apiVersion(String apiVersion) {
@@ -243,8 +238,7 @@ public class GoogleGenAIPluginOptions {
     /**
      * Sets the base URL override.
      *
-     * @param baseUrl
-     *            the base URL
+     * @param baseUrl the base URL
      * @return this builder
      */
     public Builder baseUrl(String baseUrl) {
@@ -255,8 +249,7 @@ public class GoogleGenAIPluginOptions {
     /**
      * Sets the request timeout in milliseconds.
      *
-     * @param timeout
-     *            the timeout in milliseconds
+     * @param timeout the timeout in milliseconds
      * @return this builder
      */
     public Builder timeout(int timeout) {
@@ -272,11 +265,14 @@ public class GoogleGenAIPluginOptions {
     public GoogleGenAIPluginOptions build() {
       // Validate configuration
       if (!vertexAI && (apiKey == null || apiKey.isEmpty())) {
-        throw new IllegalStateException("Google API key is required for Gemini Developer API. "
-            + "Set GOOGLE_API_KEY or GEMINI_API_KEY environment variable, "
-            + "or provide it in options, or enable vertexAI mode.");
+        throw new IllegalStateException(
+            "Google API key is required for Gemini Developer API. "
+                + "Set GOOGLE_API_KEY or GEMINI_API_KEY environment variable, "
+                + "or provide it in options, or enable vertexAI mode.");
       }
-      if (vertexAI && (project == null || project.isEmpty()) && (apiKey == null || apiKey.isEmpty())) {
+      if (vertexAI
+          && (project == null || project.isEmpty())
+          && (apiKey == null || apiKey.isEmpty())) {
         throw new IllegalStateException(
             "For Vertex AI, either set GOOGLE_CLOUD_PROJECT and GOOGLE_CLOUD_LOCATION "
                 + "environment variables, or provide an API key for express mode.");

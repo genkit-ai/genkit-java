@@ -20,15 +20,11 @@ package com.google.genkit.plugins.spring;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.google.genkit.core.Action;
 import java.util.List;
-
 import org.junit.jupiter.api.Test;
 
-import com.google.genkit.core.Action;
-
-/**
- * Tests for SpringPlugin.
- */
+/** Tests for SpringPlugin. */
 class SpringPluginTest {
 
   @Test

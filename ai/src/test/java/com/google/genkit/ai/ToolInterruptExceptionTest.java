@@ -22,12 +22,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.junit.jupiter.api.Test;
 
-/**
- * Unit tests for ToolInterruptException.
- */
+/** Unit tests for ToolInterruptException. */
 class ToolInterruptExceptionTest {
 
   @Test

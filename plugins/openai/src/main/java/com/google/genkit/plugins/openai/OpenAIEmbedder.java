@@ -18,14 +18,6 @@
 
 package com.google.genkit.plugins.openai;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -33,12 +25,15 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.genkit.ai.*;
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.GenkitException;
-
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import okhttp3.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * OpenAI embedder implementation for Genkit.
- */
+/** OpenAI embedder implementation for Genkit. */
 public class OpenAIEmbedder extends Embedder {
 
   private static final Logger logger = LoggerFactory.getLogger(OpenAIEmbedder.class);
@@ -52,22 +47,26 @@ public class OpenAIEmbedder extends Embedder {
   /**
    * Creates a new OpenAIEmbedder.
    *
-   * @param modelName
-   *            the model name
-   * @param options
-   *            the plugin options
+   * @param modelName the model name
+   * @param options the plugin options
    */
   public OpenAIEmbedder(String modelName, OpenAIPluginOptions options) {
-    super("openai/" + modelName, createEmbedderInfo(modelName), (ctx, req) -> {
-      // This will be overridden by the actual implementation
-      throw new GenkitException("Handler not initialized");
-    });
+    super(
+        "openai/" + modelName,
+        createEmbedderInfo(modelName),
+        (ctx, req) -> {
+          // This will be overridden by the actual implementation
+          throw new GenkitException("Handler not initialized");
+        });
     this.modelName = modelName;
     this.options = options;
     this.objectMapper = new ObjectMapper();
-    this.client = new OkHttpClient.Builder().connectTimeout(options.getTimeout(), TimeUnit.SECONDS)
-        .readTimeout(options.getTimeout(), TimeUnit.SECONDS)
-        .writeTimeout(options.getTimeout(), TimeUnit.SECONDS).build();
+    this.client =
+        new OkHttpClient.Builder()
+            .connectTimeout(options.getTimeout(), TimeUnit.SECONDS)
+            .readTimeout(options.getTimeout(), TimeUnit.SECONDS)
+            .writeTimeout(options.getTimeout(), TimeUnit.SECONDS)
+            .build();
   }
 
   private static EmbedderInfo createEmbedderInfo(String modelName) {
@@ -76,13 +75,13 @@ public class OpenAIEmbedder extends Embedder {
 
     // Set dimensions based on model
     switch (modelName) {
-      case "text-embedding-3-small" :
+      case "text-embedding-3-small":
         info.setDimensions(1536);
         break;
-      case "text-embedding-3-large" :
+      case "text-embedding-3-large":
         info.setDimensions(3072);
         break;
-      case "text-embedding-ada-002" :
+      case "text-embedding-ada-002":
         info.setDimensions(1536);
         break;
     }
@@ -93,7 +92,8 @@ public class OpenAIEmbedder extends Embedder {
   @Override
   public EmbedResponse run(ActionContext context, EmbedRequest request) {
     if (request == null) {
-      throw new GenkitException("Embed request is required. Please provide an input with documents to embed.");
+      throw new GenkitException(
+          "Embed request is required. Please provide an input with documents to embed.");
     }
     if (request.getDocuments() == null || request.getDocuments().isEmpty()) {
       throw new GenkitException("Embed request must contain at least one document to embed.");
@@ -113,7 +113,8 @@ public class OpenAIEmbedder extends Embedder {
     ArrayNode input = requestBody.putArray("input");
     for (Document doc : request.getDocuments()) {
       String text = doc.text();
-      logger.debug("Document text: '{}' (length: {})",
+      logger.debug(
+          "Document text: '{}' (length: {})",
           text != null ? text.substring(0, Math.min(50, text.length())) : "null",
           text != null ? text.length() : 0);
       if (text == null || text.isEmpty()) {
@@ -132,18 +133,24 @@ public class OpenAIEmbedder extends Embedder {
     String requestJson = requestBody.toString();
     logger.info("OpenAI Embedding request body: {}", requestJson);
 
-    Request httpRequest = new Request.Builder().url(options.getBaseUrl() + "/embeddings")
-        .header("Authorization", "Bearer " + options.getApiKey()).header("Content-Type", "application/json")
-        .post(RequestBody.create(requestBody.toString(), JSON_MEDIA_TYPE)).build();
+    Request httpRequest =
+        new Request.Builder()
+            .url(options.getBaseUrl() + "/embeddings")
+            .header("Authorization", "Bearer " + options.getApiKey())
+            .header("Content-Type", "application/json")
+            .post(RequestBody.create(requestBody.toString(), JSON_MEDIA_TYPE))
+            .build();
 
     if (options.getOrganization() != null) {
-      httpRequest = httpRequest.newBuilder().header("OpenAI-Organization", options.getOrganization()).build();
+      httpRequest =
+          httpRequest.newBuilder().header("OpenAI-Organization", options.getOrganization()).build();
     }
 
     try (Response response = client.newCall(httpRequest).execute()) {
       if (!response.isSuccessful()) {
         String errorBody = response.body() != null ? response.body().string() : "No error body";
-        throw new GenkitException("OpenAI Embedding API error: " + response.code() + " - " + errorBody);
+        throw new GenkitException(
+            "OpenAI Embedding API error: " + response.code() + " - " + errorBody);
       }
 
       String responseBody = response.body().string();

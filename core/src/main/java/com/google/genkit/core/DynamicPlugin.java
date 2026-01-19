@@ -21,9 +21,8 @@ package com.google.genkit.core;
 import java.util.List;
 
 /**
- * DynamicPlugin is a Plugin that can dynamically resolve actions. This is
- * useful for plugins that provide a large number of actions or actions that are
- * determined at runtime.
+ * DynamicPlugin is a Plugin that can dynamically resolve actions. This is useful for plugins that
+ * provide a large number of actions or actions that are determined at runtime.
  */
 public interface DynamicPlugin extends Plugin {
 
@@ -37,10 +36,8 @@ public interface DynamicPlugin extends Plugin {
   /**
    * Resolves an action by type and name.
    *
-   * @param type
-   *            the action type
-   * @param name
-   *            the action name
+   * @param type the action type
+   * @param name the action name
    * @return the resolved action, or null if not resolvable
    */
   Action<?, ?, ?> resolveAction(ActionType type, String name);

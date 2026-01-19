@@ -18,26 +18,6 @@
 
 package com.google.genkit;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Response;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.util.Callback;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.genkit.ai.evaluation.*;
 import com.google.genkit.core.Action;
@@ -49,13 +29,29 @@ import com.google.genkit.core.JsonUtils;
 import com.google.genkit.core.Registry;
 import com.google.genkit.core.tracing.TraceData;
 import com.google.genkit.core.tracing.Tracer;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.util.Callback;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * ReflectionServer provides an HTTP API for the Genkit Developer UI to interact
- * with.
- * 
- * It exposes endpoints for listing actions, running actions, querying traces,
- * and evaluation.
+ * ReflectionServer provides an HTTP API for the Genkit Developer UI to interact with.
+ *
+ * <p>It exposes endpoints for listing actions, running actions, querying traces, and evaluation.
  */
 public class ReflectionServer {
 
@@ -75,10 +71,8 @@ public class ReflectionServer {
   /**
    * Creates a new ReflectionServer.
    *
-   * @param registry
-   *            the Genkit registry
-   * @param port
-   *            the port to listen on
+   * @param registry the Genkit registry
+   * @param port the port to listen on
    */
   public ReflectionServer(Registry registry, int port) {
     this.registry = registry;
@@ -90,9 +84,7 @@ public class ReflectionServer {
     Tracer.registerSpanProcessor(new LocalTelemetryStore());
   }
 
-  /**
-   * Gets the runtime ID.
-   */
+  /** Gets the runtime ID. */
   public String getRuntimeId() {
     return runtimeId;
   }
@@ -100,8 +92,7 @@ public class ReflectionServer {
   /**
    * Starts the reflection server.
    *
-   * @throws Exception
-   *             if the server fails to start
+   * @throws Exception if the server fails to start
    */
   public void start() throws Exception {
     server = new Server();
@@ -121,8 +112,7 @@ public class ReflectionServer {
   /**
    * Stops the reflection server.
    *
-   * @throws Exception
-   *             if the server fails to stop
+   * @throws Exception if the server fails to stop
    */
   public void stop() throws Exception {
     if (server != null) {
@@ -131,9 +121,7 @@ public class ReflectionServer {
     }
   }
 
-  /**
-   * Handler for reflection API requests using Jetty 12 Handler.Abstract.
-   */
+  /** Handler for reflection API requests using Jetty 12 Handler.Abstract. */
   private class ReflectionHandler extends Handler.Abstract {
 
     @Override
@@ -308,7 +296,8 @@ public class ReflectionServer {
         String errorMessage = e.getMessage() != null ? e.getMessage() : "Unknown error";
         String stacktrace = getStackTraceString(e);
         // For HTTP 500 errors, send error status directly (no wrapper)
-        String errorJson = createErrorStatus(2, errorMessage, stacktrace); // INTERNAL error code = 2
+        String errorJson = createErrorStatus(2, errorMessage, stacktrace); // INTERNAL error code =
+        // 2
         byte[] bytes = errorJson.getBytes(StandardCharsets.UTF_8);
         response.write(true, ByteBuffer.wrap(bytes), callback);
       }
@@ -323,9 +312,8 @@ public class ReflectionServer {
     }
 
     /**
-     * Creates a structured error status JSON string (without wrapper). Format:
-     * {code, message, details: {stack}} Used for HTTP 500 error responses where the
-     * body IS the error.
+     * Creates a structured error status JSON string (without wrapper). Format: {code, message,
+     * details: {stack}} Used for HTTP 500 error responses where the body IS the error.
      */
     private String createErrorStatus(int code, String message, String stack) {
       Map<String, Object> errorDetails = new HashMap<>();
@@ -342,9 +330,8 @@ public class ReflectionServer {
     }
 
     /**
-     * Creates a wrapped error response JSON string. Format: {error: {code, message,
-     * details: {stack}}} Used for inline errors in 200 OK responses (e.g., action
-     * not found).
+     * Creates a wrapped error response JSON string. Format: {error: {code, message, details:
+     * {stack}}} Used for inline errors in 200 OK responses (e.g., action not found).
      */
     private String createErrorResponse(int code, String message, String stack) {
       Map<String, Object> errorDetails = new HashMap<>();
@@ -474,8 +461,8 @@ public class ReflectionServer {
     }
 
     /**
-     * Handle the streamTrace endpoint for the Dev UI "View trace" button. This
-     * returns trace data for a specific trace ID.
+     * Handle the streamTrace endpoint for the Dev UI "View trace" button. This returns trace data
+     * for a specific trace ID.
      */
     private String handleStreamTrace(String body) {
       try {
@@ -505,11 +492,12 @@ public class ReflectionServer {
     }
 
     /**
-     * Handle runAction with streaming format (when ?stream=true is set). The Dev UI
-     * expects: 1. Content-Type: text/plain with Content-Length 2. X-Genkit-Trace-Id
-     * and X-Genkit-Version headers 3. JSON response with result and telemetry
+     * Handle runAction with streaming format (when ?stream=true is set). The Dev UI expects: 1.
+     * Content-Type: text/plain with Content-Length 2. X-Genkit-Trace-Id and X-Genkit-Version
+     * headers 3. JSON response with result and telemetry
      */
-    private void handleStreamingRunAction(String body, Response response, Callback callback) throws Exception {
+    private void handleStreamingRunAction(String body, Response response, Callback callback)
+        throws Exception {
       JsonNode requestNode = JsonUtils.parseJson(body);
       String actionKey = requestNode.has("key") ? requestNode.get("key").asText() : null;
       JsonNode input = requestNode.has("input") ? requestNode.get("input") : null;
@@ -557,19 +545,21 @@ public class ReflectionServer {
     }
 
     /**
-     * Handle the notify endpoint from the Genkit CLI. This is used to receive
-     * configuration like the telemetry server URL.
+     * Handle the notify endpoint from the Genkit CLI. This is used to receive configuration like
+     * the telemetry server URL.
      */
     private String handleNotify(String body) {
       try {
         JsonNode requestNode = JsonUtils.parseJson(body);
 
-        String telemetryServerUrl = requestNode.has("telemetryServerUrl")
-            ? requestNode.get("telemetryServerUrl").asText()
-            : null;
-        int reflectionApiSpecVersion = requestNode.has("reflectionApiSpecVersion")
-            ? requestNode.get("reflectionApiSpecVersion").asInt()
-            : 0;
+        String telemetryServerUrl =
+            requestNode.has("telemetryServerUrl")
+                ? requestNode.get("telemetryServerUrl").asText()
+                : null;
+        int reflectionApiSpecVersion =
+            requestNode.has("reflectionApiSpecVersion")
+                ? requestNode.get("reflectionApiSpecVersion").asInt()
+                : 0;
 
         if (telemetryServerUrl != null && !telemetryServerUrl.isEmpty()) {
           // Configure the telemetry exporter with the server URL
@@ -696,11 +686,10 @@ public class ReflectionServer {
   }
 
   /**
-   * Stores a trace in the in-memory trace store for Dev UI access. This is called
-   * by the LocalTelemetryStore span processor.
-   * 
-   * @param trace
-   *            the trace to store
+   * Stores a trace in the in-memory trace store for Dev UI access. This is called by the
+   * LocalTelemetryStore span processor.
+   *
+   * @param trace the trace to store
    */
   public static void storeTrace(TraceData trace) {
     if (trace == null || trace.getTraceId() == null) {
@@ -723,9 +712,8 @@ public class ReflectionServer {
 
   /**
    * Gets a trace by ID from the in-memory store.
-   * 
-   * @param traceId
-   *            the trace ID
+   *
+   * @param traceId the trace ID
    * @return the trace data, or null if not found
    */
   public static TraceData getTrace(String traceId) {

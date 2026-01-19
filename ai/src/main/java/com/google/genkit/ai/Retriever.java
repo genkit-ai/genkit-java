@@ -18,11 +18,6 @@
 
 package com.google.genkit.ai;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.genkit.core.Action;
 import com.google.genkit.core.ActionContext;
@@ -32,12 +27,16 @@ import com.google.genkit.core.ActionType;
 import com.google.genkit.core.GenkitException;
 import com.google.genkit.core.JsonUtils;
 import com.google.genkit.core.Registry;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
 /**
  * Retriever is an action that retrieves documents based on a query.
  *
- * Retrievers are used for RAG (Retrieval Augmented Generation) workflows to
- * find relevant documents to include in model prompts.
+ * <p>Retrievers are used for RAG (Retrieval Augmented Generation) workflows to find relevant
+ * documents to include in model prompts.
  */
 public class Retriever implements Action<RetrieverRequest, RetrieverResponse, Void> {
 
@@ -48,12 +47,11 @@ public class Retriever implements Action<RetrieverRequest, RetrieverResponse, Vo
   /**
    * Creates a new Retriever.
    *
-   * @param name
-   *            the retriever name
-   * @param handler
-   *            the retrieval function
+   * @param name the retriever name
+   * @param handler the retrieval function
    */
-  public Retriever(String name, BiFunction<ActionContext, RetrieverRequest, RetrieverResponse> handler) {
+  public Retriever(
+      String name, BiFunction<ActionContext, RetrieverRequest, RetrieverResponse> handler) {
     this.name = name;
     this.handler = handler;
     this.metadata = new HashMap<>();
@@ -81,8 +79,13 @@ public class Retriever implements Action<RetrieverRequest, RetrieverResponse, Vo
 
   @Override
   public ActionDesc getDesc() {
-    return ActionDesc.builder().type(ActionType.RETRIEVER).name(name).inputSchema(getInputSchema())
-        .outputSchema(getOutputSchema()).metadata(getMetadata()).build();
+    return ActionDesc.builder()
+        .type(ActionType.RETRIEVER)
+        .name(name)
+        .inputSchema(getInputSchema())
+        .outputSchema(getOutputSchema())
+        .metadata(getMetadata())
+        .build();
   }
 
   @Override
@@ -95,7 +98,8 @@ public class Retriever implements Action<RetrieverRequest, RetrieverResponse, Vo
   }
 
   @Override
-  public RetrieverResponse run(ActionContext ctx, RetrieverRequest input, Consumer<Void> streamCallback)
+  public RetrieverResponse run(
+      ActionContext ctx, RetrieverRequest input, Consumer<Void> streamCallback)
       throws GenkitException {
     return run(ctx, input);
   }
@@ -109,8 +113,8 @@ public class Retriever implements Action<RetrieverRequest, RetrieverResponse, Vo
   }
 
   @Override
-  public ActionRunResult<JsonNode> runJsonWithTelemetry(ActionContext ctx, JsonNode input,
-      Consumer<JsonNode> streamCallback) throws GenkitException {
+  public ActionRunResult<JsonNode> runJsonWithTelemetry(
+      ActionContext ctx, JsonNode input, Consumer<JsonNode> streamCallback) throws GenkitException {
     JsonNode result = runJson(ctx, input, streamCallback);
     return new ActionRunResult<>(result, null, null);
   }
@@ -221,9 +225,7 @@ public class Retriever implements Action<RetrieverRequest, RetrieverResponse, Vo
     registry.registerAction(ActionType.RETRIEVER.keyFromName(name), this);
   }
 
-  /**
-   * Builder for Retriever.
-   */
+  /** Builder for Retriever. */
   public static class Builder {
     private String name;
     private BiFunction<ActionContext, RetrieverRequest, RetrieverResponse> handler;

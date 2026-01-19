@@ -18,47 +18,39 @@
 
 package com.google.genkit.ai.session;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.genkit.ai.Message;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.genkit.ai.Message;
-
 /**
- * SessionData represents the persistent data structure for a session, including
- * state and conversation threads.
+ * SessionData represents the persistent data structure for a session, including state and
+ * conversation threads.
  *
- * @param <S>
- *            the type of the custom session state
+ * @param <S> the type of the custom session state
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SessionData<S> {
 
-  /**
-   * The unique identifier for this session.
-   */
+  /** The unique identifier for this session. */
   @JsonProperty("id")
   private String id;
 
-  /**
-   * Custom user-defined state associated with the session.
-   */
+  /** Custom user-defined state associated with the session. */
   @JsonProperty("state")
   private S state;
 
   /**
-   * Named conversation threads. Each thread is identified by a string key
-   * (default is "main") and contains a list of messages.
+   * Named conversation threads. Each thread is identified by a string key (default is "main") and
+   * contains a list of messages.
    */
   @JsonProperty("threads")
   private Map<String, List<Message>> threads;
 
-  /**
-   * Default constructor.
-   */
+  /** Default constructor. */
   public SessionData() {
     this.threads = new HashMap<>();
   }
@@ -66,8 +58,7 @@ public class SessionData<S> {
   /**
    * Creates a new SessionData with the given ID.
    *
-   * @param id
-   *            the session ID
+   * @param id the session ID
    */
   public SessionData(String id) {
     this.id = id;
@@ -77,10 +68,8 @@ public class SessionData<S> {
   /**
    * Creates a new SessionData with the given ID and initial state.
    *
-   * @param id
-   *            the session ID
-   * @param state
-   *            the initial state
+   * @param id the session ID
+   * @param state the initial state
    */
   public SessionData(String id, S state) {
     this.id = id;
@@ -100,8 +89,7 @@ public class SessionData<S> {
   /**
    * Sets the session ID.
    *
-   * @param id
-   *            the session ID
+   * @param id the session ID
    */
   public void setId(String id) {
     this.id = id;
@@ -119,8 +107,7 @@ public class SessionData<S> {
   /**
    * Sets the session state.
    *
-   * @param state
-   *            the session state
+   * @param state the session state
    */
   public void setState(S state) {
     this.state = state;
@@ -138,8 +125,7 @@ public class SessionData<S> {
   /**
    * Sets all conversation threads.
    *
-   * @param threads
-   *            the threads map
+   * @param threads the threads map
    */
   public void setThreads(Map<String, List<Message>> threads) {
     this.threads = threads;
@@ -148,8 +134,7 @@ public class SessionData<S> {
   /**
    * Gets a specific thread by name.
    *
-   * @param threadName
-   *            the thread name
+   * @param threadName the thread name
    * @return the list of messages in the thread, or null if not found
    */
   public List<Message> getThread(String threadName) {
@@ -159,8 +144,7 @@ public class SessionData<S> {
   /**
    * Gets or creates a thread by name.
    *
-   * @param threadName
-   *            the thread name
+   * @param threadName the thread name
    * @return the list of messages in the thread
    */
   public List<Message> getOrCreateThread(String threadName) {
@@ -170,10 +154,8 @@ public class SessionData<S> {
   /**
    * Sets messages for a specific thread.
    *
-   * @param threadName
-   *            the thread name
-   * @param messages
-   *            the messages to set
+   * @param threadName the thread name
+   * @param messages the messages to set
    */
   public void setThread(String threadName, List<Message> messages) {
     threads.put(threadName, new ArrayList<>(messages));
@@ -182,8 +164,7 @@ public class SessionData<S> {
   /**
    * Creates a builder for SessionData.
    *
-   * @param <S>
-   *            the state type
+   * @param <S> the state type
    * @return a new builder
    */
   public static <S> Builder<S> builder() {
@@ -193,8 +174,7 @@ public class SessionData<S> {
   /**
    * Builder for SessionData.
    *
-   * @param <S>
-   *            the state type
+   * @param <S> the state type
    */
   public static class Builder<S> {
     private String id;
@@ -204,8 +184,7 @@ public class SessionData<S> {
     /**
      * Sets the session ID.
      *
-     * @param id
-     *            the session ID
+     * @param id the session ID
      * @return this builder
      */
     public Builder<S> id(String id) {
@@ -216,8 +195,7 @@ public class SessionData<S> {
     /**
      * Sets the session state.
      *
-     * @param state
-     *            the session state
+     * @param state the session state
      * @return this builder
      */
     public Builder<S> state(S state) {
@@ -228,8 +206,7 @@ public class SessionData<S> {
     /**
      * Sets the conversation threads.
      *
-     * @param threads
-     *            the threads map
+     * @param threads the threads map
      * @return this builder
      */
     public Builder<S> threads(Map<String, List<Message>> threads) {
@@ -240,10 +217,8 @@ public class SessionData<S> {
     /**
      * Adds a thread.
      *
-     * @param threadName
-     *            the thread name
-     * @param messages
-     *            the messages
+     * @param threadName the thread name
+     * @param messages the messages
      * @return this builder
      */
     public Builder<S> thread(String threadName, List<Message> messages) {

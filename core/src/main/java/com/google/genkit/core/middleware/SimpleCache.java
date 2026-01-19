@@ -22,20 +22,16 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * SimpleCache is a thread-safe in-memory cache implementation for use with
- * caching middleware.
+ * SimpleCache is a thread-safe in-memory cache implementation for use with caching middleware.
  *
- * @param <V>
- *            the value type
+ * @param <V> the value type
  */
 public class SimpleCache<V> implements MiddlewareCache<V> {
 
   private final Map<String, CacheEntry<V>> cache;
   private final long ttlMs;
 
-  /**
-   * Creates a SimpleCache with no TTL (entries never expire).
-   */
+  /** Creates a SimpleCache with no TTL (entries never expire). */
   public SimpleCache() {
     this(0);
   }
@@ -43,8 +39,7 @@ public class SimpleCache<V> implements MiddlewareCache<V> {
   /**
    * Creates a SimpleCache with the specified TTL.
    *
-   * @param ttlMs
-   *            time-to-live in milliseconds (0 for no expiration)
+   * @param ttlMs time-to-live in milliseconds (0 for no expiration)
    */
   public SimpleCache(long ttlMs) {
     this.cache = new ConcurrentHashMap<>();

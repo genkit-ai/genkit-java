@@ -18,44 +18,45 @@
 
 package com.google.genkit.plugins.anthropic;
 
+import com.google.genkit.core.Action;
+import com.google.genkit.core.Plugin;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.genkit.core.Action;
-import com.google.genkit.core.Plugin;
 
 /**
  * AnthropicPlugin provides Anthropic Claude model integrations for Genkit.
  *
- * This plugin registers Claude models (Claude 3.5, Claude 3, Claude 2) as
- * Genkit actions for text generation with support for streaming.
+ * <p>This plugin registers Claude models (Claude 3.5, Claude 3, Claude 2) as Genkit actions for
+ * text generation with support for streaming.
  */
 public class AnthropicPlugin implements Plugin {
 
   private static final Logger logger = LoggerFactory.getLogger(AnthropicPlugin.class);
 
-  /**
-   * Supported Claude models.
-   */
-  public static final List<String> SUPPORTED_MODELS = Arrays.asList(
-      // Claude 4.5 family
-      "claude-opus-4-5-20251101", "claude-sonnet-4-5-20250929", "claude-haiku-4-5-20251001",
-      // Claude 4.x family
-      "claude-opus-4-1-20250805", "claude-opus-4-20250514", "claude-sonnet-4-20250514",
-      // Claude 3.x family
-      "claude-3-7-sonnet-20250219", "claude-3-5-haiku-20241022", "claude-3-opus-20240229",
-      "claude-3-haiku-20240307");
+  /** Supported Claude models. */
+  public static final List<String> SUPPORTED_MODELS =
+      Arrays.asList(
+          // Claude 4.5 family
+          "claude-opus-4-5-20251101",
+          "claude-sonnet-4-5-20250929",
+          "claude-haiku-4-5-20251001",
+          // Claude 4.x family
+          "claude-opus-4-1-20250805",
+          "claude-opus-4-20250514",
+          "claude-sonnet-4-20250514",
+          // Claude 3.x family
+          "claude-3-7-sonnet-20250219",
+          "claude-3-5-haiku-20241022",
+          "claude-3-opus-20240229",
+          "claude-3-haiku-20240307");
 
   private final AnthropicPluginOptions options;
   private final List<String> customModels = new ArrayList<>();
 
-  /**
-   * Creates an AnthropicPlugin with default options.
-   */
+  /** Creates an AnthropicPlugin with default options. */
   public AnthropicPlugin() {
     this(AnthropicPluginOptions.builder().build());
   }
@@ -63,8 +64,7 @@ public class AnthropicPlugin implements Plugin {
   /**
    * Creates an AnthropicPlugin with the specified options.
    *
-   * @param options
-   *            the plugin options
+   * @param options the plugin options
    */
   public AnthropicPlugin(AnthropicPluginOptions options) {
     this.options = options;
@@ -73,8 +73,7 @@ public class AnthropicPlugin implements Plugin {
   /**
    * Creates an AnthropicPlugin with the specified API key.
    *
-   * @param apiKey
-   *            the Anthropic API key
+   * @param apiKey the Anthropic API key
    * @return a new AnthropicPlugin
    */
   public static AnthropicPlugin create(String apiKey) {
@@ -115,17 +114,18 @@ public class AnthropicPlugin implements Plugin {
       logger.debug("Created custom Anthropic model: {}", modelName);
     }
 
-    logger.info("Anthropic plugin initialized with {} models", SUPPORTED_MODELS.size() + customModels.size());
+    logger.info(
+        "Anthropic plugin initialized with {} models",
+        SUPPORTED_MODELS.size() + customModels.size());
 
     return actions;
   }
 
   /**
-   * Registers a custom model name. Use this to work with models not in the
-   * default list. Call this method before passing the plugin to Genkit.builder().
-   * 
-   * @param modelName
-   *            the model name (e.g., "claude-4-opus-20260101")
+   * Registers a custom model name. Use this to work with models not in the default list. Call this
+   * method before passing the plugin to Genkit.builder().
+   *
+   * @param modelName the model name (e.g., "claude-4-opus-20260101")
    * @return this plugin instance for method chaining
    */
   public AnthropicPlugin customModel(String modelName) {

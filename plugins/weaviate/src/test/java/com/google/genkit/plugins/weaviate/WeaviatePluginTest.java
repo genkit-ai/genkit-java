@@ -33,10 +33,14 @@ class WeaviatePluginTest {
 
   @Test
   void testBuilderWithHost() {
-    WeaviateCollectionConfig config = WeaviateCollectionConfig.builder().name("test-collection")
-        .embedderName("test-embedder").build();
+    WeaviateCollectionConfig config =
+        WeaviateCollectionConfig.builder()
+            .name("test-collection")
+            .embedderName("test-embedder")
+            .build();
 
-    WeaviatePlugin plugin = WeaviatePlugin.builder().host("localhost").port(8080).addCollection(config).build();
+    WeaviatePlugin plugin =
+        WeaviatePlugin.builder().host("localhost").port(8080).addCollection(config).build();
 
     assertNotNull(plugin);
     assertEquals("weaviate", plugin.getName());
@@ -44,11 +48,19 @@ class WeaviatePluginTest {
 
   @Test
   void testBuilderWithApiKey() {
-    WeaviateCollectionConfig config = WeaviateCollectionConfig.builder().name("test-collection")
-        .embedderName("test-embedder").build();
+    WeaviateCollectionConfig config =
+        WeaviateCollectionConfig.builder()
+            .name("test-collection")
+            .embedderName("test-embedder")
+            .build();
 
-    WeaviatePlugin plugin = WeaviatePlugin.builder().host("weaviate.example.com").apiKey("test-api-key")
-        .secure(true).addCollection(config).build();
+    WeaviatePlugin plugin =
+        WeaviatePlugin.builder()
+            .host("weaviate.example.com")
+            .apiKey("test-api-key")
+            .secure(true)
+            .addCollection(config)
+            .build();
 
     assertNotNull(plugin);
     assertEquals("weaviate", plugin.getName());
@@ -56,21 +68,34 @@ class WeaviatePluginTest {
 
   @Test
   void testGetName() {
-    WeaviateCollectionConfig config = WeaviateCollectionConfig.builder().name("test-collection")
-        .embedderName("test-embedder").build();
+    WeaviateCollectionConfig config =
+        WeaviateCollectionConfig.builder()
+            .name("test-collection")
+            .embedderName("test-embedder")
+            .build();
 
-    WeaviatePlugin plugin = WeaviatePlugin.builder().host("localhost").addCollection(config).build();
+    WeaviatePlugin plugin =
+        WeaviatePlugin.builder().host("localhost").addCollection(config).build();
 
     assertEquals("weaviate", plugin.getName());
   }
 
   @Test
   void testBuilderChaining() {
-    WeaviateCollectionConfig config = WeaviateCollectionConfig.builder().name("test-collection")
-        .embedderName("test-embedder").build();
+    WeaviateCollectionConfig config =
+        WeaviateCollectionConfig.builder()
+            .name("test-collection")
+            .embedderName("test-embedder")
+            .build();
 
-    WeaviatePlugin plugin = WeaviatePlugin.builder().host("localhost").port(8080).grpcPort(50051).secure(false)
-        .addCollection(config).build();
+    WeaviatePlugin plugin =
+        WeaviatePlugin.builder()
+            .host("localhost")
+            .port(8080)
+            .grpcPort(50051)
+            .secure(false)
+            .addCollection(config)
+            .build();
 
     assertNotNull(plugin);
   }

@@ -18,11 +18,10 @@
 
 /**
  * Firebase Cloud Functions integration for Genkit flows.
- * 
- * <p>
- * Provides a way to expose Genkit flows as Firebase Cloud Functions using the
- * Google Cloud Functions Framework.
- * 
+ *
+ * <p>Provides a way to expose Genkit flows as Firebase Cloud Functions using the Google Cloud
+ * Functions Framework.
+ *
  * @see com.google.genkit.plugins.firebase.functions.OnCallGenkit
  * @see com.google.genkit.plugins.firebase.functions.AuthContext
  */

@@ -25,10 +25,8 @@ import java.util.Map;
 
 /**
  * Configuration options for the GenkitEval plugin.
- * 
- * <p>
- * Allows configuring the default judge model, embedder, and the list of metrics
- * to enable.
+ *
+ * <p>Allows configuring the default judge model, embedder, and the list of metrics to enable.
  */
 public class EvaluatorsPluginOptions {
 
@@ -51,11 +49,9 @@ public class EvaluatorsPluginOptions {
   }
 
   /**
-   * Creates plugin options with the specified metrics using defaults for judge
-   * and embedder.
+   * Creates plugin options with the specified metrics using defaults for judge and embedder.
    *
-   * @param metrics
-   *            the metrics to enable
+   * @param metrics the metrics to enable
    * @return plugin options
    */
   public static EvaluatorsPluginOptions withMetrics(MetricConfig... metrics) {
@@ -63,11 +59,9 @@ public class EvaluatorsPluginOptions {
   }
 
   /**
-   * Creates plugin options with simple metric types (no per-metric
-   * configuration).
+   * Creates plugin options with simple metric types (no per-metric configuration).
    *
-   * @param metricTypes
-   *            the metric types to enable
+   * @param metricTypes the metric types to enable
    * @return plugin options
    */
   public static EvaluatorsPluginOptions withMetricTypes(GenkitMetric... metricTypes) {
@@ -101,8 +95,7 @@ public class EvaluatorsPluginOptions {
   /**
    * Resolves the judge for a specific metric, falling back to the global default.
    *
-   * @param config
-   *            the metric configuration
+   * @param config the metric configuration
    * @return the resolved judge model name
    */
   public String resolveJudge(MetricConfig config) {
@@ -110,11 +103,9 @@ public class EvaluatorsPluginOptions {
   }
 
   /**
-   * Resolves the judge config for a specific metric, falling back to the global
-   * default.
+   * Resolves the judge config for a specific metric, falling back to the global default.
    *
-   * @param config
-   *            the metric configuration
+   * @param config the metric configuration
    * @return the resolved judge configuration
    */
   public Map<String, Object> resolveJudgeConfig(MetricConfig config) {
@@ -122,11 +113,9 @@ public class EvaluatorsPluginOptions {
   }
 
   /**
-   * Resolves the embedder for a specific metric, falling back to the global
-   * default.
+   * Resolves the embedder for a specific metric, falling back to the global default.
    *
-   * @param config
-   *            the metric configuration
+   * @param config the metric configuration
    * @return the resolved embedder name
    */
   public String resolveEmbedder(MetricConfig config) {
@@ -134,11 +123,9 @@ public class EvaluatorsPluginOptions {
   }
 
   /**
-   * Resolves the embedder options for a specific metric, falling back to the
-   * global default.
+   * Resolves the embedder options for a specific metric, falling back to the global default.
    *
-   * @param config
-   *            the metric configuration
+   * @param config the metric configuration
    * @return the resolved embedder options
    */
   public Map<String, Object> resolveEmbedderOptions(MetricConfig config) {
@@ -192,8 +179,7 @@ public class EvaluatorsPluginOptions {
     /**
      * Sets the metrics from simple metric types (convenience method).
      *
-     * @param metricTypes
-     *            the metric types to enable
+     * @param metricTypes the metric types to enable
      * @return this builder
      */
     public Builder metricTypes(List<GenkitMetric> metricTypes) {

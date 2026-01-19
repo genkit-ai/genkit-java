@@ -18,20 +18,16 @@
 
 package com.google.genkit.core.tracing;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-/**
- * HTTP-based telemetry client that sends traces to the Genkit telemetry server.
- */
+/** HTTP-based telemetry client that sends traces to the Genkit telemetry server. */
 public class HttpTelemetryClient implements TelemetryClient {
 
   private static final Logger logger = LoggerFactory.getLogger(HttpTelemetryClient.class);
@@ -43,11 +39,11 @@ public class HttpTelemetryClient implements TelemetryClient {
   /**
    * Creates a new HTTP telemetry client.
    *
-   * @param serverUrl
-   *            the URL of the telemetry server
+   * @param serverUrl the URL of the telemetry server
    */
   public HttpTelemetryClient(String serverUrl) {
-    this.serverUrl = serverUrl.endsWith("/") ? serverUrl.substring(0, serverUrl.length() - 1) : serverUrl;
+    this.serverUrl =
+        serverUrl.endsWith("/") ? serverUrl.substring(0, serverUrl.length() - 1) : serverUrl;
     this.httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
   }
 
@@ -60,14 +56,21 @@ public class HttpTelemetryClient implements TelemetryClient {
 
     String json = objectMapper.writeValueAsString(trace);
 
-    HttpRequest request = HttpRequest.newBuilder().uri(URI.create(serverUrl + "/api/traces"))
-        .header("Content-Type", "application/json").header("Accept", "application/json")
-        .POST(HttpRequest.BodyPublishers.ofString(json)).timeout(Duration.ofSeconds(30)).build();
+    HttpRequest request =
+        HttpRequest.newBuilder()
+            .uri(URI.create(serverUrl + "/api/traces"))
+            .header("Content-Type", "application/json")
+            .header("Accept", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(json))
+            .timeout(Duration.ofSeconds(30))
+            .build();
 
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
     if (response.statusCode() != 200) {
-      logger.warn("Failed to send trace to telemetry server: status={}, body={}", response.statusCode(),
+      logger.warn(
+          "Failed to send trace to telemetry server: status={}, body={}",
+          response.statusCode(),
           response.body());
       throw new RuntimeException("Failed to send trace: HTTP " + response.statusCode());
     }

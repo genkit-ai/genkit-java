@@ -20,9 +20,7 @@ package com.google.genkit.plugins.compatoai;
 
 import java.util.Map;
 
-/**
- * Options for configuring OpenAI-compatible API plugins.
- */
+/** Options for configuring OpenAI-compatible API plugins. */
 public class CompatOAIPluginOptions {
   private final String apiKey;
   private final String baseUrl;
@@ -92,9 +90,7 @@ public class CompatOAIPluginOptions {
     return queryParams;
   }
 
-  /**
-   * Builder for CompatOAIPluginOptions.
-   */
+  /** Builder for CompatOAIPluginOptions. */
   public static class Builder {
     private String apiKey;
     private String baseUrl;
@@ -105,8 +101,7 @@ public class CompatOAIPluginOptions {
     /**
      * Sets the API key.
      *
-     * @param apiKey
-     *            the API key
+     * @param apiKey the API key
      * @return this builder
      */
     public Builder apiKey(String apiKey) {
@@ -117,8 +112,7 @@ public class CompatOAIPluginOptions {
     /**
      * Sets the base URL for API requests.
      *
-     * @param baseUrl
-     *            the base URL
+     * @param baseUrl the base URL
      * @return this builder
      */
     public Builder baseUrl(String baseUrl) {
@@ -129,8 +123,7 @@ public class CompatOAIPluginOptions {
     /**
      * Sets the organization ID.
      *
-     * @param organization
-     *            the organization ID
+     * @param organization the organization ID
      * @return this builder
      */
     public Builder organization(String organization) {
@@ -141,8 +134,7 @@ public class CompatOAIPluginOptions {
     /**
      * Sets the request timeout in seconds.
      *
-     * @param timeout
-     *            the timeout
+     * @param timeout the timeout
      * @return this builder
      */
     public Builder timeout(int timeout) {
@@ -153,8 +145,7 @@ public class CompatOAIPluginOptions {
     /**
      * Sets query parameters to append to API requests.
      *
-     * @param queryParams
-     *            the query parameters map
+     * @param queryParams the query parameters map
      * @return this builder
      */
     public Builder queryParams(Map<String, String> queryParams) {

@@ -18,17 +18,8 @@
 
 package com.google.genkit;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.genkit.core.tracing.GenkitSpanData;
 import com.google.genkit.core.tracing.TraceData;
-
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.common.CompletableResultCode;
@@ -36,11 +27,16 @@ import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 import io.opentelemetry.sdk.trace.data.SpanData;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * A SpanProcessor that stores traces locally for the Dev UI to access. This
- * enables the evaluation workflow to retrieve trace data including input and
- * output values.
+ * A SpanProcessor that stores traces locally for the Dev UI to access. This enables the evaluation
+ * workflow to retrieve trace data including input and output values.
  */
 public class LocalTelemetryStore implements SpanProcessor {
 
@@ -75,7 +71,8 @@ public class LocalTelemetryStore implements SpanProcessor {
 
       // Check if this is a root span (no parent)
       String parentSpanId = spanData.getParentSpanId();
-      boolean isRoot = parentSpanId == null || parentSpanId.isEmpty() || "0000000000000000".equals(parentSpanId);
+      boolean isRoot =
+          parentSpanId == null || parentSpanId.isEmpty() || "0000000000000000".equals(parentSpanId);
 
       if (isRoot) {
         // Set trace-level info
@@ -89,7 +86,8 @@ public class LocalTelemetryStore implements SpanProcessor {
         // Remove from buffer
         traceBuffer.remove(traceId);
 
-        logger.debug("Stored completed trace: {} with {} spans", traceId, traceData.getSpans().size());
+        logger.debug(
+            "Stored completed trace: {} with {} spans", traceId, traceData.getSpans().size());
       }
     } catch (Exception e) {
       logger.error("Failed to store span locally", e);
@@ -131,15 +129,20 @@ public class LocalTelemetryStore implements SpanProcessor {
     span.setSpanKind(otelSpan.getKind().name());
 
     String parentSpanId = otelSpan.getParentSpanId();
-    if (parentSpanId != null && !parentSpanId.isEmpty() && !"0000000000000000".equals(parentSpanId)) {
+    if (parentSpanId != null
+        && !parentSpanId.isEmpty()
+        && !"0000000000000000".equals(parentSpanId)) {
       span.setParentSpanId(parentSpanId);
     }
 
     // Convert attributes - this includes genkit:input and genkit:output
     Map<String, Object> attributes = new HashMap<>();
-    otelSpan.getAttributes().forEach((key, value) -> {
-      attributes.put(key.getKey(), value);
-    });
+    otelSpan
+        .getAttributes()
+        .forEach(
+            (key, value) -> {
+              attributes.put(key.getKey(), value);
+            });
     span.setAttributes(attributes);
 
     // Convert status
@@ -159,19 +162,20 @@ public class LocalTelemetryStore implements SpanProcessor {
     span.setInstrumentationScope(scope);
 
     // Set sameProcessAsParentSpan
-    span.setSameProcessAsParentSpan(new GenkitSpanData.BoolValue(!otelSpan.getSpanContext().isRemote()));
+    span.setSameProcessAsParentSpan(
+        new GenkitSpanData.BoolValue(!otelSpan.getSpanContext().isRemote()));
 
     return span;
   }
 
   private int convertStatusCode(StatusCode statusCode) {
     switch (statusCode) {
-      case OK :
+      case OK:
         return 0;
-      case ERROR :
+      case ERROR:
         return 2;
-      case UNSET :
-      default :
+      case UNSET:
+      default:
         return 0;
     }
   }

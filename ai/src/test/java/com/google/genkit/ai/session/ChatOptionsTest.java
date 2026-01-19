@@ -24,13 +24,11 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.junit.jupiter.api.Test;
-
 import com.google.genkit.ai.GenerationConfig;
 import com.google.genkit.ai.OutputConfig;
+import java.util.HashMap;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
 
 /** Unit tests for ChatOptions. */
 class ChatOptionsTest {
@@ -125,14 +123,16 @@ class ChatOptionsTest {
 
   @Test
   void testBuilderWithSystem() {
-    ChatOptions<String> options = ChatOptions.<String>builder().system("You are a coding assistant.").build();
+    ChatOptions<String> options =
+        ChatOptions.<String>builder().system("You are a coding assistant.").build();
 
     assertEquals("You are a coding assistant.", options.getSystem());
   }
 
   @Test
   void testBuilderWithConfig() {
-    GenerationConfig config = GenerationConfig.builder().temperature(0.5).maxOutputTokens(100).build();
+    GenerationConfig config =
+        GenerationConfig.builder().temperature(0.5).maxOutputTokens(100).build();
 
     ChatOptions<String> options = ChatOptions.<String>builder().config(config).build();
 
@@ -173,9 +173,15 @@ class ChatOptionsTest {
     Map<String, Object> context = new HashMap<>();
     context.put("key", "value");
 
-    ChatOptions<String> options = ChatOptions.<String>builder().model("gemini-pro")
-        .system("You are an expert programmer.").config(config).output(output).context(context).maxTurns(20)
-        .build();
+    ChatOptions<String> options =
+        ChatOptions.<String>builder()
+            .model("gemini-pro")
+            .system("You are an expert programmer.")
+            .config(config)
+            .output(output)
+            .context(context)
+            .maxTurns(20)
+            .build();
 
     assertEquals("gemini-pro", options.getModel());
     assertEquals("You are an expert programmer.", options.getSystem());
@@ -200,9 +206,12 @@ class ChatOptionsTest {
 
   @Test
   void testLongSystemPrompt() {
-    String longPrompt = "You are a helpful assistant. " + "You should always be polite and professional. "
-        + "Never provide harmful or misleading information. " + "If you don't know something, say so. "
-        + "Always cite your sources when possible.";
+    String longPrompt =
+        "You are a helpful assistant. "
+            + "You should always be polite and professional. "
+            + "Never provide harmful or misleading information. "
+            + "If you don't know something, say so. "
+            + "Always cite your sources when possible.";
 
     ChatOptions<String> options = ChatOptions.<String>builder().system(longPrompt).build();
 
@@ -228,8 +237,12 @@ class ChatOptionsTest {
   @Test
   void testWithComplexState() {
     // Test with a custom state type
-    ChatOptions<TestState> options = ChatOptions.<TestState>builder().model("test-model")
-        .system("Test system prompt").maxTurns(15).build();
+    ChatOptions<TestState> options =
+        ChatOptions.<TestState>builder()
+            .model("test-model")
+            .system("Test system prompt")
+            .maxTurns(15)
+            .build();
 
     assertEquals("test-model", options.getModel());
     assertEquals("Test system prompt", options.getSystem());

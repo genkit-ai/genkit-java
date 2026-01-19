@@ -18,14 +18,11 @@
 
 package com.google.genkit.ai;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 
-/**
- * EmbedderInfo contains metadata about an embedder's capabilities.
- */
+/** EmbedderInfo contains metadata about an embedder's capabilities. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class EmbedderInfo {
 
@@ -38,11 +35,8 @@ public class EmbedderInfo {
   @JsonProperty("supports")
   private EmbedderCapabilities supports;
 
-  /**
-   * Default constructor.
-   */
-  public EmbedderInfo() {
-  }
+  /** Default constructor. */
+  public EmbedderInfo() {}
 
   // Getters and setters
 
@@ -70,9 +64,7 @@ public class EmbedderInfo {
     this.supports = supports;
   }
 
-  /**
-   * EmbedderCapabilities describes what an embedder can do.
-   */
+  /** EmbedderCapabilities describes what an embedder can do. */
   @JsonInclude(JsonInclude.Include.NON_NULL)
   public static class EmbedderCapabilities {
 

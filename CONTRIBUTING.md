@@ -105,7 +105,7 @@ Common scopes for this project:
 1. Create a feature branch from `main`
 2. Make your changes following the conventional commits format
 3. Ensure all tests pass: `mvn test`
-4. Check code formatting: `mvn spotless:check`
+4. Check code formatting: `mvn fmt:format`
 5. Submit a pull request
 
 When opening a pull request, please follow the PR template and fill out the checklist as applicable.
@@ -131,8 +131,8 @@ Releases are automated using [Release Please](https://github.com/googleapis/rele
 ## Code Style
 
 This project uses:
-- **Spotless** with Eclipse JDT formatter
+- **Formatter** with Google formatter
 - **Checkstyle** with Google checks
 
-Run formatting: `mvn spotless:apply`
-Check formatting: `mvn spotless:check`
+Run formatting: `mvn fmt:format`
+Check formatting: `mvn fmt:check`

@@ -18,11 +18,6 @@
 
 package com.google.genkit.samples;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
-
 import com.google.genkit.Genkit;
 import com.google.genkit.GenkitOptions;
 import com.google.genkit.ai.Message;
@@ -34,25 +29,29 @@ import com.google.genkit.ai.session.InMemorySessionStore;
 import com.google.genkit.ai.session.Session;
 import com.google.genkit.ai.session.SessionOptions;
 import com.google.genkit.plugins.openai.OpenAIPlugin;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
 
 /**
  * Interactive Chat Application with Session Persistence.
  *
- * <p>
- * This sample demonstrates:
+ * <p>This sample demonstrates:
+ *
  * <ul>
- * <li>Creating and managing chat sessions</li>
- * <li>Multi-turn conversations with automatic history</li>
- * <li>Session state management</li>
- * <li>Using tools in chat sessions</li>
- * <li>Persisting and loading sessions</li>
+ *   <li>Creating and managing chat sessions
+ *   <li>Multi-turn conversations with automatic history
+ *   <li>Session state management
+ *   <li>Using tools in chat sessions
+ *   <li>Persisting and loading sessions
  * </ul>
  *
- * <p>
- * To run:
+ * <p>To run:
+ *
  * <ol>
- * <li>Set the OPENAI_API_KEY environment variable</li>
- * <li>Run: mvn exec:java -pl samples/chat-session</li>
+ *   <li>Set the OPENAI_API_KEY environment variable
+ *   <li>Run: mvn exec:java -pl samples/chat-session
  * </ol>
  */
 public class ChatSessionApp {
@@ -98,8 +97,11 @@ public class ChatSessionApp {
 
     @Override
     public String toString() {
-      return String.format("User: %s, Topic: %s, Messages: %d", userName != null ? userName : "Anonymous",
-          topic != null ? topic : "General", messageCount);
+      return String.format(
+          "User: %s, Topic: %s, Messages: %d",
+          userName != null ? userName : "Anonymous",
+          topic != null ? topic : "General",
+          messageCount);
     }
   }
 
@@ -113,8 +115,11 @@ public class ChatSessionApp {
     this.notes = new HashMap<>();
 
     // Create Genkit with OpenAI plugin
-    this.genkit = Genkit.builder().options(GenkitOptions.builder().devMode(true).reflectionPort(3100).build())
-        .plugin(OpenAIPlugin.create()).build();
+    this.genkit =
+        Genkit.builder()
+            .options(GenkitOptions.builder().devMode(true).reflectionPort(3100).build())
+            .plugin(OpenAIPlugin.create())
+            .build();
 
     // Create a shared session store
     this.sessionStore = new InMemorySessionStore<>();
@@ -125,13 +130,22 @@ public class ChatSessionApp {
 
   @SuppressWarnings("unchecked")
   private Tool<?, ?> createNoteTool() {
-    return genkit.defineTool("saveNote",
+    return genkit.defineTool(
+        "saveNote",
         "Saves a note for the user. Use this when the user wants to remember something.",
-        Map.of("type", "object", "properties",
-            Map.of("title", Map.of("type", "string", "description", "Title of the note"), "content",
+        Map.of(
+            "type",
+            "object",
+            "properties",
+            Map.of(
+                "title",
+                Map.of("type", "string", "description", "Title of the note"),
+                "content",
                 Map.of("type", "string", "description", "Content of the note")),
-            "required", new String[]{"title", "content"}),
-        (Class<Map<String, Object>>) (Class<?>) Map.class, (ctx, input) -> {
+            "required",
+            new String[] {"title", "content"}),
+        (Class<Map<String, Object>>) (Class<?>) Map.class,
+        (ctx, input) -> {
           String title = (String) input.get("title");
           String content = (String) input.get("content");
           notes.put(title, content);
@@ -144,15 +158,19 @@ public class ChatSessionApp {
 
   /** Creates a new chat session with the given user name. */
   public Session<ConversationState> createSession(String userName) {
-    return genkit.createSession(SessionOptions.<ConversationState>builder().store(sessionStore)
-        .initialState(new ConversationState(userName)).build());
+    return genkit.createSession(
+        SessionOptions.<ConversationState>builder()
+            .store(sessionStore)
+            .initialState(new ConversationState(userName))
+            .build());
   }
 
   /** Loads an existing session by ID. */
   public Session<ConversationState> loadSession(String sessionId) {
     try {
       return genkit
-          .loadSession(sessionId, SessionOptions.<ConversationState>builder().store(sessionStore).build())
+          .loadSession(
+              sessionId, SessionOptions.<ConversationState>builder().store(sessionStore).build())
           .get();
     } catch (Exception e) {
       System.err.println("Failed to load session: " + e.getMessage());
@@ -165,8 +183,12 @@ public class ChatSessionApp {
   public Chat<ConversationState> createChat(Session<ConversationState> session, String persona) {
     String systemPrompt = buildSystemPrompt(session, persona);
 
-    return session.chat(ChatOptions.<ConversationState>builder().model("openai/gpt-4o-mini").system(systemPrompt)
-        .tools(List.of((Tool<?, ?>) noteTool)).build());
+    return session.chat(
+        ChatOptions.<ConversationState>builder()
+            .model("openai/gpt-4o-mini")
+            .system(systemPrompt)
+            .tools(List.of((Tool<?, ?>) noteTool))
+            .build());
   }
 
   private String buildSystemPrompt(Session<ConversationState> session, String persona) {
@@ -175,17 +197,19 @@ public class ChatSessionApp {
 
     // Base persona
     switch (persona.toLowerCase()) {
-      case "assistant" :
+      case "assistant":
         prompt.append("You are a helpful, friendly assistant. ");
         break;
-      case "tutor" :
-        prompt.append("You are a patient and knowledgeable tutor. Explain concepts clearly and encourage"
-            + " learning. ");
+      case "tutor":
+        prompt.append(
+            "You are a patient and knowledgeable tutor. Explain concepts clearly and encourage"
+                + " learning. ");
         break;
-      case "creative" :
-        prompt.append("You are a creative writing partner. Be imaginative and help with storytelling. ");
+      case "creative":
+        prompt.append(
+            "You are a creative writing partner. Be imaginative and help with storytelling. ");
         break;
-      default :
+      default:
         prompt.append("You are a helpful assistant. ");
     }
 
@@ -199,8 +223,9 @@ public class ChatSessionApp {
       prompt.append("The current topic of discussion is: ").append(state.getTopic()).append(". ");
     }
 
-    prompt.append("You can save notes for the user using the saveNote tool when they want to remember"
-        + " something important.");
+    prompt.append(
+        "You can save notes for the user using the saveNote tool when they want to remember"
+            + " something important.");
 
     return prompt.toString();
   }
@@ -271,11 +296,12 @@ public class ChatSessionApp {
     System.out.println("  3. Creative (storytelling & ideas)");
     System.out.print("Enter choice (1-3): ");
     String choice = scanner.nextLine().trim();
-    String persona = switch (choice) {
-      case "2" -> "tutor";
-      case "3" -> "creative";
-      default -> "assistant";
-    };
+    String persona =
+        switch (choice) {
+          case "2" -> "tutor";
+          case "3" -> "creative";
+          default -> "assistant";
+        };
 
     // Create session and chat
     Session<ConversationState> session = createSession(userName);
@@ -349,8 +375,11 @@ public class ChatSessionApp {
     Session<ConversationState> session1 = createSession("Alice");
     Chat<ConversationState> chat1 = createChat(session1, "assistant");
 
-    String[] questions = {"What are the three laws of thermodynamics?",
-        "Can you explain the second one in simpler terms?", "How does this relate to entropy?"};
+    String[] questions = {
+      "What are the three laws of thermodynamics?",
+      "Can you explain the second one in simpler terms?",
+      "How does this relate to entropy?"
+    };
 
     for (String question : questions) {
       System.out.println("User: " + question);
@@ -389,7 +418,8 @@ public class ChatSessionApp {
     Chat<ConversationState> chat2 = createChat(session2, "assistant");
 
     System.out.println("User: Please save a note titled 'Meeting' with content 'Review Q4 goals'");
-    String noteResponse = chat(chat2, "Please save a note titled 'Meeting' with content 'Review Q4 goals'");
+    String noteResponse =
+        chat(chat2, "Please save a note titled 'Meeting' with content 'Review Q4 goals'");
     System.out.println("Assistant: " + noteResponse);
     showNotes();
 

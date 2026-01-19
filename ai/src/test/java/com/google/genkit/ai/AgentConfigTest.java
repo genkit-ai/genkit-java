@@ -23,21 +23,17 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.junit.jupiter.api.Test;
 
-/**
- * Unit tests for AgentConfig.
- */
+/** Unit tests for AgentConfig. */
 class AgentConfigTest {
 
-  /**
-   * Helper to create a simple test tool.
-   */
+  /** Helper to create a simple test tool. */
   private Tool<String, String> createTestTool(String name) {
     Map<String, Object> schema = new HashMap<>();
     schema.put("type", "string");
-    return new Tool<>(name, "Test tool " + name, schema, schema, String.class, (ctx, input) -> "result");
+    return new Tool<>(
+        name, "Test tool " + name, schema, schema, String.class, (ctx, input) -> "result");
   }
 
   @Test
@@ -52,9 +48,17 @@ class AgentConfigTest {
     OutputConfig outputConfig = new OutputConfig();
     outputConfig.setFormat(OutputFormat.JSON);
 
-    AgentConfig config = AgentConfig.builder().name("mainAgent").description("Main agent description")
-        .system("You are a helpful assistant.").model("openai/gpt-4o").tools(List.of(tool1, tool2))
-        .agents(List.of(subAgent)).config(genConfig).output(outputConfig).build();
+    AgentConfig config =
+        AgentConfig.builder()
+            .name("mainAgent")
+            .description("Main agent description")
+            .system("You are a helpful assistant.")
+            .model("openai/gpt-4o")
+            .tools(List.of(tool1, tool2))
+            .agents(List.of(subAgent))
+            .config(genConfig)
+            .output(outputConfig)
+            .build();
 
     assertEquals("mainAgent", config.getName());
     assertEquals("Main agent description", config.getDescription());
@@ -69,7 +73,8 @@ class AgentConfigTest {
 
   @Test
   void testBuilderWithMinimalFields() {
-    AgentConfig config = AgentConfig.builder().name("simpleAgent").description("A simple agent").build();
+    AgentConfig config =
+        AgentConfig.builder().name("simpleAgent").description("A simple agent").build();
 
     assertEquals("simpleAgent", config.getName());
     assertEquals("A simple agent", config.getDescription());
@@ -126,11 +131,19 @@ class AgentConfigTest {
   void testNestedAgents() {
     AgentConfig level3 = AgentConfig.builder().name("level3").description("Level 3 agent").build();
 
-    AgentConfig level2 = AgentConfig.builder().name("level2").description("Level 2 agent").agents(List.of(level3))
-        .build();
+    AgentConfig level2 =
+        AgentConfig.builder()
+            .name("level2")
+            .description("Level 2 agent")
+            .agents(List.of(level3))
+            .build();
 
-    AgentConfig level1 = AgentConfig.builder().name("level1").description("Level 1 agent").agents(List.of(level2))
-        .build();
+    AgentConfig level1 =
+        AgentConfig.builder()
+            .name("level1")
+            .description("Level 1 agent")
+            .agents(List.of(level2))
+            .build();
 
     assertEquals("level1", level1.getName());
     assertEquals(1, level1.getAgents().size());
@@ -148,8 +161,12 @@ class AgentConfigTest {
     AgentConfig sub1 = AgentConfig.builder().name("sub1").build();
     AgentConfig sub2 = AgentConfig.builder().name("sub2").build();
 
-    AgentConfig config = AgentConfig.builder().name("main").tools(List.of(tool1, tool2, tool3))
-        .agents(List.of(sub1, sub2)).build();
+    AgentConfig config =
+        AgentConfig.builder()
+            .name("main")
+            .tools(List.of(tool1, tool2, tool3))
+            .agents(List.of(sub1, sub2))
+            .build();
 
     assertEquals(3, config.getTools().size());
     assertEquals(2, config.getAgents().size());

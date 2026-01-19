@@ -25,12 +25,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.junit.jupiter.api.Test;
 
-/**
- * Unit tests for Document.
- */
+/** Unit tests for Document. */
 class DocumentTest {
 
   @Test
@@ -125,8 +122,11 @@ class DocumentTest {
   @Test
   void testGetTextSkipsNonTextParts() {
     Document doc = new Document();
-    doc.setContent(Arrays.asList(Part.text("Text"), Part.media("image/png", "http://example.com/img.png"),
-        Part.text(" content")));
+    doc.setContent(
+        Arrays.asList(
+            Part.text("Text"),
+            Part.media("image/png", "http://example.com/img.png"),
+            Part.text(" content")));
 
     assertEquals("Text content", doc.text());
   }
@@ -173,7 +173,8 @@ class DocumentTest {
   void testDocumentWithMedia() {
     Document doc = new Document();
     doc.setContent(
-        Arrays.asList(Part.text("Description: "), Part.media("image/png", "http://example.com/image.png")));
+        Arrays.asList(
+            Part.text("Description: "), Part.media("image/png", "http://example.com/image.png")));
 
     assertEquals(2, doc.getContent().size());
     assertEquals("Description: ", doc.text());

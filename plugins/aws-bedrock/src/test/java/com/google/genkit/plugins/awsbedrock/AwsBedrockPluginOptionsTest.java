@@ -40,7 +40,8 @@ class AwsBedrockPluginOptionsTest {
 
   @Test
   void testBuilderChaining() {
-    AwsBedrockPluginOptions options = AwsBedrockPluginOptions.builder().region("eu-central-1").build();
+    AwsBedrockPluginOptions options =
+        AwsBedrockPluginOptions.builder().region("eu-central-1").build();
 
     assertNotNull(options);
     assertEquals("eu-central-1", options.getRegion().toString());

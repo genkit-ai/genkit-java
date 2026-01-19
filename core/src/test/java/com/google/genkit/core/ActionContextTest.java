@@ -23,9 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/**
- * Unit tests for ActionContext.
- */
+/** Unit tests for ActionContext. */
 class ActionContextTest {
 
   private Registry registry;
@@ -42,7 +40,8 @@ class ActionContextTest {
     String sessionId = "session123";
     String threadName = "thread1";
 
-    ActionContext context = new ActionContext(null, flowName, spanPath, registry, sessionId, threadName);
+    ActionContext context =
+        new ActionContext(null, flowName, spanPath, registry, sessionId, threadName);
 
     assertNull(context.getSpanContext());
     assertEquals(flowName, context.getFlowName());
@@ -137,7 +136,8 @@ class ActionContextTest {
 
   @Test
   void testContextImmutability() {
-    ActionContext original = new ActionContext(null, "flow1", "/path", registry, "session1", "thread1");
+    ActionContext original =
+        new ActionContext(null, "flow1", "/path", registry, "session1", "thread1");
 
     ActionContext modified = original.withFlowName("flow2");
 
@@ -148,8 +148,12 @@ class ActionContextTest {
 
   @Test
   void testChainedWith() {
-    ActionContext context = new ActionContext(registry).withFlowName("myFlow").withSpanPath("/flow/myFlow")
-        .withSessionId("session789").withThreadName("main-thread");
+    ActionContext context =
+        new ActionContext(registry)
+            .withFlowName("myFlow")
+            .withSpanPath("/flow/myFlow")
+            .withSessionId("session789")
+            .withThreadName("main-thread");
 
     assertEquals("myFlow", context.getFlowName());
     assertEquals("/flow/myFlow", context.getSpanPath());

@@ -18,9 +18,12 @@
 
 package com.google.genkit.plugins.spring;
 
+import com.google.genkit.core.Action;
+import com.google.genkit.core.GenkitException;
+import com.google.genkit.core.Registry;
+import com.google.genkit.core.ServerPlugin;
 import java.util.Collections;
 import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.Banner;
@@ -28,26 +31,21 @@ import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 
-import com.google.genkit.core.Action;
-import com.google.genkit.core.GenkitException;
-import com.google.genkit.core.Registry;
-import com.google.genkit.core.ServerPlugin;
-
 /**
  * SpringPlugin provides HTTP endpoints for Genkit flows using Spring Boot.
  *
- * <p>
- * This plugin exposes registered flows as HTTP endpoints, making it easy to
- * deploy Genkit applications as web services using Spring Boot.
+ * <p>This plugin exposes registered flows as HTTP endpoints, making it easy to deploy Genkit
+ * applications as web services using Spring Boot.
  *
- * <p>
- * Example usage:
- * 
+ * <p>Example usage:
+ *
  * <pre>{@code
- * Genkit genkit = Genkit.builder().plugin(new SpringPlugin(SpringPluginOptions.builder().port(8080).build())).build();
- * 
+ * Genkit genkit = Genkit.builder()
+ *     .plugin(new SpringPlugin(SpringPluginOptions.builder().port(8080).build()))
+ *     .build();
+ *
  * // Define your flows...
- * 
+ *
  * // Start the server and block (keeps application running)
  * genkit.start();
  * }</pre>
@@ -63,9 +61,7 @@ public class SpringPlugin implements ServerPlugin {
   // Static holder for sharing state with Spring components
   private static SpringPlugin instance;
 
-  /**
-   * Creates a SpringPlugin with default options.
-   */
+  /** Creates a SpringPlugin with default options. */
   public SpringPlugin() {
     this(SpringPluginOptions.builder().build());
   }
@@ -73,8 +69,7 @@ public class SpringPlugin implements ServerPlugin {
   /**
    * Creates a SpringPlugin with the specified options.
    *
-   * @param options
-   *            the plugin options
+   * @param options the plugin options
    */
   public SpringPlugin(SpringPluginOptions options) {
     this.options = options;
@@ -84,8 +79,7 @@ public class SpringPlugin implements ServerPlugin {
   /**
    * Creates a SpringPlugin with the specified port.
    *
-   * @param port
-   *            the HTTP port
+   * @param port the HTTP port
    * @return a new SpringPlugin
    */
   public static SpringPlugin create(int port) {
@@ -138,28 +132,25 @@ public class SpringPlugin implements ServerPlugin {
 
   /**
    * Starts the Spring Boot server and blocks until it is stopped.
-   * 
-   * <p>
-   * This is the recommended way to start the server in a main() method. Similar
-   * to Express's app.listen() in JavaScript, this method will keep your
-   * application running until the server is explicitly stopped.
-   * 
-   * <p>
-   * Example usage:
-   * 
+   *
+   * <p>This is the recommended way to start the server in a main() method. Similar to Express's
+   * app.listen() in JavaScript, this method will keep your application running until the server is
+   * explicitly stopped.
+   *
+   * <p>Example usage:
+   *
    * <pre>{@code
    * SpringPlugin spring = new SpringPlugin(SpringPluginOptions.builder().port(8080).build());
-   * 
+   *
    * Genkit genkit = Genkit.builder().plugin(spring).build();
-   * 
+   *
    * // Define your flows...
-   * 
+   *
    * // Start and block
    * spring.start();
    * }</pre>
    *
-   * @throws Exception
-   *             if the server cannot be started or if interrupted while waiting
+   * @throws Exception if the server cannot be started or if interrupted while waiting
    */
   @Override
   public void start() throws Exception {
@@ -187,8 +178,7 @@ public class SpringPlugin implements ServerPlugin {
   /**
    * Starts the Spring Boot server without blocking.
    *
-   * @throws Exception
-   *             if the server cannot be started
+   * @throws Exception if the server cannot be started
    */
   private void startServer() throws Exception {
     if (applicationContext != null) {
@@ -201,11 +191,16 @@ public class SpringPlugin implements ServerPlugin {
     }
 
     // Build Spring Boot application programmatically
-    applicationContext = new SpringApplicationBuilder(GenkitSpringApplication.class).bannerMode(Banner.Mode.OFF)
-        .web(WebApplicationType.SERVLET)
-        .properties("server.port=" + options.getPort(), "server.address=" + options.getHost(),
-            "spring.main.allow-bean-definition-overriding=true", "logging.level.org.springframework=WARN")
-        .run();
+    applicationContext =
+        new SpringApplicationBuilder(GenkitSpringApplication.class)
+            .bannerMode(Banner.Mode.OFF)
+            .web(WebApplicationType.SERVLET)
+            .properties(
+                "server.port=" + options.getPort(),
+                "server.address=" + options.getHost(),
+                "spring.main.allow-bean-definition-overriding=true",
+                "logging.level.org.springframework=WARN")
+            .run();
 
     logger.info("Spring Boot server started on {}:{}", options.getHost(), options.getPort());
   }
@@ -213,8 +208,7 @@ public class SpringPlugin implements ServerPlugin {
   /**
    * Stops the Spring Boot server.
    *
-   * @throws Exception
-   *             if the server cannot be stopped
+   * @throws Exception if the server cannot be stopped
    */
   @Override
   public void stop() throws Exception {

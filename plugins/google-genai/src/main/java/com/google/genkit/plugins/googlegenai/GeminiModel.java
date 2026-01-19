@@ -18,9 +18,6 @@
 
 package com.google.genkit.plugins.googlegenai;
 
-import java.util.*;
-import java.util.function.Consumer;
-
 import com.google.genai.Client;
 import com.google.genai.ResponseStream;
 import com.google.genai.types.Content;
@@ -50,10 +47,10 @@ import com.google.genkit.ai.ToolResponse;
 import com.google.genkit.ai.Usage;
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.GenkitException;
+import java.util.*;
+import java.util.function.Consumer;
 
-/**
- * Gemini model implementation using the official Google GenAI SDK.
- */
+/** Gemini model implementation using the official Google GenAI SDK. */
 public class GeminiModel implements Model {
 
   private final String modelName;
@@ -64,10 +61,8 @@ public class GeminiModel implements Model {
   /**
    * Creates a new GeminiModel.
    *
-   * @param modelName
-   *            the model name (e.g., "gemini-2.0-flash", "gemini-2.5-pro")
-   * @param options
-   *            the plugin options
+   * @param modelName the model name (e.g., "gemini-2.0-flash", "gemini-2.5-pro")
+   * @param options the plugin options
    */
   public GeminiModel(String modelName, GoogleGenAIPluginOptions options) {
     this.modelName = modelName;
@@ -160,7 +155,8 @@ public class GeminiModel implements Model {
   }
 
   @Override
-  public ModelResponse run(ActionContext context, ModelRequest request, Consumer<ModelResponseChunk> streamCallback) {
+  public ModelResponse run(
+      ActionContext context, ModelRequest request, Consumer<ModelResponseChunk> streamCallback) {
     if (streamCallback == null) {
       return run(context, request);
     }
@@ -180,7 +176,8 @@ public class GeminiModel implements Model {
     return parseResponse(response);
   }
 
-  private ModelResponse callGeminiStreaming(ModelRequest request, Consumer<ModelResponseChunk> streamCallback) {
+  private ModelResponse callGeminiStreaming(
+      ModelRequest request, Consumer<ModelResponseChunk> streamCallback) {
     GenerateContentConfig config = buildConfig(request);
     List<Content> contents = buildContents(request);
 
@@ -188,8 +185,8 @@ public class GeminiModel implements Model {
     List<ToolRequest> toolRequests = new ArrayList<>();
     String finishReason = null;
 
-    ResponseStream<GenerateContentResponse> responseStream = client().models.generateContentStream(modelName,
-        contents, config);
+    ResponseStream<GenerateContentResponse> responseStream =
+        client().models.generateContentStream(modelName, contents, config);
 
     try {
       for (GenerateContentResponse chunk : responseStream) {
@@ -266,8 +263,9 @@ public class GeminiModel implements Model {
     // System instruction
     Message systemMessage = findSystemMessage(request);
     if (systemMessage != null) {
-      Content systemContent = Content
-          .fromParts(com.google.genai.types.Part.fromText(getTextFromMessage(systemMessage)));
+      Content systemContent =
+          Content.fromParts(
+              com.google.genai.types.Part.fromText(getTextFromMessage(systemMessage)));
       configBuilder.systemInstruction(systemContent);
     }
 
@@ -309,13 +307,15 @@ public class GeminiModel implements Model {
       // Safety settings
       if (config.containsKey("safetySettings")) {
         @SuppressWarnings("unchecked")
-        List<Map<String, String>> safetySettingsConfig = (List<Map<String, String>>) config
-            .get("safetySettings");
+        List<Map<String, String>> safetySettingsConfig =
+            (List<Map<String, String>>) config.get("safetySettings");
         List<SafetySetting> safetySettings = new ArrayList<>();
         for (Map<String, String> setting : safetySettingsConfig) {
-          safetySettings
-              .add(SafetySetting.builder().category(HarmCategory.Known.valueOf(setting.get("category")))
-                  .threshold(HarmBlockThreshold.Known.valueOf(setting.get("threshold"))).build());
+          safetySettings.add(
+              SafetySetting.builder()
+                  .category(HarmCategory.Known.valueOf(setting.get("category")))
+                  .threshold(HarmBlockThreshold.Known.valueOf(setting.get("threshold")))
+                  .build());
         }
         configBuilder.safetySettings(safetySettings);
       }
@@ -326,7 +326,8 @@ public class GeminiModel implements Model {
         Map<String, Object> thinkingConfig = (Map<String, Object>) config.get("thinkingConfig");
         ThinkingConfig.Builder thinkingBuilder = ThinkingConfig.builder();
         if (thinkingConfig.containsKey("thinkingBudget")) {
-          thinkingBuilder.thinkingBudget(((Number) thinkingConfig.get("thinkingBudget")).intValue());
+          thinkingBuilder.thinkingBudget(
+              ((Number) thinkingConfig.get("thinkingBudget")).intValue());
         }
         configBuilder.thinkingConfig(thinkingBuilder);
       }
@@ -344,14 +345,19 @@ public class GeminiModel implements Model {
     if (request.getTools() != null && !request.getTools().isEmpty()) {
       List<com.google.genai.types.Tool> tools = new ArrayList<>();
       for (ToolDefinition toolDef : request.getTools()) {
-        FunctionDeclaration.Builder funcBuilder = FunctionDeclaration.builder().name(toolDef.getName())
-            .description(toolDef.getDescription() != null ? toolDef.getDescription() : "");
+        FunctionDeclaration.Builder funcBuilder =
+            FunctionDeclaration.builder()
+                .name(toolDef.getName())
+                .description(toolDef.getDescription() != null ? toolDef.getDescription() : "");
 
         if (toolDef.getInputSchema() != null) {
           funcBuilder.parameters(convertToSchema(toolDef.getInputSchema()));
         }
 
-        tools.add(com.google.genai.types.Tool.builder().functionDeclarations(funcBuilder.build()).build());
+        tools.add(
+            com.google.genai.types.Tool.builder()
+                .functionDeclarations(funcBuilder.build())
+                .build());
       }
       configBuilder.tools(tools);
     }
@@ -439,12 +445,16 @@ public class GeminiModel implements Model {
             if (contentType == null) {
               contentType = url.substring(url.indexOf(":") + 1, url.indexOf(";"));
             }
-            parts.add(com.google.genai.types.Part.fromBytes(Base64.getDecoder().decode(base64Data),
-                contentType));
-          } else if (url.startsWith("gs://") || url.startsWith("http://") || url.startsWith("https://")) {
+            parts.add(
+                com.google.genai.types.Part.fromBytes(
+                    Base64.getDecoder().decode(base64Data), contentType));
+          } else if (url.startsWith("gs://")
+              || url.startsWith("http://")
+              || url.startsWith("https://")) {
             // File URI
-            parts.add(com.google.genai.types.Part.fromUri(url,
-                contentType != null ? contentType : "application/octet-stream"));
+            parts.add(
+                com.google.genai.types.Part.fromUri(
+                    url, contentType != null ? contentType : "application/octet-stream"));
           }
         } else if (part.getToolRequest() != null) {
           // Tool request (function call from model)
@@ -462,12 +472,14 @@ public class GeminiModel implements Model {
           FunctionResponse.Builder frBuilder = FunctionResponse.builder().name(toolResp.getName());
           if (toolResp.getOutput() != null) {
             @SuppressWarnings("unchecked")
-            Map<String, Object> response = toolResp.getOutput() instanceof Map
-                ? (Map<String, Object>) toolResp.getOutput()
-                : Map.of("result", toolResp.getOutput());
+            Map<String, Object> response =
+                toolResp.getOutput() instanceof Map
+                    ? (Map<String, Object>) toolResp.getOutput()
+                    : Map.of("result", toolResp.getOutput());
             frBuilder.response(response);
           }
-          parts.add(com.google.genai.types.Part.builder().functionResponse(frBuilder.build()).build());
+          parts.add(
+              com.google.genai.types.Part.builder().functionResponse(frBuilder.build()).build());
         }
       }
 
@@ -480,8 +492,11 @@ public class GeminiModel implements Model {
     // If we have context but no user messages were found, add it as a separate user
     // message
     if (!contextPrefixAdded && contextPrefix != null) {
-      Content contextContent = Content.builder().role("user")
-          .parts(com.google.genai.types.Part.fromText(contextPrefix)).build();
+      Content contextContent =
+          Content.builder()
+              .role("user")
+              .parts(com.google.genai.types.Part.fromText(contextPrefix))
+              .build();
       contents.add(0, contextContent);
     }
 
@@ -489,8 +504,8 @@ public class GeminiModel implements Model {
   }
 
   /**
-   * Builds a context prefix string from the documents in the request. Returns
-   * null if no context documents are present.
+   * Builds a context prefix string from the documents in the request. Returns null if no context
+   * documents are present.
    */
   private String buildContextPrefix(ModelRequest request) {
     List<com.google.genkit.ai.Document> contextDocs = request.getContext();
@@ -514,20 +529,19 @@ public class GeminiModel implements Model {
   }
 
   /**
-   * Converts Genkit role to Gemini role. Gemini only supports "user" and "model"
-   * roles. TOOL role maps to "user" as it represents the user providing function
-   * results.
+   * Converts Genkit role to Gemini role. Gemini only supports "user" and "model" roles. TOOL role
+   * maps to "user" as it represents the user providing function results.
    */
   private String toGeminiRole(Role role) {
     switch (role) {
-      case USER :
+      case USER:
         return "user";
-      case MODEL :
+      case MODEL:
         return "model";
-      case TOOL :
+      case TOOL:
         // Tool responses are sent as user role in Gemini
         return "user";
-      default :
+      default:
         return "user";
     }
   }
@@ -595,7 +609,8 @@ public class GeminiModel implements Model {
 
         // Map finish reason
         if (candidate.finishReason().isPresent()) {
-          genkitCandidate.setFinishReason(mapFinishReason(candidate.finishReason().get().toString()));
+          genkitCandidate.setFinishReason(
+              mapFinishReason(candidate.finishReason().get().toString()));
         }
 
         candidates.add(genkitCandidate);
@@ -606,7 +621,8 @@ public class GeminiModel implements Model {
 
     // Usage metadata
     if (response.usageMetadata().isPresent()) {
-      com.google.genai.types.GenerateContentResponseUsageMetadata usage = response.usageMetadata().get();
+      com.google.genai.types.GenerateContentResponseUsageMetadata usage =
+          response.usageMetadata().get();
       Usage genkitUsage = new Usage();
       if (usage.promptTokenCount().isPresent()) {
         genkitUsage.setInputTokens(usage.promptTokenCount().get());
@@ -628,16 +644,16 @@ public class GeminiModel implements Model {
       return com.google.genkit.ai.FinishReason.OTHER;
     }
     switch (reason.toUpperCase()) {
-      case "STOP" :
+      case "STOP":
         return com.google.genkit.ai.FinishReason.STOP;
-      case "MAX_TOKENS" :
-      case "LENGTH" :
+      case "MAX_TOKENS":
+      case "LENGTH":
         return com.google.genkit.ai.FinishReason.LENGTH;
-      case "SAFETY" :
+      case "SAFETY":
         return com.google.genkit.ai.FinishReason.BLOCKED;
-      case "RECITATION" :
+      case "RECITATION":
         return com.google.genkit.ai.FinishReason.BLOCKED;
-      default :
+      default:
         return com.google.genkit.ai.FinishReason.OTHER;
     }
   }

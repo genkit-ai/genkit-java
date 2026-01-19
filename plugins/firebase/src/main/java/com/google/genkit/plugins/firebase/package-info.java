@@ -18,15 +18,15 @@
 
 /**
  * Firebase plugin for Genkit providing integration with Firebase services.
- * 
- * <p>
- * This plugin provides:
+ *
+ * <p>This plugin provides:
+ *
  * <ul>
- * <li>Firestore vector search for RAG (Retrieval Augmented Generation)</li>
- * <li>Firebase Cloud Functions integration for deploying flows</li>
- * <li>Firebase telemetry for Google Cloud observability</li>
+ *   <li>Firestore vector search for RAG (Retrieval Augmented Generation)
+ *   <li>Firebase Cloud Functions integration for deploying flows
+ *   <li>Firebase telemetry for Google Cloud observability
  * </ul>
- * 
+ *
  * @see com.google.genkit.plugins.firebase.FirebasePlugin
  */
 package com.google.genkit.plugins.firebase;

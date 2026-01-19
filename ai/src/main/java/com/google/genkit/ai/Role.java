@@ -21,11 +21,12 @@ package com.google.genkit.ai;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-/**
- * Role represents the role of a message sender in a conversation.
- */
+/** Role represents the role of a message sender in a conversation. */
 public enum Role {
-  USER("user"), MODEL("model"), SYSTEM("system"), TOOL("tool");
+  USER("user"),
+  MODEL("model"),
+  SYSTEM("system"),
+  TOOL("tool");
 
   private final String value;
 

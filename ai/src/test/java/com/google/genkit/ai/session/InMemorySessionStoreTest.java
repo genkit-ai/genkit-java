@@ -20,15 +20,13 @@ package com.google.genkit.ai.session;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.google.genkit.ai.Message;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import com.google.genkit.ai.Message;
 
 /** Unit tests for InMemorySessionStore. */
 class InMemorySessionStoreTest {
@@ -169,7 +167,8 @@ class InMemorySessionStoreTest {
   @Test
   void testAsyncOperations() throws ExecutionException, InterruptedException {
     // Test that operations return proper CompletableFutures
-    CompletableFuture<Void> saveFuture = store.save("async-session", new SessionData<>("async-session"));
+    CompletableFuture<Void> saveFuture =
+        store.save("async-session", new SessionData<>("async-session"));
     assertNotNull(saveFuture);
     saveFuture.get(); // Should complete without exception
 

@@ -57,8 +57,8 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Check code formatting with Spotless
-        run: mvn -B spotless:check
+      - name: Check code formatting with fmt
+        run: mvn -B fmt:check
 
       - name: Run Checkstyle
         run: mvn -B checkstyle:check

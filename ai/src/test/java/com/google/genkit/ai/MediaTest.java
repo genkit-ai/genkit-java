@@ -22,9 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
-/**
- * Unit tests for Media.
- */
+/** Unit tests for Media. */
 class MediaTest {
 
   @Test
@@ -80,7 +78,8 @@ class MediaTest {
 
   @Test
   void testDataUrl() {
-    String dataUrl = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+    String dataUrl =
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
     Media media = new Media("image/png", dataUrl);
 
     assertEquals("image/png", media.getContentType());

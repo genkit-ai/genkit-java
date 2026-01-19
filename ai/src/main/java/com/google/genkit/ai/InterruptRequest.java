@@ -24,25 +24,25 @@ import java.util.Map;
 /**
  * Represents an interrupt request from a tool.
  *
- * <p>
- * When a tool triggers an interrupt, this class captures the tool request
- * information and any associated metadata. The caller can then respond to the
- * interrupt or restart the tool.
+ * <p>When a tool triggers an interrupt, this class captures the tool request information and any
+ * associated metadata. The caller can then respond to the interrupt or restart the tool.
  *
- * <p>
- * Example usage:
+ * <p>Example usage:
  *
  * <pre>{@code
  * // Check for interrupts in response
  * List<InterruptRequest> interrupts = response.getInterrupts();
  * if (!interrupts.isEmpty()) {
- * 	InterruptRequest interrupt = interrupts.get(0);
- * 	// Present to user and get response
- * 	String userResponse = getUserInput(interrupt.getToolRequest().getInput());
+ *   InterruptRequest interrupt = interrupts.get(0);
+ *   // Present to user and get response
+ *   String userResponse = getUserInput(interrupt.getToolRequest().getInput());
  *
- * 	// Resume with user's response
- * 	ModelResponse resumed = chat.send(message, SendOptions.builder()
- * 			.resume(ResumeOptions.builder().respond(interrupt.respond(userResponse)).build()).build());
+ *   // Resume with user's response
+ *   ModelResponse resumed = chat.send(
+ *       message,
+ *       SendOptions.builder()
+ *           .resume(ResumeOptions.builder().respond(interrupt.respond(userResponse)).build())
+ *           .build());
  * }
  * }</pre>
  */
@@ -54,10 +54,8 @@ public class InterruptRequest {
   /**
    * Creates a new InterruptRequest.
    *
-   * @param toolRequest
-   *            the original tool request
-   * @param metadata
-   *            the interrupt metadata
+   * @param toolRequest the original tool request
+   * @param metadata the interrupt metadata
    */
   public InterruptRequest(ToolRequest toolRequest, Map<String, Object> metadata) {
     this.toolRequest = toolRequest;
@@ -96,8 +94,7 @@ public class InterruptRequest {
   /**
    * Creates a tool response to respond to this interrupt.
    *
-   * @param output
-   *            the output data to respond with
+   * @param output the output data to respond with
    * @return a ToolResponse part
    */
   public ToolResponse respond(Object output) {
@@ -105,13 +102,10 @@ public class InterruptRequest {
   }
 
   /**
-   * Creates a tool response to respond to this interrupt with additional
-   * metadata.
+   * Creates a tool response to respond to this interrupt with additional metadata.
    *
-   * @param output
-   *            the output data to respond with
-   * @param responseMetadata
-   *            additional metadata for the response
+   * @param output the output data to respond with
+   * @param responseMetadata additional metadata for the response
    * @return a ToolResponse part
    */
   public ToolResponse respond(Object output, Map<String, Object> responseMetadata) {
@@ -139,8 +133,7 @@ public class InterruptRequest {
   /**
    * Creates a tool request to restart this interrupt with new metadata.
    *
-   * @param resumedMetadata
-   *            metadata for the resumed execution
+   * @param resumedMetadata metadata for the resumed execution
    * @return a ToolRequest to restart execution
    */
   public ToolRequest restart(Map<String, Object> resumedMetadata) {
@@ -150,10 +143,8 @@ public class InterruptRequest {
   /**
    * Creates a tool request to restart this interrupt with new input.
    *
-   * @param resumedMetadata
-   *            metadata for the resumed execution
-   * @param replaceInput
-   *            new input to replace the original
+   * @param resumedMetadata metadata for the resumed execution
+   * @param replaceInput new input to replace the original
    * @return a ToolRequest to restart execution
    */
   public ToolRequest restart(Map<String, Object> resumedMetadata, Object replaceInput) {
@@ -174,7 +165,11 @@ public class InterruptRequest {
 
   @Override
   public String toString() {
-    return "InterruptRequest{" + "toolName=" + (toolRequest != null ? toolRequest.getName() : null) + ", metadata="
-        + metadata + '}';
+    return "InterruptRequest{"
+        + "toolName="
+        + (toolRequest != null ? toolRequest.getName() : null)
+        + ", metadata="
+        + metadata
+        + '}';
   }
 }

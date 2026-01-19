@@ -18,16 +18,13 @@
 
 package com.google.genkit.ai;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-/**
- * ModelRequest represents a request to a generative AI model.
- */
+/** ModelRequest represents a request to a generative AI model. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ModelRequest {
 
@@ -46,17 +43,13 @@ public class ModelRequest {
   @JsonProperty("context")
   private List<Document> context;
 
-  /**
-   * Default constructor.
-   */
-  public ModelRequest() {
-  }
+  /** Default constructor. */
+  public ModelRequest() {}
 
   /**
    * Creates a ModelRequest with the given messages.
    *
-   * @param messages
-   *            the messages
+   * @param messages the messages
    */
   public ModelRequest(List<Message> messages) {
     this.messages = messages != null ? new ArrayList<>(messages) : new ArrayList<>();
@@ -116,8 +109,7 @@ public class ModelRequest {
   /**
    * Adds a message to the request.
    *
-   * @param message
-   *            the message to add
+   * @param message the message to add
    * @return this request for chaining
    */
   public ModelRequest addMessage(Message message) {
@@ -128,9 +120,7 @@ public class ModelRequest {
     return this;
   }
 
-  /**
-   * Builder for ModelRequest.
-   */
+  /** Builder for ModelRequest. */
   public static class Builder {
     private List<Message> messages = new ArrayList<>();
     private Map<String, Object> config;

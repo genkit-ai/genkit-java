@@ -18,43 +18,31 @@
 
 package com.google.genkit.ai.evaluation;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 
-/**
- * Request to run a new evaluation.
- */
+/** Request to run a new evaluation. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class RunEvaluationRequest {
 
-  /**
-   * The data source for evaluation.
-   */
+  /** The data source for evaluation. */
   @JsonProperty("dataSource")
   private DataSource dataSource;
 
-  /**
-   * The action to evaluate (e.g., "/flow/myFlow").
-   */
+  /** The action to evaluate (e.g., "/flow/myFlow"). */
   @JsonProperty("targetAction")
   private String targetAction;
 
-  /**
-   * The evaluators to run.
-   */
+  /** The evaluators to run. */
   @JsonProperty("evaluators")
   private List<String> evaluators;
 
-  /**
-   * Options for the evaluation.
-   */
+  /** Options for the evaluation. */
   @JsonProperty("options")
   private EvaluationOptions options;
 
-  public RunEvaluationRequest() {
-  }
+  public RunEvaluationRequest() {}
 
   private RunEvaluationRequest(Builder builder) {
     this.dataSource = builder.dataSource;
@@ -99,9 +87,7 @@ public class RunEvaluationRequest {
     this.options = options;
   }
 
-  /**
-   * Data source for evaluation - either a dataset ID or inline data.
-   */
+  /** Data source for evaluation - either a dataset ID or inline data. */
   @JsonInclude(JsonInclude.Include.NON_NULL)
   public static class DataSource {
     @JsonProperty("datasetId")
@@ -110,8 +96,7 @@ public class RunEvaluationRequest {
     @JsonProperty("data")
     private List<DatasetSample> data;
 
-    public DataSource() {
-    }
+    public DataSource() {}
 
     public String getDatasetId() {
       return datasetId;
@@ -130,9 +115,7 @@ public class RunEvaluationRequest {
     }
   }
 
-  /**
-   * Options for evaluation.
-   */
+  /** Options for evaluation. */
   @JsonInclude(JsonInclude.Include.NON_NULL)
   public static class EvaluationOptions {
     @JsonProperty("context")
@@ -144,8 +127,7 @@ public class RunEvaluationRequest {
     @JsonProperty("batchSize")
     private Integer batchSize;
 
-    public EvaluationOptions() {
-    }
+    public EvaluationOptions() {}
 
     public String getContext() {
       return context;

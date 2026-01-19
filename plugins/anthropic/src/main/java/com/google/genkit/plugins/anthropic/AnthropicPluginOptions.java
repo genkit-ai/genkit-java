@@ -18,9 +18,7 @@
 
 package com.google.genkit.plugins.anthropic;
 
-/**
- * Options for configuring the Anthropic plugin.
- */
+/** Options for configuring the Anthropic plugin. */
 public class AnthropicPluginOptions {
 
   private final String apiKey;
@@ -80,9 +78,7 @@ public class AnthropicPluginOptions {
     return timeout;
   }
 
-  /**
-   * Builder for AnthropicPluginOptions.
-   */
+  /** Builder for AnthropicPluginOptions. */
   public static class Builder {
     private String apiKey = getApiKeyFromEnv();
     private String baseUrl = "https://api.anthropic.com/v1";

@@ -18,31 +18,26 @@
 
 package com.google.genkit.core.middleware;
 
+import com.google.genkit.core.ActionContext;
+import com.google.genkit.core.GenkitException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BiFunction;
 
-import com.google.genkit.core.ActionContext;
-import com.google.genkit.core.GenkitException;
-
 /**
- * MiddlewareChain manages a list of middleware and provides execution of the
- * complete chain. It implements the chain of responsibility pattern where each
- * middleware can process or modify the request/response.
+ * MiddlewareChain manages a list of middleware and provides execution of the complete chain. It
+ * implements the chain of responsibility pattern where each middleware can process or modify the
+ * request/response.
  *
- * @param <I>
- *            The input type
- * @param <O>
- *            The output type
+ * @param <I> The input type
+ * @param <O> The output type
  */
 public class MiddlewareChain<I, O> {
 
   private final List<Middleware<I, O>> middlewareList;
 
-  /**
-   * Creates a new MiddlewareChain.
-   */
+  /** Creates a new MiddlewareChain. */
   public MiddlewareChain() {
     this.middlewareList = new ArrayList<>();
   }
@@ -50,8 +45,7 @@ public class MiddlewareChain<I, O> {
   /**
    * Creates a new MiddlewareChain with the given middleware.
    *
-   * @param middlewareList
-   *            the initial list of middleware
+   * @param middlewareList the initial list of middleware
    */
   public MiddlewareChain(List<Middleware<I, O>> middlewareList) {
     this.middlewareList = new ArrayList<>(middlewareList);
@@ -69,8 +63,7 @@ public class MiddlewareChain<I, O> {
   /**
    * Adds a middleware to the chain.
    *
-   * @param middleware
-   *            the middleware to add
+   * @param middleware the middleware to add
    * @return this chain for fluent chaining
    */
   public MiddlewareChain<I, O> use(Middleware<I, O> middleware) {
@@ -83,8 +76,7 @@ public class MiddlewareChain<I, O> {
   /**
    * Adds multiple middleware to the chain.
    *
-   * @param middlewareList
-   *            the middleware to add
+   * @param middlewareList the middleware to add
    * @return this chain for fluent chaining
    */
   public MiddlewareChain<I, O> useAll(List<Middleware<I, O>> middlewareList) {
@@ -97,8 +89,7 @@ public class MiddlewareChain<I, O> {
   /**
    * Inserts a middleware at the beginning of the chain.
    *
-   * @param middleware
-   *            the middleware to insert
+   * @param middleware the middleware to insert
    * @return this chain for fluent chaining
    */
   public MiddlewareChain<I, O> useFirst(Middleware<I, O> middleware) {
@@ -135,26 +126,19 @@ public class MiddlewareChain<I, O> {
     return middlewareList.isEmpty();
   }
 
-  /**
-   * Clears all middleware from the chain.
-   */
+  /** Clears all middleware from the chain. */
   public void clear() {
     middlewareList.clear();
   }
 
   /**
-   * Executes the middleware chain with the given request, context, and final
-   * action.
+   * Executes the middleware chain with the given request, context, and final action.
    *
-   * @param request
-   *            the input request
-   * @param context
-   *            the action context
-   * @param finalAction
-   *            the final action to execute after all middleware
+   * @param request the input request
+   * @param context the action context
+   * @param finalAction the final action to execute after all middleware
    * @return the output response
-   * @throws GenkitException
-   *             if execution fails
+   * @throws GenkitException if execution fails
    */
   public O execute(I request, ActionContext context, BiFunction<ActionContext, I, O> finalAction)
       throws GenkitException {
@@ -164,19 +148,15 @@ public class MiddlewareChain<I, O> {
   /**
    * Dispatches to the next middleware in the chain or the final action.
    *
-   * @param index
-   *            the current middleware index
-   * @param request
-   *            the input request
-   * @param context
-   *            the action context
-   * @param finalAction
-   *            the final action to execute
+   * @param index the current middleware index
+   * @param request the input request
+   * @param context the action context
+   * @param finalAction the final action to execute
    * @return the output response
-   * @throws GenkitException
-   *             if execution fails
+   * @throws GenkitException if execution fails
    */
-  private O dispatch(int index, I request, ActionContext context, BiFunction<ActionContext, I, O> finalAction)
+  private O dispatch(
+      int index, I request, ActionContext context, BiFunction<ActionContext, I, O> finalAction)
       throws GenkitException {
     if (index >= middlewareList.size()) {
       // End of middleware chain, execute the final action
@@ -186,9 +166,13 @@ public class MiddlewareChain<I, O> {
     Middleware<I, O> currentMiddleware = middlewareList.get(index);
 
     // Create the next function that will dispatch to the next middleware
-    MiddlewareNext<I, O> next = (modifiedRequest, modifiedContext) -> dispatch(index + 1,
-        modifiedRequest != null ? modifiedRequest : request,
-        modifiedContext != null ? modifiedContext : context, finalAction);
+    MiddlewareNext<I, O> next =
+        (modifiedRequest, modifiedContext) ->
+            dispatch(
+                index + 1,
+                modifiedRequest != null ? modifiedRequest : request,
+                modifiedContext != null ? modifiedContext : context,
+                finalAction);
 
     return currentMiddleware.handle(request, context, next);
   }
@@ -196,12 +180,9 @@ public class MiddlewareChain<I, O> {
   /**
    * Creates a new MiddlewareChain with the specified middleware.
    *
-   * @param middleware
-   *            the middleware to include
-   * @param <I>
-   *            input type
-   * @param <O>
-   *            output type
+   * @param middleware the middleware to include
+   * @param <I> input type
+   * @param <O> output type
    * @return a new MiddlewareChain
    */
   @SafeVarargs

@@ -20,18 +20,19 @@ package com.google.genkit.plugins.azurefoundry;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.List;
-
-import org.junit.jupiter.api.Test;
-
 import com.google.genkit.core.Action;
+import java.util.List;
+import org.junit.jupiter.api.Test;
 
 class AzureFoundryPluginTest {
 
   @Test
   void testConstructionWithOptions() {
-    AzureFoundryPluginOptions options = AzureFoundryPluginOptions.builder().endpoint("https://test.azure.com")
-        .apiKey("test-key").build();
+    AzureFoundryPluginOptions options =
+        AzureFoundryPluginOptions.builder()
+            .endpoint("https://test.azure.com")
+            .apiKey("test-key")
+            .build();
 
     AzureFoundryPlugin plugin = new AzureFoundryPlugin(options);
 
@@ -58,8 +59,11 @@ class AzureFoundryPluginTest {
 
   @Test
   void testInitializesActions() {
-    AzureFoundryPluginOptions options = AzureFoundryPluginOptions.builder().endpoint("https://test.azure.com")
-        .apiKey("test-key").build();
+    AzureFoundryPluginOptions options =
+        AzureFoundryPluginOptions.builder()
+            .endpoint("https://test.azure.com")
+            .apiKey("test-key")
+            .build();
 
     AzureFoundryPlugin plugin = new AzureFoundryPlugin(options);
     List<Action<?, ?, ?>> actions = plugin.init();
@@ -70,8 +74,11 @@ class AzureFoundryPluginTest {
 
   @Test
   void testCustomModel() {
-    AzureFoundryPluginOptions options = AzureFoundryPluginOptions.builder().endpoint("https://test.azure.com")
-        .apiKey("test-key").build();
+    AzureFoundryPluginOptions options =
+        AzureFoundryPluginOptions.builder()
+            .endpoint("https://test.azure.com")
+            .apiKey("test-key")
+            .build();
 
     AzureFoundryPlugin plugin = new AzureFoundryPlugin(options);
     plugin.customModel("custom-azure-model");
@@ -79,13 +86,17 @@ class AzureFoundryPluginTest {
     List<Action<?, ?, ?>> actions = plugin.init();
 
     assertNotNull(actions);
-    assertTrue(actions.size() > AzureFoundryPlugin.SUPPORTED_MODELS.size(), "Should include custom model");
+    assertTrue(
+        actions.size() > AzureFoundryPlugin.SUPPORTED_MODELS.size(), "Should include custom model");
   }
 
   @Test
   void testGetOptions() {
-    AzureFoundryPluginOptions options = AzureFoundryPluginOptions.builder().endpoint("https://test.azure.com")
-        .apiKey("test-key").build();
+    AzureFoundryPluginOptions options =
+        AzureFoundryPluginOptions.builder()
+            .endpoint("https://test.azure.com")
+            .apiKey("test-key")
+            .build();
 
     AzureFoundryPlugin plugin = new AzureFoundryPlugin(options);
     AzureFoundryPluginOptions retrievedOptions = plugin.getOptions();

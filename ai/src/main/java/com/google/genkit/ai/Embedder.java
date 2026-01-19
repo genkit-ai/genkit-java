@@ -18,11 +18,6 @@
 
 package com.google.genkit.ai;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.genkit.core.Action;
 import com.google.genkit.core.ActionContext;
@@ -32,12 +27,16 @@ import com.google.genkit.core.ActionType;
 import com.google.genkit.core.GenkitException;
 import com.google.genkit.core.JsonUtils;
 import com.google.genkit.core.Registry;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
 /**
  * Embedder is an action that generates embeddings from documents.
  *
- * Embedders convert text or other content into numerical vectors that can be
- * used for similarity search and retrieval.
+ * <p>Embedders convert text or other content into numerical vectors that can be used for similarity
+ * search and retrieval.
  */
 public class Embedder implements Action<EmbedRequest, EmbedResponse, Void> {
 
@@ -49,14 +48,14 @@ public class Embedder implements Action<EmbedRequest, EmbedResponse, Void> {
   /**
    * Creates a new Embedder.
    *
-   * @param name
-   *            the embedder name
-   * @param info
-   *            the embedder info
-   * @param handler
-   *            the embedding function
+   * @param name the embedder name
+   * @param info the embedder info
+   * @param handler the embedding function
    */
-  public Embedder(String name, EmbedderInfo info, BiFunction<ActionContext, EmbedRequest, EmbedResponse> handler) {
+  public Embedder(
+      String name,
+      EmbedderInfo info,
+      BiFunction<ActionContext, EmbedRequest, EmbedResponse> handler) {
     this.name = name;
     this.info = info;
     this.handler = handler;
@@ -87,8 +86,13 @@ public class Embedder implements Action<EmbedRequest, EmbedResponse, Void> {
 
   @Override
   public ActionDesc getDesc() {
-    return ActionDesc.builder().type(ActionType.EMBEDDER).name(name).inputSchema(getInputSchema())
-        .outputSchema(getOutputSchema()).metadata(metadata).build();
+    return ActionDesc.builder()
+        .type(ActionType.EMBEDDER)
+        .name(name)
+        .inputSchema(getInputSchema())
+        .outputSchema(getOutputSchema())
+        .metadata(metadata)
+        .build();
   }
 
   @Override
@@ -115,8 +119,8 @@ public class Embedder implements Action<EmbedRequest, EmbedResponse, Void> {
   }
 
   @Override
-  public ActionRunResult<JsonNode> runJsonWithTelemetry(ActionContext ctx, JsonNode input,
-      Consumer<JsonNode> streamCallback) throws GenkitException {
+  public ActionRunResult<JsonNode> runJsonWithTelemetry(
+      ActionContext ctx, JsonNode input, Consumer<JsonNode> streamCallback) throws GenkitException {
     JsonNode result = runJson(ctx, input, streamCallback);
     return new ActionRunResult<>(result, null, null);
   }
@@ -225,9 +229,7 @@ public class Embedder implements Action<EmbedRequest, EmbedResponse, Void> {
     return info;
   }
 
-  /**
-   * Builder for Embedder.
-   */
+  /** Builder for Embedder. */
   public static class Builder {
     private String name;
     private EmbedderInfo info;

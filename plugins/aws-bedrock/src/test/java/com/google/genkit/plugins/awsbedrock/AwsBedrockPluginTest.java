@@ -20,11 +20,9 @@ package com.google.genkit.plugins.awsbedrock;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.List;
-
-import org.junit.jupiter.api.Test;
-
 import com.google.genkit.core.Action;
+import java.util.List;
+import org.junit.jupiter.api.Test;
 
 class AwsBedrockPluginTest {
 
@@ -62,7 +60,8 @@ class AwsBedrockPluginTest {
     assertNotNull(AwsBedrockPlugin.SUPPORTED_MODELS);
     assertTrue(AwsBedrockPlugin.SUPPORTED_MODELS.size() > 0);
     assertTrue(AwsBedrockPlugin.SUPPORTED_MODELS.contains("amazon.nova-pro-v1:0"));
-    assertTrue(AwsBedrockPlugin.SUPPORTED_MODELS.contains("anthropic.claude-sonnet-4-20250514-v1:0"));
+    assertTrue(
+        AwsBedrockPlugin.SUPPORTED_MODELS.contains("anthropic.claude-sonnet-4-20250514-v1:0"));
   }
 
   @Test
@@ -86,6 +85,7 @@ class AwsBedrockPluginTest {
     List<Action<?, ?, ?>> actions = plugin.init();
 
     assertNotNull(actions);
-    assertTrue(actions.size() > AwsBedrockPlugin.SUPPORTED_MODELS.size(), "Should include custom model");
+    assertTrue(
+        actions.size() > AwsBedrockPlugin.SUPPORTED_MODELS.size(), "Should include custom model");
   }
 }

@@ -20,9 +20,7 @@ package com.google.genkit.ai.evaluation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * Status of an evaluation result.
- */
+/** Status of an evaluation result. */
 public enum EvalStatus {
   @JsonProperty("UNKNOWN")
   UNKNOWN,

@@ -25,12 +25,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.junit.jupiter.api.Test;
 
-/**
- * Unit tests for Message.
- */
+/** Unit tests for Message. */
 class MessageTest {
 
   @Test
@@ -158,8 +155,11 @@ class MessageTest {
 
   @Test
   void testGetTextSkipsNonTextParts() {
-    List<Part> content = Arrays.asList(Part.text("Hello"), Part.media("image/png", "http://example.com/image.png"),
-        Part.text(" World"));
+    List<Part> content =
+        Arrays.asList(
+            Part.text("Hello"),
+            Part.media("image/png", "http://example.com/image.png"),
+            Part.text(" World"));
     Message message = new Message(Role.USER, content);
 
     assertEquals("Hello World", message.getText());

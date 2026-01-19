@@ -18,16 +18,6 @@
 
 package com.google.genkit.plugins.ollama;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -35,14 +25,21 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.genkit.ai.*;
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.GenkitException;
-
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import okhttp3.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Ollama model implementation for Genkit.
- * 
- * Supports local Ollama models with both synchronous and streaming generation.
- * Ollama must be running locally (or at the configured host).
+ *
+ * <p>Supports local Ollama models with both synchronous and streaming generation. Ollama must be
+ * running locally (or at the configured host).
  */
 public class OllamaModel implements Model {
 
@@ -58,18 +55,19 @@ public class OllamaModel implements Model {
   /**
    * Creates a new OllamaModel.
    *
-   * @param modelName
-   *            the model name (e.g., "llama3.2", "mistral")
-   * @param options
-   *            the plugin options
+   * @param modelName the model name (e.g., "llama3.2", "mistral")
+   * @param options the plugin options
    */
   public OllamaModel(String modelName, OllamaPluginOptions options) {
     this.modelName = modelName;
     this.options = options;
     this.objectMapper = new ObjectMapper();
-    this.client = new OkHttpClient.Builder().connectTimeout(options.getTimeout(), TimeUnit.SECONDS)
-        .readTimeout(options.getTimeout(), TimeUnit.SECONDS)
-        .writeTimeout(options.getTimeout(), TimeUnit.SECONDS).build();
+    this.client =
+        new OkHttpClient.Builder()
+            .connectTimeout(options.getTimeout(), TimeUnit.SECONDS)
+            .readTimeout(options.getTimeout(), TimeUnit.SECONDS)
+            .writeTimeout(options.getTimeout(), TimeUnit.SECONDS)
+            .build();
     this.info = createModelInfo();
   }
 
@@ -114,7 +112,8 @@ public class OllamaModel implements Model {
   }
 
   @Override
-  public ModelResponse run(ActionContext context, ModelRequest request, Consumer<ModelResponseChunk> streamCallback) {
+  public ModelResponse run(
+      ActionContext context, ModelRequest request, Consumer<ModelResponseChunk> streamCallback) {
     if (streamCallback == null) {
       return run(context, request);
     }
@@ -129,9 +128,12 @@ public class OllamaModel implements Model {
     ObjectNode requestBody = buildRequestBody(request);
     requestBody.put("stream", false);
 
-    Request httpRequest = new Request.Builder().url(options.getBaseUrl() + "/api/chat")
-        .header("Content-Type", "application/json")
-        .post(RequestBody.create(requestBody.toString(), JSON_MEDIA_TYPE)).build();
+    Request httpRequest =
+        new Request.Builder()
+            .url(options.getBaseUrl() + "/api/chat")
+            .header("Content-Type", "application/json")
+            .post(RequestBody.create(requestBody.toString(), JSON_MEDIA_TYPE))
+            .build();
 
     try (Response response = client.newCall(httpRequest).execute()) {
       if (!response.isSuccessful()) {
@@ -144,14 +146,17 @@ public class OllamaModel implements Model {
     }
   }
 
-  private ModelResponse callOllamaStreaming(ModelRequest request, Consumer<ModelResponseChunk> streamCallback)
-      throws IOException {
+  private ModelResponse callOllamaStreaming(
+      ModelRequest request, Consumer<ModelResponseChunk> streamCallback) throws IOException {
     ObjectNode requestBody = buildRequestBody(request);
     requestBody.put("stream", true);
 
-    Request httpRequest = new Request.Builder().url(options.getBaseUrl() + "/api/chat")
-        .header("Content-Type", "application/json")
-        .post(RequestBody.create(requestBody.toString(), JSON_MEDIA_TYPE)).build();
+    Request httpRequest =
+        new Request.Builder()
+            .url(options.getBaseUrl() + "/api/chat")
+            .header("Content-Type", "application/json")
+            .post(RequestBody.create(requestBody.toString(), JSON_MEDIA_TYPE))
+            .build();
 
     StringBuilder fullContent = new StringBuilder();
     boolean done = false;
@@ -161,10 +166,12 @@ public class OllamaModel implements Model {
     try (Response response = client.newCall(httpRequest).execute()) {
       if (!response.isSuccessful()) {
         String errorBody = response.body() != null ? response.body().string() : "No error body";
-        throw new GenkitException("Ollama streaming API error: " + response.code() + " - " + errorBody);
+        throw new GenkitException(
+            "Ollama streaming API error: " + response.code() + " - " + errorBody);
       }
 
-      BufferedReader reader = new BufferedReader(new InputStreamReader(response.body().byteStream()));
+      BufferedReader reader =
+          new BufferedReader(new InputStreamReader(response.body().byteStream()));
       String line;
 
       while ((line = reader.readLine()) != null) {
@@ -342,15 +349,15 @@ public class OllamaModel implements Model {
 
   private String convertRole(Role role) {
     switch (role) {
-      case SYSTEM :
+      case SYSTEM:
         return "system";
-      case USER :
+      case USER:
         return "user";
-      case MODEL :
+      case MODEL:
         return "assistant";
-      case TOOL :
+      case TOOL:
         return "user"; // Ollama doesn't have a tool role
-      default :
+      default:
         return "user";
     }
   }

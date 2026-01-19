@@ -18,15 +18,6 @@
 
 package com.google.genkit.prompt;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
-
 import com.github.jknack.handlebars.Context;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.Template;
@@ -45,16 +36,23 @@ import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.ActionType;
 import com.google.genkit.core.GenkitException;
 import com.google.genkit.core.Registry;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 /**
  * DotPrompt provides support for .prompt files using Handlebars templating.
- * 
- * .prompt files are structured text files with YAML frontmatter containing
- * configuration options and a Handlebars template body.
- * 
- * Partials are supported by files starting with underscore (e.g.,
- * _style.prompt). Partials are automatically loaded when referenced in
- * templates.
+ *
+ * <p>.prompt files are structured text files with YAML frontmatter containing configuration options
+ * and a Handlebars template body.
+ *
+ * <p>Partials are supported by files starting with underscore (e.g., _style.prompt). Partials are
+ * automatically loaded when referenced in templates.
  */
 public class DotPrompt<I> {
 
@@ -62,48 +60,46 @@ public class DotPrompt<I> {
   private static final Map<String, String> registeredPartials = new ConcurrentHashMap<>();
 
   /** Custom TemplateLoader that resolves partials from our registry. */
-  private static final TemplateLoader partialLoader = new TemplateLoader() {
-    @Override
-    public TemplateSource sourceAt(String location) throws IOException {
-      String partial = registeredPartials.get(location);
-      if (partial != null) {
-        return new StringTemplateSource(location, partial);
-      }
-      throw new IOException("Partial not found: " + location);
-    }
+  private static final TemplateLoader partialLoader =
+      new TemplateLoader() {
+        @Override
+        public TemplateSource sourceAt(String location) throws IOException {
+          String partial = registeredPartials.get(location);
+          if (partial != null) {
+            return new StringTemplateSource(location, partial);
+          }
+          throw new IOException("Partial not found: " + location);
+        }
 
-    @Override
-    public String resolve(String location) {
-      return location;
-    }
+        @Override
+        public String resolve(String location) {
+          return location;
+        }
 
-    @Override
-    public String getPrefix() {
-      return "";
-    }
+        @Override
+        public String getPrefix() {
+          return "";
+        }
 
-    @Override
-    public String getSuffix() {
-      return "";
-    }
+        @Override
+        public String getSuffix() {
+          return "";
+        }
 
-    @Override
-    public void setPrefix(String prefix) {
-    }
+        @Override
+        public void setPrefix(String prefix) {}
 
-    @Override
-    public void setSuffix(String suffix) {
-    }
+        @Override
+        public void setSuffix(String suffix) {}
 
-    @Override
-    public void setCharset(Charset charset) {
-    }
+        @Override
+        public void setCharset(Charset charset) {}
 
-    @Override
-    public Charset getCharset() {
-      return StandardCharsets.UTF_8;
-    }
-  };
+        @Override
+        public Charset getCharset() {
+          return StandardCharsets.UTF_8;
+        }
+      };
 
   /** Shared Handlebars instance with registered partials. */
   private static final Handlebars sharedHandlebars = new Handlebars(partialLoader);
@@ -118,18 +114,17 @@ public class DotPrompt<I> {
   /**
    * Creates a new DotPrompt.
    *
-   * @param name
-   *            the prompt name
-   * @param model
-   *            the default model name
-   * @param template
-   *            the Handlebars template
-   * @param inputSchema
-   *            the input JSON schema
-   * @param config
-   *            the default generation config
+   * @param name the prompt name
+   * @param model the default model name
+   * @param template the Handlebars template
+   * @param inputSchema the input JSON schema
+   * @param config the default generation config
    */
-  public DotPrompt(String name, String model, String template, Map<String, Object> inputSchema,
+  public DotPrompt(
+      String name,
+      String model,
+      String template,
+      Map<String, Object> inputSchema,
       GenerationConfig config) {
     this.name = name;
     this.model = model;
@@ -140,15 +135,12 @@ public class DotPrompt<I> {
   }
 
   /**
-   * Registers a partial template that can be included in other prompts. Partials
-   * are referenced using {{>partialName}} syntax in templates.
+   * Registers a partial template that can be included in other prompts. Partials are referenced
+   * using {{>partialName}} syntax in templates.
    *
-   * @param name
-   *            the partial name (without underscore prefix or .prompt extension)
-   * @param source
-   *            the partial template source
-   * @throws GenkitException
-   *             if registration fails
+   * @param name the partial name (without underscore prefix or .prompt extension)
+   * @param source the partial template source
+   * @throws GenkitException if registration fails
    */
   public static void registerPartial(String name, String source) throws GenkitException {
     // Extract just the template body (skip frontmatter if present)
@@ -163,13 +155,11 @@ public class DotPrompt<I> {
   }
 
   /**
-   * Loads and registers a partial from a resource file. The partial name is
-   * derived from the filename (without underscore prefix and .prompt extension).
+   * Loads and registers a partial from a resource file. The partial name is derived from the
+   * filename (without underscore prefix and .prompt extension).
    *
-   * @param resourcePath
-   *            the resource path (e.g., "/prompts/_style.prompt")
-   * @throws GenkitException
-   *             if loading fails
+   * @param resourcePath the resource path (e.g., "/prompts/_style.prompt")
+   * @throws GenkitException if loading fails
    */
   public static void loadPartialFromResource(String resourcePath) throws GenkitException {
     try (InputStream is = DotPrompt.class.getResourceAsStream(resourcePath)) {
@@ -206,17 +196,14 @@ public class DotPrompt<I> {
   }
 
   /**
-   * Loads a DotPrompt from a resource file. Automatically loads any partials
-   * referenced in the template from the same directory. Partials should be named
-   * with underscore prefix (e.g., _style.prompt).
+   * Loads a DotPrompt from a resource file. Automatically loads any partials referenced in the
+   * template from the same directory. Partials should be named with underscore prefix (e.g.,
+   * _style.prompt).
    *
-   * @param <I>
-   *            the input type
-   * @param resourcePath
-   *            the resource path
+   * @param <I> the input type
+   * @param resourcePath the resource path
    * @return the loaded DotPrompt
-   * @throws GenkitException
-   *             if loading fails
+   * @throws GenkitException if loading fails
    */
   public static <I> DotPrompt<I> loadFromResource(String resourcePath) throws GenkitException {
     try (InputStream is = DotPrompt.class.getResourceAsStream(resourcePath)) {
@@ -226,9 +213,10 @@ public class DotPrompt<I> {
       String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
       // Get the directory path for loading partials
-      String directory = resourcePath.contains("/")
-          ? resourcePath.substring(0, resourcePath.lastIndexOf('/'))
-          : "";
+      String directory =
+          resourcePath.contains("/")
+              ? resourcePath.substring(0, resourcePath.lastIndexOf('/'))
+              : "";
 
       // Auto-load partials referenced in the template
       autoLoadPartials(content, directory);
@@ -240,8 +228,8 @@ public class DotPrompt<I> {
   }
 
   /**
-   * Scans template content for partial references ({{>partialName}}) and loads
-   * them. Partials are loaded from the same directory with underscore prefix.
+   * Scans template content for partial references ({{>partialName}}) and loads them. Partials are
+   * loaded from the same directory with underscore prefix.
    */
   private static void autoLoadPartials(String content, String directory) {
     // Find all partial references: {{>partialName}} or {{> partialName}}
@@ -273,15 +261,11 @@ public class DotPrompt<I> {
   /**
    * Parses a DotPrompt from its string content.
    *
-   * @param <I>
-   *            the input type
-   * @param name
-   *            the prompt name
-   * @param content
-   *            the prompt file content
+   * @param <I> the input type
+   * @param name the prompt name
+   * @param content the prompt file content
    * @return the parsed DotPrompt
-   * @throws GenkitException
-   *             if parsing fails
+   * @throws GenkitException if parsing fails
    */
   public static <I> DotPrompt<I> parse(String name, String content) throws GenkitException {
     // Split frontmatter from template
@@ -320,11 +304,9 @@ public class DotPrompt<I> {
   /**
    * Renders the prompt with the given input.
    *
-   * @param input
-   *            the input data
+   * @param input the input data
    * @return the rendered prompt text
-   * @throws GenkitException
-   *             if rendering fails
+   * @throws GenkitException if rendering fails
    */
   public String render(I input) throws GenkitException {
     try {
@@ -339,11 +321,9 @@ public class DotPrompt<I> {
   /**
    * Renders the prompt and creates a ModelRequest.
    *
-   * @param input
-   *            the input data
+   * @param input the input data
    * @return the model request
-   * @throws GenkitException
-   *             if rendering fails
+   * @throws GenkitException if rendering fails
    */
   public ModelRequest toModelRequest(I input) throws GenkitException {
     String rendered = render(input);
@@ -378,22 +358,26 @@ public class DotPrompt<I> {
   /**
    * Creates a Prompt action from this DotPrompt.
    *
-   * @param inputClass
-   *            the input class
+   * @param inputClass the input class
    * @return the Prompt action
    */
   public Prompt<I> toPrompt(Class<I> inputClass) {
-    return Prompt.<I>builder().name(name).model(model).template(template).inputSchema(inputSchema).config(config)
-        .inputClass(inputClass).renderer((ctx, input) -> toModelRequest(input)).build();
+    return Prompt.<I>builder()
+        .name(name)
+        .model(model)
+        .template(template)
+        .inputSchema(inputSchema)
+        .config(config)
+        .inputClass(inputClass)
+        .renderer((ctx, input) -> toModelRequest(input))
+        .build();
   }
 
   /**
    * Registers this DotPrompt as an action.
    *
-   * @param registry
-   *            the registry
-   * @param inputClass
-   *            the input class
+   * @param registry the registry
+   * @param inputClass the input class
    */
   public void register(Registry registry, Class<I> inputClass) {
     Prompt<I> prompt = toPrompt(inputClass);
@@ -402,19 +386,15 @@ public class DotPrompt<I> {
 
   /**
    * Generates a response using this prompt with the given registry.
-   * 
-   * <p>
-   * This method allows generating directly from a DotPrompt without needing to go
-   * through ExecutablePrompt. The model is looked up from the registry using the
-   * model name specified in the prompt.
    *
-   * @param registry
-   *            the registry to look up the model
-   * @param input
-   *            the prompt input
+   * <p>This method allows generating directly from a DotPrompt without needing to go through
+   * ExecutablePrompt. The model is looked up from the registry using the model name specified in
+   * the prompt.
+   *
+   * @param registry the registry to look up the model
+   * @param input the prompt input
    * @return the model response
-   * @throws GenkitException
-   *             if generation fails
+   * @throws GenkitException if generation fails
    */
   public ModelResponse generate(Registry registry, I input) throws GenkitException {
     return generate(registry, input, null, null);
@@ -423,37 +403,33 @@ public class DotPrompt<I> {
   /**
    * Generates a response using this prompt with custom options.
    *
-   * @param registry
-   *            the registry to look up the model
-   * @param input
-   *            the prompt input
-   * @param options
-   *            optional generation options to override prompt defaults
+   * @param registry the registry to look up the model
+   * @param input the prompt input
+   * @param options optional generation options to override prompt defaults
    * @return the model response
-   * @throws GenkitException
-   *             if generation fails
+   * @throws GenkitException if generation fails
    */
-  public ModelResponse generate(Registry registry, I input, GenerateOptions options) throws GenkitException {
+  public ModelResponse generate(Registry registry, I input, GenerateOptions options)
+      throws GenkitException {
     return generate(registry, input, options, null);
   }
 
   /**
    * Generates a response using this prompt with streaming.
    *
-   * @param registry
-   *            the registry to look up the model
-   * @param input
-   *            the prompt input
-   * @param options
-   *            optional generation options
-   * @param streamCallback
-   *            callback for streaming chunks
+   * @param registry the registry to look up the model
+   * @param input the prompt input
+   * @param options optional generation options
+   * @param streamCallback callback for streaming chunks
    * @return the model response
-   * @throws GenkitException
-   *             if generation fails
+   * @throws GenkitException if generation fails
    */
-  public ModelResponse generate(Registry registry, I input, GenerateOptions options,
-      Consumer<ModelResponseChunk> streamCallback) throws GenkitException {
+  public ModelResponse generate(
+      Registry registry,
+      I input,
+      GenerateOptions options,
+      Consumer<ModelResponseChunk> streamCallback)
+      throws GenkitException {
     ModelRequest request = toModelRequest(input);
     String modelName = resolveModel(options);
 
@@ -522,8 +498,12 @@ public class DotPrompt<I> {
       configMap.put("topK", optionsConfig.getTopK());
     }
 
-    return ModelRequest.builder().messages(request.getMessages()).config(configMap).tools(request.getTools())
-        .output(request.getOutput()).build();
+    return ModelRequest.builder()
+        .messages(request.getMessages())
+        .config(configMap)
+        .tools(request.getTools())
+        .output(request.getOutput())
+        .build();
   }
 
   // Getters

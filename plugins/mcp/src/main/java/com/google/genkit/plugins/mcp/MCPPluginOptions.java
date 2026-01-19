@@ -26,23 +26,25 @@ import java.util.Map;
 /**
  * Configuration options for the MCP plugin.
  *
- * <p>
- * This class allows configuration of MCP server connections, including:
+ * <p>This class allows configuration of MCP server connections, including:
+ *
  * <ul>
- * <li>Multiple MCP servers with different transports (STDIO, HTTP)</li>
- * <li>Connection timeouts and retry settings</li>
- * <li>Raw tool response handling</li>
+ *   <li>Multiple MCP servers with different transports (STDIO, HTTP)
+ *   <li>Connection timeouts and retry settings
+ *   <li>Raw tool response handling
  * </ul>
  *
- * <p>
- * Example usage:
+ * <p>Example usage:
  *
  * <pre>{@code
- * MCPPluginOptions options = MCPPluginOptions.builder().name("my-mcp-host")
- * 		.addServer("filesystem",
- * 				MCPServerConfig.stdio("npx", "-y", "@modelcontextprotocol/server-filesystem", "/tmp"))
- * 		.addServer("weather", MCPServerConfig.http("http://localhost:3001/mcp"))
- * 		.requestTimeout(Duration.ofSeconds(30)).build();
+ * MCPPluginOptions options = MCPPluginOptions.builder()
+ *     .name("my-mcp-host")
+ *     .addServer(
+ *         "filesystem",
+ *         MCPServerConfig.stdio("npx", "-y", "@modelcontextprotocol/server-filesystem", "/tmp"))
+ *     .addServer("weather", MCPServerConfig.http("http://localhost:3001/mcp"))
+ *     .requestTimeout(Duration.ofSeconds(30))
+ *     .build();
  * }</pre>
  */
 public class MCPPluginOptions {
@@ -104,9 +106,7 @@ public class MCPPluginOptions {
     return rawToolResponses;
   }
 
-  /**
-   * Builder for MCPPluginOptions.
-   */
+  /** Builder for MCPPluginOptions. */
   public static class Builder {
 
     private String name = "genkit-mcp";
@@ -117,8 +117,7 @@ public class MCPPluginOptions {
     /**
      * Sets the name of the MCP host.
      *
-     * @param name
-     *            the host name
+     * @param name the host name
      * @return this builder
      */
     public Builder name(String name) {
@@ -129,10 +128,8 @@ public class MCPPluginOptions {
     /**
      * Adds an MCP server configuration.
      *
-     * @param serverName
-     *            the name to identify this server
-     * @param config
-     *            the server configuration
+     * @param serverName the name to identify this server
+     * @param config the server configuration
      * @return this builder
      */
     public Builder addServer(String serverName, MCPServerConfig config) {
@@ -143,8 +140,7 @@ public class MCPPluginOptions {
     /**
      * Sets all MCP server configurations at once.
      *
-     * @param servers
-     *            map of server name to configuration
+     * @param servers map of server name to configuration
      * @return this builder
      */
     public Builder servers(Map<String, MCPServerConfig> servers) {
@@ -155,8 +151,7 @@ public class MCPPluginOptions {
     /**
      * Sets the request timeout for MCP operations.
      *
-     * @param timeout
-     *            the timeout duration
+     * @param timeout the timeout duration
      * @return this builder
      */
     public Builder requestTimeout(Duration timeout) {
@@ -167,12 +162,10 @@ public class MCPPluginOptions {
     /**
      * Sets whether to return raw MCP tool responses.
      *
-     * <p>
-     * When true, tool responses are returned in their raw MCP format. When false
-     * (default), responses are processed for better Genkit compatibility.
+     * <p>When true, tool responses are returned in their raw MCP format. When false (default),
+     * responses are processed for better Genkit compatibility.
      *
-     * @param rawToolResponses
-     *            true to return raw responses
+     * @param rawToolResponses true to return raw responses
      * @return this builder
      */
     public Builder rawToolResponses(boolean rawToolResponses) {

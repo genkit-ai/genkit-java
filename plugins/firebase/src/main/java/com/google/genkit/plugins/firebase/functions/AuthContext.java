@@ -23,10 +23,9 @@ import java.util.Map;
 
 /**
  * Authentication context for Firebase Cloud Functions.
- * 
- * <p>
- * Contains information about the authenticated user, including their Firebase
- * Auth token and any custom claims.
+ *
+ * <p>Contains information about the authenticated user, including their Firebase Auth token and any
+ * custom claims.
  */
 public class AuthContext {
 
@@ -36,9 +35,7 @@ public class AuthContext {
   private boolean emailVerified;
   private Map<String, Object> claims;
 
-  /**
-   * Creates an empty auth context.
-   */
+  /** Creates an empty auth context. */
   public AuthContext() {
     this.claims = new HashMap<>();
   }
@@ -46,8 +43,7 @@ public class AuthContext {
   /**
    * Creates an auth context with the given token.
    *
-   * @param token
-   *            the Firebase Auth token
+   * @param token the Firebase Auth token
    */
   public AuthContext(String token) {
     this();
@@ -97,8 +93,7 @@ public class AuthContext {
   /**
    * Gets a specific claim value.
    *
-   * @param name
-   *            the claim name
+   * @param name the claim name
    * @return the claim value, or null if not present
    */
   public Object getClaim(String name) {
@@ -108,8 +103,7 @@ public class AuthContext {
   /**
    * Checks if a claim exists and is truthy.
    *
-   * @param name
-   *            the claim name
+   * @param name the claim name
    * @return true if the claim exists and is truthy
    */
   public boolean hasClaim(String name) {
@@ -123,9 +117,7 @@ public class AuthContext {
     return true;
   }
 
-  /**
-   * Builder for AuthContext.
-   */
+  /** Builder for AuthContext. */
   public static Builder builder() {
     return new Builder();
   }

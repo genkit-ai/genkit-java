@@ -28,47 +28,40 @@ import java.util.Map;
 /**
  * Configuration for connecting to an MCP server.
  *
- * <p>
- * Supports two transport types:
+ * <p>Supports two transport types:
+ *
  * <ul>
- * <li>STDIO: Launches a local process and communicates via standard I/O</li>
- * <li>HTTP: Connects to a remote MCP server via HTTP/SSE</li>
+ *   <li>STDIO: Launches a local process and communicates via standard I/O
+ *   <li>HTTP: Connects to a remote MCP server via HTTP/SSE
  * </ul>
  *
- * <p>
- * Example usage:
+ * <p>Example usage:
  *
  * <pre>{@code
  * // STDIO transport - launch a local MCP server
- * MCPServerConfig filesystemServer = MCPServerConfig.stdio("npx", "-y", "@modelcontextprotocol/server-filesystem",
- * 		"/tmp");
+ * MCPServerConfig filesystemServer = MCPServerConfig
+ *     .stdio("npx", "-y", "@modelcontextprotocol/server-filesystem", "/tmp");
  *
  * // HTTP transport - connect to remote server
  * MCPServerConfig remoteServer = MCPServerConfig.http("http://localhost:3001/mcp");
  *
  * // With environment variables
- * MCPServerConfig serverWithEnv = MCPServerConfig.builder().command("npx")
- * 		.args("-y", "@modelcontextprotocol/server-github").env("GITHUB_TOKEN", System.getenv("GITHUB_TOKEN"))
- * 		.build();
+ * MCPServerConfig serverWithEnv = MCPServerConfig.builder()
+ *     .command("npx")
+ *     .args("-y", "@modelcontextprotocol/server-github")
+ *     .env("GITHUB_TOKEN", System.getenv("GITHUB_TOKEN"))
+ *     .build();
  * }</pre>
  */
 public class MCPServerConfig {
 
-  /**
-   * Transport type for MCP communication.
-   */
+  /** Transport type for MCP communication. */
   public enum TransportType {
-    /**
-     * Standard I/O transport - launches a local process.
-     */
+    /** Standard I/O transport - launches a local process. */
     STDIO,
-    /**
-     * HTTP transport with SSE for streaming.
-     */
+    /** HTTP transport with SSE for streaming. */
     HTTP,
-    /**
-     * Streamable HTTP transport.
-     */
+    /** Streamable HTTP transport. */
     STREAMABLE_HTTP
   }
 
@@ -91,10 +84,8 @@ public class MCPServerConfig {
   /**
    * Creates a STDIO server configuration.
    *
-   * @param command
-   *            the command to execute
-   * @param args
-   *            arguments for the command
+   * @param command the command to execute
+   * @param args arguments for the command
    * @return the server configuration
    */
   public static MCPServerConfig stdio(String command, String... args) {
@@ -104,8 +95,7 @@ public class MCPServerConfig {
   /**
    * Creates an HTTP server configuration.
    *
-   * @param url
-   *            the server URL
+   * @param url the server URL
    * @return the server configuration
    */
   public static MCPServerConfig http(String url) {
@@ -115,8 +105,7 @@ public class MCPServerConfig {
   /**
    * Creates a Streamable HTTP server configuration.
    *
-   * @param url
-   *            the server URL
+   * @param url the server URL
    * @return the server configuration
    */
   public static MCPServerConfig streamableHttp(String url) {
@@ -186,9 +175,7 @@ public class MCPServerConfig {
     return disabled;
   }
 
-  /**
-   * Builder for MCPServerConfig.
-   */
+  /** Builder for MCPServerConfig. */
   public static class Builder {
 
     private TransportType transportType = TransportType.STDIO;
@@ -201,8 +188,7 @@ public class MCPServerConfig {
     /**
      * Sets the transport type.
      *
-     * @param transportType
-     *            the transport type
+     * @param transportType the transport type
      * @return this builder
      */
     public Builder transportType(TransportType transportType) {
@@ -213,8 +199,7 @@ public class MCPServerConfig {
     /**
      * Sets the command for STDIO transport.
      *
-     * @param command
-     *            the command to execute
+     * @param command the command to execute
      * @return this builder
      */
     public Builder command(String command) {
@@ -226,8 +211,7 @@ public class MCPServerConfig {
     /**
      * Sets the command arguments.
      *
-     * @param args
-     *            the arguments
+     * @param args the arguments
      * @return this builder
      */
     public Builder args(String... args) {
@@ -238,8 +222,7 @@ public class MCPServerConfig {
     /**
      * Sets the command arguments.
      *
-     * @param args
-     *            the arguments
+     * @param args the arguments
      * @return this builder
      */
     public Builder args(List<String> args) {
@@ -250,10 +233,8 @@ public class MCPServerConfig {
     /**
      * Adds an environment variable.
      *
-     * @param key
-     *            the variable name
-     * @param value
-     *            the variable value
+     * @param key the variable name
+     * @param value the variable value
      * @return this builder
      */
     public Builder env(String key, String value) {
@@ -264,8 +245,7 @@ public class MCPServerConfig {
     /**
      * Sets all environment variables.
      *
-     * @param env
-     *            the environment variables
+     * @param env the environment variables
      * @return this builder
      */
     public Builder env(Map<String, String> env) {
@@ -276,8 +256,7 @@ public class MCPServerConfig {
     /**
      * Sets the URL for HTTP transport.
      *
-     * @param url
-     *            the server URL
+     * @param url the server URL
      * @return this builder
      */
     public Builder url(String url) {
@@ -291,8 +270,7 @@ public class MCPServerConfig {
     /**
      * Sets whether this server is disabled.
      *
-     * @param disabled
-     *            true to disable
+     * @param disabled true to disable
      * @return this builder
      */
     public Builder disabled(boolean disabled) {

@@ -18,14 +18,6 @@
 
 package com.google.genkit.plugins.evaluators.metrics;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.genkit.ai.Document;
 import com.google.genkit.ai.EmbedRequest;
 import com.google.genkit.ai.EmbedResponse;
@@ -46,14 +38,18 @@ import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.ActionType;
 import com.google.genkit.core.JsonUtils;
 import com.google.genkit.core.Registry;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Answer Relevancy metric evaluator.
- * 
- * <p>
- * Assesses how pertinent the generated answer is to the given prompt. Uses an
- * LLM judge to analyze the answer and optionally uses embeddings for similarity
- * comparison.
+ *
+ * <p>Assesses how pertinent the generated answer is to the given prompt. Uses an LLM judge to
+ * analyze the answer and optionally uses embeddings for similarity comparison.
  */
 public class AnswerRelevancyMetric {
 
@@ -66,8 +62,12 @@ public class AnswerRelevancyMetric {
   private final String embedderName;
   private final Map<String, Object> embedderOptions;
 
-  public AnswerRelevancyMetric(Registry registry, String judgeName, Map<String, Object> judgeConfig,
-      String embedderName, Map<String, Object> embedderOptions) {
+  public AnswerRelevancyMetric(
+      Registry registry,
+      String judgeName,
+      Map<String, Object> judgeConfig,
+      String embedderName,
+      Map<String, Object> embedderOptions) {
     this.registry = registry;
     this.judgeName = judgeName;
     this.judgeConfig = judgeConfig;
@@ -78,11 +78,9 @@ public class AnswerRelevancyMetric {
   /**
    * Evaluates the relevancy of the answer to the question.
    *
-   * @param dataPoint
-   *            the evaluation data point
+   * @param dataPoint the evaluation data point
    * @return the evaluation response
-   * @throws Exception
-   *             if evaluation fails
+   * @throws Exception if evaluation fails
    */
   public EvalResponse evaluate(EvalDataPoint dataPoint) throws Exception {
     // Extract question from input
@@ -112,7 +110,8 @@ public class AnswerRelevancyMetric {
 
     Model judge = lookupJudge();
     ModelResponse response = invokeModel(judge, prompt);
-    AnswerRelevancyResponse parsed = parseResponse(response.getText(), AnswerRelevancyResponse.class);
+    AnswerRelevancyResponse parsed =
+        parseResponse(response.getText(), AnswerRelevancyResponse.class);
 
     // Calculate score
     double score;
@@ -129,8 +128,9 @@ public class AnswerRelevancyMetric {
       if (embedderName != null) {
         double similarity = calculateCosineSimilarity(question, parsed.getQuestion());
         score = similarity * (parsed.isNoncommittal() ? 0 : 1);
-        reasoning = "Cosine similarity"
-            + (parsed.isNoncommittal() ? " with penalty for insufficient answer" : "");
+        reasoning =
+            "Cosine similarity"
+                + (parsed.isNoncommittal() ? " with penalty for insufficient answer" : "");
       } else {
         score = parsed.isAnswered() && !parsed.isNoncommittal() ? 1.0 : 0.0;
         reasoning = "Answer is relevant to the question";
@@ -139,8 +139,15 @@ public class AnswerRelevancyMetric {
 
     EvalStatus status = score > PASS_THRESHOLD ? EvalStatus.PASS : EvalStatus.FAIL;
 
-    return EvalResponse.builder().testCaseId(dataPoint.getTestCaseId()).evaluation(Score.builder().score(score)
-        .status(status).details(ScoreDetails.builder().reasoning(reasoning).build()).build()).build();
+    return EvalResponse.builder()
+        .testCaseId(dataPoint.getTestCaseId())
+        .evaluation(
+            Score.builder()
+                .score(score)
+                .status(status)
+                .details(ScoreDetails.builder().reasoning(reasoning).build())
+                .build())
+        .build();
   }
 
   private double calculateCosineSimilarity(String text1, String text2) throws Exception {
@@ -220,7 +227,8 @@ public class AnswerRelevancyMetric {
   private ModelResponse invokeModel(Model model, String prompt) throws Exception {
     Message message = Message.builder().role(Role.USER).content(List.of(Part.text(prompt))).build();
 
-    ModelRequest request = ModelRequest.builder().messages(List.of(message)).config(judgeConfig).build();
+    ModelRequest request =
+        ModelRequest.builder().messages(List.of(message)).config(judgeConfig).build();
 
     ActionContext ctx = new ActionContext(registry);
     return model.run(ctx, request);
@@ -241,8 +249,8 @@ public class AnswerRelevancyMetric {
   }
 
   /**
-   * Extracts the question from the datapoint input. Handles both simple string
-   * inputs and Map inputs with a "question" key.
+   * Extracts the question from the datapoint input. Handles both simple string inputs and Map
+   * inputs with a "question" key.
    */
   @SuppressWarnings("unchecked")
   private String extractQuestion(EvalDataPoint dataPoint) {
@@ -262,8 +270,8 @@ public class AnswerRelevancyMetric {
   }
 
   /**
-   * Extracts the answer from the datapoint output. Handles both simple string
-   * outputs and Map outputs with an "answer" key.
+   * Extracts the answer from the datapoint output. Handles both simple string outputs and Map
+   * outputs with an "answer" key.
    */
   @SuppressWarnings("unchecked")
   private String extractAnswer(EvalDataPoint dataPoint) {
@@ -283,14 +291,16 @@ public class AnswerRelevancyMetric {
   }
 
   /**
-   * Extracts context from multiple possible sources: 1. EvalDataPoint.context
-   * field (list) 2. Input map with "context" key 3. Output map with "context" key
+   * Extracts context from multiple possible sources: 1. EvalDataPoint.context field (list) 2. Input
+   * map with "context" key 3. Output map with "context" key
    */
   @SuppressWarnings("unchecked")
   private String extractContext(EvalDataPoint dataPoint) {
     // First, check the context field directly
     if (dataPoint.getContext() != null && !dataPoint.getContext().isEmpty()) {
-      return dataPoint.getContext().stream().map(PromptUtils::stringify).collect(Collectors.joining("\n"));
+      return dataPoint.getContext().stream()
+          .map(PromptUtils::stringify)
+          .collect(Collectors.joining("\n"));
     }
 
     // Check if input is a Map with a "context" key

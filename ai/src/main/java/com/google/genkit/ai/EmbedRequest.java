@@ -18,15 +18,12 @@
 
 package com.google.genkit.ai;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-/**
- * EmbedRequest contains documents to embed.
- */
+/** EmbedRequest contains documents to embed. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class EmbedRequest {
 
@@ -36,17 +33,13 @@ public class EmbedRequest {
   @JsonProperty("options")
   private Map<String, Object> options;
 
-  /**
-   * Default constructor.
-   */
-  public EmbedRequest() {
-  }
+  /** Default constructor. */
+  public EmbedRequest() {}
 
   /**
    * Creates an EmbedRequest with documents.
    *
-   * @param documents
-   *            the documents to embed
+   * @param documents the documents to embed
    */
   public EmbedRequest(List<Document> documents) {
     this.documents = documents;

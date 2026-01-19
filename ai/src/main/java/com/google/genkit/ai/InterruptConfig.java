@@ -24,25 +24,25 @@ import java.util.function.Function;
 /**
  * Configuration for defining an interrupt tool.
  *
- * <p>
- * An interrupt is a special type of tool that pauses generation to request user
- * input (human-in-the-loop pattern). When the model calls an interrupt tool,
- * execution stops and the interrupt information is returned to the caller for
- * handling.
+ * <p>An interrupt is a special type of tool that pauses generation to request user input
+ * (human-in-the-loop pattern). When the model calls an interrupt tool, execution stops and the
+ * interrupt information is returned to the caller for handling.
  *
- * <p>
- * Example usage:
+ * <p>Example usage:
  *
  * <pre>{@code
- * InterruptConfig<ConfirmInput, ConfirmOutput> config = InterruptConfig.<ConfirmInput, ConfirmOutput>builder()
- * 		.name("confirmAction").description("Ask user to confirm the action").inputType(ConfirmInput.class)
- * 		.outputType(ConfirmOutput.class).requestMetadata(input -> Map.of("action", input.getAction())).build();
+ * InterruptConfig<ConfirmInput, ConfirmOutput> config = InterruptConfig
+ *     .<ConfirmInput, ConfirmOutput>builder()
+ *     .name("confirmAction")
+ *     .description("Ask user to confirm the action")
+ *     .inputType(ConfirmInput.class)
+ *     .outputType(ConfirmOutput.class)
+ *     .requestMetadata(input -> Map.of("action", input.getAction()))
+ *     .build();
  * }</pre>
  *
- * @param <I>
- *            the input type
- * @param <O>
- *            the output type (response type)
+ * @param <I> the input type
+ * @param <O> the output type (response type)
  */
 public class InterruptConfig<I, O> {
 
@@ -55,8 +55,7 @@ public class InterruptConfig<I, O> {
   private Function<I, Map<String, Object>> requestMetadata;
 
   /** Default constructor. */
-  public InterruptConfig() {
-  }
+  public InterruptConfig() {}
 
   /**
    * Gets the interrupt name.
@@ -70,8 +69,7 @@ public class InterruptConfig<I, O> {
   /**
    * Sets the interrupt name.
    *
-   * @param name
-   *            the name
+   * @param name the name
    */
   public void setName(String name) {
     this.name = name;
@@ -89,8 +87,7 @@ public class InterruptConfig<I, O> {
   /**
    * Sets the description.
    *
-   * @param description
-   *            the description
+   * @param description the description
    */
   public void setDescription(String description) {
     this.description = description;
@@ -108,8 +105,7 @@ public class InterruptConfig<I, O> {
   /**
    * Sets the input type class.
    *
-   * @param inputType
-   *            the input type class
+   * @param inputType the input type class
    */
   public void setInputType(Class<I> inputType) {
     this.inputType = inputType;
@@ -127,8 +123,7 @@ public class InterruptConfig<I, O> {
   /**
    * Sets the output type class.
    *
-   * @param outputType
-   *            the output type class
+   * @param outputType the output type class
    */
   public void setOutputType(Class<O> outputType) {
     this.outputType = outputType;
@@ -146,8 +141,7 @@ public class InterruptConfig<I, O> {
   /**
    * Sets the input schema.
    *
-   * @param inputSchema
-   *            the input schema
+   * @param inputSchema the input schema
    */
   public void setInputSchema(Map<String, Object> inputSchema) {
     this.inputSchema = inputSchema;
@@ -165,8 +159,7 @@ public class InterruptConfig<I, O> {
   /**
    * Sets the output schema.
    *
-   * @param outputSchema
-   *            the output schema
+   * @param outputSchema the output schema
    */
   public void setOutputSchema(Map<String, Object> outputSchema) {
     this.outputSchema = outputSchema;
@@ -184,8 +177,7 @@ public class InterruptConfig<I, O> {
   /**
    * Sets the request metadata function.
    *
-   * @param requestMetadata
-   *            the request metadata function
+   * @param requestMetadata the request metadata function
    */
   public void setRequestMetadata(Function<I, Map<String, Object>> requestMetadata) {
     this.requestMetadata = requestMetadata;
@@ -194,10 +186,8 @@ public class InterruptConfig<I, O> {
   /**
    * Creates a new builder.
    *
-   * @param <I>
-   *            the input type
-   * @param <O>
-   *            the output type
+   * @param <I> the input type
+   * @param <O> the output type
    * @return a new builder
    */
   public static <I, O> Builder<I, O> builder() {
@@ -217,8 +207,7 @@ public class InterruptConfig<I, O> {
     /**
      * Sets the interrupt name.
      *
-     * @param name
-     *            the name
+     * @param name the name
      * @return this builder
      */
     public Builder<I, O> name(String name) {
@@ -229,8 +218,7 @@ public class InterruptConfig<I, O> {
     /**
      * Sets the description.
      *
-     * @param description
-     *            the description
+     * @param description the description
      * @return this builder
      */
     public Builder<I, O> description(String description) {
@@ -241,8 +229,7 @@ public class InterruptConfig<I, O> {
     /**
      * Sets the input type class.
      *
-     * @param inputType
-     *            the input type class
+     * @param inputType the input type class
      * @return this builder
      */
     public Builder<I, O> inputType(Class<I> inputType) {
@@ -253,8 +240,7 @@ public class InterruptConfig<I, O> {
     /**
      * Sets the output type class.
      *
-     * @param outputType
-     *            the output type class
+     * @param outputType the output type class
      * @return this builder
      */
     public Builder<I, O> outputType(Class<O> outputType) {
@@ -265,8 +251,7 @@ public class InterruptConfig<I, O> {
     /**
      * Sets the input schema.
      *
-     * @param inputSchema
-     *            the input schema
+     * @param inputSchema the input schema
      * @return this builder
      */
     public Builder<I, O> inputSchema(Map<String, Object> inputSchema) {
@@ -277,8 +262,7 @@ public class InterruptConfig<I, O> {
     /**
      * Sets the output schema.
      *
-     * @param outputSchema
-     *            the output schema
+     * @param outputSchema the output schema
      * @return this builder
      */
     public Builder<I, O> outputSchema(Map<String, Object> outputSchema) {
@@ -289,12 +273,10 @@ public class InterruptConfig<I, O> {
     /**
      * Sets the request metadata function.
      *
-     * <p>
-     * This function is called with the tool input when the interrupt is triggered,
-     * and should return metadata that will be included in the interrupt.
+     * <p>This function is called with the tool input when the interrupt is triggered, and should
+     * return metadata that will be included in the interrupt.
      *
-     * @param requestMetadata
-     *            function to generate metadata from input
+     * @param requestMetadata function to generate metadata from input
      * @return this builder
      */
     public Builder<I, O> requestMetadata(Function<I, Map<String, Object>> requestMetadata) {

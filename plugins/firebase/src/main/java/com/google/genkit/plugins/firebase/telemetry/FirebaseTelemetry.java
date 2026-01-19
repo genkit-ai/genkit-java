@@ -18,18 +18,11 @@
 
 package com.google.genkit.plugins.firebase.telemetry;
 
-import java.io.IOException;
-import java.time.Duration;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.cloud.opentelemetry.metric.GoogleCloudMetricExporter;
 import com.google.cloud.opentelemetry.metric.MetricConfiguration;
 import com.google.cloud.opentelemetry.trace.TraceConfiguration;
 import com.google.cloud.opentelemetry.trace.TraceExporter;
 import com.google.genkit.core.telemetry.TelemetryConfig;
-
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
@@ -37,44 +30,46 @@ import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
 import io.opentelemetry.semconv.ServiceAttributes;
+import java.io.IOException;
+import java.time.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Firebase telemetry integration for Genkit Monitoring.
- * 
- * <p>
- * Configures OpenTelemetry to export traces and metrics to Google Cloud,
- * enabling Firebase Genkit Monitoring features.
- * 
- * <p>
- * This class does NOT define any new metrics - it simply configures exporters
- * to send the existing Genkit core metrics (from GenerateTelemetry,
- * ToolTelemetry, etc.) to Google Cloud Monitoring.
- * 
- * <p>
- * Key capabilities:
+ *
+ * <p>Configures OpenTelemetry to export traces and metrics to Google Cloud, enabling Firebase
+ * Genkit Monitoring features.
+ *
+ * <p>This class does NOT define any new metrics - it simply configures exporters to send the
+ * existing Genkit core metrics (from GenerateTelemetry, ToolTelemetry, etc.) to Google Cloud
+ * Monitoring.
+ *
+ * <p>Key capabilities:
+ *
  * <ul>
- * <li>View quantitative metrics like latency, errors, and token usage in Cloud
- * Monitoring</li>
- * <li>Inspect traces in Cloud Trace to see flow steps, inputs, and outputs</li>
- * <li>Export production traces to run evaluations</li>
+ *   <li>View quantitative metrics like latency, errors, and token usage in Cloud Monitoring
+ *   <li>Inspect traces in Cloud Trace to see flow steps, inputs, and outputs
+ *   <li>Export production traces to run evaluations
  * </ul>
- * 
- * <p>
- * Example usage:
- * 
+ *
+ * <p>Example usage:
+ *
  * <pre>{@code
  * // Enable telemetry via Firebase plugin builder
- * FirebasePlugin.builder().projectId("my-project").enableTelemetry(true).forceDevExport(true) // Enable in dev mode
- * 		.build();
+ * FirebasePlugin.builder()
+ *     .projectId("my-project")
+ *     .enableTelemetry(true)
+ *     .forceDevExport(true) // Enable in dev mode
+ *     .build();
  * }</pre>
- * 
- * <p>
- * Prerequisites:
+ *
+ * <p>Prerequisites:
+ *
  * <ul>
- * <li>Set GCLOUD_PROJECT or GOOGLE_CLOUD_PROJECT environment variable</li>
- * <li>Configure Google Cloud credentials (GOOGLE_APPLICATION_CREDENTIALS or
- * default credentials)</li>
- * <li>Enable Cloud Trace and Cloud Monitoring APIs in your GCP project</li>
+ *   <li>Set GCLOUD_PROJECT or GOOGLE_CLOUD_PROJECT environment variable
+ *   <li>Configure Google Cloud credentials (GOOGLE_APPLICATION_CREDENTIALS or default credentials)
+ *   <li>Enable Cloud Trace and Cloud Monitoring APIs in your GCP project
  * </ul>
  */
 public class FirebaseTelemetry {
@@ -107,9 +102,8 @@ public class FirebaseTelemetry {
 
   /**
    * Enables Firebase telemetry with default configuration based on environment.
-   * 
-   * <p>
-   * Checks for ENABLE_FIREBASE_MONITORING environment variable.
+   *
+   * <p>Checks for ENABLE_FIREBASE_MONITORING environment variable.
    */
   public static void enableFromEnvironment() {
     String envValue = System.getenv("ENABLE_FIREBASE_MONITORING");
@@ -120,19 +114,17 @@ public class FirebaseTelemetry {
 
   /**
    * Enables telemetry collection and export to Google Cloud.
-   * 
-   * <p>
-   * This configures:
+   *
+   * <p>This configures:
+   *
    * <ul>
-   * <li>Trace export to Google Cloud Trace via Genkit's core Tracer</li>
-   * <li>Metric export to Google Cloud Monitoring via GlobalOpenTelemetry</li>
+   *   <li>Trace export to Google Cloud Trace via Genkit's core Tracer
+   *   <li>Metric export to Google Cloud Monitoring via GlobalOpenTelemetry
    * </ul>
-   * 
-   * <p>
-   * The existing Genkit metrics (GenerateTelemetry, ToolTelemetry) use
-   * GlobalOpenTelemetry.getMeter(), so once we configure the global meter
-   * provider with a Google Cloud exporter, those metrics will be automatically
-   * exported.
+   *
+   * <p>The existing Genkit metrics (GenerateTelemetry, ToolTelemetry) use
+   * GlobalOpenTelemetry.getMeter(), so once we configure the global meter provider with a Google
+   * Cloud exporter, those metrics will be automatically exported.
    */
   public void enable() {
     if (enabled) {
@@ -143,7 +135,8 @@ public class FirebaseTelemetry {
     // Check if we should export (production or forceDevExport)
     boolean shouldExport = forceDevExport || isProductionEnvironment();
     if (!shouldExport) {
-      logger.info("Firebase telemetry disabled in development mode. Set forceDevExport=true to enable.");
+      logger.info(
+          "Firebase telemetry disabled in development mode. Set forceDevExport=true to enable.");
       return;
     }
 
@@ -163,29 +156,35 @@ public class FirebaseTelemetry {
 
   /**
    * Initializes OpenTelemetry with Google Cloud exporters.
-   * 
-   * <p>
-   * Sets up:
+   *
+   * <p>Sets up:
+   *
    * <ul>
-   * <li>Trace exporter registered with Genkit's core Tracer</li>
-   * <li>Metric exporter registered globally for all OpenTelemetry meters</li>
+   *   <li>Trace exporter registered with Genkit's core Tracer
+   *   <li>Metric exporter registered globally for all OpenTelemetry meters
    * </ul>
    */
   private void initializeGoogleCloudTelemetry() throws IOException {
     // Create resource with service info
-    Resource resource = Resource.getDefault()
-        .merge(Resource.create(Attributes.builder().put(ServiceAttributes.SERVICE_NAME, SERVICE_NAME)
-            .put(ServiceAttributes.SERVICE_VERSION, SERVICE_VERSION).put("cloud.project_id", projectId)
-            .build()));
+    Resource resource =
+        Resource.getDefault()
+            .merge(
+                Resource.create(
+                    Attributes.builder()
+                        .put(ServiceAttributes.SERVICE_NAME, SERVICE_NAME)
+                        .put(ServiceAttributes.SERVICE_VERSION, SERVICE_VERSION)
+                        .put("cloud.project_id", projectId)
+                        .build()));
 
     // === TRACES ===
     // Create Google Cloud Trace exporter
-    var traceExporter = TraceExporter
-        .createWithConfiguration(TraceConfiguration.builder().setProjectId(projectId).build());
+    var traceExporter =
+        TraceExporter.createWithConfiguration(
+            TraceConfiguration.builder().setProjectId(projectId).build());
 
     // Create batch span processor for Google Cloud Trace
-    SpanProcessor gcpSpanProcessor = BatchSpanProcessor.builder(traceExporter)
-        .setScheduleDelay(Duration.ofSeconds(5)).build();
+    SpanProcessor gcpSpanProcessor =
+        BatchSpanProcessor.builder(traceExporter).setScheduleDelay(Duration.ofSeconds(5)).build();
 
     // Register the span processor with TelemetryConfig
     // This ensures all Genkit traces are exported to Google Cloud Trace
@@ -193,33 +192,40 @@ public class FirebaseTelemetry {
 
     // === METRICS ===
     // Create Google Cloud Metric exporter
-    var metricExporter = GoogleCloudMetricExporter
-        .createWithConfiguration(MetricConfiguration.builder().setProjectId(projectId).build());
+    var metricExporter =
+        GoogleCloudMetricExporter.createWithConfiguration(
+            MetricConfiguration.builder().setProjectId(projectId).build());
 
     // Create meter provider with periodic reader for metrics
-    meterProvider = SdkMeterProvider.builder()
-        .registerMetricReader(PeriodicMetricReader.builder(metricExporter)
-            .setInterval(Duration.ofMillis(metricExportIntervalMillis)).build())
-        .setResource(resource).build();
+    meterProvider =
+        SdkMeterProvider.builder()
+            .registerMetricReader(
+                PeriodicMetricReader.builder(metricExporter)
+                    .setInterval(Duration.ofMillis(metricExportIntervalMillis))
+                    .build())
+            .setResource(resource)
+            .build();
 
     // Register with TelemetryConfig so GenerateTelemetry and other metrics classes
     // will use this meter provider instead of the default no-op one
     TelemetryConfig.setMeterProvider(meterProvider);
 
     // Register shutdown hook
-    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-      logger.debug("Shutting down Firebase telemetry...");
-      if (meterProvider != null) {
-        meterProvider.close();
-      }
-    }));
+    Runtime.getRuntime()
+        .addShutdownHook(
+            new Thread(
+                () -> {
+                  logger.debug("Shutting down Firebase telemetry...");
+                  if (meterProvider != null) {
+                    meterProvider.close();
+                  }
+                }));
 
-    logger.info("Google Cloud telemetry initialized - traces to Cloud Trace, metrics to Cloud Monitoring");
+    logger.info(
+        "Google Cloud telemetry initialized - traces to Cloud Trace, metrics to Cloud Monitoring");
   }
 
-  /**
-   * Checks if running in a production environment.
-   */
+  /** Checks if running in a production environment. */
   private boolean isProductionEnvironment() {
     // Check for Cloud Run / Cloud Functions environment
     String kService = System.getenv("K_SERVICE");
@@ -238,9 +244,7 @@ public class FirebaseTelemetry {
     return enabled;
   }
 
-  /**
-   * Shuts down the telemetry exporters.
-   */
+  /** Shuts down the telemetry exporters. */
   public void shutdown() {
     logger.debug("Shutting down Firebase telemetry");
     if (meterProvider != null) {
@@ -249,9 +253,7 @@ public class FirebaseTelemetry {
     enabled = false;
   }
 
-  /**
-   * Builder for FirebaseTelemetry.
-   */
+  /** Builder for FirebaseTelemetry. */
   public static class Builder {
     private String projectId;
     private boolean forceDevExport = false;
@@ -260,8 +262,7 @@ public class FirebaseTelemetry {
     /**
      * Sets the Firebase/GCP project ID.
      *
-     * @param projectId
-     *            the project ID
+     * @param projectId the project ID
      * @return this builder
      */
     public Builder projectId(String projectId) {
@@ -271,14 +272,11 @@ public class FirebaseTelemetry {
 
     /**
      * Forces telemetry export in development mode.
-     * 
-     * <p>
-     * By default, telemetry is only exported in production environments (Cloud Run,
-     * Cloud Functions, App Engine). Set this to true to enable export during local
-     * development.
      *
-     * @param forceDevExport
-     *            true to force export in dev mode
+     * <p>By default, telemetry is only exported in production environments (Cloud Run, Cloud
+     * Functions, App Engine). Set this to true to enable export during local development.
+     *
+     * @param forceDevExport true to force export in dev mode
      * @return this builder
      */
     public Builder forceDevExport(boolean forceDevExport) {
@@ -289,8 +287,7 @@ public class FirebaseTelemetry {
     /**
      * Sets the metric export interval.
      *
-     * @param metricExportIntervalMillis
-     *            the interval in milliseconds
+     * @param metricExportIntervalMillis the interval in milliseconds
      * @return this builder
      */
     public Builder metricExportIntervalMillis(long metricExportIntervalMillis) {

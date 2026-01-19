@@ -22,9 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
-/**
- * Unit tests for GenkitOptions.
- */
+/** Unit tests for GenkitOptions. */
 class GenkitOptionsTest {
 
   @Test
@@ -77,8 +75,13 @@ class GenkitOptionsTest {
 
   @Test
   void testBuilderChaining() {
-    GenkitOptions options = GenkitOptions.builder().devMode(true).reflectionPort(4321).projectRoot("/my/project")
-        .promptDir("/my/prompts").build();
+    GenkitOptions options =
+        GenkitOptions.builder()
+            .devMode(true)
+            .reflectionPort(4321)
+            .projectRoot("/my/project")
+            .promptDir("/my/prompts")
+            .build();
 
     assertTrue(options.isDevMode());
     assertEquals(4321, options.getReflectionPort());
@@ -114,7 +117,7 @@ class GenkitOptionsTest {
 
   @Test
   void testDifferentPortValues() {
-    for (int port : new int[]{0, 1, 1024, 3000, 8080, 65535}) {
+    for (int port : new int[] {0, 1, 1024, 3000, 8080, 65535}) {
       GenkitOptions options = GenkitOptions.builder().reflectionPort(port).build();
 
       assertEquals(port, options.getReflectionPort());
@@ -123,7 +126,9 @@ class GenkitOptionsTest {
 
   @Test
   void testProjectRootVariations() {
-    String[] paths = {"/", "/usr/local", "C:\\Users\\test", "relative/path", "./current", "../parent"};
+    String[] paths = {
+      "/", "/usr/local", "C:\\Users\\test", "relative/path", "./current", "../parent"
+    };
 
     for (String path : paths) {
       GenkitOptions options = GenkitOptions.builder().projectRoot(path).build();

@@ -33,7 +33,8 @@ class LocalVecPluginTest {
 
   @Test
   void testBuilderWithStore() {
-    LocalVecConfig config = LocalVecConfig.builder().indexName("test-index").embedderName("test-embedder").build();
+    LocalVecConfig config =
+        LocalVecConfig.builder().indexName("test-index").embedderName("test-embedder").build();
 
     LocalVecPlugin plugin = LocalVecPlugin.builder().addStore(config).build();
 
@@ -43,7 +44,8 @@ class LocalVecPluginTest {
 
   @Test
   void testGetName() {
-    LocalVecConfig config = LocalVecConfig.builder().indexName("test-index").embedderName("test-embedder").build();
+    LocalVecConfig config =
+        LocalVecConfig.builder().indexName("test-index").embedderName("test-embedder").build();
 
     LocalVecPlugin plugin = LocalVecPlugin.builder().addStore(config).build();
 
@@ -52,9 +54,11 @@ class LocalVecPluginTest {
 
   @Test
   void testBuilderChaining() {
-    LocalVecConfig config1 = LocalVecConfig.builder().indexName("index1").embedderName("embedder1").build();
+    LocalVecConfig config1 =
+        LocalVecConfig.builder().indexName("index1").embedderName("embedder1").build();
 
-    LocalVecConfig config2 = LocalVecConfig.builder().indexName("index2").embedderName("embedder2").build();
+    LocalVecConfig config2 =
+        LocalVecConfig.builder().indexName("index2").embedderName("embedder2").build();
 
     LocalVecPlugin plugin = LocalVecPlugin.builder().addStore(config1).addStore(config2).build();
 

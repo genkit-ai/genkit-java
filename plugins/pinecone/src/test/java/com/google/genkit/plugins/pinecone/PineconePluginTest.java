@@ -33,10 +33,11 @@ class PineconePluginTest {
 
   @Test
   void testBuilderWithApiKey() {
-    PineconeIndexConfig indexConfig = PineconeIndexConfig.builder().indexName("test-index")
-        .embedderName("test-embedder").build();
+    PineconeIndexConfig indexConfig =
+        PineconeIndexConfig.builder().indexName("test-index").embedderName("test-embedder").build();
 
-    PineconePlugin plugin = PineconePlugin.builder().apiKey("test-api-key").addIndex(indexConfig).build();
+    PineconePlugin plugin =
+        PineconePlugin.builder().apiKey("test-api-key").addIndex(indexConfig).build();
 
     assertNotNull(plugin);
     assertEquals("pinecone", plugin.getName());
@@ -51,20 +52,22 @@ class PineconePluginTest {
 
   @Test
   void testGetName() {
-    PineconeIndexConfig indexConfig = PineconeIndexConfig.builder().indexName("test-index")
-        .embedderName("test-embedder").build();
+    PineconeIndexConfig indexConfig =
+        PineconeIndexConfig.builder().indexName("test-index").embedderName("test-embedder").build();
 
-    PineconePlugin plugin = PineconePlugin.builder().apiKey("test-key").addIndex(indexConfig).build();
+    PineconePlugin plugin =
+        PineconePlugin.builder().apiKey("test-key").addIndex(indexConfig).build();
 
     assertEquals("pinecone", plugin.getName());
   }
 
   @Test
   void testBuilderChaining() {
-    PineconeIndexConfig indexConfig = PineconeIndexConfig.builder().indexName("test-index")
-        .embedderName("test-embedder").build();
+    PineconeIndexConfig indexConfig =
+        PineconeIndexConfig.builder().indexName("test-index").embedderName("test-embedder").build();
 
-    PineconePlugin plugin = PineconePlugin.builder().apiKey("test-key").addIndex(indexConfig).build();
+    PineconePlugin plugin =
+        PineconePlugin.builder().apiKey("test-key").addIndex(indexConfig).build();
 
     assertNotNull(plugin);
   }

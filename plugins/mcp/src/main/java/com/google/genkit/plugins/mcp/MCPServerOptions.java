@@ -21,11 +21,13 @@ package com.google.genkit.plugins.mcp;
 /**
  * Configuration options for an MCP server.
  *
- * <p>
- * Example usage:
+ * <p>Example usage:
  *
  * <pre>{@code
- * MCPServerOptions options = MCPServerOptions.builder().name("my-genkit-server").version("1.0.0").build();
+ * MCPServerOptions options = MCPServerOptions.builder()
+ *     .name("my-genkit-server")
+ *     .version("1.0.0")
+ *     .build();
  * }</pre>
  */
 public class MCPServerOptions {
@@ -65,9 +67,7 @@ public class MCPServerOptions {
     return version;
   }
 
-  /**
-   * Builder for MCPServerOptions.
-   */
+  /** Builder for MCPServerOptions. */
   public static class Builder {
 
     private String name = "genkit-mcp-server";
@@ -76,8 +76,7 @@ public class MCPServerOptions {
     /**
      * Sets the server name.
      *
-     * @param name
-     *            the server name
+     * @param name the server name
      * @return this builder
      */
     public Builder name(String name) {
@@ -88,8 +87,7 @@ public class MCPServerOptions {
     /**
      * Sets the server version.
      *
-     * @param version
-     *            the server version
+     * @param version the server version
      * @return this builder
      */
     public Builder version(String version) {

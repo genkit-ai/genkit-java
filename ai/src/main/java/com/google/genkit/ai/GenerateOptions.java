@@ -25,10 +25,8 @@ import java.util.stream.Collectors;
 
 /**
  * Options for text generation requests.
- * 
- * @param <T>
- *            the output type for structured output (use Void if not using typed
- *            output)
+ *
+ * @param <T> the output type for structured output (use Void if not using typed output)
  */
 public class GenerateOptions<T> {
 
@@ -49,36 +47,34 @@ public class GenerateOptions<T> {
   /**
    * Creates new GenerateOptions.
    *
-   * @param model
-   *            the model name
-   * @param prompt
-   *            simple text prompt
-   * @param messages
-   *            conversation messages
-   * @param docs
-   *            documents for context
-   * @param system
-   *            system prompt
-   * @param tools
-   *            available tools
-   * @param toolChoice
-   *            tool selection strategy
-   * @param output
-   *            output configuration
-   * @param config
-   *            generation configuration
-   * @param context
-   *            additional context
-   * @param maxTurns
-   *            maximum conversation turns
-   * @param resume
-   *            options for resuming after an interrupt
-   * @param outputClass
-   *            the output class for structured output
+   * @param model the model name
+   * @param prompt simple text prompt
+   * @param messages conversation messages
+   * @param docs documents for context
+   * @param system system prompt
+   * @param tools available tools
+   * @param toolChoice tool selection strategy
+   * @param output output configuration
+   * @param config generation configuration
+   * @param context additional context
+   * @param maxTurns maximum conversation turns
+   * @param resume options for resuming after an interrupt
+   * @param outputClass the output class for structured output
    */
-  public GenerateOptions(String model, String prompt, List<Message> messages, List<Document> docs, String system,
-      List<Tool<?, ?>> tools, Object toolChoice, OutputConfig output, GenerationConfig config,
-      Map<String, Object> context, Integer maxTurns, ResumeOptions resume, Class<T> outputClass) {
+  public GenerateOptions(
+      String model,
+      String prompt,
+      List<Message> messages,
+      List<Document> docs,
+      String system,
+      List<Tool<?, ?>> tools,
+      Object toolChoice,
+      OutputConfig output,
+      GenerationConfig config,
+      Map<String, Object> context,
+      Integer maxTurns,
+      ResumeOptions resume,
+      Class<T> outputClass) {
     this.model = model;
     this.prompt = prompt;
     this.messages = messages;
@@ -97,8 +93,7 @@ public class GenerateOptions<T> {
   /**
    * Creates a builder for GenerateOptions.
    *
-   * @param <T>
-   *            the output type
+   * @param <T> the output type
    * @return a new builder
    */
   public static <T> Builder<T> builder() {
@@ -232,7 +227,8 @@ public class GenerateOptions<T> {
     }
 
     if (tools != null && !tools.isEmpty()) {
-      List<ToolDefinition> toolDefs = tools.stream().map(Tool::getDefinition).collect(Collectors.toList());
+      List<ToolDefinition> toolDefs =
+          tools.stream().map(Tool::getDefinition).collect(Collectors.toList());
       builder.tools(toolDefs);
     }
 
@@ -292,9 +288,8 @@ public class GenerateOptions<T> {
 
   /**
    * Builder for GenerateOptions.
-   * 
-   * @param <T>
-   *            the output type for structured output
+   *
+   * @param <T> the output type for structured output
    */
   public static class Builder<T> {
     private String model;
@@ -353,27 +348,29 @@ public class GenerateOptions<T> {
 
     /**
      * Sets the output class for typed structured output.
-     * 
-     * <p>
-     * When set, the schema is automatically generated from the class. Use
+     *
+     * <p>When set, the schema is automatically generated from the class. Use
      * {@code @JsonPropertyDescription} to add descriptions to fields:
-     * 
+     *
      * <pre>{@code
      * public class MenuItem {
-     * 	@JsonPropertyDescription("The name of the menu item")
-     * 	private String name;
-     * 
-     * 	@JsonPropertyDescription("The estimated number of calories")
-     * 	private int calories;
+     *   @JsonPropertyDescription("The name of the menu item")
+     *   private String name;
+     *
+     *   @JsonPropertyDescription("The estimated number of calories")
+     *   private int calories;
      * }
-     * 
+     *
      * // Usage:
-     * MenuItem item = genkit.generate(GenerateOptions.<MenuItem>builder().model("openai/gpt-4o-mini")
-     * 		.prompt("Suggest a menu item").outputClass(MenuItem.class).build());
+     * MenuItem item = genkit.generate(
+     *     GenerateOptions.<MenuItem>builder()
+     *         .model("openai/gpt-4o-mini")
+     *         .prompt("Suggest a menu item")
+     *         .outputClass(MenuItem.class)
+     *         .build());
      * }</pre>
      *
-     * @param outputClass
-     *            the output class
+     * @param outputClass the output class
      * @return this builder
      */
     @SuppressWarnings("unchecked")
@@ -402,8 +399,7 @@ public class GenerateOptions<T> {
     /**
      * Sets the resume options for continuing after an interrupt.
      *
-     * @param resume
-     *            the resume options
+     * @param resume the resume options
      * @return this builder
      */
     public Builder<T> resume(ResumeOptions resume) {
@@ -412,8 +408,20 @@ public class GenerateOptions<T> {
     }
 
     public GenerateOptions<T> build() {
-      return new GenerateOptions<>(model, prompt, messages, docs, system, tools, toolChoice, output, config,
-          context, maxTurns, resume, outputClass);
+      return new GenerateOptions<>(
+          model,
+          prompt,
+          messages,
+          docs,
+          system,
+          tools,
+          toolChoice,
+          output,
+          config,
+          context,
+          maxTurns,
+          resume,
+          outputClass);
     }
   }
 }

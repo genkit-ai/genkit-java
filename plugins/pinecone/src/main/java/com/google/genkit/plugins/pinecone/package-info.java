@@ -19,24 +19,31 @@
 /**
  * Pinecone plugin for Genkit providing vector database integration.
  *
- * <p>
- * This plugin provides:
+ * <p>This plugin provides:
+ *
  * <ul>
- * <li>Pinecone serverless and pod-based index support</li>
- * <li>Document indexing with automatic embedding generation</li>
- * <li>Namespace support for multi-tenant applications</li>
- * <li>Metadata filtering for precise retrieval</li>
- * <li>Automatic index creation and management</li>
+ *   <li>Pinecone serverless and pod-based index support
+ *   <li>Document indexing with automatic embedding generation
+ *   <li>Namespace support for multi-tenant applications
+ *   <li>Metadata filtering for precise retrieval
+ *   <li>Automatic index creation and management
  * </ul>
  *
- * <p>
- * Example usage:
- * 
+ * <p>Example usage:
+ *
  * <pre>{@code
- * Genkit genkit = Genkit.builder().plugin(GoogleGenAIPlugin.create(apiKey))
- * 		.plugin(PineconePlugin.builder().apiKey(System.getenv("PINECONE_API_KEY")).addIndex(PineconeIndexConfig
- * 				.builder().indexName("my-index").embedderName("googleai/text-embedding-004").build()).build())
- * 		.build();
+ * Genkit genkit = Genkit.builder()
+ *     .plugin(GoogleGenAIPlugin.create(apiKey))
+ *     .plugin(
+ *         PineconePlugin.builder()
+ *             .apiKey(System.getenv("PINECONE_API_KEY"))
+ *             .addIndex(
+ *                 PineconeIndexConfig.builder()
+ *                     .indexName("my-index")
+ *                     .embedderName("googleai/text-embedding-004")
+ *                     .build())
+ *             .build())
+ *     .build();
  * }</pre>
  */
 package com.google.genkit.plugins.pinecone;

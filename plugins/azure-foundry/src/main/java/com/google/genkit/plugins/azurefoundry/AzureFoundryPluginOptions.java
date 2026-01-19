@@ -21,9 +21,7 @@ package com.google.genkit.plugins.azurefoundry;
 import com.azure.core.credential.TokenCredential;
 import com.azure.identity.DefaultAzureCredentialBuilder;
 
-/**
- * Configuration options for the Azure AI Foundry plugin.
- */
+/** Configuration options for the Azure AI Foundry plugin. */
 public class AzureFoundryPluginOptions {
 
   private final String endpoint;
@@ -94,9 +92,7 @@ public class AzureFoundryPluginOptions {
     return new Builder();
   }
 
-  /**
-   * Builder for AzureFoundryPluginOptions.
-   */
+  /** Builder for AzureFoundryPluginOptions. */
   public static class Builder {
 
     private String endpoint;
@@ -108,9 +104,7 @@ public class AzureFoundryPluginOptions {
     /**
      * Sets the Azure AI Foundry endpoint URL.
      *
-     * @param endpoint
-     *            the endpoint URL (e.g.,
-     *            "https://my-project.eastus.models.ai.azure.com")
+     * @param endpoint the endpoint URL (e.g., "https://my-project.eastus.models.ai.azure.com")
      * @return this builder
      */
     public Builder endpoint(String endpoint) {
@@ -121,8 +115,7 @@ public class AzureFoundryPluginOptions {
     /**
      * Sets the API key for authentication.
      *
-     * @param apiKey
-     *            the API key
+     * @param apiKey the API key
      * @return this builder
      */
     public Builder apiKey(String apiKey) {
@@ -133,8 +126,7 @@ public class AzureFoundryPluginOptions {
     /**
      * Sets the Azure credential for authentication (alternative to API key).
      *
-     * @param credential
-     *            the Azure token credential
+     * @param credential the Azure token credential
      * @return this builder
      */
     public Builder credential(TokenCredential credential) {
@@ -145,8 +137,7 @@ public class AzureFoundryPluginOptions {
     /**
      * Sets the deployment name.
      *
-     * @param deployment
-     *            the deployment name
+     * @param deployment the deployment name
      * @return this builder
      */
     public Builder deployment(String deployment) {
@@ -157,8 +148,7 @@ public class AzureFoundryPluginOptions {
     /**
      * Sets the API version.
      *
-     * @param apiVersion
-     *            the API version (default: "2024-10-01-preview")
+     * @param apiVersion the API version (default: "2024-10-01-preview")
      * @return this builder
      */
     public Builder apiVersion(String apiVersion) {

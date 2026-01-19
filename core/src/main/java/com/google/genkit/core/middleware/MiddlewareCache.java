@@ -21,16 +21,14 @@ package com.google.genkit.core.middleware;
 /**
  * MiddlewareCache is a simple cache interface for use with caching middleware.
  *
- * @param <V>
- *            the value type
+ * @param <V> the value type
  */
 public interface MiddlewareCache<V> {
 
   /**
    * Gets a value from the cache.
    *
-   * @param key
-   *            the cache key
+   * @param key the cache key
    * @return the cached value, or null if not found
    */
   V get(String key);
@@ -38,23 +36,18 @@ public interface MiddlewareCache<V> {
   /**
    * Puts a value in the cache.
    *
-   * @param key
-   *            the cache key
-   * @param value
-   *            the value to cache
+   * @param key the cache key
+   * @param value the value to cache
    */
   void put(String key, V value);
 
   /**
    * Removes a value from the cache.
    *
-   * @param key
-   *            the cache key
+   * @param key the cache key
    */
   void remove(String key);
 
-  /**
-   * Clears all values from the cache.
-   */
+  /** Clears all values from the cache. */
   void clear();
 }

@@ -18,38 +18,39 @@
 
 package com.google.genkit.plugins.localvec;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.genkit.ai.*;
 import com.google.genkit.core.Action;
 import com.google.genkit.core.ActionType;
 import com.google.genkit.core.Plugin;
 import com.google.genkit.core.Registry;
+import java.util.ArrayList;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Local file-based vector store plugin for development and testing.
- * 
- * <p>
- * This plugin provides a simple file-based vector store implementation suitable
- * for local development and testing. It stores document embeddings in JSON
- * files and performs similarity search using cosine similarity.
- * 
- * <p>
- * <b>NOT INTENDED FOR PRODUCTION USE.</b>
- * 
- * <p>
- * Example usage with embedder name (recommended):
- * 
+ *
+ * <p>This plugin provides a simple file-based vector store implementation suitable for local
+ * development and testing. It stores document embeddings in JSON files and performs similarity
+ * search using cosine similarity.
+ *
+ * <p><b>NOT INTENDED FOR PRODUCTION USE.</b>
+ *
+ * <p>Example usage with embedder name (recommended):
+ *
  * <pre>{@code
- * Genkit genkit = Genkit.builder().plugin(OpenAIPlugin.create())
- * 		.plugin(LocalVecPlugin.builder().addStore(
- * 				LocalVecConfig.builder().indexName("my-docs").embedderName("openai/text-embedding-3-small").build())
- * 				.build())
- * 		.build();
+ * Genkit genkit = Genkit.builder()
+ *     .plugin(OpenAIPlugin.create())
+ *     .plugin(
+ *         LocalVecPlugin.builder()
+ *             .addStore(
+ *                 LocalVecConfig.builder()
+ *                     .indexName("my-docs")
+ *                     .embedderName("openai/text-embedding-3-small")
+ *                     .build())
+ *             .build())
+ *     .build();
  * }</pre>
  */
 public class LocalVecPlugin implements Plugin {
@@ -96,20 +97,25 @@ public class LocalVecPlugin implements Plugin {
       if (config.getEmbedder() == null && config.getEmbedderName() != null) {
         if (registry == null) {
           throw new IllegalStateException(
-              "Registry is required to resolve embedder by name: " + config.getEmbedderName()
+              "Registry is required to resolve embedder by name: "
+                  + config.getEmbedderName()
                   + ". Use init(Registry) or provide an Embedder instance directly.");
         }
         String embedderKey = ActionType.EMBEDDER.keyFromName(config.getEmbedderName());
         Action<?, ?, ?> embedderAction = registry.lookupAction(embedderKey);
         if (embedderAction == null) {
-          throw new IllegalStateException("Embedder not found: " + config.getEmbedderName()
-              + ". Make sure the embedder plugin is registered before LocalVecPlugin.");
+          throw new IllegalStateException(
+              "Embedder not found: "
+                  + config.getEmbedderName()
+                  + ". Make sure the embedder plugin is registered before LocalVecPlugin.");
         }
         if (!(embedderAction instanceof Embedder)) {
-          throw new IllegalStateException("Action " + config.getEmbedderName() + " is not an Embedder");
+          throw new IllegalStateException(
+              "Action " + config.getEmbedderName() + " is not an Embedder");
         }
         config.setEmbedder((Embedder) embedderAction);
-        logger.info("Resolved embedder: {} for index: {}", config.getEmbedderName(), config.getIndexName());
+        logger.info(
+            "Resolved embedder: {} for index: {}", config.getEmbedderName(), config.getIndexName());
       }
 
       logger.info("Initializing local vector store: {}", config.getIndexName());
@@ -130,17 +136,14 @@ public class LocalVecPlugin implements Plugin {
     return actions;
   }
 
-  /**
-   * Builder for LocalVecPlugin.
-   */
+  /** Builder for LocalVecPlugin. */
   public static class Builder {
     private final List<LocalVecConfig> configurations = new ArrayList<>();
 
     /**
      * Adds a vector store configuration.
      *
-     * @param config
-     *            the configuration
+     * @param config the configuration
      * @return this builder
      */
     public Builder addStore(LocalVecConfig config) {
@@ -149,13 +152,10 @@ public class LocalVecPlugin implements Plugin {
     }
 
     /**
-     * Convenience method to add a store with minimal configuration using an
-     * embedder instance.
+     * Convenience method to add a store with minimal configuration using an embedder instance.
      *
-     * @param indexName
-     *            the index name
-     * @param embedder
-     *            the embedder to use
+     * @param indexName the index name
+     * @param embedder the embedder to use
      * @return this builder
      */
     public Builder addStore(String indexName, Embedder embedder) {
@@ -164,18 +164,16 @@ public class LocalVecPlugin implements Plugin {
     }
 
     /**
-     * Convenience method to add a store with minimal configuration using an
-     * embedder name. The embedder will be resolved from the registry during plugin
-     * initialization.
+     * Convenience method to add a store with minimal configuration using an embedder name. The
+     * embedder will be resolved from the registry during plugin initialization.
      *
-     * @param indexName
-     *            the index name
-     * @param embedderName
-     *            the embedder name (e.g., "openai/text-embedding-3-small")
+     * @param indexName the index name
+     * @param embedderName the embedder name (e.g., "openai/text-embedding-3-small")
      * @return this builder
      */
     public Builder addStore(String indexName, String embedderName) {
-      configurations.add(LocalVecConfig.builder().indexName(indexName).embedderName(embedderName).build());
+      configurations.add(
+          LocalVecConfig.builder().indexName(indexName).embedderName(embedderName).build());
       return this;
     }
 

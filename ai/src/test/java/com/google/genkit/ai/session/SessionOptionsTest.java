@@ -80,14 +80,16 @@ class SessionOptionsTest {
 
   @Test
   void testBuilderWithInitialState() {
-    SessionOptions<String> options = SessionOptions.<String>builder().initialState("initial-value").build();
+    SessionOptions<String> options =
+        SessionOptions.<String>builder().initialState("initial-value").build();
 
     assertEquals("initial-value", options.getInitialState());
   }
 
   @Test
   void testBuilderWithSessionId() {
-    SessionOptions<String> options = SessionOptions.<String>builder().sessionId("my-session-123").build();
+    SessionOptions<String> options =
+        SessionOptions.<String>builder().sessionId("my-session-123").build();
 
     assertEquals("my-session-123", options.getSessionId());
   }
@@ -96,8 +98,12 @@ class SessionOptionsTest {
   void testBuilderWithAllOptions() {
     InMemorySessionStore<String> store = new InMemorySessionStore<>();
 
-    SessionOptions<String> options = SessionOptions.<String>builder().store(store).initialState("test-state")
-        .sessionId("session-456").build();
+    SessionOptions<String> options =
+        SessionOptions.<String>builder()
+            .store(store)
+            .initialState("test-state")
+            .sessionId("session-456")
+            .build();
 
     assertSame(store, options.getStore());
     assertEquals("test-state", options.getInitialState());
@@ -119,8 +125,11 @@ class SessionOptionsTest {
     // Test with a custom state class
     TestState state = new TestState("Alice", 25);
 
-    SessionOptions<TestState> options = SessionOptions.<TestState>builder().initialState(state)
-        .sessionId("complex-state-session").build();
+    SessionOptions<TestState> options =
+        SessionOptions.<TestState>builder()
+            .initialState(state)
+            .sessionId("complex-state-session")
+            .build();
 
     assertEquals("Alice", options.getInitialState().getName());
     assertEquals(25, options.getInitialState().getAge());

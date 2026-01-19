@@ -20,19 +20,21 @@ package com.google.genkit.plugins.groq;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.List;
-
-import org.junit.jupiter.api.Test;
-
 import com.google.genkit.core.Action;
 import com.google.genkit.plugins.compatoai.CompatOAIPluginOptions;
+import java.util.List;
+import org.junit.jupiter.api.Test;
 
 class GroqPluginTest {
 
   @Test
   void testDefaultConstruction() {
-    GroqPlugin plugin = new GroqPlugin(
-        CompatOAIPluginOptions.builder().apiKey("test-key").baseUrl("https://api.groq.com/openai/v1").build());
+    GroqPlugin plugin =
+        new GroqPlugin(
+            CompatOAIPluginOptions.builder()
+                .apiKey("test-key")
+                .baseUrl("https://api.groq.com/openai/v1")
+                .build());
 
     assertNotNull(plugin);
     assertEquals("groq", plugin.getName());
@@ -40,8 +42,11 @@ class GroqPluginTest {
 
   @Test
   void testConstructionWithOptions() {
-    CompatOAIPluginOptions options = CompatOAIPluginOptions.builder().apiKey("test-key")
-        .baseUrl("https://api.groq.com/openai/v1").build();
+    CompatOAIPluginOptions options =
+        CompatOAIPluginOptions.builder()
+            .apiKey("test-key")
+            .baseUrl("https://api.groq.com/openai/v1")
+            .build();
 
     GroqPlugin plugin = new GroqPlugin(options);
 
@@ -67,8 +72,12 @@ class GroqPluginTest {
 
   @Test
   void testInitializesActions() {
-    GroqPlugin plugin = new GroqPlugin(
-        CompatOAIPluginOptions.builder().apiKey("test-key").baseUrl("https://api.groq.com/openai/v1").build());
+    GroqPlugin plugin =
+        new GroqPlugin(
+            CompatOAIPluginOptions.builder()
+                .apiKey("test-key")
+                .baseUrl("https://api.groq.com/openai/v1")
+                .build());
 
     List<Action<?, ?, ?>> actions = plugin.init();
 
@@ -85,8 +94,12 @@ class GroqPluginTest {
 
   @Test
   void testCustomModel() {
-    GroqPlugin plugin = new GroqPlugin(
-        CompatOAIPluginOptions.builder().apiKey("test-key").baseUrl("https://api.groq.com/openai/v1").build());
+    GroqPlugin plugin =
+        new GroqPlugin(
+            CompatOAIPluginOptions.builder()
+                .apiKey("test-key")
+                .baseUrl("https://api.groq.com/openai/v1")
+                .build());
 
     plugin.customModel("custom-groq-model");
 
@@ -95,8 +108,11 @@ class GroqPluginTest {
 
   @Test
   void testGetOptions() {
-    CompatOAIPluginOptions options = CompatOAIPluginOptions.builder().apiKey("test-key")
-        .baseUrl("https://api.groq.com/openai/v1").build();
+    CompatOAIPluginOptions options =
+        CompatOAIPluginOptions.builder()
+            .apiKey("test-key")
+            .baseUrl("https://api.groq.com/openai/v1")
+            .build();
 
     GroqPlugin plugin = new GroqPlugin(options);
     CompatOAIPluginOptions retrievedOptions = plugin.getOptions();

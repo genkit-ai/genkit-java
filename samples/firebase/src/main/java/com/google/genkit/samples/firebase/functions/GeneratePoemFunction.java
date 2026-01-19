@@ -18,8 +18,6 @@
 
 package com.google.genkit.samples.firebase.functions;
 
-import java.io.IOException;
-
 import com.google.cloud.functions.HttpFunction;
 import com.google.cloud.functions.HttpRequest;
 import com.google.cloud.functions.HttpResponse;
@@ -28,17 +26,15 @@ import com.google.genkit.ai.*;
 import com.google.genkit.plugins.firebase.FirebasePlugin;
 import com.google.genkit.plugins.firebase.functions.OnCallGenkit;
 import com.google.genkit.plugins.googlegenai.GoogleGenAIPlugin;
+import java.io.IOException;
 
 /**
  * Firebase Cloud Function that generates poems using Genkit.
- * 
- * <p>
- * This is a simple example showing how to expose a Genkit flow as a Firebase
- * Cloud Function.
- * 
- * <p>
- * Deploy with:
- * 
+ *
+ * <p>This is a simple example showing how to expose a Genkit flow as a Firebase Cloud Function.
+ *
+ * <p>Deploy with:
+ *
  * <pre>
  * gcloud functions deploy generatePoem \
  *   --runtime java21 \
@@ -58,17 +54,29 @@ public class GeneratePoemFunction implements HttpFunction {
     }
 
     // Build Genkit with Google GenAI plugin
-    Genkit genkit = Genkit.builder().plugin(GoogleGenAIPlugin.create(apiKey))
-        .plugin(FirebasePlugin.builder().build()).build();
+    Genkit genkit =
+        Genkit.builder()
+            .plugin(GoogleGenAIPlugin.create(apiKey))
+            .plugin(FirebasePlugin.builder().build())
+            .build();
 
     // Define the poem generation flow
-    genkit.defineFlow("generatePoem", String.class, String.class, (ctx, topic) -> {
-      ModelResponse response = genkit.generate(GenerateOptions.builder().model("googleai/gemini-2.0-flash")
-          .prompt("Write a short, creative poem about: " + topic)
-          .config(GenerationConfig.builder().temperature(0.9).maxOutputTokens(500).build()).build());
+    genkit.defineFlow(
+        "generatePoem",
+        String.class,
+        String.class,
+        (ctx, topic) -> {
+          ModelResponse response =
+              genkit.generate(
+                  GenerateOptions.builder()
+                      .model("googleai/gemini-2.0-flash")
+                      .prompt("Write a short, creative poem about: " + topic)
+                      .config(
+                          GenerationConfig.builder().temperature(0.9).maxOutputTokens(500).build())
+                      .build());
 
-      return response.getText();
-    });
+          return response.getText();
+        });
 
     // Build the function - allow unauthenticated access for this example
     this.genkitFunction = OnCallGenkit.fromFlow(genkit, "generatePoem");

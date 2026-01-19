@@ -18,6 +18,9 @@
 
 package com.google.genkit.ai.session;
 
+import com.google.genkit.ai.Agent;
+import com.google.genkit.ai.Message;
+import com.google.genkit.core.Registry;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -25,30 +28,25 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
-import com.google.genkit.ai.Agent;
-import com.google.genkit.ai.Message;
-import com.google.genkit.core.Registry;
-
 /**
- * Session represents a stateful chat session that persists conversation history
- * and custom state across multiple interactions.
+ * Session represents a stateful chat session that persists conversation history and custom state
+ * across multiple interactions.
  *
- * <p>
- * Sessions provide:
+ * <p>Sessions provide:
+ *
  * <ul>
- * <li>Persistent conversation threads</li>
- * <li>Custom state management</li>
- * <li>Multiple named chat threads within a session</li>
- * <li>Automatic history management</li>
+ *   <li>Persistent conversation threads
+ *   <li>Custom state management
+ *   <li>Multiple named chat threads within a session
+ *   <li>Automatic history management
  * </ul>
  *
- * <p>
- * Example usage:
- * 
+ * <p>Example usage:
+ *
  * <pre>{@code
  * // Create a session with initial state
  * Session<MyState> session = genkit
- * 		.createSession(SessionOptions.<MyState>builder().initialState(new MyState("John")).build());
+ *     .createSession(SessionOptions.<MyState>builder().initialState(new MyState("John")).build());
  *
  * // Create a chat and interact
  * Chat chat = session.chat();
@@ -58,8 +56,7 @@ import com.google.genkit.core.Registry;
  * MyState state = session.getState();
  * }</pre>
  *
- * @param <S>
- *            the type of the custom session state
+ * @param <S> the type of the custom session state
  */
 public class Session<S> {
 
@@ -76,18 +73,17 @@ public class Session<S> {
   /**
    * Creates a new Session.
    *
-   * @param registry
-   *            the Genkit registry
-   * @param store
-   *            the session store
-   * @param sessionData
-   *            the initial session data
-   * @param chatFactory
-   *            factory for creating Chat instances
-   * @param agentRegistry
-   *            the agent registry for multi-agent handoffs (may be null)
+   * @param registry the Genkit registry
+   * @param store the session store
+   * @param sessionData the initial session data
+   * @param chatFactory factory for creating Chat instances
+   * @param agentRegistry the agent registry for multi-agent handoffs (may be null)
    */
-  Session(Registry registry, SessionStore<S> store, SessionData<S> sessionData, Supplier<Chat<S>> chatFactory,
+  Session(
+      Registry registry,
+      SessionStore<S> store,
+      SessionData<S> sessionData,
+      Supplier<Chat<S>> chatFactory,
       Map<String, Agent> agentRegistry) {
     this.registry = registry;
     this.store = store;
@@ -118,8 +114,7 @@ public class Session<S> {
   /**
    * Updates the session state and persists it.
    *
-   * @param state
-   *            the new state
+   * @param state the new state
    * @return a CompletableFuture that completes when the state is saved
    */
   public CompletableFuture<Void> updateState(S state) {
@@ -130,8 +125,7 @@ public class Session<S> {
   /**
    * Gets the message history for a thread.
    *
-   * @param threadName
-   *            the thread name
+   * @param threadName the thread name
    * @return the list of messages in the thread
    */
   public List<Message> getMessages(String threadName) {
@@ -151,10 +145,8 @@ public class Session<S> {
   /**
    * Updates the messages for a thread and persists them.
    *
-   * @param threadName
-   *            the thread name
-   * @param messages
-   *            the messages to save
+   * @param threadName the thread name
+   * @param messages the messages to save
    * @return a CompletableFuture that completes when saved
    */
   public CompletableFuture<Void> updateMessages(String threadName, List<Message> messages) {
@@ -174,8 +166,7 @@ public class Session<S> {
   /**
    * Creates a new Chat instance with options.
    *
-   * @param options
-   *            the chat options
+   * @param options the chat options
    * @return a new Chat instance
    */
   public Chat<S> chat(ChatOptions<S> options) {
@@ -185,8 +176,7 @@ public class Session<S> {
   /**
    * Creates a new Chat instance for a specific thread.
    *
-   * @param threadName
-   *            the thread name
+   * @param threadName the thread name
    * @return a new Chat instance
    */
   public Chat<S> chat(String threadName) {
@@ -196,10 +186,8 @@ public class Session<S> {
   /**
    * Creates a new Chat instance for a specific thread with options.
    *
-   * @param threadName
-   *            the thread name
-   * @param options
-   *            the chat options
+   * @param threadName the thread name
+   * @param options the chat options
    * @return a new Chat instance
    */
   public Chat<S> chat(String threadName, ChatOptions<S> options) {
@@ -254,12 +242,9 @@ public class Session<S> {
   /**
    * Creates a new Session with a generated ID.
    *
-   * @param <S>
-   *            the state type
-   * @param registry
-   *            the Genkit registry
-   * @param options
-   *            the session options
+   * @param <S> the state type
+   * @param registry the Genkit registry
+   * @param options the session options
    * @return a new Session
    */
   public static <S> Session<S> create(Registry registry, SessionOptions<S> options) {
@@ -269,23 +254,22 @@ public class Session<S> {
   /**
    * Creates a new Session with a generated ID and agent registry.
    *
-   * @param <S>
-   *            the state type
-   * @param registry
-   *            the Genkit registry
-   * @param options
-   *            the session options
-   * @param agentRegistry
-   *            the agent registry for multi-agent handoffs (may be null)
+   * @param <S> the state type
+   * @param registry the Genkit registry
+   * @param options the session options
+   * @param agentRegistry the agent registry for multi-agent handoffs (may be null)
    * @return a new Session
    */
-  public static <S> Session<S> create(Registry registry, SessionOptions<S> options,
-      Map<String, Agent> agentRegistry) {
-    String sessionId = options.getSessionId() != null ? options.getSessionId() : UUID.randomUUID().toString();
+  public static <S> Session<S> create(
+      Registry registry, SessionOptions<S> options, Map<String, Agent> agentRegistry) {
+    String sessionId =
+        options.getSessionId() != null ? options.getSessionId() : UUID.randomUUID().toString();
 
-    SessionStore<S> store = options.getStore() != null ? options.getStore() : new InMemorySessionStore<>();
+    SessionStore<S> store =
+        options.getStore() != null ? options.getStore() : new InMemorySessionStore<>();
 
-    SessionData<S> data = SessionData.<S>builder().id(sessionId).state(options.getInitialState()).build();
+    SessionData<S> data =
+        SessionData.<S>builder().id(sessionId).state(options.getInitialState()).build();
 
     // Save initial session data
     store.save(sessionId, data).join();
@@ -296,47 +280,43 @@ public class Session<S> {
   /**
    * Loads an existing session from a store.
    *
-   * @param <S>
-   *            the state type
-   * @param registry
-   *            the Genkit registry
-   * @param sessionId
-   *            the session ID to load
-   * @param options
-   *            the session options (must include store)
-   * @return a CompletableFuture containing the loaded session, or null if not
-   *         found
+   * @param <S> the state type
+   * @param registry the Genkit registry
+   * @param sessionId the session ID to load
+   * @param options the session options (must include store)
+   * @return a CompletableFuture containing the loaded session, or null if not found
    */
-  public static <S> CompletableFuture<Session<S>> load(Registry registry, String sessionId,
-      SessionOptions<S> options) {
+  public static <S> CompletableFuture<Session<S>> load(
+      Registry registry, String sessionId, SessionOptions<S> options) {
     return load(registry, sessionId, options, null);
   }
 
   /**
    * Loads an existing session from a store with agent registry.
    *
-   * @param <S>
-   *            the state type
-   * @param registry
-   *            the Genkit registry
-   * @param sessionId
-   *            the session ID to load
-   * @param options
-   *            the session options (must include store)
-   * @param agentRegistry
-   *            the agent registry for multi-agent handoffs (may be null)
-   * @return a CompletableFuture containing the loaded session, or null if not
-   *         found
+   * @param <S> the state type
+   * @param registry the Genkit registry
+   * @param sessionId the session ID to load
+   * @param options the session options (must include store)
+   * @param agentRegistry the agent registry for multi-agent handoffs (may be null)
+   * @return a CompletableFuture containing the loaded session, or null if not found
    */
-  public static <S> CompletableFuture<Session<S>> load(Registry registry, String sessionId, SessionOptions<S> options,
+  public static <S> CompletableFuture<Session<S>> load(
+      Registry registry,
+      String sessionId,
+      SessionOptions<S> options,
       Map<String, Agent> agentRegistry) {
-    SessionStore<S> store = options.getStore() != null ? options.getStore() : new InMemorySessionStore<>();
+    SessionStore<S> store =
+        options.getStore() != null ? options.getStore() : new InMemorySessionStore<>();
 
-    return store.get(sessionId).thenApply(data -> {
-      if (data == null) {
-        return null;
-      }
-      return new Session<>(registry, store, data, null, agentRegistry);
-    });
+    return store
+        .get(sessionId)
+        .thenApply(
+            data -> {
+              if (data == null) {
+                return null;
+              }
+              return new Session<>(registry, store, data, null, agentRegistry);
+            });
   }
 }

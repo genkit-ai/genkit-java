@@ -23,12 +23,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 import org.junit.jupiter.api.Test;
 
-/**
- * Unit tests for ResumeOptions.
- */
+/** Unit tests for ResumeOptions. */
 class ResumeOptionsTest {
 
   @Test
@@ -71,7 +68,8 @@ class ResumeOptionsTest {
     request.setName("tool2");
     request.setRef("ref-2");
 
-    ResumeOptions options = ResumeOptions.builder().respond(List.of(response)).restart(List.of(request)).build();
+    ResumeOptions options =
+        ResumeOptions.builder().respond(List.of(response)).restart(List.of(request)).build();
 
     assertNotNull(options.getRespond());
     assertEquals(1, options.getRespond().size());

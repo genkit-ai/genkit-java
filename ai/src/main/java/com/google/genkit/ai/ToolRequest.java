@@ -18,14 +18,11 @@
 
 package com.google.genkit.ai;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Map;
 
-/**
- * ToolRequest represents a request from the model to invoke a tool.
- */
+/** ToolRequest represents a request from the model to invoke a tool. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ToolRequest {
 
@@ -41,19 +38,14 @@ public class ToolRequest {
   @JsonProperty("metadata")
   private Map<String, Object> metadata;
 
-  /**
-   * Default constructor.
-   */
-  public ToolRequest() {
-  }
+  /** Default constructor. */
+  public ToolRequest() {}
 
   /**
    * Creates a ToolRequest with the given name and input.
    *
-   * @param name
-   *            the tool name
-   * @param input
-   *            the tool input
+   * @param name the tool name
+   * @param input the tool input
    */
   public ToolRequest(String name, Object input) {
     this.name = name;
