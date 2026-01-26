@@ -36,7 +36,7 @@
 
     <properties>
         <maven.deploy.skip>false</maven.deploy.skip>
-        <azure.identity.version>1.18.1</azure.identity.version>
+        <azure.identity.version>1.18.2</azure.identity.version>
     </properties>
 
     <dependencies>
