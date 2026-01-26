@@ -139,7 +139,7 @@
         <jsonschema.version>4.38.0</jsonschema.version>
         <handlebars.version>4.5.0</handlebars.version>
         <okhttp.version>5.3.2</okhttp.version>
-        <fmt.version>2.27</fmt.version>
+        <fmt.version>2.29</fmt.version>
         <google-java-format.version>1.27.0</google-java-format.version>
         <checkstyle.version>13.0.0</checkstyle.version>
     </properties>
