@@ -35,7 +35,7 @@
     <description>Model Context Protocol (MCP) plugin for Genkit - enables integration with MCP servers and tools</description>
 
     <properties>
-        <mcp.sdk.version>0.17.1</mcp.sdk.version>
+        <mcp.sdk.version>0.17.2</mcp.sdk.version>
         <maven.deploy.skip>false</maven.deploy.skip>
     </properties>
 
