@@ -142,6 +142,8 @@
         <fmt.version>2.29</fmt.version>
         <google-java-format.version>1.34.1</google-java-format.version>
         <checkstyle.version>13.2.0</checkstyle.version>
+    </properties>
+
     <dependencyManagement>
         <dependencies>
             <!-- Internal modules -->
