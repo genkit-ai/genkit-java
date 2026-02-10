@@ -40,27 +40,27 @@ import java.util.List;
 public class StructuredOutputSample {
 
   public static void main(String[] args) throws Exception {
+    // Create the Jetty HTTP server plugin
+    JettyPlugin jetty = new JettyPlugin(JettyPluginOptions.builder().port(8080).build());
+
     // Initialize Genkit with OpenAI and Jetty plugins
-    Genkit genkit =
-        Genkit.builder()
-            .plugin(OpenAIPlugin.create())
-            .plugin(new JettyPlugin(JettyPluginOptions.builder().port(8080).build()))
-            .build();
+    Genkit genkit = Genkit.builder().plugin(OpenAIPlugin.create()).plugin(jetty).build();
 
     System.out.println("=== Structured Output Examples ===\n");
 
     // Define all flows
     defineFlows(genkit);
 
-    System.out.println("Flows registered and available via HTTP on port 3400");
+    System.out.println("Flows registered and available via HTTP on port 8080");
     System.out.println("Available flows:");
-    System.out.println("  - POST http://localhost:8080/generateMenuItem");
-    System.out.println("  - POST http://localhost:8080/generateDishFromCuisine");
-    System.out.println("  - POST http://localhost:8080/generateRecipeWithTool");
-    System.out.println("  - POST http://localhost:8080/generateProfile");
+    System.out.println("  - POST http://localhost:8080/api/flows/generateMenuItem");
+    System.out.println("  - POST http://localhost:8080/api/flows/generateDishFromCuisine");
+    System.out.println("  - POST http://localhost:8080/api/flows/generateRecipeWithTool");
+    System.out.println("  - POST http://localhost:8080/api/flows/generateProfile");
     System.out.println();
     System.out.println("Access the Genkit Developer UI to trigger flows interactively.");
     System.out.println("Server running. Press Ctrl+C to stop.");
+    jetty.start();
   }
 
   private static void defineFlows(Genkit genkit) {
@@ -72,7 +72,7 @@ public class StructuredOutputSample {
         (ctx, request) -> {
           return genkit.generate(
               GenerateOptions.<MenuItem>builder()
-                  .model("openai/gpt-4o-mini")
+                  .model("openai/gpt-4o")
                   .prompt(request.getDescription())
                   .outputClass(MenuItem.class)
                   .build());
@@ -119,7 +119,7 @@ public class StructuredOutputSample {
         (ctx, request) -> {
           return genkit.generate(
               GenerateOptions.<MenuItem>builder()
-                  .model("openai/gpt-4o-mini")
+                  .model("openai/gpt-4o")
                   .prompt(
                       "I want a "
                           + request.getCuisine()

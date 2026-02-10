@@ -81,6 +81,7 @@ public class GoogleGenAIPlugin implements Plugin {
       Arrays.asList(
           // Gemini 3.0 series
           "gemini-3-pro-preview",
+          "gemini-3-flash-preview",
           // Gemini 2.5 series
           "gemini-2.5-pro",
           "gemini-2.5-flash",

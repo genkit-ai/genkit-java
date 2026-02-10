@@ -18,6 +18,7 @@
 
 package com.google.genkit.plugins.spring;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.genkit.core.Action;
 import com.google.genkit.core.ActionContext;
@@ -143,7 +144,7 @@ public class GenkitFlowController {
       produces = MediaType.APPLICATION_JSON_VALUE,
       consumes = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<Object> executeFlow(
-      @PathVariable String flowName, @RequestBody(required = false) Object input) {
+      @PathVariable String flowName, @RequestBody(required = false) JsonNode input) {
     Registry registry = getRegistry();
     if (registry == null) {
       return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
@@ -158,11 +159,9 @@ public class GenkitFlowController {
             .body(Map.of("error", "Flow not found: " + flowName));
       }
 
-      // Execute the flow
-      @SuppressWarnings("unchecked")
-      Action<Object, Object, Object> typedAction = (Action<Object, Object, Object>) action;
+      // Execute the flow using runJson() which properly deserializes to the typed input class
       ActionContext context = new ActionContext(registry);
-      Object result = typedAction.run(context, input);
+      JsonNode result = action.runJson(context, input, null);
 
       return ResponseEntity.ok(result);
     } catch (Exception e) {

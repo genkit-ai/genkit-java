@@ -18,6 +18,7 @@
 
 package com.google.genkit.plugins.jetty;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.genkit.core.*;
 import java.io.*;
@@ -267,15 +268,15 @@ public class JettyPlugin implements ServerPlugin {
         Request.asInputStream(request).transferTo(baos);
         String body = baos.toString(StandardCharsets.UTF_8);
 
-        // Parse input
-        Object input = null;
+        // Parse input as JsonNode so runJson() can convert to the proper typed class
+        JsonNode input = null;
         if (body != null && !body.isEmpty()) {
-          input = objectMapper.readValue(body, Object.class);
+          input = objectMapper.readTree(body);
         }
 
-        // Run the action
+        // Run the action using runJson() which properly deserializes to the typed input class
         ActionContext context = new ActionContext(registry);
-        Object result = action.run(context, input);
+        JsonNode result = action.runJson(context, input, null);
 
         // Send response
         response.setStatus(200);
