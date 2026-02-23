@@ -24,6 +24,7 @@ import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.ActionType;
 import com.google.genkit.core.GenkitException;
 import com.google.genkit.core.Registry;
+import io.modelcontextprotocol.json.McpJsonDefaults;
 import io.modelcontextprotocol.json.McpJsonMapper;
 import io.modelcontextprotocol.server.McpServer;
 import io.modelcontextprotocol.server.McpServerFeatures;
@@ -75,7 +76,7 @@ import org.slf4j.LoggerFactory;
 public class MCPServer {
 
   private static final Logger logger = LoggerFactory.getLogger(MCPServer.class);
-  private static final McpJsonMapper jsonMapper = McpJsonMapper.getDefault();
+  private static final McpJsonMapper jsonMapper = McpJsonDefaults.getMapper();
 
   private final Registry registry;
   private final MCPServerOptions options;
