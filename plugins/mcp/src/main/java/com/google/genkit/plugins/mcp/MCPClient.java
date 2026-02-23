@@ -29,6 +29,7 @@ import io.modelcontextprotocol.client.transport.HttpClientSseClientTransport;
 import io.modelcontextprotocol.client.transport.HttpClientStreamableHttpTransport;
 import io.modelcontextprotocol.client.transport.ServerParameters;
 import io.modelcontextprotocol.client.transport.StdioClientTransport;
+import io.modelcontextprotocol.json.McpJsonDefaults;
 import io.modelcontextprotocol.json.McpJsonMapper;
 import io.modelcontextprotocol.spec.McpClientTransport;
 import io.modelcontextprotocol.spec.McpSchema;
@@ -299,7 +300,7 @@ public class MCPClient {
   // Private methods
 
   private McpClientTransport createTransport() {
-    McpJsonMapper jsonMapper = McpJsonMapper.getDefault();
+    McpJsonMapper jsonMapper = McpJsonDefaults.getMapper();
 
     switch (config.getTransportType()) {
       case STDIO:
