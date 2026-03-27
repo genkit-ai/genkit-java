@@ -54,6 +54,7 @@ public class Genkit {
   private final Map<String, DotPrompt<?>> promptCache;
   private final Map<String, Agent> agentRegistry;
   private ReflectionServer reflectionServer;
+  private ReflectionServerV2 reflectionServerV2;
   private EvaluationManager evaluationManager;
 
   /** Creates a new Genkit instance with default options. */
@@ -1540,6 +1541,15 @@ public class Genkit {
 
   /** Starts the reflection server for dev tools integration. */
   private void startReflectionServer() {
+    String v2ServerUrl = System.getenv("GENKIT_REFLECTION_V2_SERVER");
+    if (v2ServerUrl != null && !v2ServerUrl.isEmpty()) {
+      startReflectionServerV2(v2ServerUrl);
+    } else {
+      startReflectionServerV1();
+    }
+  }
+
+  private void startReflectionServerV1() {
     try {
       int port = options.getReflectionPort();
       reflectionServer = new ReflectionServer(registry, port);
@@ -1554,8 +1564,26 @@ public class Genkit {
     }
   }
 
+  private void startReflectionServerV2(String serverUrl) {
+    try {
+      reflectionServerV2 = new ReflectionServerV2(registry, serverUrl);
+      reflectionServerV2.start();
+      logger.info("Reflection V2 client connecting to {}", serverUrl);
+    } catch (Exception e) {
+      logger.error("Failed to start reflection V2 client", e);
+      throw new GenkitException("Failed to start reflection V2 client", e);
+    }
+  }
+
   /** Stops the Genkit instance and cleans up resources. */
   public void stop() {
+    if (reflectionServerV2 != null) {
+      try {
+        reflectionServerV2.stop();
+      } catch (Exception e) {
+        logger.warn("Error stopping reflection V2 client", e);
+      }
+    }
     if (reflectionServer != null) {
       try {
         reflectionServer.stop();
