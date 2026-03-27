@@ -356,14 +356,21 @@ public class ReflectionServerV2 {
         key = desc.getKey();
         actionInfo.put("key", key);
         actionInfo.put("name", desc.getName());
-        actionInfo.put("description", desc.getDescription());
-        actionInfo.put("inputSchema", desc.getInputSchema());
-        actionInfo.put("outputSchema", desc.getOutputSchema());
-        actionInfo.put("metadata", desc.getMetadata());
+        actionInfo.put("description", desc.getDescription() != null ? desc.getDescription() : "");
+        if (desc.getInputSchema() != null) {
+          actionInfo.put("inputSchema", desc.getInputSchema());
+        }
+        if (desc.getOutputSchema() != null) {
+          actionInfo.put("outputSchema", desc.getOutputSchema());
+        }
+        actionInfo.put(
+            "metadata", desc.getMetadata() != null ? desc.getMetadata() : new HashMap<>());
       } else {
         key = action.getType().keyFromName(action.getName());
         actionInfo.put("key", key);
         actionInfo.put("name", action.getName());
+        actionInfo.put("description", "");
+        actionInfo.put("metadata", new HashMap<>());
       }
       actionMap.put(key, actionInfo);
     }
