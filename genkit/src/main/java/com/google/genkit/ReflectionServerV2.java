@@ -23,7 +23,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.genkit.core.Action;
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.ActionDesc;
-import com.google.genkit.core.ActionRunResult;
 import com.google.genkit.core.JsonUtils;
 import com.google.genkit.core.Registry;
 import com.google.genkit.core.tracing.Tracer;
@@ -76,6 +75,8 @@ public class ReflectionServerV2 {
 
   private final ConcurrentHashMap<String, CompletableFuture<JsonNode>> pendingRequests =
       new ConcurrentHashMap<>();
+
+  /** Maps traceId → Thread for targeted cancellation of running actions. */
   private final ConcurrentHashMap<String, Thread> activeActions = new ConcurrentHashMap<>();
 
   private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -413,27 +414,66 @@ public class ReflectionServerV2 {
               return;
             }
 
-            // Track this action for cancellation
-            activeActions.put(requestId, Thread.currentThread());
+            // Build stream callback if streaming is requested
+            java.util.function.Consumer<JsonNode> streamCallback = null;
+            if (stream) {
+              streamCallback =
+                  (chunk) -> {
+                    Map<String, Object> chunkParams = new HashMap<>();
+                    chunkParams.put("requestId", requestId);
+                    chunkParams.put("chunk", chunk);
+                    sendNotification("streamChunk", chunkParams);
+                  };
+            }
 
             ActionContext context = new ActionContext(registry);
-            ActionRunResult<JsonNode> result = action.runJsonWithTelemetry(context, input, null);
 
-            traceId = result.getTraceId();
+            // Create the telemetry span manually so we can get the traceId
+            // BEFORE the action starts producing stream chunks.
+            // This ensures runActionState is sent before any streamChunk notifications.
+            ActionDesc desc = action.getDesc();
+            com.google.genkit.core.tracing.SpanMetadata spanMetadata =
+                com.google.genkit.core.tracing.SpanMetadata.builder()
+                    .name(desc.getName())
+                    .type(desc.getType().getValue())
+                    .build();
 
-            // Send runActionState notification with traceId
-            if (traceId != null) {
-              Map<String, Object> stateParams = new HashMap<>();
-              stateParams.put("requestId", requestId);
-              Map<String, Object> state = new HashMap<>();
-              state.put("traceId", traceId);
-              stateParams.put("state", state);
-              sendNotification("runActionState", stateParams);
+            final java.util.function.Consumer<JsonNode> finalStreamCallback = streamCallback;
+            JsonNode jsonResult =
+                Tracer.runInNewSpan(
+                    context,
+                    spanMetadata,
+                    input,
+                    (spanCtx, in) -> {
+                      // Capture traceId and send state notification before action runs
+                      String spanTraceId = spanCtx.getTraceId();
+                      if (spanTraceId != null) {
+                        activeActions.put(spanTraceId, Thread.currentThread());
+
+                        Map<String, Object> stateParams = new HashMap<>();
+                        stateParams.put("requestId", requestId);
+                        Map<String, Object> state = new HashMap<>();
+                        state.put("traceId", spanTraceId);
+                        stateParams.put("state", state);
+                        sendNotification("runActionState", stateParams);
+                      }
+
+                      // Now run the action - stream chunks will be sent AFTER traceId
+                      return action.runJson(
+                          context.withSpanContext(spanCtx), in, finalStreamCallback);
+                    });
+
+            // Get traceId that was stored in activeActions during span execution
+            for (Map.Entry<String, Thread> entry : activeActions.entrySet()) {
+              if (entry.getValue() == Thread.currentThread()) {
+                traceId = entry.getKey();
+                break;
+              }
             }
 
             // Send final result
             Map<String, Object> responseResult = new HashMap<>();
-            responseResult.put("result", result.getResult());
+            responseResult.put("result", jsonResult);
             if (traceId != null) {
               Map<String, Object> telemetry = new HashMap<>();
               telemetry.put("traceId", traceId);
@@ -462,7 +502,9 @@ public class ReflectionServerV2 {
                 isInterrupt ? "Action was cancelled" : e.getMessage(),
                 errorData);
           } finally {
-            activeActions.remove(requestId);
+            if (traceId != null) {
+              activeActions.remove(traceId);
+            }
           }
         });
   }
@@ -491,17 +533,10 @@ public class ReflectionServerV2 {
 
     String traceId = params.get("traceId").asText();
 
-    // Look through active actions - find by traceId is not straightforward since
-    // activeActions is keyed by requestId. We interrupt all matching threads.
-    boolean found = false;
-    for (Map.Entry<String, Thread> entry : activeActions.entrySet()) {
-      // Interrupt the thread to cancel the action
-      entry.getValue().interrupt();
-      activeActions.remove(entry.getKey());
-      found = true;
-    }
-
-    if (found) {
+    // Look up the specific action thread by traceId
+    Thread actionThread = activeActions.remove(traceId);
+    if (actionThread != null) {
+      actionThread.interrupt();
       sendResponse(requestId, Map.of("message", "Action cancelled"));
     } else {
       sendError(requestId, 404, "Action not found or already completed", null);
