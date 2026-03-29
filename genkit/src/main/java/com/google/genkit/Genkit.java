@@ -663,6 +663,35 @@ public class Genkit {
     // Create fresh middleware instances for this invocation
     List<GenerationMiddleware> middlewares = createMiddlewareInstances(options.getUse());
 
+    // Collect tools from middleware instances and merge with options tools
+    List<Tool<?, ?>> allTools = new ArrayList<>();
+    if (options.getTools() != null) {
+      allTools.addAll(options.getTools());
+    }
+    for (GenerationMiddleware mw : middlewares) {
+      List<Tool<?, ?>> mwTools = mw.tools();
+      if (mwTools != null && !mwTools.isEmpty()) {
+        allTools.addAll(mwTools);
+      }
+    }
+
+    // Add middleware tool definitions to the model request
+    if (allTools.size() > (options.getTools() != null ? options.getTools().size() : 0)) {
+      List<ToolDefinition> allToolDefs = new ArrayList<>();
+      if (request.getTools() != null) {
+        allToolDefs.addAll(request.getTools());
+      }
+      for (GenerationMiddleware mw : middlewares) {
+        List<Tool<?, ?>> mwTools = mw.tools();
+        if (mwTools != null) {
+          for (Tool<?, ?> t : mwTools) {
+            allToolDefs.add(t.getDefinition());
+          }
+        }
+      }
+      request.setTools(allToolDefs);
+    }
+
     // Handle resume option if provided
     if (options.getResume() != null) {
       request = handleResumeOption(request, options);
@@ -694,9 +723,9 @@ public class Genkit {
             return response;
           }
 
-          // Execute tools through WrapTool chain
+          // Execute tools through WrapTool chain (includes middleware-provided tools)
           ToolExecutionResult toolResult =
-              executeToolsWithMiddleware(actx, toolRequestParts, options.getTools(), middlewares);
+              executeToolsWithMiddleware(actx, toolRequestParts, allTools, middlewares);
 
           // If there are interrupts, return immediately
           if (!toolResult.getInterrupts().isEmpty()) {
