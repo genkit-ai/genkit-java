@@ -20,6 +20,7 @@ package com.google.genkit;
 
 import com.google.genkit.ai.*;
 import com.google.genkit.ai.evaluation.*;
+import com.google.genkit.ai.middleware.*;
 import com.google.genkit.ai.session.*;
 import com.google.genkit.ai.telemetry.ModelTelemetryHelper;
 import com.google.genkit.core.*;
@@ -658,85 +659,267 @@ public class Genkit {
     ActionContext ctx = new ActionContext(registry);
 
     int maxTurns = options.getMaxTurns() != null ? options.getMaxTurns() : 5;
-    int turn = 0;
+
+    // Create fresh middleware instances for this invocation
+    List<GenerationMiddleware> middlewares = createMiddlewareInstances(options.getUse());
 
     // Handle resume option if provided
     if (options.getResume() != null) {
       request = handleResumeOption(request, options);
     }
 
-    while (turn < maxTurns) {
-      // Create span metadata for the model call
-      SpanMetadata modelSpanMetadata =
-          SpanMetadata.builder()
-              .name(options.getModel())
-              .type(ActionType.MODEL.getValue())
-              .subtype("model")
-              .build();
+    // Build model call wrapped with WrapModel hooks
+    ModelNext wrappedModelCall = buildWrappedModelCall(model, options, ctx, middlewares);
 
-      String flowName = ctx.getFlowName();
-      if (flowName != null) {
-        modelSpanMetadata.getAttributes().put("genkit:metadata:flow:name", flowName);
-      }
+    // Use an array to hold the reference for recursive WrapGenerate wrapping
+    final GenerateNext[] generateRef = new GenerateNext[1];
 
-      final ModelRequest currentRequest = request;
-      final String flowNameForTelemetry = flowName;
-      final String spanPath = "/generate/" + options.getModel();
-      ModelResponse response =
-          Tracer.runInNewSpan(
-              ctx,
+    // Core generate iteration: model call → tool handling → recurse
+    GenerateNext rawGenerate =
+        (actx, params) -> {
+          ModelRequest req = params.getRequest();
+          int turn = params.getIteration();
+
+          if (turn >= maxTurns) {
+            throw new GenkitException("Max tool execution turns (" + maxTurns + ") exceeded");
+          }
+
+          // Call model through WrapModel chain
+          ModelParams mparams = new ModelParams(req, null);
+          ModelResponse response = wrappedModelCall.apply(actx, mparams);
+
+          // Check if the model requested tool calls
+          List<Part> toolRequestParts = extractToolRequestParts(response);
+          if (toolRequestParts.isEmpty()) {
+            return response;
+          }
+
+          // Execute tools through WrapTool chain
+          ToolExecutionResult toolResult =
+              executeToolsWithMiddleware(actx, toolRequestParts, options.getTools(), middlewares);
+
+          // If there are interrupts, return immediately
+          if (!toolResult.getInterrupts().isEmpty()) {
+            return buildInterruptedResponse(response, toolResult);
+          }
+
+          // Build next request with updated messages
+          Message assistantMessage = response.getMessage();
+          List<Message> updatedMessages = new java.util.ArrayList<>(req.getMessages());
+          updatedMessages.add(assistantMessage);
+
+          Message toolResponseMessage = new Message();
+          toolResponseMessage.setRole(Role.TOOL);
+          toolResponseMessage.setContent(toolResult.getResponses());
+          updatedMessages.add(toolResponseMessage);
+
+          ModelRequest nextRequest =
+              ModelRequest.builder()
+                  .messages(updatedMessages)
+                  .config(req.getConfig())
+                  .tools(req.getTools())
+                  .output(req.getOutput())
+                  .build();
+
+          // Recurse through the wrapped generate function (goes through WrapGenerate hooks)
+          return generateRef[0].apply(actx, new GenerateParams(nextRequest, turn + 1));
+        };
+
+    // Chain WrapGenerate hooks around the core iteration
+    generateRef[0] = chainGenerateHooks(middlewares, rawGenerate);
+
+    // Start generation
+    return generateRef[0].apply(ctx, new GenerateParams(request, 0));
+  }
+
+  /** Creates fresh middleware instances for a single generate invocation. */
+  private List<GenerationMiddleware> createMiddlewareInstances(List<GenerationMiddleware> use) {
+    if (use == null || use.isEmpty()) {
+      return List.of();
+    }
+    return use.stream().map(GenerationMiddleware::newInstance).toList();
+  }
+
+  /** Builds the model call function wrapped with WrapModel hooks from middleware. */
+  private ModelNext buildWrappedModelCall(
+      Model model,
+      GenerateOptions<?> options,
+      ActionContext ctx,
+      List<GenerationMiddleware> middlewares) {
+
+    // Core model call with telemetry
+    ModelNext core =
+        (actx, mparams) -> {
+          ModelRequest req = mparams.getRequest();
+
+          SpanMetadata modelSpanMetadata =
+              SpanMetadata.builder()
+                  .name(options.getModel())
+                  .type(ActionType.MODEL.getValue())
+                  .subtype("model")
+                  .build();
+
+          String flowName = actx.getFlowName();
+          if (flowName != null) {
+            modelSpanMetadata.getAttributes().put("genkit:metadata:flow:name", flowName);
+          }
+
+          final String spanPath = "/generate/" + options.getModel();
+          return Tracer.runInNewSpan(
+              actx,
               modelSpanMetadata,
-              request,
-              (spanCtx, req) -> {
-                // Wrap model execution with telemetry to record generate metrics
+              req,
+              (spanCtx, r) -> {
                 return ModelTelemetryHelper.runWithTelemetry(
                     options.getModel(),
-                    flowNameForTelemetry,
+                    flowName,
                     spanPath,
-                    currentRequest,
-                    r -> model.run(ctx.withSpanContext(spanCtx), r));
+                    req,
+                    mr -> model.run(actx.withSpanContext(spanCtx), mr));
               });
+        };
 
-      // Check if the model requested tool calls
-      List<Part> toolRequestParts = extractToolRequestParts(response);
-      if (toolRequestParts.isEmpty()) {
-        // No tool calls, return the response
-        return response;
+    return chainModelHooks(middlewares, core);
+  }
+
+  /** Chains WrapGenerate hooks. First middleware is outermost. */
+  private GenerateNext chainGenerateHooks(
+      List<GenerationMiddleware> middlewares, GenerateNext core) {
+    if (middlewares.isEmpty()) {
+      return core;
+    }
+    GenerateNext current = core;
+    for (int i = middlewares.size() - 1; i >= 0; i--) {
+      final GenerationMiddleware mw = middlewares.get(i);
+      final GenerateNext next = current;
+      current = (ctx, params) -> mw.wrapGenerate(ctx, params, next);
+    }
+    return current;
+  }
+
+  /** Chains WrapModel hooks. First middleware is outermost. */
+  private ModelNext chainModelHooks(List<GenerationMiddleware> middlewares, ModelNext core) {
+    if (middlewares.isEmpty()) {
+      return core;
+    }
+    ModelNext current = core;
+    for (int i = middlewares.size() - 1; i >= 0; i--) {
+      final GenerationMiddleware mw = middlewares.get(i);
+      final ModelNext next = current;
+      current = (ctx, params) -> mw.wrapModel(ctx, params, next);
+    }
+    return current;
+  }
+
+  /** Chains WrapTool hooks. First middleware is outermost. */
+  private ToolNext chainToolHooks(List<GenerationMiddleware> middlewares, ToolNext core) {
+    if (middlewares.isEmpty()) {
+      return core;
+    }
+    ToolNext current = core;
+    for (int i = middlewares.size() - 1; i >= 0; i--) {
+      final GenerationMiddleware mw = middlewares.get(i);
+      final ToolNext next = current;
+      current = (ctx, params) -> mw.wrapTool(ctx, params, next);
+    }
+    return current;
+  }
+
+  /** Executes tools with WrapTool middleware hooks applied. */
+  private ToolExecutionResult executeToolsWithMiddleware(
+      ActionContext ctx,
+      List<Part> toolRequestParts,
+      List<Tool<?, ?>> tools,
+      List<GenerationMiddleware> middlewares) {
+
+    // Build WrapTool chain
+    ToolNext wrappedToolCall =
+        chainToolHooks(
+            middlewares,
+            (actx, tparams) -> {
+              Tool<?, ?> tool = tparams.getTool();
+              ToolRequest toolReq = tparams.getRequest();
+
+              Object toolInput = toolReq.getInput();
+              Class<?> inputClass = tool.getInputClass();
+              if (inputClass != null && toolInput != null && !inputClass.isInstance(toolInput)) {
+                toolInput = JsonUtils.convert(toolInput, inputClass);
+              }
+
+              @SuppressWarnings("unchecked")
+              Tool<Object, Object> typedTool = (Tool<Object, Object>) tool;
+              Object result = typedTool.run(actx, toolInput);
+
+              return new ToolResponse(toolReq.getRef(), toolReq.getName(), result);
+            });
+
+    List<Part> responseParts = new java.util.ArrayList<>();
+    List<Part> interrupts = new java.util.ArrayList<>();
+    Map<String, Part> interruptMap = new java.util.HashMap<>();
+    Map<String, Object> pendingOutputMap = new java.util.HashMap<>();
+
+    for (Part toolRequestPart : toolRequestParts) {
+      ToolRequest toolRequest = toolRequestPart.getToolRequest();
+      String toolName = toolRequest.getName();
+      String key = toolName + "#" + (toolRequest.getRef() != null ? toolRequest.getRef() : "");
+
+      Tool<?, ?> tool = findTool(toolName, tools);
+      if (tool == null) {
+        Part errorPart = new Part();
+        ToolResponse errorResponse =
+            new ToolResponse(
+                toolRequest.getRef(), toolName, Map.of("error", "Tool not found: " + toolName));
+        errorPart.setToolResponse(errorResponse);
+        responseParts.add(errorPart);
+        continue;
       }
 
-      // Execute tools and handle interrupts
-      ToolExecutionResult toolResult =
-          executeToolsWithInterruptHandling(ctx, toolRequestParts, options.getTools());
+      try {
+        // Execute through WrapTool chain
+        ToolParams tparams = new ToolParams(toolRequest, tool);
+        ToolResponse toolResponse = wrappedToolCall.apply(ctx, tparams);
 
-      // If there are interrupts, return immediately with interrupted response
-      if (!toolResult.getInterrupts().isEmpty()) {
-        return buildInterruptedResponse(response, toolResult);
+        Part responsePart = new Part();
+        responsePart.setToolResponse(toolResponse);
+        responseParts.add(responsePart);
+
+        pendingOutputMap.put(key, toolResponse.getOutput());
+
+        logger.debug("Executed tool '{}' successfully", toolName);
+
+      } catch (ToolInterruptException e) {
+        Map<String, Object> interruptMetadata = e.getMetadata();
+
+        Part interruptPart = new Part();
+        interruptPart.setToolRequest(toolRequest);
+        Map<String, Object> metadata =
+            toolRequestPart.getMetadata() != null
+                ? new java.util.HashMap<>(toolRequestPart.getMetadata())
+                : new java.util.HashMap<>();
+        metadata.put(
+            "interrupt",
+            interruptMetadata != null && !interruptMetadata.isEmpty() ? interruptMetadata : true);
+        interruptPart.setMetadata(metadata);
+
+        interrupts.add(interruptPart);
+        interruptMap.put(key, interruptPart);
+
+        logger.debug("Tool '{}' triggered interrupt", toolName);
+
+      } catch (Exception e) {
+        logger.error("Tool execution failed for '{}': {}", toolName, e.getMessage());
+        Part errorPart = new Part();
+        ToolResponse errorResponse =
+            new ToolResponse(
+                toolRequest.getRef(),
+                toolName,
+                Map.of("error", "Tool execution failed: " + e.getMessage()));
+        errorPart.setToolResponse(errorResponse);
+        responseParts.add(errorPart);
       }
-
-      // Add the assistant message with tool requests
-      Message assistantMessage = response.getMessage();
-      List<Message> updatedMessages = new java.util.ArrayList<>(request.getMessages());
-      updatedMessages.add(assistantMessage);
-
-      // Add tool response message
-      Message toolResponseMessage = new Message();
-      toolResponseMessage.setRole(Role.TOOL);
-      toolResponseMessage.setContent(toolResult.getResponses());
-      updatedMessages.add(toolResponseMessage);
-
-      // Update request with new messages for next turn
-      request =
-          ModelRequest.builder()
-              .messages(updatedMessages)
-              .config(request.getConfig())
-              .tools(request.getTools())
-              .output(request.getOutput())
-              .build();
-
-      turn++;
     }
 
-    throw new GenkitException("Max tool execution turns (" + maxTurns + ") exceeded");
+    return new ToolExecutionResult(responseParts, interrupts, interruptMap, pendingOutputMap);
   }
 
   /** Handles resume options by processing respond and restart directives. */
