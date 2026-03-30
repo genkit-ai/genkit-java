@@ -1,0 +1,59 @@
+---
+title: Overview
+description: An overview of Genkit for Java — the Java implementation of the Genkit AI framework.
+---
+
+Genkit for Java is the Java implementation of the [Genkit](https://genkit.dev) framework for building AI-powered applications.
+
+:::caution[Status]
+Currently in active development (`1.0.0-SNAPSHOT`). Requires **Java 21+**.
+:::
+
+:::note
+This is an **unofficial** community-driven Java port of Google's Genkit framework.
+:::
+
+## What is Genkit?
+
+Genkit is an open-source framework that helps you build AI-powered applications. It provides:
+
+- **Unified model API** — Call any supported AI model through a single, consistent interface
+- **Flows** — Define observable, traceable AI workflows that can be exposed as HTTP endpoints
+- **Tools** — Let models call your functions during generation
+- **DotPrompt** — Manage prompts as template files with Handlebars support
+- **Structured Output** — Generate type-safe outputs with automatic JSON schema generation
+- **RAG** — Build retrieval-augmented generation pipelines with indexers and retrievers
+- **Evaluations** — Assess AI output quality with custom and pre-built evaluators
+- **Observability** — Full OpenTelemetry integration for tracing and metrics
+- **Dev UI** — Visual tool for testing and debugging your AI logic
+
+## Supported Providers
+
+The Java SDK supports a broad range of providers:
+
+| Category | Providers |
+|----------|-----------|
+| **AI Models** | OpenAI, Google GenAI (Gemini), Anthropic (Claude), AWS Bedrock, Azure AI Foundry, xAI (Grok), DeepSeek, Cohere, Mistral, Groq, Ollama, any OpenAI-compatible endpoint |
+| **Vector Databases** | Weaviate, PostgreSQL (pgvector), Pinecone, Firebase Firestore, Local file-based |
+| **Server Frameworks** | Jetty, Spring Boot |
+| **Integrations** | Firebase (Firestore, Cloud Functions, Telemetry), MCP, Pre-built evaluators |
+
+## Modules
+
+| Module | Description |
+|--------|-------------|
+| **genkit-core** | Core framework: actions, flows, registry, tracing (OpenTelemetry) |
+| **genkit-ai** | AI abstractions: models, embedders, tools, prompts, retrievers, indexers, evaluators |
+| **genkit** | Main entry point combining core and AI with reflection server |
+| **plugins/** | 20+ plugin implementations for models, databases, servers, and integrations |
+
+## Next Steps
+
+import { LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid>
+  <LinkCard title="Get Started" description="Set up your first Genkit Java project" href="/genkit-java/getting-started/" />
+  <LinkCard title="Generating Content" description="Learn the unified model API" href="/genkit-java/models/" />
+  <LinkCard title="Plugin Overview" description="Browse all available plugins" href="/genkit-java/plugins/overview/" />
+  <LinkCard title="Samples" description="Explore example applications" href="/genkit-java/samples/" />
+</CardGrid>

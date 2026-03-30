@@ -9,6 +9,7 @@
 .env.local
 .env.*.local
 .angular
+.astro
 .next
 .pnpm-store
 .vscode

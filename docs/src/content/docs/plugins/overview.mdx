@@ -1,0 +1,73 @@
+---
+title: Plugin Overview
+description: Browse all available Genkit Java plugins.
+---
+
+import { LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Genkit Java provides 20+ plugins organized into categories.
+
+## Model Plugins
+
+Connect to AI model providers through a unified API.
+
+<CardGrid>
+  <LinkCard title="Google GenAI (Gemini)" description="Gemini models and Imagen image generation" href="/genkit-java/plugins/google-genai/" />
+  <LinkCard title="OpenAI" description="GPT-4o, GPT-4, DALL-E, embeddings" href="/genkit-java/plugins/openai/" />
+  <LinkCard title="Anthropic (Claude)" description="Claude 4.5, Claude 4, Claude 3 families" href="/genkit-java/plugins/anthropic/" />
+  <LinkCard title="AWS Bedrock" description="90+ models: Nova, Claude, Llama, Mistral" href="/genkit-java/plugins/aws-bedrock/" />
+  <LinkCard title="Azure AI Foundry" description="GPT-5, o1, Llama, DeepSeek via Azure" href="/genkit-java/plugins/azure-foundry/" />
+  <LinkCard title="xAI (Grok)" description="Grok-4, Grok-3 models" href="/genkit-java/plugins/xai/" />
+  <LinkCard title="DeepSeek" description="deepseek-chat, deepseek-reasoner" href="/genkit-java/plugins/deepseek/" />
+  <LinkCard title="Cohere" description="Command A, Command R families" href="/genkit-java/plugins/cohere/" />
+  <LinkCard title="Mistral" description="Mistral Large, Medium, Small, Codestral" href="/genkit-java/plugins/mistral/" />
+  <LinkCard title="Groq" description="Ultra-fast inference for Llama, Mixtral" href="/genkit-java/plugins/groq/" />
+  <LinkCard title="Ollama" description="Run local models without API keys" href="/genkit-java/plugins/ollama/" />
+  <LinkCard title="OpenAI-Compatible" description="Connect to any OpenAI-compatible endpoint" href="/genkit-java/plugins/compat-oai/" />
+</CardGrid>
+
+## Server & Deployment
+
+<CardGrid>
+  <LinkCard title="Jetty" description="HTTP server with Jetty 12" href="/genkit-java/plugins/jetty/" />
+  <LinkCard title="Spring Boot" description="Spring Boot REST endpoints" href="/genkit-java/plugins/spring/" />
+  <LinkCard title="Firebase" description="Cloud Functions, Firestore, Telemetry" href="/genkit-java/plugins/firebase/" />
+</CardGrid>
+
+## Vector Databases
+
+<CardGrid>
+  <LinkCard title="Local Vector Store" description="File-based store for development" href="/genkit-java/plugins/localvec/" />
+  <LinkCard title="Weaviate" description="Open-source vector database" href="/genkit-java/plugins/weaviate/" />
+  <LinkCard title="PostgreSQL (pgvector)" description="Vector search in PostgreSQL" href="/genkit-java/plugins/postgresql/" />
+  <LinkCard title="Pinecone" description="Managed vector database" href="/genkit-java/plugins/pinecone/" />
+</CardGrid>
+
+## Other
+
+<CardGrid>
+  <LinkCard title="MCP" description="Model Context Protocol client" href="/genkit-java/plugins/mcp/" />
+  <LinkCard title="Evaluators" description="Pre-built RAGAS-style evaluators" href="/genkit-java/plugins/evaluators/" />
+</CardGrid>
+
+## Installation
+
+Each plugin is a separate Maven dependency:
+
+```xml
+<dependency>
+    <groupId>com.google.genkit</groupId>
+    <artifactId>genkit-plugin-{name}</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+```
+
+For example, to install the OpenAI plugin:
+
+```xml
+<dependency>
+    <groupId>com.google.genkit</groupId>
+    <artifactId>genkit-plugin-openai</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+```

@@ -1,0 +1,77 @@
+---
+title: RAG (Retrieval Augmented Generation)
+description: Build RAG applications with retrievers, indexers, and vector stores.
+---
+
+RAG enhances AI model output by injecting relevant information from your data into prompts before sending them to the model.
+
+## Defining a retriever
+
+```java
+Retriever myRetriever = genkit.defineRetriever("myStore/docs", (ctx, request) -> {
+    List<Document> docs = findSimilarDocs(request.getQuery());
+    return new RetrieverResponse(docs);
+});
+```
+
+## Defining an indexer
+
+```java
+Indexer myIndexer = genkit.defineIndexer("myStore/docs", (ctx, request) -> {
+    indexDocuments(request.getDocuments());
+    return new IndexerResponse();
+});
+```
+
+## Indexing documents
+
+```java
+List<Document> docs = List.of(
+    Document.fromText("Paris is the capital of France."),
+    Document.fromText("Berlin is the capital of Germany.")
+);
+genkit.index("myStore/docs", docs);
+```
+
+## Retrieve and generate
+
+```java
+// Retrieve relevant documents
+List<Document> relevantDocs = genkit.retrieve(
+    "myStore/docs", "What is the capital of France?"
+);
+
+// Generate with context
+ModelResponse response = genkit.generate(
+    GenerateOptions.builder()
+        .model("openai/gpt-4o-mini")
+        .prompt("Answer based on context: What is the capital of France?")
+        .docs(relevantDocs)
+        .build());
+```
+
+## Embeddings
+
+Generate vector embeddings for semantic search:
+
+```java
+List<Document> documents = List.of(
+    Document.fromText("Hello world"),
+    Document.fromText("Goodbye world")
+);
+EmbedResponse response = genkit.embed("openai/text-embedding-3-small", documents);
+```
+
+## Vector store plugins
+
+Genkit Java supports multiple vector databases out of the box:
+
+import { LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid>
+  <LinkCard title="Local Vector Store" description="File-based store for development" href="/genkit-java/plugins/localvec/" />
+  <LinkCard title="Weaviate" description="Open-source vector database" href="/genkit-java/plugins/weaviate/" />
+  <LinkCard title="PostgreSQL (pgvector)" description="Vector search in PostgreSQL" href="/genkit-java/plugins/postgresql/" />
+  <LinkCard title="Pinecone" description="Managed vector database" href="/genkit-java/plugins/pinecone/" />
+  <LinkCard title="Firebase Firestore" description="Firestore vector search" href="/genkit-java/plugins/firebase/" />
+</CardGrid>

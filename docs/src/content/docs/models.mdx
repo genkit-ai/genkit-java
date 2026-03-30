@@ -1,0 +1,117 @@
+---
+title: Generating Content
+description: Use Genkit's unified generation API to work with any AI model.
+---
+
+Genkit provides a unified interface for working with generative AI models from any supported provider. Configure a model plugin once, then call any model through the same API.
+
+## The generate() method
+
+The primary interface for interacting with AI models is `generate()`:
+
+```java
+ModelResponse response = genkit.generate(
+    GenerateOptions.builder()
+        .model("openai/gpt-4o-mini")
+        .prompt("Invent a menu item for a pirate-themed restaurant.")
+        .build());
+
+System.out.println(response.getText());
+```
+
+## Model parameters
+
+Control how the model generates content with configuration options:
+
+```java
+ModelResponse response = genkit.generate(
+    GenerateOptions.builder()
+        .model("openai/gpt-4o-mini")
+        .prompt("Tell me a creative story.")
+        .config(GenerationConfig.builder()
+            .temperature(0.9)       // 0.0-2.0, higher = more creative
+            .maxOutputTokens(512)   // Limit output length
+            .topP(0.95)             // Nucleus sampling
+            .topK(40)               // Top-K sampling
+            .build())
+        .build());
+```
+
+### Parameter reference
+
+| Parameter | Description |
+|-----------|-------------|
+| `temperature` | Controls randomness. Low values (0.0-1.0) = more deterministic, high values (>1.0) = more creative |
+| `maxOutputTokens` | Maximum number of tokens to generate |
+| `topP` | Nucleus sampling — cumulative probability threshold (0.0-1.0) |
+| `topK` | Limits token selection to the top K most likely tokens |
+| `stopSequences` | Character sequences that signal the end of generation |
+
+## Switching models
+
+Changing models is as simple as changing the model string:
+
+```java
+// Use OpenAI
+genkit.generate(GenerateOptions.builder()
+    .model("openai/gpt-4o")
+    .prompt("Hello!").build());
+
+// Use Gemini
+genkit.generate(GenerateOptions.builder()
+    .model("googleai/gemini-2.0-flash")
+    .prompt("Hello!").build());
+
+// Use Claude
+genkit.generate(GenerateOptions.builder()
+    .model("anthropic/claude-sonnet-4-5-20250929")
+    .prompt("Hello!").build());
+
+// Use a local Ollama model
+genkit.generate(GenerateOptions.builder()
+    .model("ollama/gemma3n")
+    .prompt("Hello!").build());
+```
+
+## Providing context documents
+
+Pass documents for context-aware generation (useful for RAG):
+
+```java
+List<Document> docs = List.of(
+    Document.fromText("Paris is the capital of France."),
+    Document.fromText("Berlin is the capital of Germany.")
+);
+
+ModelResponse response = genkit.generate(
+    GenerateOptions.builder()
+        .model("openai/gpt-4o-mini")
+        .prompt("What is the capital of France?")
+        .docs(docs)
+        .build());
+```
+
+## Using tools
+
+Pass tools that models can call during generation:
+
+```java
+ModelResponse response = genkit.generate(
+    GenerateOptions.builder()
+        .model("openai/gpt-4o")
+        .prompt("What's the weather in Paris?")
+        .tools(List.of(weatherTool))
+        .build());
+```
+
+See [Tool Calling](/genkit-java/tools/) for complete documentation on defining and using tools.
+
+## Next steps
+
+import { LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid>
+  <LinkCard title="Structured Output" description="Generate type-safe outputs" href="/genkit-java/structured-output/" />
+  <LinkCard title="Streaming" description="Stream responses in real-time" href="/genkit-java/streaming/" />
+  <LinkCard title="Creating Flows" description="Wrap generation in observable workflows" href="/genkit-java/flows/" />
+</CardGrid>

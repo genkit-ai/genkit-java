@@ -1,0 +1,260 @@
+---
+title: Genkit for Java (Unofficial)
+description: The AI Framework for Java Applications. Build, test, and deploy AI-powered features with a unified API.
+template: splash
+hero:
+  title: |
+    The AI Framework for
+    <span style="color: var(--sl-color-accent);">Java Applications</span>
+  tagline: Build AI-powered applications in Java with a unified API for any model provider. Supports OpenAI, Gemini, Claude, Bedrock, and 15+ more providers out of the box.
+  actions:
+    - text: Get Started
+      link: /genkit-java/getting-started/
+      icon: right-arrow
+      variant: primary
+    - text: View on GitHub
+      link: https://github.com/genkit-ai/genkit-java
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid, LinkCard, Tabs, TabItem } from '@astrojs/starlight/components';
+
+## Get started with just a few lines of code
+
+<Tabs>
+  <TabItem label="Gemini" icon="star">
+    ```java
+    import com.google.genkit.Genkit;
+    import com.google.genkit.plugins.googlegenai.GoogleGenAIPlugin;
+
+    Genkit genkit = Genkit.builder()
+        .plugin(GoogleGenAIPlugin.create())
+        .build();
+
+    String text = genkit.generate(GenerateOptions.builder()
+        .model("googleai/gemini-3-flash")
+        .prompt("Why is Genkit awesome?")
+        .build()).getText();
+    ```
+  </TabItem>
+  <TabItem label="OpenAI" icon="star">
+    ```java
+    import com.google.genkit.Genkit;
+    import com.google.genkit.plugins.openai.OpenAIPlugin;
+
+    Genkit genkit = Genkit.builder()
+        .plugin(OpenAIPlugin.create())
+        .build();
+
+    String text = genkit.generate(GenerateOptions.builder()
+        .model("openai/gpt-5.2")
+        .prompt("Why is Genkit awesome?")
+        .build()).getText();
+    ```
+  </TabItem>
+  <TabItem label="Anthropic" icon="star">
+    ```java
+    import com.google.genkit.Genkit;
+    import com.google.genkit.plugins.anthropic.AnthropicPlugin;
+
+    Genkit genkit = Genkit.builder()
+        .plugin(AnthropicPlugin.create())
+        .build();
+
+    String text = genkit.generate(GenerateOptions.builder()
+        .model("anthropic/claude-sonnet-4.6-20260301")
+        .prompt("Why is Genkit awesome?")
+        .build()).getText();
+    ```
+  </TabItem>
+  <TabItem label="xAI" icon="star">
+    ```java
+    import com.google.genkit.Genkit;
+    import com.google.genkit.plugins.xai.XAIPlugin;
+
+    Genkit genkit = Genkit.builder()
+        .plugin(XAIPlugin.create())
+        .build();
+
+    String text = genkit.generate(GenerateOptions.builder()
+        .model("xai/grok-4-mini")
+        .prompt("Why is Genkit awesome?")
+        .build()).getText();
+    ```
+  </TabItem>
+  <TabItem label="DeepSeek" icon="star">
+    ```java
+    import com.google.genkit.Genkit;
+    import com.google.genkit.plugins.deepseek.DeepSeekPlugin;
+
+    Genkit genkit = Genkit.builder()
+        .plugin(DeepSeekPlugin.create())
+        .build();
+
+    String text = genkit.generate(GenerateOptions.builder()
+        .model("deepseek/deepseek-v3")
+        .prompt("Why is Genkit awesome?")
+        .build()).getText();
+    ```
+  </TabItem>
+  <TabItem label="Ollama" icon="star">
+    ```java
+    import com.google.genkit.Genkit;
+    import com.google.genkit.plugins.ollama.OllamaPlugin;
+
+    Genkit genkit = Genkit.builder()
+        .plugin(OllamaPlugin.create())
+        .build();
+
+    String text = genkit.generate(GenerateOptions.builder()
+        .model("ollama/gemma3n")
+        .prompt("Why is Genkit awesome?")
+        .build()).getText();
+    ```
+  </TabItem>
+</Tabs>
+
+## Simplified AI Integration
+
+The fastest way to build AI features into your Java apps.
+
+<CardGrid>
+  <Card title="Unified APIs for any model" icon="setting">
+    Use Google AI, OpenAI, Claude, Bedrock, and Ollama through one SDK. Switch models with a single line change.
+  </Card>
+  <Card title="Composable workflows" icon="puzzle">
+    Structure chat, RAG, tool use, and agents with built-in primitives. Define type-safe flows with input/output schemas.
+  </Card>
+  <Card title="Production-ready tools" icon="rocket">
+    Local dev UI, debugging, tracing with OpenTelemetry, and deployment to Spring Boot, Jetty, or Firebase Cloud Functions.
+  </Card>
+  <Card title="20+ Plugins" icon="add-document">
+    Model providers, vector databases, MCP, evaluators, and server frameworks — all as simple plugin integrations.
+  </Card>
+</CardGrid>
+
+## Deploy anywhere
+
+<Tabs>
+  <TabItem label="Jetty" icon="rocket">
+    ```java
+    import com.google.genkit.plugins.jetty.JettyPlugin;
+
+    JettyPlugin jetty = new JettyPlugin(JettyPluginOptions.builder()
+        .port(8080).build());
+
+    Genkit genkit = Genkit.builder()
+        .plugin(GoogleGenAIPlugin.create())
+        .plugin(jetty)
+        .build();
+
+    genkit.defineFlow("tellJoke", String.class, String.class,
+        (ctx, topic) -> genkit.generate(GenerateOptions.builder()
+            .model("googleai/gemini-3-flash")
+            .prompt("Tell a joke about: " + topic)
+            .build()).getText());
+
+    jetty.start();
+    ```
+  </TabItem>
+  <TabItem label="Spring Boot" icon="rocket">
+    ```java
+    import com.google.genkit.plugins.spring.SpringPlugin;
+
+    @SpringBootApplication
+    public class App {
+        public static void main(String[] args) {
+            SpringPlugin spring = new SpringPlugin();
+
+            Genkit genkit = Genkit.builder()
+                .plugin(GoogleGenAIPlugin.create())
+                .plugin(spring)
+                .build();
+
+            genkit.defineFlow("tellJoke", String.class, String.class,
+                (ctx, topic) -> genkit.generate(GenerateOptions.builder()
+                    .model("googleai/gemini-3-flash")
+                    .prompt("Tell a joke about: " + topic)
+                    .build()).getText());
+
+            spring.start(args);
+        }
+    }
+    ```
+  </TabItem>
+  <TabItem label="Firebase Functions" icon="rocket">
+    ```java
+    import com.google.genkit.plugins.firebase.functions.OnCallGenkit;
+
+    public class MyFunction implements HttpFunction {
+        private final OnCallGenkit fn;
+
+        public MyFunction() {
+            Genkit genkit = Genkit.builder()
+                .plugin(GoogleGenAIPlugin.create())
+                .plugin(FirebasePlugin.builder().build())
+                .build();
+
+            genkit.defineFlow("tellJoke", String.class, String.class,
+                (ctx, topic) -> genkit.generate(GenerateOptions.builder()
+                    .model("googleai/gemini-3-flash")
+                    .prompt("Tell a joke about: " + topic)
+                    .build()).getText());
+
+            this.fn = OnCallGenkit.fromFlow(genkit, "tellJoke");
+        }
+
+        @Override
+        public void service(HttpRequest req, HttpResponse res) throws IOException {
+            fn.service(req, res);
+        }
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+## Supported Providers
+
+<CardGrid>
+  <LinkCard title="Google GenAI (Gemini)" href="/genkit-java/plugins/google-genai/" />
+  <LinkCard title="OpenAI" href="/genkit-java/plugins/openai/" />
+  <LinkCard title="Anthropic (Claude)" href="/genkit-java/plugins/anthropic/" />
+  <LinkCard title="AWS Bedrock" href="/genkit-java/plugins/aws-bedrock/" />
+  <LinkCard title="Azure AI Foundry" href="/genkit-java/plugins/azure-foundry/" />
+  <LinkCard title="Ollama (Local)" href="/genkit-java/plugins/ollama/" />
+  <LinkCard title="xAI (Grok)" href="/genkit-java/plugins/xai/" />
+  <LinkCard title="DeepSeek" href="/genkit-java/plugins/deepseek/" />
+  <LinkCard title="Cohere" href="/genkit-java/plugins/cohere/" />
+  <LinkCard title="Mistral" href="/genkit-java/plugins/mistral/" />
+  <LinkCard title="Groq" href="/genkit-java/plugins/groq/" />
+  <LinkCard title="OpenAI-Compatible" href="/genkit-java/plugins/compat-oai/" />
+</CardGrid>
+
+## Vector Databases
+
+<CardGrid>
+  <LinkCard title="Firebase Firestore" href="/genkit-java/plugins/firebase-vector-store/" />
+  <LinkCard title="Weaviate" href="/genkit-java/plugins/weaviate/" />
+  <LinkCard title="PostgreSQL (pgvector)" href="/genkit-java/plugins/postgresql/" />
+  <LinkCard title="Pinecone" href="/genkit-java/plugins/pinecone/" />
+  <LinkCard title="Local Vector Store" href="/genkit-java/plugins/localvec/" />
+</CardGrid>
+
+## Deployment & Integrations
+
+<CardGrid>
+  <LinkCard title="Jetty Server" href="/genkit-java/plugins/jetty/" />
+  <LinkCard title="Spring Boot" href="/genkit-java/plugins/spring/" />
+  <LinkCard title="Firebase Cloud Functions" href="/genkit-java/plugins/firebase-functions/" />
+  <LinkCard title="MCP (Model Context Protocol)" href="/genkit-java/plugins/mcp/" />
+</CardGrid>
+
+---
+
+<CardGrid>
+  <LinkCard title="Documentation" description="Developer guide, API reference, tutorials" href="/genkit-java/getting-started/" />
+  <LinkCard title="Javadoc" description="Full API reference documentation" href="/genkit-java/javadoc/" />
+  <LinkCard title="GitHub" description="Source code, file issues" href="https://github.com/genkit-ai/genkit-java" />
+  <LinkCard title="Samples" description="Example applications for every plugin" href="/genkit-java/samples/" />
+</CardGrid>

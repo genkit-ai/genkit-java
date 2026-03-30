@@ -1,0 +1,172 @@
+---
+title: Google GenAI (Gemini)
+description: Use Google Gemini models, embeddings, Imagen image generation, TTS, and Veo video generation.
+---
+
+The Google GenAI plugin provides access to Google's Gemini models, text embeddings, Imagen image generation, text-to-speech, and Veo video generation.
+
+## Installation
+
+```xml
+<dependency>
+    <groupId>com.google.genkit</groupId>
+    <artifactId>genkit-plugin-google-genai</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+```
+
+## Configuration
+
+```bash
+export GOOGLE_GENAI_API_KEY=your-api-key
+```
+
+Get an API key from [Google AI Studio](https://aistudio.google.com/apikey).
+
+### Vertex AI
+
+To use Vertex AI instead of the Google AI Developer API:
+
+```bash
+export GOOGLE_GENAI_USE_VERTEXAI=true
+export GOOGLE_CLOUD_PROJECT=my-project
+export GOOGLE_CLOUD_LOCATION=us-central1  # optional, defaults to us-central1
+```
+
+## Usage
+
+```java
+import com.google.genkit.plugins.googlegenai.GoogleGenAIPlugin;
+
+Genkit genkit = Genkit.builder()
+    .plugin(GoogleGenAIPlugin.create(System.getenv("GOOGLE_GENAI_API_KEY")))
+    .build();
+
+ModelResponse response = genkit.generate(
+    GenerateOptions.builder()
+        .model("googleai/gemini-2.0-flash")
+        .prompt("Tell me about AI")
+        .build());
+```
+
+## Embeddings
+
+Generate text embeddings for RAG, semantic search, and similarity tasks:
+
+```java
+import com.google.genkit.ai.EmbedResponse;
+import com.google.genkit.ai.Document;
+
+List<Document> documents = List.of(
+    Document.fromText("Genkit is a framework for building AI apps"),
+    Document.fromText("Firebase provides cloud services")
+);
+
+EmbedResponse response = genkit.embed("googleai/text-embedding-004", documents);
+
+// Access embedding vectors
+float[] vector = response.getEmbeddings().get(0).getValues();
+// vector.length == 768
+```
+
+Embeddings are used automatically by vector store plugins (Firebase, Pinecone, pgvector, etc.) when you configure an embedder name. You can also use them directly for custom similarity search.
+
+### Embedding options
+
+You can pass task-specific options to optimize embedding quality:
+
+```java
+Map<String, Object> embedOptions = Map.of(
+    "taskType", "RETRIEVAL_DOCUMENT",  // or "RETRIEVAL_QUERY", "SEMANTIC_SIMILARITY"
+    "title", "Document title",
+    "outputDimensionality", 256  // reduce dimensions if needed
+);
+```
+
+## Text-to-Speech (TTS)
+
+Generate natural-sounding speech from text using Gemini TTS models:
+
+```java
+Map<String, Object> ttsOptions = Map.of("voiceName", "Zephyr");
+GenerationConfig config = GenerationConfig.builder()
+    .custom(ttsOptions)
+    .build();
+
+ModelResponse response = genkit.generate(
+    GenerateOptions.builder()
+        .model("googleai/gemini-2.5-flash-preview-tts")
+        .prompt("Hello! Welcome to Genkit Java.")
+        .config(config)
+        .build());
+
+// The response contains audio as a media part (WAV format, base64-encoded)
+String audioDataUrl = response.getMessage().getParts().get(0).getMedia().getUrl();
+// "data:audio/wav;base64,..."
+```
+
+### Saving audio to a file
+
+```java
+String dataUrl = response.getMessage().getParts().get(0).getMedia().getUrl();
+String base64Data = dataUrl.substring(dataUrl.indexOf(",") + 1);
+byte[] audioBytes = Base64.getDecoder().decode(base64Data);
+Files.write(Path.of("output.wav"), audioBytes);
+```
+
+## Video Generation (Veo)
+
+Generate videos from text prompts or images using Google's Veo models:
+
+```java
+Map<String, Object> veoOptions = Map.of(
+    "numberOfVideos", 1,
+    "durationSeconds", 8,
+    "aspectRatio", "16:9",
+    "timeoutMs", 600000  // 10 min — video generation can take a while
+);
+GenerationConfig config = GenerationConfig.builder()
+    .custom(veoOptions)
+    .build();
+
+ModelResponse response = genkit.generate(
+    GenerateOptions.builder()
+        .model("googleai/veo-3.0-generate-001")
+        .prompt("A serene Japanese garden with cherry blossoms falling")
+        .config(config)
+        .build());
+
+// The response contains video as a media part (base64-encoded)
+String videoDataUrl = response.getMessage().getParts().get(0).getMedia().getUrl();
+```
+
+:::note
+Video generation is an asynchronous operation. The plugin automatically polls until the video is ready. This can take several minutes depending on the model and settings.
+:::
+
+
+## Image Generation (Imagen)
+
+Generate images with Imagen:
+
+```java
+Map<String, Object> imagenOptions = Map.of(
+    "numberOfImages", 1,
+    "aspectRatio", "1:1"
+);
+GenerationConfig config = GenerationConfig.builder()
+    .custom(imagenOptions)
+    .build();
+
+ModelResponse response = genkit.generate(
+    GenerateOptions.builder()
+        .model("googleai/imagen-4.0-fast-generate-001")
+        .prompt("A cat wearing a space suit")
+        .config(config)
+        .build());
+```
+
+
+## Sample
+
+See the [google-genai sample](https://github.com/genkit-ai/genkit-java/tree/main/samples/google-genai) for complete examples of text generation, tool calling, embeddings, image generation, TTS, and video generation.
