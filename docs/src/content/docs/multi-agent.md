@@ -152,4 +152,4 @@ Multiple agents propose different solutions, then a judge agent selects the best
 
 ## Sample
 
-See the [multi-agent sample](https://github.com/xavidop/genkit-java/tree/main/samples/multi-agent) for a complete restaurant assistant with triage, reservation, and menu agents.
+See the [multi-agent sample](https://github.com/genkit-ai/genkit-java/tree/main/samples/multi-agent) for a complete restaurant assistant with triage, reservation, and menu agents.

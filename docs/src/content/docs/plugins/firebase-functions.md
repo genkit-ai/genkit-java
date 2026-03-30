@@ -120,4 +120,4 @@ firebase deploy --only functions
 
 ## Sample
 
-See the [firebase sample](https://github.com/xavidop/genkit-java/tree/main/samples/firebase) for a Cloud Functions deployment example.
+See the [firebase sample](https://github.com/genkit-ai/genkit-java/tree/main/samples/firebase) for a Cloud Functions deployment example.

@@ -131,7 +131,7 @@ export default defineConfig({
           items: [
             {
               label: "Javadoc",
-              link: "/genkit-java/javadoc/",
+              link: "/javadoc/",
               attrs: { target: "_blank" },
             },
           ],

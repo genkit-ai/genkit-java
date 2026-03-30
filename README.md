@@ -4,6 +4,8 @@ Genkit for Java is the Java implementation of the Genkit framework for building 
 
 See: https://genkit.dev
 
+Check the Docs: https://genkit-ai.github.io/genkit-java
+
 > **Status**: Currently in active development (1.0.0-SNAPSHOT). Requires Java 21+.
 > 
 > **Note**: The Java SDK supports OpenAI, Google GenAI (Gemini), Anthropic (Claude), AWS Bedrock, Azure AI Foundry, XAI (Grok), DeepSeek, Cohere, Mistral, Groq, Ollama (local models), any OpenAI-compatible endpoint (via compat-oai), Firebase (Firestore vector search, Cloud Functions, telemetry), vector databases (Weaviate, PostgreSQL, Pinecone), MCP, and pre-built evaluators. See [Modules](#modules) for the full list.

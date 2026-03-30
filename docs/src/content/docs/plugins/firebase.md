@@ -46,4 +46,4 @@ Enable these APIs in your Google Cloud project:
 
 ## Sample
 
-See the [firebase sample](https://github.com/xavidop/genkit-java/tree/main/samples/firebase) for a complete RAG pipeline with Firestore vector search and a Cloud Functions deployment example.
+See the [firebase sample](https://github.com/genkit-ai/genkit-java/tree/main/samples/firebase) for a complete RAG pipeline with Firestore vector search and a Cloud Functions deployment example.
