@@ -1,0 +1,72 @@
+---
+title: Creating Flows
+description: Define observable, traceable AI workflows that can be exposed as HTTP endpoints.
+---
+
+Flows are observable, traceable AI workflows. They wrap your AI logic to provide type safety, debugging support, and easy deployment as HTTP endpoints.
+
+## Defining a flow
+
+```java
+// Simple flow with typed input/output
+Flow<String, String, Void> greetFlow = genkit.defineFlow(
+    "greeting",
+    String.class,
+    String.class,
+    name -> "Hello, " + name + "!");
+```
+
+## AI-powered flows
+
+```java
+// Flow with AI generation and context access
+Flow<String, String, Void> jokeFlow = genkit.defineFlow(
+    "tellJoke",
+    String.class,
+    String.class,
+    (ctx, topic) -> {
+        ModelResponse response = genkit.generate(
+            GenerateOptions.builder()
+                .model("openai/gpt-4o-mini")
+                .prompt("Tell me a short, funny joke about: " + topic)
+                .build());
+        return response.getText();
+    });
+```
+
+## Running flows
+
+```java
+// Run a flow programmatically
+String result = genkit.runFlow("greeting", "World");
+// Returns: "Hello, World!"
+```
+
+## Flows as HTTP endpoints
+
+When using the Jetty or Spring Boot plugins, all defined flows are automatically exposed as HTTP endpoints:
+
+```bash
+# Call a flow via HTTP
+curl -X POST http://localhost:8080/api/flows/tellJoke \
+  -H "Content-Type: application/json" \
+  -d '{"data": "pirates"}'
+```
+
+## Why use flows?
+
+- **Type-safe inputs and outputs** — Define clear schemas for your data
+- **Integrates with the Dev UI** — Test and debug flows visually
+- **Easy deployment** — Automatically exposed as HTTP endpoints
+- **Built-in tracing** — Every flow execution is traced with OpenTelemetry
+- **Composable** — Flows can call other flows
+
+## Next steps
+
+import { LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid>
+  <LinkCard title="Tool Calling" description="Let models call your functions" href="/genkit-java/tools/" />
+  <LinkCard title="Streaming" description="Stream flow output in real-time" href="/genkit-java/streaming/" />
+  <LinkCard title="Dev UI & CLI" description="Debug flows visually" href="/genkit-java/dev-ui/" />
+</CardGrid>

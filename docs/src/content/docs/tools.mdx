@@ -1,0 +1,81 @@
+---
+title: Tool Calling
+description: Define tools that AI models can call during generation.
+---
+
+Tools extend the capabilities of AI models by giving them the ability to call your functions. Models trained for tool calling can respond with a request to invoke a tool, and Genkit handles the execution automatically.
+
+## Defining a tool
+
+```java
+@SuppressWarnings("unchecked")
+Tool<Map<String, Object>, Map<String, Object>> weatherTool = genkit.defineTool(
+    "getWeather",
+    "Gets the current weather for a location",
+    Map.of(
+        "type", "object",
+        "properties", Map.of(
+            "location", Map.of(
+                "type", "string",
+                "description", "The city name"
+            )
+        ),
+        "required", new String[]{"location"}
+    ),
+    (Class<Map<String, Object>>) (Class<?>) Map.class,
+    (ctx, input) -> {
+        String location = (String) input.get("location");
+        return Map.of(
+            "location", location,
+            "temperature", "72°F",
+            "conditions", "sunny"
+        );
+    });
+```
+
+## Using tools in generation
+
+Pass tools to `generate()` — the tool execution loop is handled automatically:
+
+```java
+ModelResponse response = genkit.generate(
+    GenerateOptions.builder()
+        .model("openai/gpt-4o")
+        .prompt("What's the weather in Paris?")
+        .tools(List.of(weatherTool))
+        .build());
+
+System.out.println(response.getText());
+// Output: "The weather in Paris is currently 72°F and sunny."
+```
+
+## How it works
+
+1. You define tools with a name, description, and input schema
+2. The model receives the tool definitions alongside your prompt
+3. If the model decides to call a tool, Genkit automatically executes it
+4. The tool result is sent back to the model for final response generation
+
+## Typed tools
+
+You can also define tools with typed input/output classes:
+
+```java
+Tool<RecipeRequest, MenuItem> recipeGen = genkit.defineTool(
+    "generateRecipe",
+    "Generates a recipe",
+    (ctx, request) -> new MenuItem(...),
+    RecipeRequest.class,
+    MenuItem.class
+);
+```
+
+## Next steps
+
+import { LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid>
+  <LinkCard title="DotPrompt" description="Manage prompts as template files" href="/genkit-java/dotprompt/" />
+  <LinkCard title="Multi-Agent" description="Build multi-agent orchestration" href="/genkit-java/multi-agent/" />
+  <LinkCard title="MCP Plugin" description="Connect to MCP tool servers" href="/genkit-java/plugins/mcp/" />
+</CardGrid>
