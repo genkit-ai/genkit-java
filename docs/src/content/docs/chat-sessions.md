@@ -241,4 +241,4 @@ Map<String, List<Message>> allThreads = data.getThreads();
 
 ## Sample
 
-See the [chat-session sample](https://github.com/xavidop/genkit-java/tree/main/samples/chat-session) for a complete multi-turn chat implementation with state, tools, and session persistence.
+See the [chat-session sample](https://github.com/genkit-ai/genkit-java/tree/main/samples/chat-session) for a complete multi-turn chat implementation with state, tools, and session persistence.

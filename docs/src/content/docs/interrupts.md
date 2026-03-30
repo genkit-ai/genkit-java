@@ -189,4 +189,4 @@ if (chat.hasPendingInterrupts()) {
 
 ## Sample
 
-See the [interrupts sample](https://github.com/xavidop/genkit-java/tree/main/samples/interrupts) for a complete banking transfer confirmation example.
+See the [interrupts sample](https://github.com/genkit-ai/genkit-java/tree/main/samples/interrupts) for a complete banking transfer confirmation example.

@@ -255,5 +255,5 @@ See the [evaluators plugin docs](/genkit-java/plugins/evaluators/) for full deta
 
 ## Samples
 
-- [evaluations sample](https://github.com/xavidop/genkit-java/tree/main/samples/evaluations) — Custom evaluators, dataset management, and running evaluations
-- [evaluators-plugin sample](https://github.com/xavidop/genkit-java/tree/main/samples/evaluators-plugin) — Pre-built RAGAS metrics
+- [evaluations sample](https://github.com/genkit-ai/genkit-java/tree/main/samples/evaluations) — Custom evaluators, dataset management, and running evaluations
+- [evaluators-plugin sample](https://github.com/genkit-ai/genkit-java/tree/main/samples/evaluators-plugin) — Pre-built RAGAS metrics

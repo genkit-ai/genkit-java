@@ -226,5 +226,5 @@ Middleware<String, String> metricsMiddleware = (request, context, next) -> {
 
 ## Samples
 
-- [middleware sample](https://github.com/xavidop/genkit-java/tree/main/samples/middleware) — Custom and built-in middleware patterns
-- [middleware-v2 sample](https://github.com/xavidop/genkit-java/tree/main/samples/middleware-v2) — Updated middleware approaches
+- [middleware sample](https://github.com/genkit-ai/genkit-java/tree/main/samples/middleware) — Custom and built-in middleware patterns
+- [middleware-v2 sample](https://github.com/genkit-ai/genkit-java/tree/main/samples/middleware-v2) — Updated middleware approaches

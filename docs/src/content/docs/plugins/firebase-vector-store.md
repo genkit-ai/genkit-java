@@ -120,4 +120,4 @@ gcloud firestore indexes composite create \
 
 ## Sample
 
-See the [firebase sample](https://github.com/xavidop/genkit-java/tree/main/samples/firebase) for a complete RAG pipeline with Firestore vector search.
+See the [firebase sample](https://github.com/genkit-ai/genkit-java/tree/main/samples/firebase) for a complete RAG pipeline with Firestore vector search.
