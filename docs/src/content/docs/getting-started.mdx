@@ -11,6 +11,56 @@ This guide shows you how to set up a Genkit Java project and make your first AI 
 - **Maven 3.6+**
 - An API key from your preferred model provider (e.g., OpenAI, Google AI)
 
+## Configure the Maven Repository
+
+Genkit Java artifacts are published to **GitHub Packages**. Even though the packages are public, you need to configure the repository in your project and provide authentication.
+
+### 1. Add the GitHub Packages repository
+
+Add the following repository to your `pom.xml`:
+
+```xml
+<repositories>
+    <repository>
+        <id>github</id>
+        <url>https://maven.pkg.github.com/genkit-ai/genkit-java</url>
+        <snapshots>
+            <enabled>true</enabled>
+        </snapshots>
+    </repository>
+</repositories>
+```
+
+### 2. Configure authentication
+
+GitHub Packages requires authentication even for public packages. Create or edit your `~/.m2/settings.xml` file:
+
+```xml
+<settings>
+    <servers>
+        <server>
+            <id>github</id>
+            <username>YOUR_GITHUB_USERNAME</username>
+            <password>YOUR_GITHUB_TOKEN</password>
+        </server>
+    </servers>
+</settings>
+```
+
+Replace `YOUR_GITHUB_USERNAME` with your GitHub username and `YOUR_GITHUB_TOKEN` with a [personal access token (classic)](https://github.com/settings/tokens) that has at least the **`read:packages`** scope.
+
+:::tip
+You can also use environment variables to avoid hardcoding credentials:
+
+```xml
+<server>
+    <id>github</id>
+    <username>${env.GITHUB_ACTOR}</username>
+    <password>${env.GITHUB_TOKEN}</password>
+</server>
+```
+:::
+
 ## Installation
 
 Add the following dependencies to your Maven `pom.xml`:
