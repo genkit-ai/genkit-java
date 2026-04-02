@@ -8,6 +8,15 @@ export default defineConfig({
     starlight({
       title: "Java (Unofficial)",
       favicon: 'favicon.ico',
+      head: [
+        {
+          tag: "meta",
+          attrs: {
+            name: "google-site-verification",
+            content: "LopxNf0q-1RkccL6rKqWvpaLi8Qcr6HqkWDqyCl8fUA",
+          },
+        },
+      ],
       description:
         "The Java implementation of the Genkit framework for building AI-powered applications.",
       social: [
