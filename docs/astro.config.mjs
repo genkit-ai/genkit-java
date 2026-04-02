@@ -124,6 +124,7 @@ export default defineConfig({
             { label: "Dev UI & CLI", slug: "dev-ui" },
             { label: "Architecture", slug: "architecture" },
             { label: "Samples", slug: "samples" },
+            { label: "Claude Code Skills", slug: "claude-code-skills" },
           ],
         },
         {
