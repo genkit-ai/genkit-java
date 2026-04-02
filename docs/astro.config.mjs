@@ -16,6 +16,17 @@ export default defineConfig({
             content: "LopxNf0q-1RkccL6rKqWvpaLi8Qcr6HqkWDqyCl8fUA",
           },
         },
+        {
+          tag: "script",
+          attrs: {
+            async: true,
+            src: "https://www.googletagmanager.com/gtag/js?id=G-1CT1L0J0RH",
+          },
+        },
+        {
+          tag: "script",
+          content: `window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', 'G-1CT1L0J0RH');`,
+        },
       ],
       description:
         "The Java implementation of the Genkit framework for building AI-powered applications.",
