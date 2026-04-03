@@ -281,15 +281,15 @@ public class DotPromptSample {
         logger.info("  - reviewCode: Analyze and review code");
         logger.info("");
         logger.info("Example calls:");
-        logger.info("  curl -X POST http://localhost:8080/chefFlow \\");
+        logger.info("  curl -X POST http://localhost:8080/api/flows/chefFlow \\");
         logger.info("    -H 'Content-Type: application/json' \\");
         logger.info("    -d '{\"food\":\"pasta\",\"ingredients\":[\"tomatoes\",\"basil\"]}'");
         logger.info("");
-        logger.info("  curl -X POST http://localhost:8080/tellStory \\");
+        logger.info("  curl -X POST http://localhost:8080/api/flows/tellStory \\");
         logger.info("    -H 'Content-Type: application/json' \\");
         logger.info("    -d '{\"subject\":\"a brave knight\",\"personality\":\"dramatic\"}'");
         logger.info("");
-        logger.info("  curl -X POST http://localhost:8080/planTrip \\");
+        logger.info("  curl -X POST http://localhost:8080/api/flows/planTrip \\");
         logger.info("    -H 'Content-Type: application/json' \\");
         logger.info("    -d '{\"destination\":\"Tokyo\",\"duration\":5,\"budget\":\"$3000\",\"interests\":[\"food\",\"culture\"]}'");
         logger.info("");

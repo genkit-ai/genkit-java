@@ -214,11 +214,11 @@ public class WeaviateRAGSample {
     logger.info("");
     logger.info("Example usage:");
     logger.info(
-        "  curl -X POST http://localhost:4000/api/flows/indexDocuments -H 'Content-Type: application/json' -d '{}'");
+        "  curl -X POST http://localhost:8081/api/flows/indexDocuments -H 'Content-Type: application/json' -d '{}'");
     logger.info(
-        "  curl -X POST http://localhost:4000/api/flows/retrieveDocuments -H 'Content-Type: application/json' -d '{\"data\": \"sci-fi movie\"}'");
+        "  curl -X POST http://localhost:8081/api/flows/retrieveDocuments -H 'Content-Type: application/json' -d '{\"data\": \"sci-fi movie\"}'");
     logger.info(
-        "  curl -X POST http://localhost:4000/api/flows/ragQuery -H 'Content-Type: application/json' -d '{\"data\": \"What Christopher Nolan films are mentioned?\"}'");
+        "  curl -X POST http://localhost:8081/api/flows/ragQuery -H 'Content-Type: application/json' -d '{\"data\": \"What Christopher Nolan films are mentioned?\"}'");
     logger.info("=".repeat(60));
 
     // Keep the application running
