@@ -199,8 +199,6 @@ genkit.defineTool("my_tool", "My custom tool",
         return Map.of("result", "processed: " + input.get("input"));
     });
 
-genkit.init();
-
 // Create and start MCP server
 MCPServer mcpServer = new MCPServer(genkit.getRegistry(),
     MCPServerOptions.builder()

@@ -366,9 +366,6 @@ public class MiddlewareSample {
               return sb.toString();
             });
 
-    // Initialize Genkit
-    genkit.init();
-
     logger.info("\n========================================");
     logger.info("Genkit Middleware Sample Started!");
     logger.info("========================================\n");
@@ -387,16 +384,18 @@ public class MiddlewareSample {
     logger.info("Reflection server running on http://localhost:3100");
     logger.info("\nExample requests:");
     logger.info(
-        "  curl -X POST http://localhost:8080/greeting -H 'Content-Type: application/json' -d '\"World\"'");
+        "  curl -X POST http://localhost:8080/api/flows/greeting -H 'Content-Type: application/json' -d '\"World\"'");
     logger.info(
-        "  curl -X POST http://localhost:8080/chat -H 'Content-Type: application/json' -d '\"What is the capital of France?\"'");
+        "  curl -X POST http://localhost:8080/api/flows/chat -H 'Content-Type: application/json' -d '\"What is the capital of France?\"'");
     logger.info(
-        "  curl -X POST http://localhost:8080/fact -H 'Content-Type: application/json' -d '\"penguins\"'");
+        "  curl -X POST http://localhost:8080/api/flows/fact -H 'Content-Type: application/json' -d '\"penguins\"'");
     logger.info(
-        "  curl -X POST http://localhost:8080/joke -H 'Content-Type: application/json' -d '\"programming\"'");
+        "  curl -X POST http://localhost:8080/api/flows/joke -H 'Content-Type: application/json' -d '\"programming\"'");
     logger.info(
-        "  curl -X POST http://localhost:8080/safe -H 'Content-Type: application/json' -d '\"error\"'");
+        "  curl -X POST http://localhost:8080/api/flows/safe -H 'Content-Type: application/json' -d '\"error\"'");
     logger.info(
-        "  curl -X POST http://localhost:8080/metrics -H 'Content-Type: application/json' -d 'null'");
+        "  curl -X POST http://localhost:8080/api/flows/metrics -H 'Content-Type: application/json' -d 'null'");
+
+    jetty.start();
   }
 }
