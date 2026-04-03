@@ -367,19 +367,19 @@ public class MCPSample {
     logger.info("Reflection server running on http://localhost:3100");
     logger.info("\nExample requests:");
     logger.info(
-        "  curl -X POST http://localhost:8080/listMcpTools -H 'Content-Type: application/json' -d 'null'");
+        "  curl -X POST http://localhost:8080/api/flows/listMcpTools -H 'Content-Type: application/json' -d 'null'");
     logger.info(
-        "  curl -X POST http://localhost:8080/fileAssistant -H 'Content-Type: application/json' -d '\"List files in the temp directory\"'");
+        "  curl -X POST http://localhost:8080/api/flows/fileAssistant -H 'Content-Type: application/json' -d '\"List files in the temp directory\"'");
     logger.info(
-        "  curl -X POST http://localhost:8080/readFile -H 'Content-Type: application/json' -d '\"/tmp/test.txt\"'");
+        "  curl -X POST http://localhost:8080/api/flows/readFile -H 'Content-Type: application/json' -d '\"/tmp/test.txt\"'");
     logger.info(
-        "  curl -X POST http://localhost:8080/listResources -H 'Content-Type: application/json' -d '\"filesystem\"'");
+        "  curl -X POST http://localhost:8080/api/flows/listResources -H 'Content-Type: application/json' -d '\"filesystem\"'");
     logger.info(
-        "  curl -X POST http://localhost:8080/toolExplorer -H 'Content-Type: application/json' -d '\"Generate a random number\"'");
+        "  curl -X POST http://localhost:8080/api/flows/toolExplorer -H 'Content-Type: application/json' -d '\"Generate a random number\"'");
     logger.info(
-        "  curl -X POST http://localhost:8080/mcpStatus -H 'Content-Type: application/json' -d 'null'");
+        "  curl -X POST http://localhost:8080/api/flows/mcpStatus -H 'Content-Type: application/json' -d 'null'");
     logger.info(
-        "  curl -X POST http://localhost:8080/writeReadDemo -H 'Content-Type: application/json' -d '\"Hello from Genkit MCP!\"'");
+        "  curl -X POST http://localhost:8080/api/flows/writeReadDemo -H 'Content-Type: application/json' -d '\"Hello from Genkit MCP!\"'");
 
     // Add shutdown hook to cleanup MCP connections
     Runtime.getRuntime()

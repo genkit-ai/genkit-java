@@ -270,15 +270,15 @@ public class AwsBedrockSample {
     System.out.println("");
     System.out.println("Example requests:");
     System.out.println(
-        "  curl -X POST http://localhost:8080/greeting -H 'Content-Type: application/json' -d '{\"data\": \"World\"}'");
+        "  curl -X POST http://localhost:8080/api/flows/greeting -H 'Content-Type: application/json' -d '{\"data\": \"World\"}'");
     System.out.println(
-        "  curl -X POST http://localhost:8080/tellJoke -H 'Content-Type: application/json' -d '{\"data\": \"cats\"}'");
+        "  curl -X POST http://localhost:8080/api/flows/tellJoke -H 'Content-Type: application/json' -d '{\"data\": \"cats\"}'");
     System.out.println(
-        "  curl -X POST http://localhost:8080/chat -H 'Content-Type: application/json' -d '{\"data\": \"What is AWS Bedrock?\"}'");
+        "  curl -X POST http://localhost:8080/api/flows/chat -H 'Content-Type: application/json' -d '{\"data\": \"What is AWS Bedrock?\"}'");
     System.out.println(
-        "  curl -X POST http://localhost:8080/weatherAssistant -H 'Content-Type: application/json' -d '{\"data\": \"What\\'s the weather in Seattle?\"}'");
+        "  curl -X POST http://localhost:8080/api/flows/weatherAssistant -H 'Content-Type: application/json' -d '{\"data\": \"What\\'s the weather in Seattle?\"}'");
     System.out.println(
-        "  curl -X POST http://localhost:8080/inferenceProfileDemo -H 'Content-Type: application/json' -d '{\"data\": \"Explain quantum computing in simple terms.\"}'");
+        "  curl -X POST http://localhost:8080/api/flows/inferenceProfileDemo -H 'Content-Type: application/json' -d '{\"data\": \"Explain quantum computing in simple terms.\"}'");
     System.out.println("");
     System.out.println("Press Ctrl+C to stop.");
 

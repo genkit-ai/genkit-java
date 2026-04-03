@@ -237,13 +237,13 @@ public class AzureFoundrySample {
     System.out.println("");
     System.out.println("Example requests:");
     System.out.println(
-        "  curl -X POST http://localhost:8080/greeting -H 'Content-Type: application/json' -d '{\"data\": \"World\"}'");
+        "  curl -X POST http://localhost:8080/api/flows/greeting -H 'Content-Type: application/json' -d '{\"data\": \"World\"}'");
     System.out.println(
-        "  curl -X POST http://localhost:8080/tellJoke -H 'Content-Type: application/json' -d '{\"data\": \"AI\"}'");
+        "  curl -X POST http://localhost:8080/api/flows/tellJoke -H 'Content-Type: application/json' -d '{\"data\": \"AI\"}'");
     System.out.println(
-        "  curl -X POST http://localhost:8080/chat -H 'Content-Type: application/json' -d '{\"data\": \"What is Azure AI Foundry?\"}'");
+        "  curl -X POST http://localhost:8080/api/flows/chat -H 'Content-Type: application/json' -d '{\"data\": \"What is Azure AI Foundry?\"}'");
     System.out.println(
-        "  curl -X POST http://localhost:8080/weatherAssistant -H 'Content-Type: application/json' -d '{\"data\": \"What\\'s the weather in New York?\"}'");
+        "  curl -X POST http://localhost:8080/api/flows/weatherAssistant -H 'Content-Type: application/json' -d '{\"data\": \"What\\'s the weather in New York?\"}'");
     System.out.println("");
     System.out.println("Note: Ensure the models are deployed in your Azure AI Foundry project.");
     System.out.println("Press Ctrl+C to stop.");
