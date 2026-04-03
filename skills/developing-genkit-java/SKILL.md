@@ -125,14 +125,12 @@ Genkit genkit = Genkit.builder()
     .plugin(new JettyPlugin())
     .build();
 
-genkit.init();  // Initialize plugins, start servers
 ```
 
 ### Lifecycle
 
-1. `Genkit.builder()...build()` — creates instance, does NOT initialize
-2. `genkit.init()` — calls `plugin.init(registry)` for each plugin, starts dev server if applicable
-3. `genkit.stop()` — cleanup resources
+1. `Genkit.builder()...build()` — creates instance, and initialize
+2. `genkit.stop()` — cleanup resources
 
 ---
 
@@ -648,7 +646,7 @@ public class MySample {
                     .build()).getText();
             });
         
-        genkit.init();
+        jetty.start();
     }
 }
 ```

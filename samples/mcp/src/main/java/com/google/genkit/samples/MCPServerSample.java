@@ -356,8 +356,6 @@ public class MCPServerSample {
     // =======================================================
     // Create and start MCP Server
     // =======================================================
-    // Note: genkit.init() is already called by the builder, so we don't need to
-    // call it again
 
     MCPServerOptions serverOptions =
         MCPServerOptions.builder().name("genkit-tools-server").version("1.0.0").build();

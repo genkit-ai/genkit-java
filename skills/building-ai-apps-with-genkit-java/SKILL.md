@@ -115,7 +115,7 @@ public class MyApp {
                     .prompt(question)
                     .build()).getText());
 
-        genkit.init();
+        jetty.start();
     }
 }
 ```
@@ -831,7 +831,6 @@ public class MyFunction implements HttpFunction {
                     .prompt(input)
                     .build()).getText());
 
-        genkit.init();
         this.genkitFunction = OnCallGenkit.fromFlow(genkit, "myFlow");
     }
 
