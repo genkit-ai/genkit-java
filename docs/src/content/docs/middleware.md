@@ -1,11 +1,18 @@
 ---
 title: Middleware
-description: Add cross-cutting concerns to your AI workflows with middleware.
+description: Add cross-cutting concerns to your AI workflows with flow middleware and generation middleware.
 ---
 
-Middleware lets you intercept and modify the behavior of flow executions. Use middleware for logging, caching, rate limiting, retries, input validation, and more. Middleware follows the chain-of-responsibility pattern — each middleware can modify the request, call the next handler, and modify the response.
+Middleware lets you intercept and modify the behavior of flow executions and AI generation. Genkit provides two middleware systems:
 
-## Defining middleware
+- **Flow Middleware** — wraps the entire flow function. Use for logging, caching, rate limiting, retries, and input validation.
+- **Generation Middleware (V2)** — hooks into the `generate()` pipeline at three levels: model calls, tool executions, and loop iterations. Use for metering, observability, and tool interception.
+
+## Flow Middleware
+
+Flow middleware follows the chain-of-responsibility pattern — each middleware can modify the request, call the next handler, and modify the response.
+
+### Defining middleware
 
 A middleware is a function that receives the request, an `ActionContext`, and a `next` function to call the next handler in the chain:
 
@@ -20,7 +27,7 @@ Middleware<String, String> loggingMiddleware = (request, context, next) -> {
 };
 ```
 
-## Attaching middleware to flows
+### Attaching middleware to flows
 
 Pass middleware as a list when defining a flow:
 
@@ -46,11 +53,11 @@ Flow<String, String, Void> chatFlow = genkit.defineFlow(
 
 Middleware executes in order — the first middleware in the list runs first (outermost), wrapping all subsequent middleware and the flow handler.
 
-## Built-in middleware
+### Built-in middleware
 
 The `CommonMiddleware` class provides factory methods for common patterns:
 
-### Logging
+#### Logging
 
 ```java
 import com.google.genkit.core.middleware.CommonMiddleware;
@@ -62,7 +69,7 @@ Middleware<String, String> logging = CommonMiddleware.logging("chat");
 Middleware<String, String> logging = CommonMiddleware.logging("chat", myLogger);
 ```
 
-### Retry with exponential backoff
+#### Retry with exponential backoff
 
 ```java
 // Retry up to 3 times with 100ms initial delay
@@ -73,7 +80,7 @@ Middleware<String, String> retry = CommonMiddleware.retry(3, 100,
     error -> error.getMessage().contains("rate limit"));
 ```
 
-### Input validation
+#### Input validation
 
 ```java
 Middleware<String, String> validate = CommonMiddleware.validate(input -> {
@@ -86,7 +93,7 @@ Middleware<String, String> validate = CommonMiddleware.validate(input -> {
 });
 ```
 
-### Request and response transformation
+#### Request and response transformation
 
 ```java
 // Sanitize input
@@ -98,7 +105,7 @@ Middleware<String, String> format = CommonMiddleware.transformResponse(
     output -> "[" + Instant.now() + "] " + output);
 ```
 
-### Caching
+#### Caching
 
 ```java
 import com.google.genkit.core.middleware.MiddlewareCache;
@@ -111,28 +118,28 @@ Middleware<String, String> cache = CommonMiddleware.cache(
 
 The `MiddlewareCache<O>` interface requires `get(String key)` and `put(String key, O value)` methods.
 
-### Rate limiting
+#### Rate limiting
 
 ```java
 // Max 10 requests per 60 seconds
 Middleware<String, String> rateLimit = CommonMiddleware.rateLimit(10, 60_000);
 ```
 
-### Timeout
+#### Timeout
 
 ```java
 // 30 second timeout
 Middleware<String, String> timeout = CommonMiddleware.timeout(30_000);
 ```
 
-### Error handling
+#### Error handling
 
 ```java
 Middleware<String, String> errorHandler = CommonMiddleware.errorHandler(
     error -> "Sorry, something went wrong: " + error.getMessage());
 ```
 
-### Conditional middleware
+#### Conditional middleware
 
 Apply middleware only when a condition is met:
 
@@ -143,7 +150,7 @@ Middleware<String, String> conditional = CommonMiddleware.conditional(
 );
 ```
 
-### Before/after hooks
+#### Before/after hooks
 
 ```java
 Middleware<String, String> hooks = CommonMiddleware.beforeAfter(
@@ -152,14 +159,14 @@ Middleware<String, String> hooks = CommonMiddleware.beforeAfter(
 );
 ```
 
-### Timing
+#### Timing
 
 ```java
 Middleware<String, String> timing = CommonMiddleware.timing(
     duration -> System.out.println("Took " + duration + "ms"));
 ```
 
-## Building a middleware chain
+### Building a middleware chain
 
 Use `MiddlewareChain` for more control over middleware ordering:
 
@@ -182,7 +189,7 @@ String result = chain.execute(input, context, (ctx, req) -> {
 });
 ```
 
-## Custom middleware example
+### Custom middleware example
 
 A metrics-collecting middleware:
 
@@ -207,7 +214,7 @@ Middleware<String, String> metricsMiddleware = (request, context, next) -> {
 };
 ```
 
-## Built-in middleware reference
+### Built-in middleware reference
 
 | Factory Method | Description |
 |---------------|-------------|
@@ -224,7 +231,208 @@ Middleware<String, String> metricsMiddleware = (request, context, next) -> {
 | `beforeAfter(before, after)` | Run hooks before and after |
 | `timing(callback)` | Measure execution duration |
 
+## Generation Middleware (V2)
+
+Generation Middleware provides fine-grained hooks into the generation pipeline, letting you intercept model calls, tool executions, and generate loop iterations independently. Unlike flow-level middleware (which wraps the entire flow function), Generation Middleware operates inside `generate()` and is attached per call.
+
+### Three hooks
+
+| Hook | Wraps | Receives | Use cases |
+|------|-------|----------|-----------|
+| `wrapGenerate` | Each iteration of the tool loop | `GenerateParams` (request + iteration number) | Timing, logging per turn, retry logic |
+| `wrapModel` | Each model API call | `ModelParams` (request + stream callback) | Token metering, request/response rewriting, caching |
+| `wrapTool` | Each tool execution | `ToolParams` (request part + resolved tool) | Tool authorization, audit logging, error handling |
+
+Hooks nest naturally: `wrapGenerate` is the outermost layer, `wrapModel` runs inside it, and `wrapTool` runs for each tool the model requests.
+
+```
+wrapGenerate (iteration 0)
+├── wrapModel → model API call
+├── wrapTool → tool1
+├── wrapTool → tool2
+└── wrapGenerate (iteration 1)  ← recursive via tool loop
+    ├── wrapModel → model API call
+    └── (no more tool calls → return)
+```
+
+### Defining Generation Middleware
+
+Implement the `GenerationMiddleware` interface or extend `BaseGenerationMiddleware` (which passes through by default). Override only the hooks you need:
+
+```java
+import com.google.genkit.ai.middleware.BaseGenerationMiddleware;
+import com.google.genkit.ai.middleware.GenerationMiddleware;
+import com.google.genkit.ai.middleware.ModelNext;
+import com.google.genkit.ai.middleware.ModelParams;
+
+class TokenMeteringMiddleware extends BaseGenerationMiddleware {
+
+    private final AtomicInteger totalTokens = new AtomicInteger(0);
+
+    @Override
+    public String name() {
+        return "token-metering";
+    }
+
+    @Override
+    public GenerationMiddleware newInstance() {
+        return new TokenMeteringMiddleware();  // fresh counters per generate()
+    }
+
+    @Override
+    public ModelResponse wrapModel(ActionContext ctx, ModelParams params, ModelNext next)
+            throws GenkitException {
+        ModelResponse response = next.apply(ctx, params);
+        // Inspect response for token usage
+        logger.info("Tokens used: {}", response.getUsage());
+        return response;
+    }
+}
+```
+
+Key points:
+
+- **`name()`** — unique identifier for the middleware.
+- **`newInstance()`** — called once per `generate()` invocation. Return a fresh object so per-request state (counters, timers) is isolated. Stateless middleware can return `this`.
+- **`next.apply(ctx, params)`** — calls the next middleware in the chain (or the core handler). You must call it to continue the pipeline. Skip it to short-circuit (e.g., return a cached response).
+
+### Attaching middleware to generate()
+
+Use `GenerateOptions.builder().use()`:
+
+```java
+GenerationMiddleware metering = new TokenMeteringMiddleware();
+GenerationMiddleware logging = new ModelLoggingMiddleware();
+
+ModelResponse response = genkit.generate(
+    GenerateOptions.builder()
+        .model("openai/gpt-4o-mini")
+        .prompt("Explain middleware")
+        .use(metering, logging)
+        .build());
+```
+
+Middleware order matters — the **first** middleware listed is **outermost** (runs first on the way in, last on the way out).
+
+### Multi-hook middleware
+
+A single middleware can implement all three hooks to observe every stage:
+
+```java
+class FullObservabilityMiddleware extends BaseGenerationMiddleware {
+
+    private final AtomicInteger iterations = new AtomicInteger(0);
+    private final AtomicInteger modelCalls = new AtomicInteger(0);
+    private final AtomicInteger toolCalls = new AtomicInteger(0);
+
+    @Override
+    public String name() { return "full-observability"; }
+
+    @Override
+    public GenerationMiddleware newInstance() {
+        return new FullObservabilityMiddleware();
+    }
+
+    @Override
+    public ModelResponse wrapGenerate(ActionContext ctx, GenerateParams params,
+            GenerateNext next) throws GenkitException {
+        int iter = iterations.incrementAndGet();
+        logger.info("=== Generate iteration {} ===", iter);
+        ModelResponse resp = next.apply(ctx, params);
+        logger.info("=== Iteration {} done (model: {}, tools: {}) ===",
+            iter, modelCalls.get(), toolCalls.get());
+        return resp;
+    }
+
+    @Override
+    public ModelResponse wrapModel(ActionContext ctx, ModelParams params,
+            ModelNext next) throws GenkitException {
+        modelCalls.incrementAndGet();
+        return next.apply(ctx, params);
+    }
+
+    @Override
+    public Part wrapTool(ActionContext ctx, ToolParams params,
+            ToolNext next) throws GenkitException {
+        toolCalls.incrementAndGet();
+        logger.info("Tool: {}", params.getRequest().getName());
+        return next.apply(ctx, params);
+    }
+}
+```
+
+### Middleware-provided tools
+
+Middleware can inject additional tools into the generation by overriding `tools()`:
+
+```java
+@Override
+public List<Tool<?, ?>> tools() {
+    return List.of(myCustomTool);
+}
+```
+
+These tools are merged with the tools from `GenerateOptions.tools()` and are available for the model to call.
+
+### Middleware with interrupts and restarts
+
+Generation Middleware integrates with the [interrupt system](/docs/interrupts). When a tool throws `ToolInterruptException`, the `wrapTool` hook still fires — the exception propagates through the middleware chain, so you can observe or handle it.
+
+When resuming with `ResumeOptions.builder().restart(toolRequest)`, the restarted tool executes through the full `wrapTool` chain, and the subsequent model call goes through a new `wrapGenerate` iteration. This ensures middleware sees every operation regardless of whether it was an initial call or a restart.
+
+```
+Initial generate:
+  wrapGenerate(0)
+  ├── wrapModel → model requests tool4
+  ├── wrapTool → tool1 (completes)
+  ├── wrapTool → tool2 (completes)
+  └── wrapTool → tool4 (interrupts!) → return interrupted response
+
+Restart generate:
+  wrapTool → tool4 (restart, completes)
+  wrapGenerate(1)
+  ├── wrapModel → model returns final answer
+  └── return response
+```
+
+### BaseGenerationMiddleware
+
+`BaseGenerationMiddleware` provides pass-through defaults for all hooks. Extend it to override only what you need:
+
+```java
+class TimingMiddleware extends BaseGenerationMiddleware {
+
+    @Override
+    public String name() { return "timing"; }
+
+    @Override
+    public GenerationMiddleware newInstance() { return new TimingMiddleware(); }
+
+    @Override
+    public ModelResponse wrapGenerate(ActionContext ctx, GenerateParams params,
+            GenerateNext next) throws GenkitException {
+        long start = System.currentTimeMillis();
+        ModelResponse resp = next.apply(ctx, params);
+        logger.info("Iteration {} took {}ms",
+            params.getIteration(), System.currentTimeMillis() - start);
+        return resp;
+    }
+}
+```
+
+### Generation Middleware vs Flow Middleware
+
+| | Flow Middleware | Generation Middleware (V2) |
+|---|---|---|
+| **Scope** | The entire flow function | Inside `generate()` — model, tools, iterations |
+| **Attached to** | `defineFlow(..., middleware)` | `GenerateOptions.builder().use()` |
+| **Typed to** | Flow input/output types | `ModelRequest` / `ModelResponse` / `Part` |
+| **State** | Shared across requests | Fresh per `generate()` via `newInstance()` |
+| **Best for** | Auth, rate limiting, validation | Observability, metering, tool interception |
+
+You can use both together — flow middleware wraps the outer flow, and generation middleware wraps the inner AI pipeline.
+
 ## Samples
 
-- [middleware sample](https://github.com/genkit-ai/genkit-java/tree/main/samples/middleware) — Custom and built-in middleware patterns
-- [middleware-v2 sample](https://github.com/genkit-ai/genkit-java/tree/main/samples/middleware-v2) — Updated middleware approaches
+- [middleware sample](https://github.com/genkit-ai/genkit-java/tree/main/samples/middleware) — Flow-level middleware patterns (logging, retry, caching, validation)
+- [middleware-v2 sample](https://github.com/genkit-ai/genkit-java/tree/main/samples/middleware-v2) — Generation Middleware with all three hooks and interrupt/restart lifecycle
