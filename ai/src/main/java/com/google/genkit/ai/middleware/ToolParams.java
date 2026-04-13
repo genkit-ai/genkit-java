@@ -18,29 +18,35 @@
 
 package com.google.genkit.ai.middleware;
 
+import com.google.genkit.ai.Part;
 import com.google.genkit.ai.Tool;
 import com.google.genkit.ai.ToolRequest;
 
 /** Holds parameters for the {@link GenerationMiddleware#wrapTool} hook. */
 public class ToolParams {
 
-  private final ToolRequest request;
+  private final Part requestPart;
   private final Tool<?, ?> tool;
 
   /**
    * Creates ToolParams.
    *
-   * @param request the tool request about to be executed
+   * @param requestPart the tool request part (includes metadata) about to be executed
    * @param tool the resolved tool being called
    */
-  public ToolParams(ToolRequest request, Tool<?, ?> tool) {
-    this.request = request;
+  public ToolParams(Part requestPart, Tool<?, ?> tool) {
+    this.requestPart = requestPart;
     this.tool = tool;
   }
 
-  /** Returns the tool request about to be executed. */
+  /** Returns the full tool request part, including part-level metadata. */
+  public Part getRequestPart() {
+    return requestPart;
+  }
+
+  /** Convenience method: returns the tool request from the request part. */
   public ToolRequest getRequest() {
-    return request;
+    return requestPart.getToolRequest();
   }
 
   /** Returns the resolved tool being called. */

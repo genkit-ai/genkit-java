@@ -879,7 +879,8 @@ public class Genkit {
               Tool<Object, Object> typedTool = (Tool<Object, Object>) tool;
               Object result = typedTool.run(actx, toolInput);
 
-              return new ToolResponse(toolReq.getRef(), toolReq.getName(), result);
+              return Part.toolResponse(
+                  new ToolResponse(toolReq.getRef(), toolReq.getName(), result));
             });
 
     List<Part> responseParts = new java.util.ArrayList<>();
@@ -905,14 +906,12 @@ public class Genkit {
 
       try {
         // Execute through WrapTool chain
-        ToolParams tparams = new ToolParams(toolRequest, tool);
-        ToolResponse toolResponse = wrappedToolCall.apply(ctx, tparams);
+        ToolParams tparams = new ToolParams(toolRequestPart, tool);
+        Part responsePart = wrappedToolCall.apply(ctx, tparams);
 
-        Part responsePart = new Part();
-        responsePart.setToolResponse(toolResponse);
         responseParts.add(responsePart);
 
-        pendingOutputMap.put(key, toolResponse.getOutput());
+        pendingOutputMap.put(key, responsePart.getToolResponse().getOutput());
 
         logger.debug("Executed tool '{}' successfully", toolName);
 

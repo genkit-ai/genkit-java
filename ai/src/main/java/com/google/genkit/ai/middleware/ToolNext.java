@@ -18,7 +18,7 @@
 
 package com.google.genkit.ai.middleware;
 
-import com.google.genkit.ai.ToolResponse;
+import com.google.genkit.ai.Part;
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.GenkitException;
 
@@ -31,8 +31,8 @@ public interface ToolNext {
    *
    * @param ctx the action context
    * @param params the tool parameters
-   * @return the tool response
+   * @return the tool response part (includes part-level metadata)
    * @throws GenkitException if processing fails
    */
-  ToolResponse apply(ActionContext ctx, ToolParams params) throws GenkitException;
+  Part apply(ActionContext ctx, ToolParams params) throws GenkitException;
 }

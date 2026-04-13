@@ -23,8 +23,8 @@ import com.google.genkit.GenkitOptions;
 import com.google.genkit.ai.GenerateOptions;
 import com.google.genkit.ai.GenerationConfig;
 import com.google.genkit.ai.ModelResponse;
+import com.google.genkit.ai.Part;
 import com.google.genkit.ai.Tool;
-import com.google.genkit.ai.ToolResponse;
 import com.google.genkit.ai.middleware.BaseGenerationMiddleware;
 import com.google.genkit.ai.middleware.GenerateNext;
 import com.google.genkit.ai.middleware.GenerateParams;
@@ -162,12 +162,12 @@ public class MiddlewareV2Sample {
     }
 
     @Override
-    public ToolResponse wrapTool(ActionContext ctx, ToolParams params, ToolNext next)
+    public Part wrapTool(ActionContext ctx, ToolParams params, ToolNext next)
         throws GenkitException {
       String toolName = params.getRequest().getName();
       logger.info("[tool-monitor] Executing tool: {}", toolName);
       long start = System.currentTimeMillis();
-      ToolResponse resp = next.apply(ctx, params);
+      Part resp = next.apply(ctx, params);
       logger.info(
           "[tool-monitor] Tool {} completed in {}ms", toolName, System.currentTimeMillis() - start);
       return resp;
@@ -221,7 +221,7 @@ public class MiddlewareV2Sample {
     }
 
     @Override
-    public ToolResponse wrapTool(ActionContext ctx, ToolParams params, ToolNext next)
+    public Part wrapTool(ActionContext ctx, ToolParams params, ToolNext next)
         throws GenkitException {
       int call = toolCalls.incrementAndGet();
       logger.info("[observability]   Tool call #{}: {}", call, params.getRequest().getName());

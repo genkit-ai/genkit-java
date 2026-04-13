@@ -24,6 +24,7 @@ import com.google.genkit.ai.Candidate;
 import com.google.genkit.ai.Message;
 import com.google.genkit.ai.ModelRequest;
 import com.google.genkit.ai.ModelResponse;
+import com.google.genkit.ai.Part;
 import com.google.genkit.ai.Tool;
 import com.google.genkit.ai.ToolRequest;
 import com.google.genkit.ai.ToolResponse;
@@ -231,12 +232,12 @@ class GenerationMiddlewareTest {
   void testToolNext_passThrough() {
     ToolRequest toolReq = new ToolRequest("myTool", Map.of("key", "value"));
     Tool<String, String> tool = createTestTool("myTool");
-    ToolParams params = new ToolParams(toolReq, tool);
-    ToolResponse expected = new ToolResponse("myTool", "tool output");
+    ToolParams params = new ToolParams(Part.toolRequest(toolReq), tool);
+    Part expected = Part.toolResponse(new ToolResponse("myTool", "tool output"));
 
     ToolNext next = (c, p) -> expected;
 
-    ToolResponse result = next.apply(ctx, params);
+    Part result = next.apply(ctx, params);
     assertSame(expected, result);
   }
 
@@ -247,19 +248,19 @@ class GenerationMiddlewareTest {
     ToolNext core =
         (c, p) -> {
           order.add("tool-exec");
-          return new ToolResponse(p.getRequest().getName(), "result");
+          return Part.toolResponse(new ToolResponse(p.getRequest().getName(), "result"));
         };
 
     ToolNext wrapper =
         (c, p) -> {
           order.add("before-tool");
-          ToolResponse resp = core.apply(c, p);
+          Part resp = core.apply(c, p);
           order.add("after-tool");
           return resp;
         };
 
     ToolRequest toolReq = new ToolRequest("test", Map.of());
-    wrapper.apply(ctx, new ToolParams(toolReq, createTestTool("test")));
+    wrapper.apply(ctx, new ToolParams(Part.toolRequest(toolReq), createTestTool("test")));
 
     assertEquals(List.of("before-tool", "tool-exec", "after-tool"), order);
   }
@@ -273,11 +274,11 @@ class GenerationMiddlewareTest {
         (c, p) -> {
           assertEquals("weatherTool", p.getRequest().getName());
           assertEquals("weatherTool", p.getTool().getName());
-          return new ToolResponse("weatherTool", "sunny");
+          return Part.toolResponse(new ToolResponse("weatherTool", "sunny"));
         };
 
-    ToolResponse resp = next.apply(ctx, new ToolParams(toolReq, tool));
-    assertEquals("weatherTool", resp.getName());
+    Part resp = next.apply(ctx, new ToolParams(Part.toolRequest(toolReq), tool));
+    assertEquals("weatherTool", resp.getToolResponse().getName());
   }
 
   @Test
@@ -290,7 +291,7 @@ class GenerationMiddlewareTest {
     ToolRequest toolReq = new ToolRequest("t", Map.of());
     assertThrows(
         GenkitException.class,
-        () -> failing.apply(ctx, new ToolParams(toolReq, createTestTool("t"))));
+        () -> failing.apply(ctx, new ToolParams(Part.toolRequest(toolReq), createTestTool("t"))));
   }
 
   // =========================================================================
@@ -325,11 +326,13 @@ class GenerationMiddlewareTest {
     assertSame(expected, mResult);
 
     // wrapTool passes through
-    ToolResponse toolExpected = new ToolResponse("t", "data");
+    Part toolExpected = Part.toolResponse(new ToolResponse("t", "data"));
     ToolNext tNext = (c, p) -> toolExpected;
-    ToolResponse tResult =
+    Part tResult =
         base.wrapTool(
-            ctx, new ToolParams(new ToolRequest("t", Map.of()), createTestTool("t")), tNext);
+            ctx,
+            new ToolParams(Part.toolRequest(new ToolRequest("t", Map.of())), createTestTool("t")),
+            tNext);
     assertSame(toolExpected, tResult);
 
     // tools returns empty
@@ -534,10 +537,10 @@ class GenerationMiddlewareTest {
           }
 
           @Override
-          public ToolResponse wrapTool(ActionContext ctx, ToolParams params, ToolNext next)
+          public Part wrapTool(ActionContext ctx, ToolParams params, ToolNext next)
               throws GenkitException {
             order.add("first-before");
-            ToolResponse resp = next.apply(ctx, params);
+            Part resp = next.apply(ctx, params);
             order.add("first-after");
             return resp;
           }
@@ -556,10 +559,10 @@ class GenerationMiddlewareTest {
           }
 
           @Override
-          public ToolResponse wrapTool(ActionContext ctx, ToolParams params, ToolNext next)
+          public Part wrapTool(ActionContext ctx, ToolParams params, ToolNext next)
               throws GenkitException {
             order.add("second-before");
-            ToolResponse resp = next.apply(ctx, params);
+            Part resp = next.apply(ctx, params);
             order.add("second-after");
             return resp;
           }
@@ -569,7 +572,7 @@ class GenerationMiddlewareTest {
     ToolNext core =
         (c, p) -> {
           order.add("tool");
-          return new ToolResponse(p.getRequest().getName(), "output");
+          return Part.toolResponse(new ToolResponse(p.getRequest().getName(), "output"));
         };
 
     ToolNext chain = core;
@@ -580,7 +583,7 @@ class GenerationMiddlewareTest {
     }
 
     ToolRequest toolReq = new ToolRequest("myTool", Map.of());
-    chain.apply(ctx, new ToolParams(toolReq, createTestTool("myTool")));
+    chain.apply(ctx, new ToolParams(Part.toolRequest(toolReq), createTestTool("myTool")));
 
     assertEquals(
         List.of("first-before", "second-before", "tool", "second-after", "first-after"), order);

@@ -19,8 +19,8 @@
 package com.google.genkit.ai.middleware;
 
 import com.google.genkit.ai.ModelResponse;
+import com.google.genkit.ai.Part;
 import com.google.genkit.ai.Tool;
-import com.google.genkit.ai.ToolResponse;
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.GenkitException;
 import java.util.Collections;
@@ -66,8 +66,7 @@ public abstract class BaseGenerationMiddleware implements GenerationMiddleware {
   }
 
   @Override
-  public ToolResponse wrapTool(ActionContext ctx, ToolParams params, ToolNext next)
-      throws GenkitException {
+  public Part wrapTool(ActionContext ctx, ToolParams params, ToolNext next) throws GenkitException {
     return next.apply(ctx, params);
   }
 

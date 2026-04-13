@@ -19,8 +19,8 @@
 package com.google.genkit.ai.middleware;
 
 import com.google.genkit.ai.ModelResponse;
+import com.google.genkit.ai.Part;
 import com.google.genkit.ai.Tool;
-import com.google.genkit.ai.ToolResponse;
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.GenkitException;
 import java.util.Collections;
@@ -107,12 +107,12 @@ public interface GenerationMiddleware {
    * Implementations must be safe for concurrent use.
    *
    * @param ctx the action context
-   * @param params the tool parameters including the request and resolved tool
+   * @param params the tool parameters including the request part and resolved tool
    * @param next the next function in the chain
-   * @return the tool response
+   * @return the tool response part (includes part-level metadata)
    * @throws GenkitException if processing fails
    */
-  ToolResponse wrapTool(ActionContext ctx, ToolParams params, ToolNext next) throws GenkitException;
+  Part wrapTool(ActionContext ctx, ToolParams params, ToolNext next) throws GenkitException;
 
   /**
    * Returns additional tools to make available during generation. These tools are dynamically added
