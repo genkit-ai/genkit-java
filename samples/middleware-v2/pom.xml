@@ -42,6 +42,7 @@
         <genkit.version>1.0.0-SNAPSHOT</genkit.version>
         <maven.deploy.skip>true</maven.deploy.skip>
         <maven.install.skip>true</maven.install.skip>
+        <exec.mainClass>com.google.genkit.samples.MiddlewareV2Sample</exec.mainClass>
     </properties>
 
     <dependencies>
@@ -83,7 +84,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.6.3</version>
                 <configuration>
-                    <mainClass>com.google.genkit.samples.MiddlewareV2Sample</mainClass>
+                    <mainClass>${exec.mainClass}</mainClass>
                 </configuration>
             </plugin>
         </plugins>
