@@ -54,48 +54,23 @@ public class RuntimeFileWriter {
   }
 
   /**
-   * Finds the project root by searching up from the current directory. Prioritizes package.json to
-   * match the genkit CLI's behavior - this ensures the Java runtime writes to the same .genkit
-   * directory the CLI reads from. Falls back to pom.xml/build.gradle only if no package.json is
-   * found.
+   * Finds the project root by searching up from the current directory. At each level, checks for
+   * any known project marker file (package.json, pom.xml, build.gradle, etc.). The closest
+   * directory containing a marker wins, ensuring the runtime file is written next to the project
+   * that the Genkit CLI detects.
    *
    * @return the project root directory path
    */
   private static String findProjectRoot() {
     Path dir = Paths.get(System.getProperty("user.dir")).toAbsolutePath();
 
-    // First pass: Look for package.json (CLI primary marker) to ensure we match CLI
-    // behavior
-    // The CLI looks for package.json first, so we need to find the same root it
-    // uses
-    Path cliRoot = null;
+    String[] markers = {
+      "package.json", "pom.xml", "build.gradle", "go.mod", "pyproject.toml", "requirements.txt"
+    };
+
     Path currentDir = dir;
     while (currentDir != null) {
-      Path packageJson = currentDir.resolve("package.json");
-      if (Files.exists(packageJson)) {
-        cliRoot = currentDir;
-        logger.debug("Found CLI project root at: {} (found package.json)", currentDir);
-        break;
-      }
-      Path parent = currentDir.getParent();
-      if (parent == null || parent.equals(currentDir)) {
-        break;
-      }
-      currentDir = parent;
-    }
-
-    // If we found a package.json (CLI root), use that
-    if (cliRoot != null) {
-      return cliRoot.toString();
-    }
-
-    // Second pass: Fall back to Java/other markers if no package.json found
-    String[] fallbackMarkers = {
-      "pom.xml", "build.gradle", "go.mod", "pyproject.toml", "requirements.txt"
-    };
-    currentDir = dir;
-    while (currentDir != null) {
-      for (String marker : fallbackMarkers) {
+      for (String marker : markers) {
         Path markerFile = currentDir.resolve(marker);
         if (Files.exists(markerFile)) {
           logger.debug("Found project root at: {} (found {})", currentDir, marker);
@@ -105,12 +80,12 @@ public class RuntimeFileWriter {
 
       Path parent = currentDir.getParent();
       if (parent == null || parent.equals(currentDir)) {
-        logger.warn("Could not find project root, using current directory");
-        return System.getProperty("user.dir");
+        break;
       }
       currentDir = parent;
     }
 
+    logger.warn("Could not find project root, using current directory");
     return System.getProperty("user.dir");
   }
 
