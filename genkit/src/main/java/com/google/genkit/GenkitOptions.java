@@ -25,12 +25,14 @@ public class GenkitOptions {
   private final int reflectionPort;
   private final String projectRoot;
   private final String promptDir;
+  private final String name;
 
   private GenkitOptions(Builder builder) {
     this.devMode = builder.devMode;
     this.reflectionPort = builder.reflectionPort;
     this.projectRoot = builder.projectRoot;
     this.promptDir = builder.promptDir;
+    this.name = builder.name;
   }
 
   /**
@@ -79,12 +81,22 @@ public class GenkitOptions {
     return promptDir;
   }
 
+  /**
+   * Returns the optional instance name for this Genkit instance.
+   *
+   * @return the instance name, or null if not set
+   */
+  public String getName() {
+    return name;
+  }
+
   /** Builder for GenkitOptions. */
   public static class Builder {
     private boolean devMode = isDevModeFromEnv();
     private int reflectionPort = getReflectionPortFromEnv();
     private String projectRoot = System.getProperty("user.dir");
     private String promptDir = "/prompts";
+    private String name;
 
     private static boolean isDevModeFromEnv() {
       String env = System.getenv("GENKIT_ENV");
@@ -120,6 +132,11 @@ public class GenkitOptions {
 
     public Builder promptDir(String promptDir) {
       this.promptDir = promptDir;
+      return this;
+    }
+
+    public Builder name(String name) {
+      this.name = name;
       return this;
     }
 

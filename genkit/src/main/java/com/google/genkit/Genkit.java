@@ -1552,7 +1552,7 @@ public class Genkit {
   private void startReflectionServerV1() {
     try {
       int port = options.getReflectionPort();
-      reflectionServer = new ReflectionServer(registry, port);
+      reflectionServer = new ReflectionServer(registry, port, options.getName());
       reflectionServer.start();
       logger.info("Reflection server started on port {}", port);
 
@@ -1566,7 +1566,7 @@ public class Genkit {
 
   private void startReflectionServerV2(String serverUrl) {
     try {
-      reflectionServerV2 = new ReflectionServerV2(registry, serverUrl);
+      reflectionServerV2 = new ReflectionServerV2(registry, serverUrl, options.getName());
       reflectionServerV2.start();
       logger.info("Reflection V2 client connecting to {}", serverUrl);
     } catch (Exception e) {
