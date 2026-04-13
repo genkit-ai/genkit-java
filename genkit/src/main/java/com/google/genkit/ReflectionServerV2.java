@@ -90,11 +90,12 @@ public class ReflectionServerV2 {
    *
    * @param registry the Genkit registry
    * @param serverUrl the WebSocket server URL (e.g., ws://localhost:4100)
+   * @param instanceName optional instance name for the runtime ID (may be null)
    */
-  public ReflectionServerV2(Registry registry, String serverUrl) {
+  public ReflectionServerV2(Registry registry, String serverUrl, String instanceName) {
     this.registry = registry;
     this.serverUrl = serverUrl;
-    this.runtimeId = ProcessHandle.current().pid() + "";
+    this.runtimeId = RuntimeIdGenerator.generate(instanceName);
     this.httpClient = HttpClient.newHttpClient();
 
     // Register local telemetry store for Dev UI trace access
