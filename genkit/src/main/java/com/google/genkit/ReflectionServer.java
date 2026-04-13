@@ -73,11 +73,12 @@ public class ReflectionServer {
    *
    * @param registry the Genkit registry
    * @param port the port to listen on
+   * @param instanceName optional instance name for the runtime ID (may be null)
    */
-  public ReflectionServer(Registry registry, int port) {
+  public ReflectionServer(Registry registry, int port, String instanceName) {
     this.registry = registry;
     this.port = port;
-    this.runtimeId = "java-" + ProcessHandle.current().pid() + "-" + System.currentTimeMillis();
+    this.runtimeId = RuntimeIdGenerator.generate(instanceName);
     this.evaluationManager = new EvaluationManager(registry);
 
     // Register local telemetry store for Dev UI trace access
