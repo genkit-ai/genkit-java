@@ -697,6 +697,13 @@ public class Genkit {
       request = handleResumeOption(request, options);
     }
 
+    // Extract pending restart requests (handled inside the generate loop for proper middleware
+    // lifecycle: wrapTool hooks fire for restarted tools, then wrapGenerate fires for next turn)
+    final List<ToolRequest> pendingRestarts = new java.util.ArrayList<>();
+    if (options.getResume() != null && options.getResume().getRestart() != null) {
+      pendingRestarts.addAll(options.getResume().getRestart());
+    }
+
     // Build model call wrapped with WrapModel hooks
     ModelNext wrappedModelCall = buildWrappedModelCall(model, options, ctx, middlewares);
 
@@ -711,6 +718,81 @@ public class Genkit {
 
           if (turn >= maxTurns) {
             throw new GenkitException("Max tool execution turns (" + maxTurns + ") exceeded");
+          }
+
+          // Handle pending restart tools through middleware before calling model.
+          // This ensures wrapTool hooks fire for restarted tools, and subsequent
+          // recursion through generateRef fires wrapGenerate for the next turn.
+          if (!pendingRestarts.isEmpty()) {
+            List<ToolRequest> restarts = new java.util.ArrayList<>(pendingRestarts);
+            pendingRestarts.clear();
+
+            // Convert restart requests to tool request parts for middleware execution
+            List<Part> restartParts =
+                restarts.stream()
+                    .map(Part::toolRequest)
+                    .collect(java.util.stream.Collectors.toList());
+
+            // Execute through WrapTool chain (fires wrapTool hooks)
+            ToolExecutionResult toolResult =
+                executeToolsWithMiddleware(actx, restartParts, allTools, middlewares);
+
+            // If a restart tool interrupts again, fail
+            if (!toolResult.getInterrupts().isEmpty()) {
+              throw new GenkitException(
+                  "Tool triggered an interrupt during restart. "
+                      + "Re-interrupting during restart is not supported.");
+            }
+
+            // Add restart tool responses to messages
+            List<Message> updatedMessages = new java.util.ArrayList<>(req.getMessages());
+
+            // If last message is a TOOL message (from respond directives), merge restart responses
+            if (!updatedMessages.isEmpty()
+                && updatedMessages.get(updatedMessages.size() - 1).getRole() == Role.TOOL) {
+              Message existingToolMsg = updatedMessages.get(updatedMessages.size() - 1);
+              List<Part> mergedContent = new java.util.ArrayList<>(existingToolMsg.getContent());
+              for (Part restartResp : toolResult.getResponses()) {
+                Map<String, Object> metadata =
+                    restartResp.getMetadata() != null
+                        ? new java.util.HashMap<>(restartResp.getMetadata())
+                        : new java.util.HashMap<>();
+                metadata.put("source", "restart");
+                restartResp.setMetadata(metadata);
+                mergedContent.add(restartResp);
+              }
+              existingToolMsg.setContent(mergedContent);
+            } else {
+              // Create new TOOL message with restart responses
+              Message toolResponseMessage = new Message();
+              toolResponseMessage.setRole(Role.TOOL);
+              List<Part> restartResponses = new java.util.ArrayList<>();
+              for (Part restartResp : toolResult.getResponses()) {
+                Map<String, Object> metadata =
+                    restartResp.getMetadata() != null
+                        ? new java.util.HashMap<>(restartResp.getMetadata())
+                        : new java.util.HashMap<>();
+                metadata.put("source", "restart");
+                restartResp.setMetadata(metadata);
+                restartResponses.add(restartResp);
+              }
+              toolResponseMessage.setContent(restartResponses);
+              Map<String, Object> toolMsgMetadata = new java.util.HashMap<>();
+              toolMsgMetadata.put("resumed", true);
+              toolResponseMessage.setMetadata(toolMsgMetadata);
+              updatedMessages.add(toolResponseMessage);
+            }
+
+            // Recurse through WrapGenerate hooks for the next turn
+            ModelRequest nextRequest =
+                ModelRequest.builder()
+                    .messages(updatedMessages)
+                    .config(req.getConfig())
+                    .tools(req.getTools())
+                    .output(req.getOutput())
+                    .build();
+
+            return generateRef[0].apply(actx, new GenerateParams(nextRequest, turn + 1));
           }
 
           // Call model through WrapModel chain
@@ -729,7 +811,10 @@ public class Genkit {
 
           // If there are interrupts, return immediately
           if (!toolResult.getInterrupts().isEmpty()) {
-            return buildInterruptedResponse(response, toolResult);
+            ModelResponse interruptedResponse = buildInterruptedResponse(response, toolResult);
+            // Set original request so getMessages() includes conversation history
+            interruptedResponse.setRequest(req);
+            return interruptedResponse;
           }
 
           // Build next request with updated messages
@@ -967,9 +1052,16 @@ public class Genkit {
     // Build tool response parts from resume options
     List<Part> toolResponseParts = new java.util.ArrayList<>();
 
+    // Collect tool names/refs from respond directives
+    java.util.Set<String> respondedTools = new java.util.HashSet<>();
+
     // Handle respond directives
     if (resume.getRespond() != null) {
       for (ToolResponse toolResponse : resume.getRespond()) {
+        respondedTools.add(
+            toolResponse.getName()
+                + "#"
+                + (toolResponse.getRef() != null ? toolResponse.getRef() : ""));
         Part responsePart = new Part();
         responsePart.setToolResponse(toolResponse);
         Map<String, Object> metadata = new java.util.HashMap<>();
@@ -979,51 +1071,62 @@ public class Genkit {
       }
     }
 
-    // Handle restart directives - execute the tools
+    // Note: restart directives are handled inside the generate loop
+    // for proper middleware lifecycle (wrapTool and wrapGenerate hooks fire correctly)
+    boolean hasRespond = resume.getRespond() != null && !resume.getRespond().isEmpty();
+    boolean hasRestart = resume.getRestart() != null && !resume.getRestart().isEmpty();
+
+    if (!hasRespond && !hasRestart) {
+      throw new GenkitException("Resume options must contain either respond or restart directives");
+    }
+
+    // Collect tool names/refs from restart directives to avoid duplicating their responses
+    java.util.Set<String> restartedTools = new java.util.HashSet<>();
     if (resume.getRestart() != null) {
-      ActionContext ctx = new ActionContext(registry);
-      for (ToolRequest restartRequest : resume.getRestart()) {
-        Tool<?, ?> tool = findTool(restartRequest.getName(), options.getTools());
-        if (tool == null) {
-          throw new GenkitException("Tool not found for restart: " + restartRequest.getName());
-        }
+      for (ToolRequest toolRequest : resume.getRestart()) {
+        restartedTools.add(
+            toolRequest.getName()
+                + "#"
+                + (toolRequest.getRef() != null ? toolRequest.getRef() : ""));
+      }
+    }
 
-        try {
-          @SuppressWarnings("unchecked")
-          Tool<Object, Object> typedTool = (Tool<Object, Object>) tool;
-          Object result = typedTool.run(ctx, restartRequest.getInput());
-
-          Part responsePart = new Part();
-          ToolResponse toolResponse =
-              new ToolResponse(restartRequest.getRef(), restartRequest.getName(), result);
-          responsePart.setToolResponse(toolResponse);
-          Map<String, Object> metadata = new java.util.HashMap<>();
-          metadata.put("source", "restart");
-          responsePart.setMetadata(metadata);
-          toolResponseParts.add(responsePart);
-        } catch (ToolInterruptException e) {
-          // Tool interrupted again during restart
-          throw new GenkitException(
-              "Tool '"
-                  + restartRequest.getName()
-                  + "' triggered an interrupt during restart. "
-                  + "Re-interrupting during restart is not supported.");
+    // Add tool responses for completed tools (pendingOutput metadata) that aren't
+    // being explicitly responded to or restarted. This ensures all tool_calls in the
+    // model message have matching tool responses (required by providers like OpenAI).
+    for (Part part : lastMessage.getContent()) {
+      if (part.getToolRequest() != null && part.getMetadata() != null) {
+        Object pendingOutput = part.getMetadata().get("pendingOutput");
+        if (pendingOutput != null) {
+          String key =
+              part.getToolRequest().getName()
+                  + "#"
+                  + (part.getToolRequest().getRef() != null ? part.getToolRequest().getRef() : "");
+          if (!respondedTools.contains(key) && !restartedTools.contains(key)) {
+            Part responsePart = new Part();
+            ToolResponse toolResponse =
+                new ToolResponse(
+                    part.getToolRequest().getRef(), part.getToolRequest().getName(), pendingOutput);
+            responsePart.setToolResponse(toolResponse);
+            Map<String, Object> metadata = new java.util.HashMap<>();
+            metadata.put("pendingOutput", true);
+            responsePart.setMetadata(metadata);
+            toolResponseParts.add(responsePart);
+          }
         }
       }
     }
 
-    if (toolResponseParts.isEmpty()) {
-      throw new GenkitException("Resume options must contain either respond or restart directives");
+    if (!toolResponseParts.isEmpty()) {
+      // Add tool response message for completed and responded tools
+      Message toolResponseMessage = new Message();
+      toolResponseMessage.setRole(Role.TOOL);
+      toolResponseMessage.setContent(toolResponseParts);
+      Map<String, Object> toolMsgMetadata = new java.util.HashMap<>();
+      toolMsgMetadata.put("resumed", true);
+      toolResponseMessage.setMetadata(toolMsgMetadata);
+      messages.add(toolResponseMessage);
     }
-
-    // Add tool response message
-    Message toolResponseMessage = new Message();
-    toolResponseMessage.setRole(Role.TOOL);
-    toolResponseMessage.setContent(toolResponseParts);
-    Map<String, Object> toolMsgMetadata = new java.util.HashMap<>();
-    toolMsgMetadata.put("resumed", true);
-    toolResponseMessage.setMetadata(toolMsgMetadata);
-    messages.add(toolResponseMessage);
 
     return ModelRequest.builder()
         .messages(messages)
