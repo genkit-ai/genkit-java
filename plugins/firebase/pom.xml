@@ -41,7 +41,7 @@
         <google-cloud-logging.version>3.29.0</google-cloud-logging.version>
         <google-cloud-trace.version>2.88.0</google-cloud-trace.version>
         <google-cloud-monitoring.version>3.89.0</google-cloud-monitoring.version>
-        <functions-framework.version>2.0.0</functions-framework.version>
+        <functions-framework.version>2.0.1</functions-framework.version>
         <google-cloud-opentelemetry.version>0.36.0</google-cloud-opentelemetry.version>
     </properties>
 
