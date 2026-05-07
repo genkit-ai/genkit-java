@@ -774,7 +774,8 @@ public class Genkit {
 
             // Recurse through WrapGenerate hooks for the next turn
             GenerateActionOptions nextOpts = opts.withMessages(updatedMessages);
-            return generateRef[0].apply(actx, new GenerateParams(nextOpts, turn + 1));
+            int nextMsgIdx = params.getMessageIndex() + 1;
+            return generateRef[0].apply(actx, new GenerateParams(nextOpts, turn + 1, nextMsgIdx));
           }
 
           // Build model call wrapped with WrapModel hooks (resolved per-turn so
@@ -817,14 +818,15 @@ public class Genkit {
           GenerateActionOptions nextOpts = opts.withMessages(updatedMessages);
 
           // Recurse through the wrapped generate function (goes through WrapGenerate hooks)
-          return generateRef[0].apply(actx, new GenerateParams(nextOpts, turn + 1));
+          int nextMsgIdx = params.getMessageIndex() + 1;
+          return generateRef[0].apply(actx, new GenerateParams(nextOpts, turn + 1, nextMsgIdx));
         };
 
     // Chain WrapGenerate hooks around the core iteration
     generateRef[0] = chainGenerateHooks(middlewares, rawGenerate);
 
-    // Start generation with high-level options
-    return generateRef[0].apply(ctx, new GenerateParams(actionOpts, 0));
+    // Start generation with high-level options (messageIndex starts at 0)
+    return generateRef[0].apply(ctx, new GenerateParams(actionOpts, 0, 0));
   }
 
   /** Creates fresh middleware instances for a single generate invocation. */

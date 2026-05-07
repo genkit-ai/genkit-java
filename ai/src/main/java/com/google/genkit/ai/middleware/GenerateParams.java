@@ -36,16 +36,31 @@ public class GenerateParams {
 
   private final GenerateActionOptions request;
   private final int iteration;
+  private final int messageIndex;
 
   /**
    * Creates GenerateParams.
    *
    * @param request the current high-level generate options for this iteration
    * @param iteration the current tool-loop iteration (0-indexed)
+   * @param messageIndex the current message index in the conversation (position the next model
+   *     response will occupy). This mirrors the JS SDK's {@code messageIndex} and is useful for
+   *     streaming chunk attribution and middleware that tracks conversation position.
    */
-  public GenerateParams(GenerateActionOptions request, int iteration) {
+  public GenerateParams(GenerateActionOptions request, int iteration, int messageIndex) {
     this.request = request;
     this.iteration = iteration;
+    this.messageIndex = messageIndex;
+  }
+
+  /**
+   * Creates GenerateParams with messageIndex defaulting to the message count in the request.
+   *
+   * @param request the current high-level generate options for this iteration
+   * @param iteration the current tool-loop iteration (0-indexed)
+   */
+  public GenerateParams(GenerateActionOptions request, int iteration) {
+    this(request, iteration, request.getMessages() != null ? request.getMessages().size() : 0);
   }
 
   /**
@@ -59,13 +74,27 @@ public class GenerateParams {
     return request;
   }
 
-  /** Returns the current tool-loop iteration (0-indexed). */
+  /** Returns the current tool-loop iteration (0-indexed), equivalent to JS {@code currentTurn}. */
   public int getIteration() {
     return iteration;
   }
 
-  /** Returns a new GenerateParams with the given request, preserving the iteration. */
+  /**
+   * Returns the current message index — the position in the conversation that the next model
+   * response will occupy. Starts at 0 and increments as messages are added (model responses, tool
+   * responses, etc.). Equivalent to the JS SDK's {@code messageIndex}.
+   */
+  public int getMessageIndex() {
+    return messageIndex;
+  }
+
+  /** Returns a new GenerateParams with the given request, preserving iteration and messageIndex. */
   public GenerateParams withRequest(GenerateActionOptions request) {
-    return new GenerateParams(request, this.iteration);
+    return new GenerateParams(request, this.iteration, this.messageIndex);
+  }
+
+  /** Returns a new GenerateParams with the given messageIndex, preserving request and iteration. */
+  public GenerateParams withMessageIndex(int messageIndex) {
+    return new GenerateParams(this.request, this.iteration, messageIndex);
   }
 }

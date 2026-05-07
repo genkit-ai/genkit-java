@@ -143,6 +143,31 @@ class GenerationMiddlewareTest {
   }
 
   @Test
+  void testGenerateParams_messageIndex() {
+    // 3-arg constructor sets messageIndex explicitly
+    GenerateActionOptions opts = actionOpts("hello");
+    GenerateParams params = new GenerateParams(opts, 2, 5);
+    assertEquals(5, params.getMessageIndex());
+    assertEquals(2, params.getIteration());
+
+    // 2-arg constructor defaults messageIndex to message count
+    GenerateParams defaulted = new GenerateParams(opts, 0);
+    assertEquals(1, defaulted.getMessageIndex()); // 1 message ("hello")
+
+    // withMessageIndex creates a copy with new index
+    GenerateParams modified = params.withMessageIndex(10);
+    assertEquals(10, modified.getMessageIndex());
+    assertEquals(2, modified.getIteration()); // preserved
+    assertSame(opts, modified.getRequest()); // preserved
+
+    // withRequest preserves messageIndex
+    GenerateActionOptions newOpts = actionOpts("world");
+    GenerateParams swapped = params.withRequest(newOpts);
+    assertEquals(5, swapped.getMessageIndex()); // preserved
+    assertSame(newOpts, swapped.getRequest());
+  }
+
+  @Test
   void testGenerateNext_exceptionPropagates() {
     GenerateNext failing =
         (c, p) -> {
