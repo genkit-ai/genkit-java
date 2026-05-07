@@ -21,6 +21,7 @@ package com.google.genkit.ai.middleware;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.google.genkit.ai.Candidate;
+import com.google.genkit.ai.GenerateActionOptions;
 import com.google.genkit.ai.Message;
 import com.google.genkit.ai.ModelRequest;
 import com.google.genkit.ai.ModelResponse;
@@ -59,13 +60,29 @@ class GenerationMiddlewareTest {
     return ModelResponse.builder().addCandidate(candidate).build();
   }
 
+  /** Helper: build a GenerateActionOptions with a single user message. */
+  private static GenerateActionOptions actionOpts(String text) {
+    GenerateActionOptions opts = new GenerateActionOptions();
+    opts.setModel("test-model");
+    opts.setMessages(List.of(Message.user(text)));
+    return opts;
+  }
+
+  /** Helper: build a minimal GenerateActionOptions. */
+  private static GenerateActionOptions actionOpts() {
+    GenerateActionOptions opts = new GenerateActionOptions();
+    opts.setModel("test-model");
+    opts.setMessages(List.of());
+    return opts;
+  }
+
   // =========================================================================
   // GenerateNext tests
   // =========================================================================
 
   @Test
   void testGenerateNext_passThrough() {
-    ModelRequest request = ModelRequest.builder().addUserMessage("hello").build();
+    GenerateActionOptions request = actionOpts("hello");
     GenerateParams params = new GenerateParams(request, 0);
     ModelResponse expected = responseWithText("world");
 
@@ -95,7 +112,7 @@ class GenerationMiddlewareTest {
           return resp;
         };
 
-    ModelRequest request = ModelRequest.builder().addUserMessage("test").build();
+    GenerateActionOptions request = actionOpts("test");
     outer.apply(ctx, new GenerateParams(request, 0));
 
     assertEquals(List.of("outer-before", "core", "outer-after"), order);
@@ -103,14 +120,14 @@ class GenerationMiddlewareTest {
 
   @Test
   void testGenerateNext_canModifyParams() {
-    ModelRequest original = ModelRequest.builder().addUserMessage("original").build();
-    ModelRequest modified = ModelRequest.builder().addUserMessage("modified").build();
+    GenerateActionOptions original = actionOpts("original");
+    GenerateActionOptions modified = actionOpts("modified");
 
     AtomicInteger iterationSeen = new AtomicInteger(-1);
     GenerateNext core =
         (c, p) -> {
           iterationSeen.set(p.getIteration());
-          assertEquals(modified, p.getRequest());
+          assertSame(modified, p.getRequest());
           return responseWithText("ok");
         };
 
@@ -132,7 +149,7 @@ class GenerationMiddlewareTest {
           throw new GenkitException("boom");
         };
 
-    ModelRequest request = ModelRequest.builder().build();
+    GenerateActionOptions request = actionOpts();
     assertThrows(GenkitException.class, () -> failing.apply(ctx, new GenerateParams(request, 0)));
   }
 
@@ -314,10 +331,11 @@ class GenerationMiddlewareTest {
         };
 
     // wrapGenerate passes through
+    GenerateActionOptions gOpts = actionOpts("test");
     ModelRequest req = ModelRequest.builder().addUserMessage("test").build();
     ModelResponse expected = responseWithText("pass");
     GenerateNext gNext = (c, p) -> expected;
-    ModelResponse gResult = base.wrapGenerate(ctx, new GenerateParams(req, 0), gNext);
+    ModelResponse gResult = base.wrapGenerate(ctx, new GenerateParams(gOpts, 0), gNext);
     assertSame(expected, gResult);
 
     // wrapModel passes through
@@ -364,6 +382,7 @@ class GenerationMiddlewareTest {
         };
 
     ModelRequest req = ModelRequest.builder().build();
+    GenerateActionOptions gOpts = actionOpts();
     ModelResponse resp = responseWithText("ok");
 
     // wrapModel is overridden
@@ -371,7 +390,8 @@ class GenerationMiddlewareTest {
     assertEquals(1, modelCallCount.get());
 
     // wrapGenerate still passes through (default)
-    ModelResponse gResp = middleware.wrapGenerate(ctx, new GenerateParams(req, 0), (c, p) -> resp);
+    ModelResponse gResp =
+        middleware.wrapGenerate(ctx, new GenerateParams(gOpts, 0), (c, p) -> resp);
     assertSame(resp, gResp);
     assertEquals(1, modelCallCount.get()); // not incremented
   }
@@ -445,8 +465,8 @@ class GenerationMiddlewareTest {
       chain = (c, p) -> mw.wrapGenerate(c, p, wrapped);
     }
 
-    ModelRequest req = ModelRequest.builder().build();
-    chain.apply(ctx, new GenerateParams(req, 0));
+    GenerateActionOptions gOpts = actionOpts();
+    chain.apply(ctx, new GenerateParams(gOpts, 0));
 
     assertEquals(
         List.of("outer-before", "inner-before", "core", "inner-after", "outer-after"), order);

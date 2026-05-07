@@ -18,27 +18,44 @@
 
 package com.google.genkit.ai.middleware;
 
-import com.google.genkit.ai.ModelRequest;
+import com.google.genkit.ai.GenerateActionOptions;
 
-/** Holds parameters for the {@link GenerationMiddleware#wrapGenerate} hook. */
+/**
+ * Holds parameters for the {@link GenerationMiddleware#wrapGenerate} hook.
+ *
+ * <p>The request is a {@link GenerateActionOptions} — the <em>high-level</em> generate options that
+ * have not yet been resolved to a {@link com.google.genkit.ai.ModelRequest ModelRequest}. This
+ * allows {@code wrapGenerate} middleware to modify values such as the model name, tool list, or
+ * output format before resolution occurs.
+ *
+ * <p>This mirrors the JS SDK where the {@code generate} middleware hook receives {@code
+ * GenerateActionOptions} (high-level), while the {@code model} middleware hook receives {@code
+ * GenerateRequest}/{@code ModelRequest} (low-level, resolved).
+ */
 public class GenerateParams {
 
-  private final ModelRequest request;
+  private final GenerateActionOptions request;
   private final int iteration;
 
   /**
    * Creates GenerateParams.
    *
-   * @param request the current model request for this iteration
+   * @param request the current high-level generate options for this iteration
    * @param iteration the current tool-loop iteration (0-indexed)
    */
-  public GenerateParams(ModelRequest request, int iteration) {
+  public GenerateParams(GenerateActionOptions request, int iteration) {
     this.request = request;
     this.iteration = iteration;
   }
 
-  /** Returns the current model request with accumulated messages. */
-  public ModelRequest getRequest() {
+  /**
+   * Returns the current high-level generate options.
+   *
+   * <p>Unlike {@link ModelParams#getRequest()}, which returns a resolved {@code ModelRequest}, this
+   * returns the unresolved {@link GenerateActionOptions} containing the model name as a string,
+   * tool names as string references, etc.
+   */
+  public GenerateActionOptions getRequest() {
     return request;
   }
 
@@ -48,7 +65,7 @@ public class GenerateParams {
   }
 
   /** Returns a new GenerateParams with the given request, preserving the iteration. */
-  public GenerateParams withRequest(ModelRequest request) {
+  public GenerateParams withRequest(GenerateActionOptions request) {
     return new GenerateParams(request, this.iteration);
   }
 }
