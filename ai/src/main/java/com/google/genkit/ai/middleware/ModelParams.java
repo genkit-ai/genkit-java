@@ -53,4 +53,36 @@ public class ModelParams {
   public ModelParams withRequest(ModelRequest request) {
     return new ModelParams(request, this.streamCallback);
   }
+
+  /**
+   * Returns a new ModelParams with the given stream callback, preserving the request.
+   *
+   * <p>This is the primary mechanism for middleware to transform streaming output. A {@code
+   * wrapModel} middleware can wrap the original callback with one that intercepts, buffers, splits,
+   * combines, or filters chunks before forwarding them to the original callback.
+   *
+   * <p>Example — "smooth stream" middleware that splits large chunks:
+   *
+   * <pre>{@code
+   * @Override
+   * public ModelResponse wrapModel(ActionContext ctx, ModelParams params, ModelNext next) {
+   *   Consumer<ModelResponseChunk> original = params.getStreamCallback();
+   *   if (original == null) return next.apply(ctx, params);
+   *
+   *   Consumer<ModelResponseChunk> smoothed = chunk -> {
+   *     String text = chunk.getText();
+   *     // Split into smaller pieces and forward each
+   *     for (String piece : splitText(text, 20)) {
+   *       original.accept(ModelResponseChunk.text(piece));
+   *     }
+   *   };
+   *   return next.apply(ctx, params.withStreamCallback(smoothed));
+   * }
+   * }</pre>
+   *
+   * @param streamCallback the new streaming callback, or null to disable streaming
+   */
+  public ModelParams withStreamCallback(Consumer<ModelResponseChunk> streamCallback) {
+    return new ModelParams(this.request, streamCallback);
+  }
 }
