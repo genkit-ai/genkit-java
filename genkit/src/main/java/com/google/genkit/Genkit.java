@@ -654,8 +654,6 @@ public class Genkit {
    * @throws GenkitException if generation fails
    */
   private ModelResponse generateInternal(GenerateOptions<?> options) throws GenkitException {
-    Model model = getModel(options.getModel());
-    ModelRequest request = options.toModelRequest();
     ActionContext ctx = new ActionContext(registry);
 
     int maxTurns = options.getMaxTurns() != null ? options.getMaxTurns() : 5;
@@ -675,26 +673,14 @@ public class Genkit {
       }
     }
 
-    // Add middleware tool definitions to the model request
-    if (allTools.size() > (options.getTools() != null ? options.getTools().size() : 0)) {
-      List<ToolDefinition> allToolDefs = new ArrayList<>();
-      if (request.getTools() != null) {
-        allToolDefs.addAll(request.getTools());
-      }
-      for (GenerationMiddleware mw : middlewares) {
-        List<Tool<?, ?>> mwTools = mw.tools();
-        if (mwTools != null) {
-          for (Tool<?, ?> t : mwTools) {
-            allToolDefs.add(t.getDefinition());
-          }
-        }
-      }
-      request.setTools(allToolDefs);
-    }
+    // Build high-level GenerateActionOptions (unresolved: model name as string,
+    // tool names as strings). This is what wrapGenerate middleware receives,
+    // allowing it to modify model, tools, etc. before resolution.
+    GenerateActionOptions actionOpts = toGenerateActionOptions(options, allTools);
 
-    // Handle resume option if provided
+    // Handle resume option if provided (manipulates messages at the high level)
     if (options.getResume() != null) {
-      request = handleResumeOption(request, options);
+      actionOpts = handleResumeOption(actionOpts, options);
     }
 
     // Extract pending restart requests (handled inside the generate loop for proper middleware
@@ -704,21 +690,24 @@ public class Genkit {
       pendingRestarts.addAll(options.getResume().getRestart());
     }
 
-    // Build model call wrapped with WrapModel hooks
-    ModelNext wrappedModelCall = buildWrappedModelCall(model, options, ctx, middlewares);
-
     // Use an array to hold the reference for recursive WrapGenerate wrapping
     final GenerateNext[] generateRef = new GenerateNext[1];
 
-    // Core generate iteration: model call → tool handling → recurse
+    // Core generate iteration: resolve options → model call → tool handling → recurse
     GenerateNext rawGenerate =
         (actx, params) -> {
-          ModelRequest req = params.getRequest();
+          GenerateActionOptions opts = params.getRequest();
           int turn = params.getIteration();
 
           if (turn >= maxTurns) {
             throw new GenkitException("Max tool execution turns (" + maxTurns + ") exceeded");
           }
+
+          // Resolve model from the (possibly middleware-modified) options
+          Model model = getModel(opts.getModel());
+
+          // Resolve GenerateActionOptions → ModelRequest (tool names → definitions, config → map)
+          ModelRequest req = resolveToModelRequest(opts, allTools);
 
           // Handle pending restart tools through middleware before calling model.
           // This ensures wrapTool hooks fire for restarted tools, and subsequent
@@ -744,8 +733,8 @@ public class Genkit {
                       + "Re-interrupting during restart is not supported.");
             }
 
-            // Add restart tool responses to messages
-            List<Message> updatedMessages = new java.util.ArrayList<>(req.getMessages());
+            // Add restart tool responses to messages (use high-level opts for recursion)
+            List<Message> updatedMessages = new java.util.ArrayList<>(opts.getMessages());
 
             // If last message is a TOOL message (from respond directives), merge restart responses
             if (!updatedMessages.isEmpty()
@@ -784,16 +773,15 @@ public class Genkit {
             }
 
             // Recurse through WrapGenerate hooks for the next turn
-            ModelRequest nextRequest =
-                ModelRequest.builder()
-                    .messages(updatedMessages)
-                    .config(req.getConfig())
-                    .tools(req.getTools())
-                    .output(req.getOutput())
-                    .build();
-
-            return generateRef[0].apply(actx, new GenerateParams(nextRequest, turn + 1));
+            GenerateActionOptions nextOpts = opts.withMessages(updatedMessages);
+            int nextMsgIdx = params.getMessageIndex() + 1;
+            return generateRef[0].apply(actx, new GenerateParams(nextOpts, turn + 1, nextMsgIdx));
           }
+
+          // Build model call wrapped with WrapModel hooks (resolved per-turn so
+          // middleware-modified model names take effect)
+          ModelNext wrappedModelCall =
+              buildWrappedModelCall(model, opts.getModel(), actx, middlewares);
 
           // Call model through WrapModel chain
           ModelParams mparams = new ModelParams(req, null);
@@ -817,9 +805,9 @@ public class Genkit {
             return interruptedResponse;
           }
 
-          // Build next request with updated messages
+          // Build next options with updated messages for recursion through wrapGenerate
           Message assistantMessage = response.getMessage();
-          List<Message> updatedMessages = new java.util.ArrayList<>(req.getMessages());
+          List<Message> updatedMessages = new java.util.ArrayList<>(opts.getMessages());
           updatedMessages.add(assistantMessage);
 
           Message toolResponseMessage = new Message();
@@ -827,23 +815,18 @@ public class Genkit {
           toolResponseMessage.setContent(toolResult.getResponses());
           updatedMessages.add(toolResponseMessage);
 
-          ModelRequest nextRequest =
-              ModelRequest.builder()
-                  .messages(updatedMessages)
-                  .config(req.getConfig())
-                  .tools(req.getTools())
-                  .output(req.getOutput())
-                  .build();
+          GenerateActionOptions nextOpts = opts.withMessages(updatedMessages);
 
           // Recurse through the wrapped generate function (goes through WrapGenerate hooks)
-          return generateRef[0].apply(actx, new GenerateParams(nextRequest, turn + 1));
+          int nextMsgIdx = params.getMessageIndex() + 1;
+          return generateRef[0].apply(actx, new GenerateParams(nextOpts, turn + 1, nextMsgIdx));
         };
 
     // Chain WrapGenerate hooks around the core iteration
     generateRef[0] = chainGenerateHooks(middlewares, rawGenerate);
 
-    // Start generation
-    return generateRef[0].apply(ctx, new GenerateParams(request, 0));
+    // Start generation with high-level options (messageIndex starts at 0)
+    return generateRef[0].apply(ctx, new GenerateParams(actionOpts, 0, 0));
   }
 
   /** Creates fresh middleware instances for a single generate invocation. */
@@ -854,12 +837,122 @@ public class Genkit {
     return use.stream().map(GenerationMiddleware::newInstance).toList();
   }
 
+  /**
+   * Converts {@link GenerateOptions} to a high-level {@link GenerateActionOptions}.
+   *
+   * <p>This builds the unresolved options that the {@code wrapGenerate} middleware chain receives.
+   * Messages are assembled from the prompt/system/messages fields, and tools are represented as
+   * name strings (not resolved definitions).
+   */
+  private GenerateActionOptions toGenerateActionOptions(
+      GenerateOptions<?> options, List<Tool<?, ?>> allTools) {
+    GenerateActionOptions opts = new GenerateActionOptions();
+    opts.setModel(options.getModel());
+
+    // Build messages from system/prompt/messages (same assembly order as toModelRequest)
+    List<Message> messages = new java.util.ArrayList<>();
+    if (options.getSystem() != null) {
+      messages.add(Message.system(options.getSystem()));
+    }
+    if (options.getMessages() != null && !options.getMessages().isEmpty()) {
+      messages.addAll(options.getMessages());
+    } else if (options.getPrompt() != null) {
+      messages.add(Message.user(options.getPrompt()));
+    }
+    opts.setMessages(messages);
+
+    // Tool names as strings (high-level, unresolved)
+    if (allTools != null && !allTools.isEmpty()) {
+      opts.setTools(
+          allTools.stream().map(Tool::getName).collect(java.util.stream.Collectors.toList()));
+    }
+
+    if (options.getToolChoice() != null) {
+      opts.setToolChoice(options.getToolChoice().toString());
+    }
+    opts.setConfig(options.getConfig());
+    opts.setOutput(options.getOutput());
+    opts.setDocs(options.getDocs());
+    opts.setMaxTurns(options.getMaxTurns());
+    return opts;
+  }
+
+  /**
+   * Resolves a high-level {@link GenerateActionOptions} into a low-level {@link ModelRequest}.
+   *
+   * <p>This performs tool name → definition resolution and config conversion, producing the request
+   * that is actually sent to the model through the {@code wrapModel} chain.
+   */
+  private ModelRequest resolveToModelRequest(
+      GenerateActionOptions actionOpts, List<Tool<?, ?>> allTools) {
+    ModelRequest.Builder builder = ModelRequest.builder();
+
+    if (actionOpts.getMessages() != null) {
+      builder.messages(actionOpts.getMessages());
+    }
+
+    // Resolve tool names to ToolDefinitions
+    if (actionOpts.getTools() != null && !actionOpts.getTools().isEmpty()) {
+      List<ToolDefinition> toolDefs = new java.util.ArrayList<>();
+      for (String toolName : actionOpts.getTools()) {
+        for (Tool<?, ?> tool : allTools) {
+          if (tool.getName().equals(toolName)) {
+            toolDefs.add(tool.getDefinition());
+            break;
+          }
+        }
+      }
+      builder.tools(toolDefs);
+    }
+
+    // Convert GenerationConfig → Map<String, Object> for ModelRequest
+    if (actionOpts.getConfig() != null) {
+      GenerationConfig config = actionOpts.getConfig();
+      Map<String, Object> configMap = new java.util.HashMap<>();
+      if (config.getTemperature() != null) {
+        configMap.put("temperature", config.getTemperature());
+      }
+      if (config.getMaxOutputTokens() != null) {
+        configMap.put("maxOutputTokens", config.getMaxOutputTokens());
+      }
+      if (config.getTopP() != null) {
+        configMap.put("topP", config.getTopP());
+      }
+      if (config.getTopK() != null) {
+        configMap.put("topK", config.getTopK());
+      }
+      if (config.getStopSequences() != null) {
+        configMap.put("stopSequences", config.getStopSequences());
+      }
+      if (config.getPresencePenalty() != null) {
+        configMap.put("presencePenalty", config.getPresencePenalty());
+      }
+      if (config.getFrequencyPenalty() != null) {
+        configMap.put("frequencyPenalty", config.getFrequencyPenalty());
+      }
+      if (config.getSeed() != null) {
+        configMap.put("seed", config.getSeed());
+      }
+      if (config.getCustom() != null) {
+        configMap.putAll(config.getCustom());
+      }
+      builder.config(configMap);
+    }
+
+    if (actionOpts.getOutput() != null) {
+      builder.output(actionOpts.getOutput());
+    }
+
+    if (actionOpts.getDocs() != null && !actionOpts.getDocs().isEmpty()) {
+      builder.context(actionOpts.getDocs());
+    }
+
+    return builder.build();
+  }
+
   /** Builds the model call function wrapped with WrapModel hooks from middleware. */
   private ModelNext buildWrappedModelCall(
-      Model model,
-      GenerateOptions<?> options,
-      ActionContext ctx,
-      List<GenerationMiddleware> middlewares) {
+      Model model, String modelName, ActionContext ctx, List<GenerationMiddleware> middlewares) {
 
     // Core model call with telemetry
     ModelNext core =
@@ -868,7 +961,7 @@ public class Genkit {
 
           SpanMetadata modelSpanMetadata =
               SpanMetadata.builder()
-                  .name(options.getModel())
+                  .name(modelName)
                   .type(ActionType.MODEL.getValue())
                   .subtype("model")
                   .build();
@@ -878,14 +971,14 @@ public class Genkit {
             modelSpanMetadata.getAttributes().put("genkit:metadata:flow:name", flowName);
           }
 
-          final String spanPath = "/generate/" + options.getModel();
+          final String spanPath = "/generate/" + modelName;
           return Tracer.runInNewSpan(
               actx,
               modelSpanMetadata,
               req,
               (spanCtx, r) -> {
                 return ModelTelemetryHelper.runWithTelemetry(
-                    options.getModel(),
+                    modelName,
                     flowName,
                     spanPath,
                     req,
@@ -1036,9 +1129,10 @@ public class Genkit {
   }
 
   /** Handles resume options by processing respond and restart directives. */
-  private ModelRequest handleResumeOption(ModelRequest request, GenerateOptions<?> options) {
+  private GenerateActionOptions handleResumeOption(
+      GenerateActionOptions actionOpts, GenerateOptions<?> options) {
     ResumeOptions resume = options.getResume();
-    List<Message> messages = new java.util.ArrayList<>(request.getMessages());
+    List<Message> messages = new java.util.ArrayList<>(actionOpts.getMessages());
 
     if (messages.isEmpty()) {
       throw new GenkitException("Cannot resume generation with no messages");
@@ -1128,12 +1222,7 @@ public class Genkit {
       messages.add(toolResponseMessage);
     }
 
-    return ModelRequest.builder()
-        .messages(messages)
-        .config(request.getConfig())
-        .tools(request.getTools())
-        .output(request.getOutput())
-        .build();
+    return actionOpts.withMessages(messages);
   }
 
   /** Builds an interrupted response from the model response and tool execution result. */
