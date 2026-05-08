@@ -41,7 +41,10 @@ import com.google.genkit.core.GenkitException;
  *
  * @param <I> The input type
  * @param <O> The output type
+ * @deprecated Use {@code com.google.genkit.ai.middleware.GenerationMiddleware} instead, which
+ *     supports distinct Generate, Model, and Tool hooks.
  */
+@Deprecated
 @FunctionalInterface
 public interface Middleware<I, O> {
 

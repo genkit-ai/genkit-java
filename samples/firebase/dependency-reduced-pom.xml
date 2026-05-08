@@ -27,7 +27,7 @@
       <plugin>
         <groupId>com.google.cloud.functions</groupId>
         <artifactId>function-maven-plugin</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1</version>
         <configuration>
           <functionTarget>com.google.genkit.samples.firebase.functions.GeneratePoemFunction</functionTarget>
         </configuration>
@@ -68,12 +68,12 @@
     <dependency>
       <groupId>com.google.cloud.functions</groupId>
       <artifactId>functions-framework-api</artifactId>
-      <version>2.0.0</version>
+      <version>2.0.1</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>
   <properties>
-    <functions-framework.version>2.0.0</functions-framework.version>
+    <functions-framework.version>2.0.1</functions-framework.version>
     <maven.compiler.target>21</maven.compiler.target>
     <maven.compiler.source>21</maven.compiler.source>
     <genkit.version>1.0.0-SNAPSHOT</genkit.version>

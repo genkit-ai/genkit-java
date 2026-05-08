@@ -30,3 +30,4 @@ node_modules
 *.log
 hs_err_pid*
 samples/google-genai/generated_media/
+.astro

@@ -20,6 +20,7 @@ package com.google.genkit;
 
 import com.google.genkit.ai.*;
 import com.google.genkit.ai.evaluation.*;
+import com.google.genkit.ai.middleware.*;
 import com.google.genkit.ai.session.*;
 import com.google.genkit.ai.telemetry.ModelTelemetryHelper;
 import com.google.genkit.core.*;
@@ -646,103 +647,526 @@ public class Genkit {
   }
 
   /**
-   * Internal method that performs the actual generation.
+   * Internal method that performs the actual generation (non-streaming).
    *
    * @param options the generate options
    * @return the model response
    * @throws GenkitException if generation fails
    */
   private ModelResponse generateInternal(GenerateOptions<?> options) throws GenkitException {
-    Model model = getModel(options.getModel());
-    ModelRequest request = options.toModelRequest();
+    return generateInternal(options, null);
+  }
+
+  /**
+   * Internal method that performs the actual generation, optionally with streaming.
+   *
+   * <p>When {@code streamCallback} is non-null, the model is called with streaming enabled and each
+   * chunk is forwarded through the callback. The streaming callback is propagated through the
+   * entire middleware chain ({@code wrapGenerate} receives it via {@link
+   * com.google.genkit.ai.middleware.GenerateParams#getOnChunk()}, and {@code wrapModel} receives it
+   * via {@link com.google.genkit.ai.middleware.ModelParams#getStreamCallback()}).
+   *
+   * @param options the generate options
+   * @param streamCallback callback invoked for each streaming chunk, or null for non-streaming
+   * @return the model response
+   * @throws GenkitException if generation fails
+   */
+  private ModelResponse generateInternal(
+      GenerateOptions<?> options, java.util.function.Consumer<ModelResponseChunk> streamCallback)
+      throws GenkitException {
     ActionContext ctx = new ActionContext(registry);
 
     int maxTurns = options.getMaxTurns() != null ? options.getMaxTurns() : 5;
-    int turn = 0;
 
-    // Handle resume option if provided
+    // Create fresh middleware instances for this invocation
+    List<GenerationMiddleware> middlewares = createMiddlewareInstances(options.getUse());
+
+    // Collect tools from middleware instances and merge with options tools
+    List<Tool<?, ?>> allTools = new ArrayList<>();
+    if (options.getTools() != null) {
+      allTools.addAll(options.getTools());
+    }
+    for (GenerationMiddleware mw : middlewares) {
+      List<Tool<?, ?>> mwTools = mw.tools();
+      if (mwTools != null && !mwTools.isEmpty()) {
+        allTools.addAll(mwTools);
+      }
+    }
+
+    // Build high-level GenerateActionOptions (unresolved: model name as string,
+    // tool names as strings). This is what wrapGenerate middleware receives,
+    // allowing it to modify model, tools, etc. before resolution.
+    GenerateActionOptions actionOpts = toGenerateActionOptions(options, allTools);
+
+    // Handle resume option if provided (manipulates messages at the high level)
     if (options.getResume() != null) {
-      request = handleResumeOption(request, options);
+      actionOpts = handleResumeOption(actionOpts, options);
     }
 
-    while (turn < maxTurns) {
-      // Create span metadata for the model call
-      SpanMetadata modelSpanMetadata =
-          SpanMetadata.builder()
-              .name(options.getModel())
-              .type(ActionType.MODEL.getValue())
-              .subtype("model")
-              .build();
+    // Extract pending restart requests (handled inside the generate loop for proper middleware
+    // lifecycle: wrapTool hooks fire for restarted tools, then wrapGenerate fires for next turn)
+    final List<ToolRequest> pendingRestarts = new java.util.ArrayList<>();
+    if (options.getResume() != null && options.getResume().getRestart() != null) {
+      pendingRestarts.addAll(options.getResume().getRestart());
+    }
 
-      String flowName = ctx.getFlowName();
-      if (flowName != null) {
-        modelSpanMetadata.getAttributes().put("genkit:metadata:flow:name", flowName);
+    // Use an array to hold the reference for recursive WrapGenerate wrapping
+    final GenerateNext[] generateRef = new GenerateNext[1];
+
+    // Core generate iteration: resolve options → model call → tool handling → recurse
+    GenerateNext rawGenerate =
+        (actx, params) -> {
+          GenerateActionOptions opts = params.getRequest();
+          int turn = params.getIteration();
+
+          if (turn >= maxTurns) {
+            throw new GenkitException("Max tool execution turns (" + maxTurns + ") exceeded");
+          }
+
+          // Resolve model from the (possibly middleware-modified) options
+          Model model = getModel(opts.getModel());
+
+          // Resolve GenerateActionOptions → ModelRequest (tool names → definitions, config → map)
+          ModelRequest req = resolveToModelRequest(opts, allTools);
+
+          // Handle pending restart tools through middleware before calling model.
+          // This ensures wrapTool hooks fire for restarted tools, and subsequent
+          // recursion through generateRef fires wrapGenerate for the next turn.
+          if (!pendingRestarts.isEmpty()) {
+            List<ToolRequest> restarts = new java.util.ArrayList<>(pendingRestarts);
+            pendingRestarts.clear();
+
+            // Convert restart requests to tool request parts for middleware execution
+            List<Part> restartParts =
+                restarts.stream()
+                    .map(Part::toolRequest)
+                    .collect(java.util.stream.Collectors.toList());
+
+            // Execute through WrapTool chain (fires wrapTool hooks)
+            ToolExecutionResult toolResult =
+                executeToolsWithMiddleware(actx, restartParts, allTools, middlewares);
+
+            // If a restart tool interrupts again, fail
+            if (!toolResult.getInterrupts().isEmpty()) {
+              throw new GenkitException(
+                  "Tool triggered an interrupt during restart. "
+                      + "Re-interrupting during restart is not supported.");
+            }
+
+            // Add restart tool responses to messages (use high-level opts for recursion)
+            List<Message> updatedMessages = new java.util.ArrayList<>(opts.getMessages());
+
+            // If last message is a TOOL message (from respond directives), merge restart responses
+            if (!updatedMessages.isEmpty()
+                && updatedMessages.get(updatedMessages.size() - 1).getRole() == Role.TOOL) {
+              Message existingToolMsg = updatedMessages.get(updatedMessages.size() - 1);
+              List<Part> mergedContent = new java.util.ArrayList<>(existingToolMsg.getContent());
+              for (Part restartResp : toolResult.getResponses()) {
+                Map<String, Object> metadata =
+                    restartResp.getMetadata() != null
+                        ? new java.util.HashMap<>(restartResp.getMetadata())
+                        : new java.util.HashMap<>();
+                metadata.put("source", "restart");
+                restartResp.setMetadata(metadata);
+                mergedContent.add(restartResp);
+              }
+              existingToolMsg.setContent(mergedContent);
+            } else {
+              // Create new TOOL message with restart responses
+              Message toolResponseMessage = new Message();
+              toolResponseMessage.setRole(Role.TOOL);
+              List<Part> restartResponses = new java.util.ArrayList<>();
+              for (Part restartResp : toolResult.getResponses()) {
+                Map<String, Object> metadata =
+                    restartResp.getMetadata() != null
+                        ? new java.util.HashMap<>(restartResp.getMetadata())
+                        : new java.util.HashMap<>();
+                metadata.put("source", "restart");
+                restartResp.setMetadata(metadata);
+                restartResponses.add(restartResp);
+              }
+              toolResponseMessage.setContent(restartResponses);
+              Map<String, Object> toolMsgMetadata = new java.util.HashMap<>();
+              toolMsgMetadata.put("resumed", true);
+              toolResponseMessage.setMetadata(toolMsgMetadata);
+              updatedMessages.add(toolResponseMessage);
+            }
+
+            // Recurse through WrapGenerate hooks for the next turn (propagate onChunk)
+            GenerateActionOptions nextOpts = opts.withMessages(updatedMessages);
+            int nextMsgIdx = params.getMessageIndex() + 1;
+            return generateRef[0].apply(
+                actx, new GenerateParams(nextOpts, turn + 1, nextMsgIdx, params.getOnChunk()));
+          }
+
+          // Build model call wrapped with WrapModel hooks (resolved per-turn so
+          // middleware-modified model names take effect)
+          ModelNext wrappedModelCall =
+              buildWrappedModelCall(model, opts.getModel(), actx, middlewares);
+
+          // Call model through WrapModel chain (propagate streaming callback from GenerateParams)
+          ModelParams mparams = new ModelParams(req, params.getOnChunk());
+          ModelResponse response = wrappedModelCall.apply(actx, mparams);
+
+          // Check if the model requested tool calls
+          List<Part> toolRequestParts = extractToolRequestParts(response);
+          if (toolRequestParts.isEmpty()) {
+            return response;
+          }
+
+          // Execute tools through WrapTool chain (includes middleware-provided tools)
+          ToolExecutionResult toolResult =
+              executeToolsWithMiddleware(actx, toolRequestParts, allTools, middlewares);
+
+          // If there are interrupts, return immediately
+          if (!toolResult.getInterrupts().isEmpty()) {
+            ModelResponse interruptedResponse = buildInterruptedResponse(response, toolResult);
+            // Set original request so getMessages() includes conversation history
+            interruptedResponse.setRequest(req);
+            return interruptedResponse;
+          }
+
+          // Build next options with updated messages for recursion through wrapGenerate
+          Message assistantMessage = response.getMessage();
+          List<Message> updatedMessages = new java.util.ArrayList<>(opts.getMessages());
+          updatedMessages.add(assistantMessage);
+
+          Message toolResponseMessage = new Message();
+          toolResponseMessage.setRole(Role.TOOL);
+          toolResponseMessage.setContent(toolResult.getResponses());
+          updatedMessages.add(toolResponseMessage);
+
+          GenerateActionOptions nextOpts = opts.withMessages(updatedMessages);
+
+          // Recurse through the wrapped generate function (goes through WrapGenerate hooks)
+          int nextMsgIdx = params.getMessageIndex() + 1;
+          return generateRef[0].apply(
+              actx, new GenerateParams(nextOpts, turn + 1, nextMsgIdx, params.getOnChunk()));
+        };
+
+    // Chain WrapGenerate hooks around the core iteration
+    generateRef[0] = chainGenerateHooks(middlewares, rawGenerate);
+
+    // Start generation with high-level options (messageIndex starts at 0, propagate streamCallback)
+    return generateRef[0].apply(ctx, new GenerateParams(actionOpts, 0, 0, streamCallback));
+  }
+
+  /** Creates fresh middleware instances for a single generate invocation. */
+  private List<GenerationMiddleware> createMiddlewareInstances(List<GenerationMiddleware> use) {
+    if (use == null || use.isEmpty()) {
+      return List.of();
+    }
+    return use.stream().map(GenerationMiddleware::newInstance).toList();
+  }
+
+  /**
+   * Converts {@link GenerateOptions} to a high-level {@link GenerateActionOptions}.
+   *
+   * <p>This builds the unresolved options that the {@code wrapGenerate} middleware chain receives.
+   * Messages are assembled from the prompt/system/messages fields, and tools are represented as
+   * name strings (not resolved definitions).
+   */
+  private GenerateActionOptions toGenerateActionOptions(
+      GenerateOptions<?> options, List<Tool<?, ?>> allTools) {
+    GenerateActionOptions opts = new GenerateActionOptions();
+    opts.setModel(options.getModel());
+
+    // Build messages from system/prompt/messages (same assembly order as toModelRequest)
+    List<Message> messages = new java.util.ArrayList<>();
+    if (options.getSystem() != null) {
+      messages.add(Message.system(options.getSystem()));
+    }
+    if (options.getMessages() != null && !options.getMessages().isEmpty()) {
+      messages.addAll(options.getMessages());
+    } else if (options.getPrompt() != null) {
+      messages.add(Message.user(options.getPrompt()));
+    }
+    opts.setMessages(messages);
+
+    // Tool names as strings (high-level, unresolved)
+    if (allTools != null && !allTools.isEmpty()) {
+      opts.setTools(
+          allTools.stream().map(Tool::getName).collect(java.util.stream.Collectors.toList()));
+    }
+
+    if (options.getToolChoice() != null) {
+      opts.setToolChoice(options.getToolChoice().toString());
+    }
+    opts.setConfig(options.getConfig());
+    opts.setOutput(options.getOutput());
+    opts.setDocs(options.getDocs());
+    opts.setMaxTurns(options.getMaxTurns());
+    return opts;
+  }
+
+  /**
+   * Resolves a high-level {@link GenerateActionOptions} into a low-level {@link ModelRequest}.
+   *
+   * <p>This performs tool name → definition resolution and config conversion, producing the request
+   * that is actually sent to the model through the {@code wrapModel} chain.
+   */
+  private ModelRequest resolveToModelRequest(
+      GenerateActionOptions actionOpts, List<Tool<?, ?>> allTools) {
+    ModelRequest.Builder builder = ModelRequest.builder();
+
+    if (actionOpts.getMessages() != null) {
+      builder.messages(actionOpts.getMessages());
+    }
+
+    // Resolve tool names to ToolDefinitions
+    if (actionOpts.getTools() != null && !actionOpts.getTools().isEmpty()) {
+      List<ToolDefinition> toolDefs = new java.util.ArrayList<>();
+      for (String toolName : actionOpts.getTools()) {
+        for (Tool<?, ?> tool : allTools) {
+          if (tool.getName().equals(toolName)) {
+            toolDefs.add(tool.getDefinition());
+            break;
+          }
+        }
       }
+      builder.tools(toolDefs);
+    }
 
-      final ModelRequest currentRequest = request;
-      final String flowNameForTelemetry = flowName;
-      final String spanPath = "/generate/" + options.getModel();
-      ModelResponse response =
-          Tracer.runInNewSpan(
-              ctx,
+    // Convert GenerationConfig → Map<String, Object> for ModelRequest
+    if (actionOpts.getConfig() != null) {
+      GenerationConfig config = actionOpts.getConfig();
+      Map<String, Object> configMap = new java.util.HashMap<>();
+      if (config.getTemperature() != null) {
+        configMap.put("temperature", config.getTemperature());
+      }
+      if (config.getMaxOutputTokens() != null) {
+        configMap.put("maxOutputTokens", config.getMaxOutputTokens());
+      }
+      if (config.getTopP() != null) {
+        configMap.put("topP", config.getTopP());
+      }
+      if (config.getTopK() != null) {
+        configMap.put("topK", config.getTopK());
+      }
+      if (config.getStopSequences() != null) {
+        configMap.put("stopSequences", config.getStopSequences());
+      }
+      if (config.getPresencePenalty() != null) {
+        configMap.put("presencePenalty", config.getPresencePenalty());
+      }
+      if (config.getFrequencyPenalty() != null) {
+        configMap.put("frequencyPenalty", config.getFrequencyPenalty());
+      }
+      if (config.getSeed() != null) {
+        configMap.put("seed", config.getSeed());
+      }
+      if (config.getCustom() != null) {
+        configMap.putAll(config.getCustom());
+      }
+      builder.config(configMap);
+    }
+
+    if (actionOpts.getOutput() != null) {
+      builder.output(actionOpts.getOutput());
+    }
+
+    if (actionOpts.getDocs() != null && !actionOpts.getDocs().isEmpty()) {
+      builder.context(actionOpts.getDocs());
+    }
+
+    return builder.build();
+  }
+
+  /** Builds the model call function wrapped with WrapModel hooks from middleware. */
+  private ModelNext buildWrappedModelCall(
+      Model model, String modelName, ActionContext ctx, List<GenerationMiddleware> middlewares) {
+
+    // Core model call with telemetry
+    ModelNext core =
+        (actx, mparams) -> {
+          ModelRequest req = mparams.getRequest();
+
+          SpanMetadata modelSpanMetadata =
+              SpanMetadata.builder()
+                  .name(modelName)
+                  .type(ActionType.MODEL.getValue())
+                  .subtype("model")
+                  .build();
+
+          String flowName = actx.getFlowName();
+          if (flowName != null) {
+            modelSpanMetadata.getAttributes().put("genkit:metadata:flow:name", flowName);
+          }
+
+          final String spanPath = "/generate/" + modelName;
+          final java.util.function.Consumer<ModelResponseChunk> sc = mparams.getStreamCallback();
+          return Tracer.runInNewSpan(
+              actx,
               modelSpanMetadata,
-              request,
-              (spanCtx, req) -> {
-                // Wrap model execution with telemetry to record generate metrics
-                return ModelTelemetryHelper.runWithTelemetry(
-                    options.getModel(),
-                    flowNameForTelemetry,
-                    spanPath,
-                    currentRequest,
-                    r -> model.run(ctx.withSpanContext(spanCtx), r));
+              req,
+              (spanCtx, r) -> {
+                if (sc != null) {
+                  // Streaming: use streaming telemetry and pass callback to model
+                  return ModelTelemetryHelper.runWithTelemetryStreaming(
+                      modelName,
+                      flowName,
+                      spanPath,
+                      req,
+                      mr -> model.run(actx.withSpanContext(spanCtx), mr, sc));
+                } else {
+                  // Non-streaming
+                  return ModelTelemetryHelper.runWithTelemetry(
+                      modelName,
+                      flowName,
+                      spanPath,
+                      req,
+                      mr -> model.run(actx.withSpanContext(spanCtx), mr));
+                }
               });
+        };
 
-      // Check if the model requested tool calls
-      List<Part> toolRequestParts = extractToolRequestParts(response);
-      if (toolRequestParts.isEmpty()) {
-        // No tool calls, return the response
-        return response;
+    return chainModelHooks(middlewares, core);
+  }
+
+  /** Chains WrapGenerate hooks. First middleware is outermost. */
+  private GenerateNext chainGenerateHooks(
+      List<GenerationMiddleware> middlewares, GenerateNext core) {
+    if (middlewares.isEmpty()) {
+      return core;
+    }
+    GenerateNext current = core;
+    for (int i = middlewares.size() - 1; i >= 0; i--) {
+      final GenerationMiddleware mw = middlewares.get(i);
+      final GenerateNext next = current;
+      current = (ctx, params) -> mw.wrapGenerate(ctx, params, next);
+    }
+    return current;
+  }
+
+  /** Chains WrapModel hooks. First middleware is outermost. */
+  private ModelNext chainModelHooks(List<GenerationMiddleware> middlewares, ModelNext core) {
+    if (middlewares.isEmpty()) {
+      return core;
+    }
+    ModelNext current = core;
+    for (int i = middlewares.size() - 1; i >= 0; i--) {
+      final GenerationMiddleware mw = middlewares.get(i);
+      final ModelNext next = current;
+      current = (ctx, params) -> mw.wrapModel(ctx, params, next);
+    }
+    return current;
+  }
+
+  /** Chains WrapTool hooks. First middleware is outermost. */
+  private ToolNext chainToolHooks(List<GenerationMiddleware> middlewares, ToolNext core) {
+    if (middlewares.isEmpty()) {
+      return core;
+    }
+    ToolNext current = core;
+    for (int i = middlewares.size() - 1; i >= 0; i--) {
+      final GenerationMiddleware mw = middlewares.get(i);
+      final ToolNext next = current;
+      current = (ctx, params) -> mw.wrapTool(ctx, params, next);
+    }
+    return current;
+  }
+
+  /** Executes tools with WrapTool middleware hooks applied. */
+  private ToolExecutionResult executeToolsWithMiddleware(
+      ActionContext ctx,
+      List<Part> toolRequestParts,
+      List<Tool<?, ?>> tools,
+      List<GenerationMiddleware> middlewares) {
+
+    // Build WrapTool chain
+    ToolNext wrappedToolCall =
+        chainToolHooks(
+            middlewares,
+            (actx, tparams) -> {
+              Tool<?, ?> tool = tparams.getTool();
+              ToolRequest toolReq = tparams.getRequest();
+
+              Object toolInput = toolReq.getInput();
+              Class<?> inputClass = tool.getInputClass();
+              if (inputClass != null && toolInput != null && !inputClass.isInstance(toolInput)) {
+                toolInput = JsonUtils.convert(toolInput, inputClass);
+              }
+
+              @SuppressWarnings("unchecked")
+              Tool<Object, Object> typedTool = (Tool<Object, Object>) tool;
+              Object result = typedTool.run(actx, toolInput);
+
+              return Part.toolResponse(
+                  new ToolResponse(toolReq.getRef(), toolReq.getName(), result));
+            });
+
+    List<Part> responseParts = new java.util.ArrayList<>();
+    List<Part> interrupts = new java.util.ArrayList<>();
+    Map<String, Part> interruptMap = new java.util.HashMap<>();
+    Map<String, Object> pendingOutputMap = new java.util.HashMap<>();
+
+    for (Part toolRequestPart : toolRequestParts) {
+      ToolRequest toolRequest = toolRequestPart.getToolRequest();
+      String toolName = toolRequest.getName();
+      String key = toolName + "#" + (toolRequest.getRef() != null ? toolRequest.getRef() : "");
+
+      Tool<?, ?> tool = findTool(toolName, tools);
+      if (tool == null) {
+        Part errorPart = new Part();
+        ToolResponse errorResponse =
+            new ToolResponse(
+                toolRequest.getRef(), toolName, Map.of("error", "Tool not found: " + toolName));
+        errorPart.setToolResponse(errorResponse);
+        responseParts.add(errorPart);
+        continue;
       }
 
-      // Execute tools and handle interrupts
-      ToolExecutionResult toolResult =
-          executeToolsWithInterruptHandling(ctx, toolRequestParts, options.getTools());
+      try {
+        // Execute through WrapTool chain
+        ToolParams tparams = new ToolParams(toolRequestPart, tool);
+        Part responsePart = wrappedToolCall.apply(ctx, tparams);
 
-      // If there are interrupts, return immediately with interrupted response
-      if (!toolResult.getInterrupts().isEmpty()) {
-        return buildInterruptedResponse(response, toolResult);
+        responseParts.add(responsePart);
+
+        pendingOutputMap.put(key, responsePart.getToolResponse().getOutput());
+
+        logger.debug("Executed tool '{}' successfully", toolName);
+
+      } catch (ToolInterruptException e) {
+        Map<String, Object> interruptMetadata = e.getMetadata();
+
+        Part interruptPart = new Part();
+        interruptPart.setToolRequest(toolRequest);
+        Map<String, Object> metadata =
+            toolRequestPart.getMetadata() != null
+                ? new java.util.HashMap<>(toolRequestPart.getMetadata())
+                : new java.util.HashMap<>();
+        metadata.put(
+            "interrupt",
+            interruptMetadata != null && !interruptMetadata.isEmpty() ? interruptMetadata : true);
+        interruptPart.setMetadata(metadata);
+
+        interrupts.add(interruptPart);
+        interruptMap.put(key, interruptPart);
+
+        logger.debug("Tool '{}' triggered interrupt", toolName);
+
+      } catch (Exception e) {
+        logger.error("Tool execution failed for '{}': {}", toolName, e.getMessage());
+        Part errorPart = new Part();
+        ToolResponse errorResponse =
+            new ToolResponse(
+                toolRequest.getRef(),
+                toolName,
+                Map.of("error", "Tool execution failed: " + e.getMessage()));
+        errorPart.setToolResponse(errorResponse);
+        responseParts.add(errorPart);
       }
-
-      // Add the assistant message with tool requests
-      Message assistantMessage = response.getMessage();
-      List<Message> updatedMessages = new java.util.ArrayList<>(request.getMessages());
-      updatedMessages.add(assistantMessage);
-
-      // Add tool response message
-      Message toolResponseMessage = new Message();
-      toolResponseMessage.setRole(Role.TOOL);
-      toolResponseMessage.setContent(toolResult.getResponses());
-      updatedMessages.add(toolResponseMessage);
-
-      // Update request with new messages for next turn
-      request =
-          ModelRequest.builder()
-              .messages(updatedMessages)
-              .config(request.getConfig())
-              .tools(request.getTools())
-              .output(request.getOutput())
-              .build();
-
-      turn++;
     }
 
-    throw new GenkitException("Max tool execution turns (" + maxTurns + ") exceeded");
+    return new ToolExecutionResult(responseParts, interrupts, interruptMap, pendingOutputMap);
   }
 
   /** Handles resume options by processing respond and restart directives. */
-  private ModelRequest handleResumeOption(ModelRequest request, GenerateOptions<?> options) {
+  private GenerateActionOptions handleResumeOption(
+      GenerateActionOptions actionOpts, GenerateOptions<?> options) {
     ResumeOptions resume = options.getResume();
-    List<Message> messages = new java.util.ArrayList<>(request.getMessages());
+    List<Message> messages = new java.util.ArrayList<>(actionOpts.getMessages());
 
     if (messages.isEmpty()) {
       throw new GenkitException("Cannot resume generation with no messages");
@@ -756,9 +1180,16 @@ public class Genkit {
     // Build tool response parts from resume options
     List<Part> toolResponseParts = new java.util.ArrayList<>();
 
+    // Collect tool names/refs from respond directives
+    java.util.Set<String> respondedTools = new java.util.HashSet<>();
+
     // Handle respond directives
     if (resume.getRespond() != null) {
       for (ToolResponse toolResponse : resume.getRespond()) {
+        respondedTools.add(
+            toolResponse.getName()
+                + "#"
+                + (toolResponse.getRef() != null ? toolResponse.getRef() : ""));
         Part responsePart = new Part();
         responsePart.setToolResponse(toolResponse);
         Map<String, Object> metadata = new java.util.HashMap<>();
@@ -768,58 +1199,64 @@ public class Genkit {
       }
     }
 
-    // Handle restart directives - execute the tools
+    // Note: restart directives are handled inside the generate loop
+    // for proper middleware lifecycle (wrapTool and wrapGenerate hooks fire correctly)
+    boolean hasRespond = resume.getRespond() != null && !resume.getRespond().isEmpty();
+    boolean hasRestart = resume.getRestart() != null && !resume.getRestart().isEmpty();
+
+    if (!hasRespond && !hasRestart) {
+      throw new GenkitException("Resume options must contain either respond or restart directives");
+    }
+
+    // Collect tool names/refs from restart directives to avoid duplicating their responses
+    java.util.Set<String> restartedTools = new java.util.HashSet<>();
     if (resume.getRestart() != null) {
-      ActionContext ctx = new ActionContext(registry);
-      for (ToolRequest restartRequest : resume.getRestart()) {
-        Tool<?, ?> tool = findTool(restartRequest.getName(), options.getTools());
-        if (tool == null) {
-          throw new GenkitException("Tool not found for restart: " + restartRequest.getName());
-        }
+      for (ToolRequest toolRequest : resume.getRestart()) {
+        restartedTools.add(
+            toolRequest.getName()
+                + "#"
+                + (toolRequest.getRef() != null ? toolRequest.getRef() : ""));
+      }
+    }
 
-        try {
-          @SuppressWarnings("unchecked")
-          Tool<Object, Object> typedTool = (Tool<Object, Object>) tool;
-          Object result = typedTool.run(ctx, restartRequest.getInput());
-
-          Part responsePart = new Part();
-          ToolResponse toolResponse =
-              new ToolResponse(restartRequest.getRef(), restartRequest.getName(), result);
-          responsePart.setToolResponse(toolResponse);
-          Map<String, Object> metadata = new java.util.HashMap<>();
-          metadata.put("source", "restart");
-          responsePart.setMetadata(metadata);
-          toolResponseParts.add(responsePart);
-        } catch (ToolInterruptException e) {
-          // Tool interrupted again during restart
-          throw new GenkitException(
-              "Tool '"
-                  + restartRequest.getName()
-                  + "' triggered an interrupt during restart. "
-                  + "Re-interrupting during restart is not supported.");
+    // Add tool responses for completed tools (pendingOutput metadata) that aren't
+    // being explicitly responded to or restarted. This ensures all tool_calls in the
+    // model message have matching tool responses (required by providers like OpenAI).
+    for (Part part : lastMessage.getContent()) {
+      if (part.getToolRequest() != null && part.getMetadata() != null) {
+        Object pendingOutput = part.getMetadata().get("pendingOutput");
+        if (pendingOutput != null) {
+          String key =
+              part.getToolRequest().getName()
+                  + "#"
+                  + (part.getToolRequest().getRef() != null ? part.getToolRequest().getRef() : "");
+          if (!respondedTools.contains(key) && !restartedTools.contains(key)) {
+            Part responsePart = new Part();
+            ToolResponse toolResponse =
+                new ToolResponse(
+                    part.getToolRequest().getRef(), part.getToolRequest().getName(), pendingOutput);
+            responsePart.setToolResponse(toolResponse);
+            Map<String, Object> metadata = new java.util.HashMap<>();
+            metadata.put("pendingOutput", true);
+            responsePart.setMetadata(metadata);
+            toolResponseParts.add(responsePart);
+          }
         }
       }
     }
 
-    if (toolResponseParts.isEmpty()) {
-      throw new GenkitException("Resume options must contain either respond or restart directives");
+    if (!toolResponseParts.isEmpty()) {
+      // Add tool response message for completed and responded tools
+      Message toolResponseMessage = new Message();
+      toolResponseMessage.setRole(Role.TOOL);
+      toolResponseMessage.setContent(toolResponseParts);
+      Map<String, Object> toolMsgMetadata = new java.util.HashMap<>();
+      toolMsgMetadata.put("resumed", true);
+      toolResponseMessage.setMetadata(toolMsgMetadata);
+      messages.add(toolResponseMessage);
     }
 
-    // Add tool response message
-    Message toolResponseMessage = new Message();
-    toolResponseMessage.setRole(Role.TOOL);
-    toolResponseMessage.setContent(toolResponseParts);
-    Map<String, Object> toolMsgMetadata = new java.util.HashMap<>();
-    toolMsgMetadata.put("resumed", true);
-    toolResponseMessage.setMetadata(toolMsgMetadata);
-    messages.add(toolResponseMessage);
-
-    return ModelRequest.builder()
-        .messages(messages)
-        .config(request.getConfig())
-        .tools(request.getTools())
-        .output(request.getOutput())
-        .build();
+    return actionOpts.withMessages(messages);
   }
 
   /** Builds an interrupted response from the model response and tool execution result. */
@@ -1118,8 +1555,14 @@ public class Genkit {
    * Generates a streaming model response using the specified options.
    *
    * <p>This method invokes the model with streaming enabled, calling the provided callback for each
-   * chunk of the response as it arrives. This is useful for displaying responses incrementally to
-   * users.
+   * chunk of the response as it arrives. The streaming callback is propagated through the entire
+   * middleware chain — {@code wrapGenerate} middleware can observe it via {@link
+   * com.google.genkit.ai.middleware.GenerateParams#getOnChunk()}, and {@code wrapModel} middleware
+   * can observe/transform it via {@link
+   * com.google.genkit.ai.middleware.ModelParams#getStreamCallback()}.
+   *
+   * <p>This is useful for displaying responses incrementally to users, and for middleware that
+   * needs to intercept streaming chunks (e.g., logging, guardrails, metrics).
    *
    * <p>Example usage:
    *
@@ -1145,78 +1588,11 @@ public class Genkit {
     if (!model.supportsStreaming()) {
       throw new GenkitException("Model " + options.getModel() + " does not support streaming");
     }
-    ModelRequest request = options.toModelRequest();
-    ActionContext ctx = new ActionContext(registry);
-
-    int maxTurns = options.getMaxTurns() != null ? options.getMaxTurns() : 5;
-    int turn = 0;
-
-    while (turn < maxTurns) {
-      // Create span metadata for the model call
-      SpanMetadata modelSpanMetadata =
-          SpanMetadata.builder()
-              .name(options.getModel())
-              .type(ActionType.MODEL.getValue())
-              .subtype("model")
-              .build();
-
-      String flowName = ctx.getFlowName();
-      if (flowName != null) {
-        modelSpanMetadata.getAttributes().put("genkit:metadata:flow:name", flowName);
-      }
-
-      final ModelRequest currentRequest = request;
-      final String flowNameForTelemetry = flowName;
-      final String spanPath = "/generateStream/" + options.getModel();
-      ModelResponse response =
-          Tracer.runInNewSpan(
-              ctx,
-              modelSpanMetadata,
-              request,
-              (spanCtx, req) -> {
-                // Wrap model execution with telemetry to record generate metrics
-                return ModelTelemetryHelper.runWithTelemetryStreaming(
-                    options.getModel(),
-                    flowNameForTelemetry,
-                    spanPath,
-                    currentRequest,
-                    r -> model.run(ctx.withSpanContext(spanCtx), r, streamCallback));
-              });
-
-      // Check if the model requested tool calls
-      List<ToolRequest> toolRequests = extractToolRequests(response);
-      if (toolRequests.isEmpty()) {
-        // No tool calls, return the response
-        return response;
-      }
-
-      // Execute tools and build tool response messages
-      List<Part> toolResponseParts = executeTools(ctx, toolRequests, options.getTools());
-
-      // Add the assistant message with tool requests
-      Message assistantMessage = response.getMessage();
-      List<Message> updatedMessages = new java.util.ArrayList<>(request.getMessages());
-      updatedMessages.add(assistantMessage);
-
-      // Add tool response message
-      Message toolResponseMessage = new Message();
-      toolResponseMessage.setRole(Role.TOOL);
-      toolResponseMessage.setContent(toolResponseParts);
-      updatedMessages.add(toolResponseMessage);
-
-      // Update request with new messages for next turn
-      request =
-          ModelRequest.builder()
-              .messages(updatedMessages)
-              .config(request.getConfig())
-              .tools(request.getTools())
-              .output(request.getOutput())
-              .build();
-
-      turn++;
-    }
-
-    throw new GenkitException("Max tool execution turns (" + maxTurns + ") exceeded");
+    // Delegate to generateInternal with the streaming callback.
+    // The callback flows through the full middleware chain:
+    //   generateInternal → GenerateParams.onChunk → wrapGenerate hooks
+    //   → rawGenerate → ModelParams.streamCallback → wrapModel hooks → model.run(ctx, req, cb)
+    return generateInternal(options, streamCallback);
   }
 
   /**

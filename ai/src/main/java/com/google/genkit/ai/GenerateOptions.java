@@ -18,6 +18,7 @@
 
 package com.google.genkit.ai;
 
+import com.google.genkit.ai.middleware.GenerationMiddleware;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +44,7 @@ public class GenerateOptions<T> {
   private final Integer maxTurns;
   private final ResumeOptions resume;
   private final Class<T> outputClass;
+  private final List<GenerationMiddleware> use;
 
   /**
    * Creates new GenerateOptions.
@@ -74,7 +76,8 @@ public class GenerateOptions<T> {
       Map<String, Object> context,
       Integer maxTurns,
       ResumeOptions resume,
-      Class<T> outputClass) {
+      Class<T> outputClass,
+      List<GenerationMiddleware> use) {
     this.model = model;
     this.prompt = prompt;
     this.messages = messages;
@@ -88,6 +91,7 @@ public class GenerateOptions<T> {
     this.maxTurns = maxTurns;
     this.resume = resume;
     this.outputClass = outputClass;
+    this.use = use;
   }
 
   /**
@@ -287,6 +291,15 @@ public class GenerateOptions<T> {
   }
 
   /**
+   * Gets the V2 middleware to apply to this generation.
+   *
+   * @return the middleware list, or null if not set
+   */
+  public List<GenerationMiddleware> getUse() {
+    return use;
+  }
+
+  /**
    * Builder for GenerateOptions.
    *
    * @param <T> the output type for structured output
@@ -305,6 +318,7 @@ public class GenerateOptions<T> {
     private Integer maxTurns;
     private ResumeOptions resume;
     private Class<T> outputClass;
+    private List<GenerationMiddleware> use;
 
     public Builder<T> model(String model) {
       this.model = model;
@@ -407,6 +421,29 @@ public class GenerateOptions<T> {
       return this;
     }
 
+    /**
+     * Sets V2 middleware to apply to this generation. Middleware hooks wrap the generate loop,
+     * model calls, and tool executions.
+     *
+     * @param use the middleware to apply
+     * @return this builder
+     */
+    public Builder<T> use(List<GenerationMiddleware> use) {
+      this.use = use;
+      return this;
+    }
+
+    /**
+     * Sets V2 middleware to apply to this generation.
+     *
+     * @param middleware the middleware to apply
+     * @return this builder
+     */
+    public Builder<T> use(GenerationMiddleware... middleware) {
+      this.use = List.of(middleware);
+      return this;
+    }
+
     public GenerateOptions<T> build() {
       return new GenerateOptions<>(
           model,
@@ -421,7 +458,8 @@ public class GenerateOptions<T> {
           context,
           maxTurns,
           resume,
-          outputClass);
+          outputClass,
+          use);
     }
   }
 }

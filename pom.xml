@@ -104,6 +104,7 @@
         <module>samples/evaluators-plugin</module>
         <module>samples/complex-io</module>
         <module>samples/middleware</module>
+        <module>samples/middleware-v2</module>
         <module>samples/mcp</module>
         <module>samples/chat-session</module>
         <module>samples/multi-agent</module>

@@ -18,8 +18,6 @@
 
 package com.google.genkit.ai;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.genkit.ai.telemetry.ModelTelemetryHelper;
@@ -39,7 +37,7 @@ import org.slf4j.LoggerFactory;
  * AI models. It's registered at /util/generate and is used by the Dev UI.
  */
 public class GenerateAction
-    implements Action<GenerateAction.GenerateActionOptions, ModelResponse, ModelResponseChunk> {
+    implements Action<GenerateActionOptions, ModelResponse, ModelResponseChunk> {
 
   private static final Logger logger = LoggerFactory.getLogger(GenerateAction.class);
   private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -456,131 +454,5 @@ public class GenerateAction
     // Get tool definition from the action's desc
     ActionDesc desc = action.getDesc();
     return new ToolDefinition(desc.getName(), desc.getDescription(), desc.getInputSchema(), null);
-  }
-
-  /** Options for the generate utility action. */
-  @JsonIgnoreProperties(ignoreUnknown = true)
-  public static class GenerateActionOptions {
-
-    @JsonProperty("model")
-    private String model;
-
-    @JsonProperty("messages")
-    private List<Message> messages;
-
-    @JsonProperty("tools")
-    private List<String> tools;
-
-    @JsonProperty("resources")
-    private List<String> resources;
-
-    @JsonProperty("toolChoice")
-    private String toolChoice;
-
-    @JsonProperty("config")
-    private GenerationConfig config;
-
-    @JsonProperty("output")
-    private OutputConfig output;
-
-    @JsonProperty("docs")
-    private List<Document> docs;
-
-    @JsonProperty("returnToolRequests")
-    private Boolean returnToolRequests;
-
-    @JsonProperty("maxTurns")
-    private Integer maxTurns;
-
-    @JsonProperty("stepName")
-    private String stepName;
-
-    public String getModel() {
-      return model;
-    }
-
-    public void setModel(String model) {
-      this.model = model;
-    }
-
-    public List<Message> getMessages() {
-      return messages;
-    }
-
-    public void setMessages(List<Message> messages) {
-      this.messages = messages;
-    }
-
-    public List<String> getTools() {
-      return tools;
-    }
-
-    public void setTools(List<String> tools) {
-      this.tools = tools;
-    }
-
-    public List<String> getResources() {
-      return resources;
-    }
-
-    public void setResources(List<String> resources) {
-      this.resources = resources;
-    }
-
-    public String getToolChoice() {
-      return toolChoice;
-    }
-
-    public void setToolChoice(String toolChoice) {
-      this.toolChoice = toolChoice;
-    }
-
-    public GenerationConfig getConfig() {
-      return config;
-    }
-
-    public void setConfig(GenerationConfig config) {
-      this.config = config;
-    }
-
-    public OutputConfig getOutput() {
-      return output;
-    }
-
-    public void setOutput(OutputConfig output) {
-      this.output = output;
-    }
-
-    public List<Document> getDocs() {
-      return docs;
-    }
-
-    public void setDocs(List<Document> docs) {
-      this.docs = docs;
-    }
-
-    public Boolean getReturnToolRequests() {
-      return returnToolRequests;
-    }
-
-    public void setReturnToolRequests(Boolean returnToolRequests) {
-      this.returnToolRequests = returnToolRequests;
-    }
-
-    public Integer getMaxTurns() {
-      return maxTurns;
-    }
-
-    public void setMaxTurns(Integer maxTurns) {
-      this.maxTurns = maxTurns;
-    }
-
-    public String getStepName() {
-      return stepName;
-    }
-
-    public void setStepName(String stepName) {
-      this.stepName = stepName;
-    }
   }
 }
