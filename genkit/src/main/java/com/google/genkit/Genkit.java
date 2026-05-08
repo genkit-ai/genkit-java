@@ -647,13 +647,33 @@ public class Genkit {
   }
 
   /**
-   * Internal method that performs the actual generation.
+   * Internal method that performs the actual generation (non-streaming).
    *
    * @param options the generate options
    * @return the model response
    * @throws GenkitException if generation fails
    */
   private ModelResponse generateInternal(GenerateOptions<?> options) throws GenkitException {
+    return generateInternal(options, null);
+  }
+
+  /**
+   * Internal method that performs the actual generation, optionally with streaming.
+   *
+   * <p>When {@code streamCallback} is non-null, the model is called with streaming enabled and each
+   * chunk is forwarded through the callback. The streaming callback is propagated through the
+   * entire middleware chain ({@code wrapGenerate} receives it via {@link
+   * com.google.genkit.ai.middleware.GenerateParams#getOnChunk()}, and {@code wrapModel} receives it
+   * via {@link com.google.genkit.ai.middleware.ModelParams#getStreamCallback()}).
+   *
+   * @param options the generate options
+   * @param streamCallback callback invoked for each streaming chunk, or null for non-streaming
+   * @return the model response
+   * @throws GenkitException if generation fails
+   */
+  private ModelResponse generateInternal(
+      GenerateOptions<?> options, java.util.function.Consumer<ModelResponseChunk> streamCallback)
+      throws GenkitException {
     ActionContext ctx = new ActionContext(registry);
 
     int maxTurns = options.getMaxTurns() != null ? options.getMaxTurns() : 5;
@@ -772,10 +792,11 @@ public class Genkit {
               updatedMessages.add(toolResponseMessage);
             }
 
-            // Recurse through WrapGenerate hooks for the next turn
+            // Recurse through WrapGenerate hooks for the next turn (propagate onChunk)
             GenerateActionOptions nextOpts = opts.withMessages(updatedMessages);
             int nextMsgIdx = params.getMessageIndex() + 1;
-            return generateRef[0].apply(actx, new GenerateParams(nextOpts, turn + 1, nextMsgIdx));
+            return generateRef[0].apply(
+                actx, new GenerateParams(nextOpts, turn + 1, nextMsgIdx, params.getOnChunk()));
           }
 
           // Build model call wrapped with WrapModel hooks (resolved per-turn so
@@ -783,8 +804,8 @@ public class Genkit {
           ModelNext wrappedModelCall =
               buildWrappedModelCall(model, opts.getModel(), actx, middlewares);
 
-          // Call model through WrapModel chain
-          ModelParams mparams = new ModelParams(req, null);
+          // Call model through WrapModel chain (propagate streaming callback from GenerateParams)
+          ModelParams mparams = new ModelParams(req, params.getOnChunk());
           ModelResponse response = wrappedModelCall.apply(actx, mparams);
 
           // Check if the model requested tool calls
@@ -819,14 +840,15 @@ public class Genkit {
 
           // Recurse through the wrapped generate function (goes through WrapGenerate hooks)
           int nextMsgIdx = params.getMessageIndex() + 1;
-          return generateRef[0].apply(actx, new GenerateParams(nextOpts, turn + 1, nextMsgIdx));
+          return generateRef[0].apply(
+              actx, new GenerateParams(nextOpts, turn + 1, nextMsgIdx, params.getOnChunk()));
         };
 
     // Chain WrapGenerate hooks around the core iteration
     generateRef[0] = chainGenerateHooks(middlewares, rawGenerate);
 
-    // Start generation with high-level options (messageIndex starts at 0)
-    return generateRef[0].apply(ctx, new GenerateParams(actionOpts, 0, 0));
+    // Start generation with high-level options (messageIndex starts at 0, propagate streamCallback)
+    return generateRef[0].apply(ctx, new GenerateParams(actionOpts, 0, 0, streamCallback));
   }
 
   /** Creates fresh middleware instances for a single generate invocation. */
@@ -972,17 +994,29 @@ public class Genkit {
           }
 
           final String spanPath = "/generate/" + modelName;
+          final java.util.function.Consumer<ModelResponseChunk> sc = mparams.getStreamCallback();
           return Tracer.runInNewSpan(
               actx,
               modelSpanMetadata,
               req,
               (spanCtx, r) -> {
-                return ModelTelemetryHelper.runWithTelemetry(
-                    modelName,
-                    flowName,
-                    spanPath,
-                    req,
-                    mr -> model.run(actx.withSpanContext(spanCtx), mr));
+                if (sc != null) {
+                  // Streaming: use streaming telemetry and pass callback to model
+                  return ModelTelemetryHelper.runWithTelemetryStreaming(
+                      modelName,
+                      flowName,
+                      spanPath,
+                      req,
+                      mr -> model.run(actx.withSpanContext(spanCtx), mr, sc));
+                } else {
+                  // Non-streaming
+                  return ModelTelemetryHelper.runWithTelemetry(
+                      modelName,
+                      flowName,
+                      spanPath,
+                      req,
+                      mr -> model.run(actx.withSpanContext(spanCtx), mr));
+                }
               });
         };
 
@@ -1521,8 +1555,14 @@ public class Genkit {
    * Generates a streaming model response using the specified options.
    *
    * <p>This method invokes the model with streaming enabled, calling the provided callback for each
-   * chunk of the response as it arrives. This is useful for displaying responses incrementally to
-   * users.
+   * chunk of the response as it arrives. The streaming callback is propagated through the entire
+   * middleware chain — {@code wrapGenerate} middleware can observe it via {@link
+   * com.google.genkit.ai.middleware.GenerateParams#getOnChunk()}, and {@code wrapModel} middleware
+   * can observe/transform it via {@link
+   * com.google.genkit.ai.middleware.ModelParams#getStreamCallback()}.
+   *
+   * <p>This is useful for displaying responses incrementally to users, and for middleware that
+   * needs to intercept streaming chunks (e.g., logging, guardrails, metrics).
    *
    * <p>Example usage:
    *
@@ -1548,78 +1588,11 @@ public class Genkit {
     if (!model.supportsStreaming()) {
       throw new GenkitException("Model " + options.getModel() + " does not support streaming");
     }
-    ModelRequest request = options.toModelRequest();
-    ActionContext ctx = new ActionContext(registry);
-
-    int maxTurns = options.getMaxTurns() != null ? options.getMaxTurns() : 5;
-    int turn = 0;
-
-    while (turn < maxTurns) {
-      // Create span metadata for the model call
-      SpanMetadata modelSpanMetadata =
-          SpanMetadata.builder()
-              .name(options.getModel())
-              .type(ActionType.MODEL.getValue())
-              .subtype("model")
-              .build();
-
-      String flowName = ctx.getFlowName();
-      if (flowName != null) {
-        modelSpanMetadata.getAttributes().put("genkit:metadata:flow:name", flowName);
-      }
-
-      final ModelRequest currentRequest = request;
-      final String flowNameForTelemetry = flowName;
-      final String spanPath = "/generateStream/" + options.getModel();
-      ModelResponse response =
-          Tracer.runInNewSpan(
-              ctx,
-              modelSpanMetadata,
-              request,
-              (spanCtx, req) -> {
-                // Wrap model execution with telemetry to record generate metrics
-                return ModelTelemetryHelper.runWithTelemetryStreaming(
-                    options.getModel(),
-                    flowNameForTelemetry,
-                    spanPath,
-                    currentRequest,
-                    r -> model.run(ctx.withSpanContext(spanCtx), r, streamCallback));
-              });
-
-      // Check if the model requested tool calls
-      List<ToolRequest> toolRequests = extractToolRequests(response);
-      if (toolRequests.isEmpty()) {
-        // No tool calls, return the response
-        return response;
-      }
-
-      // Execute tools and build tool response messages
-      List<Part> toolResponseParts = executeTools(ctx, toolRequests, options.getTools());
-
-      // Add the assistant message with tool requests
-      Message assistantMessage = response.getMessage();
-      List<Message> updatedMessages = new java.util.ArrayList<>(request.getMessages());
-      updatedMessages.add(assistantMessage);
-
-      // Add tool response message
-      Message toolResponseMessage = new Message();
-      toolResponseMessage.setRole(Role.TOOL);
-      toolResponseMessage.setContent(toolResponseParts);
-      updatedMessages.add(toolResponseMessage);
-
-      // Update request with new messages for next turn
-      request =
-          ModelRequest.builder()
-              .messages(updatedMessages)
-              .config(request.getConfig())
-              .tools(request.getTools())
-              .output(request.getOutput())
-              .build();
-
-      turn++;
-    }
-
-    throw new GenkitException("Max tool execution turns (" + maxTurns + ") exceeded");
+    // Delegate to generateInternal with the streaming callback.
+    // The callback flows through the full middleware chain:
+    //   generateInternal → GenerateParams.onChunk → wrapGenerate hooks
+    //   → rawGenerate → ModelParams.streamCallback → wrapModel hooks → model.run(ctx, req, cb)
+    return generateInternal(options, streamCallback);
   }
 
   /**

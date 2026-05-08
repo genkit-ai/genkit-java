@@ -19,6 +19,8 @@
 package com.google.genkit.ai.middleware;
 
 import com.google.genkit.ai.GenerateActionOptions;
+import com.google.genkit.ai.ModelResponseChunk;
+import java.util.function.Consumer;
 
 /**
  * Holds parameters for the {@link GenerationMiddleware#wrapGenerate} hook.
@@ -37,6 +39,7 @@ public class GenerateParams {
   private final GenerateActionOptions request;
   private final int iteration;
   private final int messageIndex;
+  private final Consumer<ModelResponseChunk> onChunk;
 
   /**
    * Creates GenerateParams.
@@ -48,9 +51,28 @@ public class GenerateParams {
    *     streaming chunk attribution and middleware that tracks conversation position.
    */
   public GenerateParams(GenerateActionOptions request, int iteration, int messageIndex) {
+    this(request, iteration, messageIndex, null);
+  }
+
+  /**
+   * Creates GenerateParams with all fields including streaming callback.
+   *
+   * @param request the current high-level generate options for this iteration
+   * @param iteration the current tool-loop iteration (0-indexed)
+   * @param messageIndex the current message index
+   * @param onChunk the streaming chunk callback, or null if not streaming. Mirrors the JS SDK's
+   *     {@code onChunk} in the generate middleware hook, allowing middleware to observe or
+   *     transform streaming chunks.
+   */
+  public GenerateParams(
+      GenerateActionOptions request,
+      int iteration,
+      int messageIndex,
+      Consumer<ModelResponseChunk> onChunk) {
     this.request = request;
     this.iteration = iteration;
     this.messageIndex = messageIndex;
+    this.onChunk = onChunk;
   }
 
   /**
@@ -88,13 +110,29 @@ public class GenerateParams {
     return messageIndex;
   }
 
-  /** Returns a new GenerateParams with the given request, preserving iteration and messageIndex. */
-  public GenerateParams withRequest(GenerateActionOptions request) {
-    return new GenerateParams(request, this.iteration, this.messageIndex);
+  /**
+   * Returns the streaming chunk callback, or {@code null} if this is a non-streaming request.
+   *
+   * <p>Mirrors the JS SDK's {@code onChunk} in the generate middleware hook. When non-null, the
+   * model will be called with streaming enabled and each chunk will be forwarded through this
+   * callback. Middleware can wrap or replace the callback to observe/transform streaming chunks.
+   */
+  public Consumer<ModelResponseChunk> getOnChunk() {
+    return onChunk;
   }
 
-  /** Returns a new GenerateParams with the given messageIndex, preserving request and iteration. */
+  /** Returns a new GenerateParams with the given request, preserving other fields. */
+  public GenerateParams withRequest(GenerateActionOptions request) {
+    return new GenerateParams(request, this.iteration, this.messageIndex, this.onChunk);
+  }
+
+  /** Returns a new GenerateParams with the given messageIndex, preserving other fields. */
   public GenerateParams withMessageIndex(int messageIndex) {
-    return new GenerateParams(this.request, this.iteration, messageIndex);
+    return new GenerateParams(this.request, this.iteration, messageIndex, this.onChunk);
+  }
+
+  /** Returns a new GenerateParams with the given onChunk callback, preserving other fields. */
+  public GenerateParams withOnChunk(Consumer<ModelResponseChunk> onChunk) {
+    return new GenerateParams(this.request, this.iteration, this.messageIndex, onChunk);
   }
 }
