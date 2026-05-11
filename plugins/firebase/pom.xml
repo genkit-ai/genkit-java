@@ -37,7 +37,7 @@
     <properties>
         <maven.deploy.skip>false</maven.deploy.skip>
         <firebase-admin.version>9.8.0</firebase-admin.version>
-        <google-cloud-firestore.version>3.41.0</google-cloud-firestore.version>
+        <google-cloud-firestore.version>3.42.0</google-cloud-firestore.version>
         <google-cloud-logging.version>3.33.0</google-cloud-logging.version>
         <google-cloud-trace.version>2.91.0</google-cloud-trace.version>
         <google-cloud-monitoring.version>3.93.0</google-cloud-monitoring.version>
