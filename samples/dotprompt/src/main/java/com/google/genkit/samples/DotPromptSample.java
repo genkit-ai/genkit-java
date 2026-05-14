@@ -143,18 +143,18 @@ public class DotPromptSample {
         
         // Load and auto-register prompts using genkit.prompt()
         // This automatically loads from /prompts directory and registers as actions
-        ExecutablePrompt<StoryInput> storyPrompt = genkit.prompt("story", StoryInput.class);
-        ExecutablePrompt<TravelInput> travelPrompt = genkit.prompt("travel-planner", TravelInput.class);
         ExecutablePrompt<CodeReviewInput> codeReviewPrompt = genkit.prompt("code-review", CodeReviewInput.class);
-        
-        // Load prompt with variant (e.g., recipe.robot.prompt)
+        ExecutablePrompt<RecipeInput> recipePrompt = genkit.prompt("recipe", RecipeInput.class);
+        ExecutablePrompt<TravelInput> travelPrompt = genkit.prompt("travel-planner", TravelInput.class);
+
+        // Load prompt with variant (e.g., recipe.prompt, recipe.robot.prompt)
         ExecutablePrompt<RecipeInput> robotRecipePrompt = genkit.prompt("recipe", RecipeInput.class, "robot");
-        
+
         // ============================================================
         // Method 2: Load prompts manually using DotPrompt.loadFromResource()
         // Useful when you need more control over the loading process
         // ============================================================
-        DotPrompt<RecipeInput> recipePrompt = DotPrompt.loadFromResource("/prompts/recipe.prompt");
+        DotPrompt<StoryInput> manualStoryPrompt = DotPrompt.loadFromResource("/prompts/story.prompt");
 
         // ============================================================
         // Flow Examples: Different ways to use prompts
@@ -220,7 +220,7 @@ public class DotPromptSample {
                 String.class,
                 (ctx, input) -> {
                     // Generate with custom temperature override
-                    ModelResponse response = storyPrompt.generate(input, 
+                    ModelResponse response = manualStoryPrompt.generate(genkit.getRegistry(), input, 
                             GenerateOptions.builder()
                                     .config(GenerationConfig.builder()
                                             .temperature(0.9)
