@@ -105,6 +105,7 @@ public class DotPrompt<I> {
   private static final Handlebars sharedHandlebars = new Handlebars(partialLoader);
 
   private final String name;
+  private final String variant;
   private final String model;
   private final String template;
   private final Map<String, Object> inputSchema;
@@ -115,6 +116,7 @@ public class DotPrompt<I> {
    * Creates a new DotPrompt.
    *
    * @param name the prompt name
+   * @param variant the prompt variant
    * @param model the default model name
    * @param template the Handlebars template
    * @param inputSchema the input JSON schema
@@ -122,11 +124,13 @@ public class DotPrompt<I> {
    */
   public DotPrompt(
       String name,
+      String variant,
       String model,
       String template,
       Map<String, Object> inputSchema,
       GenerationConfig config) {
     this.name = name;
+    this.variant = variant;
     this.model = model;
     this.template = template;
     this.inputSchema = inputSchema;
@@ -298,7 +302,15 @@ public class DotPrompt<I> {
       name = name.substring(name.lastIndexOf('/') + 1);
     }
 
-    return new DotPrompt<>(name, model, template, inputSchema, config);
+    // Extract variant from name (e.g., "recipe.robot" -> variant="robot")
+    // Note: name remains the full name (e.g., "recipe.robot") for registry key uniqueness
+    String variant = null;
+    int dotIndex = name.lastIndexOf('.');
+    if (dotIndex != -1) {
+      variant = name.substring(dotIndex + 1);
+    }
+
+    return new DotPrompt<>(name, variant, model, template, inputSchema, config);
   }
 
   /**
@@ -364,6 +376,7 @@ public class DotPrompt<I> {
   public Prompt<I> toPrompt(Class<I> inputClass) {
     return Prompt.<I>builder()
         .name(name)
+        .variant(variant)
         .model(model)
         .template(template)
         .inputSchema(inputSchema)
@@ -510,6 +523,10 @@ public class DotPrompt<I> {
 
   public String getName() {
     return name;
+  }
+
+  public String getVariant() {
+    return variant;
   }
 
   public String getModel() {

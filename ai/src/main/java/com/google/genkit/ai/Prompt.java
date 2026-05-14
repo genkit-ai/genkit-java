@@ -43,6 +43,7 @@ import java.util.function.Consumer;
 public class Prompt<I> implements Action<I, ModelRequest, Void> {
 
   private final String name;
+  private final String variant;
   private final String model;
   private final String template;
   private final Map<String, Object> inputSchema;
@@ -55,6 +56,7 @@ public class Prompt<I> implements Action<I, ModelRequest, Void> {
    * Creates a new Prompt.
    *
    * @param name the prompt name
+   * @param variant the prompt variant
    * @param model the default model name
    * @param template the prompt template
    * @param inputSchema the input JSON schema
@@ -64,6 +66,7 @@ public class Prompt<I> implements Action<I, ModelRequest, Void> {
    */
   public Prompt(
       String name,
+      String variant,
       String model,
       String template,
       Map<String, Object> inputSchema,
@@ -71,6 +74,7 @@ public class Prompt<I> implements Action<I, ModelRequest, Void> {
       Class<I> inputClass,
       BiFunction<ActionContext, I, ModelRequest> renderer) {
     this.name = name;
+    this.variant = variant;
     this.model = model;
     this.template = template;
     this.inputSchema = inputSchema;
@@ -86,7 +90,17 @@ public class Prompt<I> implements Action<I, ModelRequest, Void> {
 
     // Build the prompt sub-object with detailed metadata
     Map<String, Object> promptMetadata = new HashMap<>();
-    promptMetadata.put("name", name);
+
+    // The 'name' in metadata should be the base name (without variant)
+    String baseName = name;
+    if (variant != null && name.endsWith("." + variant)) {
+      baseName = name.substring(0, name.length() - variant.length() - 1);
+    }
+
+    promptMetadata.put("name", baseName);
+    if (variant != null) {
+      promptMetadata.put("variant", variant);
+    }
     promptMetadata.put("model", model);
     promptMetadata.put("template", template);
     if (inputSchema != null) {
@@ -111,6 +125,15 @@ public class Prompt<I> implements Action<I, ModelRequest, Void> {
   @Override
   public String getName() {
     return name;
+  }
+
+  /**
+   * Gets the prompt variant.
+   *
+   * @return the variant name, or null if none
+   */
+  public String getVariant() {
+    return variant;
   }
 
   @Override
@@ -213,6 +236,7 @@ public class Prompt<I> implements Action<I, ModelRequest, Void> {
    */
   public static class Builder<I> {
     private String name;
+    private String variant;
     private String model;
     private String template;
     private Map<String, Object> inputSchema;
@@ -222,6 +246,11 @@ public class Prompt<I> implements Action<I, ModelRequest, Void> {
 
     public Builder<I> name(String name) {
       this.name = name;
+      return this;
+    }
+
+    public Builder<I> variant(String variant) {
+      this.variant = variant;
       return this;
     }
 
@@ -262,7 +291,8 @@ public class Prompt<I> implements Action<I, ModelRequest, Void> {
       if (renderer == null) {
         throw new IllegalStateException("Prompt renderer is required");
       }
-      return new Prompt<>(name, model, template, inputSchema, config, inputClass, renderer);
+      return new Prompt<>(
+          name, variant, model, template, inputSchema, config, inputClass, renderer);
     }
   }
 }
