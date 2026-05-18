@@ -178,9 +178,7 @@ public class ReflectionServer {
             logger.error("Error handling streaming runAction request", e);
             response.setStatus(500);
             response.getHeaders().add("Content-Type", "application/json");
-            String errorMessage = e.getMessage() != null ? e.getMessage() : "Unknown error";
-            String stacktrace = getStackTraceString(e);
-            String errorJson = createErrorStatus(2, errorMessage, stacktrace);
+            String errorJson = createErrorStatus(2, e);
             byte[] bytes = errorJson.getBytes(StandardCharsets.UTF_8);
             response.write(true, ByteBuffer.wrap(bytes), callback);
             return true;
@@ -197,9 +195,7 @@ public class ReflectionServer {
           } catch (Exception e) {
             logger.error("Error handling runAction request", e);
             response.setStatus(500);
-            String errorMessage = e.getMessage() != null ? e.getMessage() : "Unknown error";
-            String stacktrace = getStackTraceString(e);
-            String errorJson = createErrorStatus(2, errorMessage, stacktrace);
+            String errorJson = createErrorStatus(2, e);
             byte[] bytes = errorJson.getBytes(StandardCharsets.UTF_8);
             response.write(true, ByteBuffer.wrap(bytes), callback);
             return true;
@@ -217,9 +213,7 @@ public class ReflectionServer {
           logger.error("Error handling streamAction request", e);
           response.setStatus(500);
           response.getHeaders().add("Content-Type", "application/json");
-          String errorMessage = e.getMessage() != null ? e.getMessage() : "Unknown error";
-          String stacktrace = getStackTraceString(e);
-          String errorJson = createErrorStatus(2, errorMessage, stacktrace);
+          String errorJson = createErrorStatus(2, e);
           byte[] bytes = errorJson.getBytes(StandardCharsets.UTF_8);
           response.write(true, ByteBuffer.wrap(bytes), callback);
           return true;
@@ -294,11 +288,8 @@ public class ReflectionServer {
       } catch (Exception e) {
         logger.error("Error handling request", e);
         response.setStatus(500);
-        String errorMessage = e.getMessage() != null ? e.getMessage() : "Unknown error";
-        String stacktrace = getStackTraceString(e);
         // For HTTP 500 errors, send error status directly (no wrapper)
-        String errorJson = createErrorStatus(2, errorMessage, stacktrace); // INTERNAL error code =
-        // 2
+        String errorJson = createErrorStatus(2, e); // INTERNAL error code = 2
         byte[] bytes = errorJson.getBytes(StandardCharsets.UTF_8);
         response.write(true, ByteBuffer.wrap(bytes), callback);
       }
@@ -312,15 +303,42 @@ public class ReflectionServer {
       return sw.toString();
     }
 
-    /**
-     * Creates a structured error status JSON string (without wrapper). Format: {code, message,
-     * details: {stack}} Used for HTTP 500 error responses where the body IS the error.
-     */
-    private String createErrorStatus(int code, String message, String stack) {
+    private String getErrorMessage(Throwable e) {
+      return e.getMessage() != null ? e.getMessage() : "Unknown error";
+    }
+
+    private String getTraceId(Throwable e) {
+      Throwable current = e;
+      while (current != null) {
+        if (current instanceof GenkitException) {
+          String traceId = ((GenkitException) current).getTraceId();
+          if (traceId != null && !traceId.isEmpty()) {
+            return traceId;
+          }
+        }
+        current = current.getCause();
+      }
+      return null;
+    }
+
+    private Map<String, Object> buildErrorDetails(String stack, String traceId) {
       Map<String, Object> errorDetails = new HashMap<>();
       if (stack != null) {
         errorDetails.put("stack", stack);
       }
+      if (traceId != null) {
+        errorDetails.put("traceId", traceId);
+      }
+      return errorDetails;
+    }
+
+    private String createErrorStatus(int code, Throwable error) {
+      return createErrorStatus(
+          code, getErrorMessage(error), getStackTraceString(error), getTraceId(error));
+    }
+
+    private String createErrorStatus(int code, String message, String stack, String traceId) {
+      Map<String, Object> errorDetails = buildErrorDetails(stack, traceId);
 
       Map<String, Object> errorStatus = new HashMap<>();
       errorStatus.put("code", code);
@@ -335,10 +353,16 @@ public class ReflectionServer {
      * {stack}}} Used for inline errors in 200 OK responses (e.g., action not found).
      */
     private String createErrorResponse(int code, String message, String stack) {
-      Map<String, Object> errorDetails = new HashMap<>();
-      if (stack != null) {
-        errorDetails.put("stack", stack);
-      }
+      return createErrorResponse(code, message, stack, null);
+    }
+
+    private String createErrorResponse(int code, Throwable error) {
+      return createErrorResponse(
+          code, getErrorMessage(error), getStackTraceString(error), getTraceId(error));
+    }
+
+    private String createErrorResponse(int code, String message, String stack, String traceId) {
+      Map<String, Object> errorDetails = buildErrorDetails(stack, traceId);
 
       Map<String, Object> errorStatus = new HashMap<>();
       errorStatus.put("code", code);
@@ -486,9 +510,7 @@ public class ReflectionServer {
         return JsonUtils.toJson(trace);
       } catch (Exception e) {
         logger.error("Error handling streamTrace request", e);
-        String errorMessage = e.getMessage() != null ? e.getMessage() : "Unknown error";
-        String stacktrace = getStackTraceString(e);
-        return createErrorResponse(2, errorMessage, stacktrace); // INTERNAL error code = 2
+        return createErrorResponse(2, e); // INTERNAL error code = 2
       }
     }
 
@@ -575,9 +597,7 @@ public class ReflectionServer {
         return "\"OK\"";
       } catch (Exception e) {
         logger.error("Error handling notify request", e);
-        String errorMessage = e.getMessage() != null ? e.getMessage() : "Unknown error";
-        String stacktrace = getStackTraceString(e);
-        return createErrorResponse(2, errorMessage, stacktrace); // INTERNAL error code = 2
+        return createErrorResponse(2, e); // INTERNAL error code = 2
       }
     }
 
@@ -591,7 +611,7 @@ public class ReflectionServer {
         return JsonUtils.toJson(datasets);
       } catch (Exception e) {
         logger.error("Error listing datasets", e);
-        return createErrorResponse(2, e.getMessage(), getStackTraceString(e));
+        return createErrorResponse(2, e);
       }
     }
 
@@ -601,7 +621,7 @@ public class ReflectionServer {
         return JsonUtils.toJson(dataset);
       } catch (Exception e) {
         logger.error("Error getting dataset: {}", datasetId, e);
-        return createErrorResponse(5, e.getMessage(), getStackTraceString(e));
+        return createErrorResponse(5, e);
       }
     }
 
@@ -612,7 +632,7 @@ public class ReflectionServer {
         return JsonUtils.toJson(metadata);
       } catch (Exception e) {
         logger.error("Error creating dataset", e);
-        return createErrorResponse(2, e.getMessage(), getStackTraceString(e));
+        return createErrorResponse(2, e);
       }
     }
 
@@ -623,7 +643,7 @@ public class ReflectionServer {
         return JsonUtils.toJson(metadata);
       } catch (Exception e) {
         logger.error("Error updating dataset", e);
-        return createErrorResponse(2, e.getMessage(), getStackTraceString(e));
+        return createErrorResponse(2, e);
       }
     }
 
@@ -633,7 +653,7 @@ public class ReflectionServer {
         return "{}";
       } catch (Exception e) {
         logger.error("Error deleting dataset: {}", datasetId, e);
-        return createErrorResponse(2, e.getMessage(), getStackTraceString(e));
+        return createErrorResponse(2, e);
       }
     }
 
@@ -647,7 +667,7 @@ public class ReflectionServer {
         return JsonUtils.toJson(evalRuns);
       } catch (Exception e) {
         logger.error("Error listing eval runs", e);
-        return createErrorResponse(2, e.getMessage(), getStackTraceString(e));
+        return createErrorResponse(2, e);
       }
     }
 
@@ -660,7 +680,7 @@ public class ReflectionServer {
         return JsonUtils.toJson(evalRun);
       } catch (Exception e) {
         logger.error("Error getting eval run: {}", evalRunId, e);
-        return createErrorResponse(2, e.getMessage(), getStackTraceString(e));
+        return createErrorResponse(2, e);
       }
     }
 
@@ -670,7 +690,7 @@ public class ReflectionServer {
         return "{}";
       } catch (Exception e) {
         logger.error("Error deleting eval run: {}", evalRunId, e);
-        return createErrorResponse(2, e.getMessage(), getStackTraceString(e));
+        return createErrorResponse(2, e);
       }
     }
 
@@ -681,7 +701,7 @@ public class ReflectionServer {
         return JsonUtils.toJson(evalRunKey);
       } catch (Exception e) {
         logger.error("Error running evaluation", e);
-        return createErrorResponse(2, e.getMessage(), getStackTraceString(e));
+        return createErrorResponse(2, e);
       }
     }
   }

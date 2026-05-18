@@ -44,7 +44,6 @@ public class ActionDef<I, O, S> implements Action<I, O, S> {
   private final ActionDesc desc;
   private final StreamingFunction<I, O, S> fn;
   private final Class<I> inputClass;
-  private final Class<O> outputClass;
   private Registry registry;
 
   /**
@@ -127,7 +126,6 @@ public class ActionDef<I, O, S> implements Action<I, O, S> {
 
     this.fn = fn;
     this.inputClass = inputClass;
-    this.outputClass = outputClass;
   }
 
   /**
@@ -248,7 +246,6 @@ public class ActionDef<I, O, S> implements Action<I, O, S> {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public JsonNode runJson(ActionContext ctx, JsonNode input, Consumer<JsonNode> streamCallback)
       throws GenkitException {
     try {

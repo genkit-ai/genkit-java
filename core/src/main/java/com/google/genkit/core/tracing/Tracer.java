@@ -304,7 +304,7 @@ public final class Tracer {
       span.setAttribute("genkit:state", "error");
       span.setStatus(StatusCode.ERROR, e.getMessage());
       span.recordException(e);
-      throw e;
+      throw attachTraceId(e, spanContext.getTraceId());
     } catch (RuntimeException e) {
       // Re-throw RuntimeExceptions as-is (includes AgentHandoffException,
       // ToolInterruptException, etc.)
@@ -316,10 +316,26 @@ public final class Tracer {
       span.setAttribute("genkit:state", "error");
       span.setStatus(StatusCode.ERROR, e.getMessage());
       span.recordException(e);
-      throw new GenkitException("Span execution failed: " + e.getMessage(), e);
+      throw new GenkitException(
+          "Span execution failed: " + e.getMessage(), e, null, null, spanContext.getTraceId());
     } finally {
       span.end();
     }
+  }
+
+  /**
+   * Returns a GenkitException that carries the given trace ID, preserving the original if it
+   * already has one or if no trace ID is available.
+   */
+  private static GenkitException attachTraceId(GenkitException e, String traceId) {
+    if (traceId == null || traceId.isEmpty() || e.getTraceId() != null) {
+      return e;
+    }
+    GenkitException wrapped =
+        new GenkitException(
+            e.getMessage(), e.getCause(), e.getErrorCode(), e.getDetails(), traceId);
+    wrapped.setStackTrace(e.getStackTrace());
+    return wrapped;
   }
 
   /** Builds an annotated path for the span. Format: /{name,t:type}/{name,t:type,s:subtype} */

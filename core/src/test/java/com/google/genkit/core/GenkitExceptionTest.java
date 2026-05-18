@@ -20,6 +20,7 @@ package com.google.genkit.core;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -134,5 +135,33 @@ class GenkitExceptionTest {
     assertNotNull(string);
     assertTrue(string.contains("GenkitException"));
     assertTrue(string.contains("Test message"));
+  }
+
+  @Test
+  void testRunJsonWithTelemetryIncludesTraceIdOnFailure() {
+    ActionDef<String, String, Void> action =
+        ActionDef.create(
+            "failingFlow",
+            ActionType.FLOW,
+            null,
+            null,
+            String.class,
+            String.class,
+            (ctx, input) -> {
+              throw new IllegalStateException("boom");
+            });
+    action.register(new DefaultRegistry());
+
+    GenkitException exception =
+        assertThrows(
+            GenkitException.class,
+            () -> {
+              JsonNode input = JsonUtils.parseJson("\"hello\"");
+              action.runJsonWithTelemetry(new ActionContext(new DefaultRegistry()), input, null);
+            });
+
+    assertEquals("Action execution failed: boom", exception.getMessage());
+    assertNotNull(exception.getTraceId());
+    assertFalse(exception.getTraceId().isBlank());
   }
 }
