@@ -111,7 +111,7 @@ public class OpenAISample {
               ModelResponse response =
                   genkit.generate(
                       GenerateOptions.builder()
-                          .model("openai/gpt-4odasdasd")
+                          .model("openai/gpt-4o")
                           .system("You are a helpful assistant.")
                           .prompt(userMessage)
                           .build());
