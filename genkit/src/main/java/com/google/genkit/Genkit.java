@@ -1927,13 +1927,14 @@ public class Genkit {
 
   private void startReflectionServerV1() {
     try {
-      int port = options.getReflectionPort();
-      reflectionServer = new ReflectionServer(registry, port, options.getName());
+      int basePort = options.getReflectionPort();
+      reflectionServer = new ReflectionServer(registry, basePort, options.getName());
       reflectionServer.start();
-      logger.info("Reflection server started on port {}", port);
+      int actualPort = reflectionServer.getPort();
+      logger.info("Reflection server started on port {}", actualPort);
 
       // Write runtime file with matching runtime ID
-      RuntimeFileWriter.write(port, reflectionServer.getRuntimeId());
+      RuntimeFileWriter.write(actualPort, reflectionServer.getRuntimeId());
     } catch (Exception e) {
       logger.error("Failed to start reflection server", e);
       throw new GenkitException("Failed to start reflection server", e);

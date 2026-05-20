@@ -58,7 +58,7 @@ public class ReflectionServer {
   private static final Logger logger = LoggerFactory.getLogger(ReflectionServer.class);
 
   private final Registry registry;
-  private final int port;
+  private int port;
   private Server server;
   private String runtimeId;
   private EvaluationManager evaluationManager;
@@ -90,24 +90,61 @@ public class ReflectionServer {
     return runtimeId;
   }
 
+  /** Gets the active reflection server port. */
+  public int getPort() {
+    return port;
+  }
+
   /**
-   * Starts the reflection server.
+   * Starts the reflection server by trying ports in the range [basePort, basePort + 100].
    *
-   * @throws Exception if the server fails to start
+   * @throws Exception if the server fails to start across the port range
    */
   public void start() throws Exception {
-    server = new Server();
+    int basePort = port;
+    int maxPort = basePort + 100;
+    Exception lastException = null;
 
-    // Configure connector with extended idle timeout for long-running operations
-    // (e.g., video generation can take several minutes)
-    ServerConnector connector = new ServerConnector(server);
-    connector.setPort(port);
-    connector.setIdleTimeout(900000); // 15 minutes idle timeout
-    server.addConnector(connector);
+    for (int p = basePort; p <= maxPort; p++) {
+      Server candidateServer = null;
+      try {
+        candidateServer = new Server();
 
-    server.setHandler(new ReflectionHandler());
-    server.start();
-    logger.info("Reflection server started on port {}", port);
+        // Configure connector with extended idle timeout for long-running operations
+        // (e.g., video generation can take several minutes)
+        ServerConnector connector = new ServerConnector(candidateServer);
+        connector.setPort(p);
+        connector.setIdleTimeout(900000); // 15 minutes idle timeout
+        candidateServer.addConnector(connector);
+
+        candidateServer.setHandler(new ReflectionHandler());
+        candidateServer.start();
+
+        this.server = candidateServer;
+        this.port = connector.getLocalPort();
+        logger.info("Reflection server started on port {}", this.port);
+        return;
+      } catch (Exception e) {
+        lastException = e;
+        if (candidateServer != null) {
+          try {
+            candidateServer.stop();
+          } catch (Exception ex) {
+            // Ignore stop errors during cleanup
+          }
+        }
+        logger.debug("Failed to start reflection server on port {}, trying next...", p);
+      }
+    }
+
+    logger.error(
+        "Failed to start reflection server across port range {}..{}",
+        basePort,
+        maxPort,
+        lastException);
+    throw new GenkitException(
+        "Failed to start reflection server across port range " + basePort + ".." + maxPort,
+        lastException);
   }
 
   /**
