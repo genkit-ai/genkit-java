@@ -99,8 +99,7 @@ public class GenkitOptions {
     private String name;
 
     private static boolean isDevModeFromEnv() {
-      String env = System.getenv("GENKIT_ENV");
-      return "dev".equals(env) || env == null;
+      return "dev".equalsIgnoreCase(System.getenv("GENKIT_ENV"));
     }
 
     private static int getReflectionPortFromEnv() {
