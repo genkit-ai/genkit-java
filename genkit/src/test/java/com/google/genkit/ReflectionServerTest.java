@@ -60,9 +60,14 @@ class ReflectionServerTest {
       HttpResponse<String> response =
           HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
-      assertEquals(500, response.statusCode());
+      // Reflection server matches JS contract: HTTP 200 with {error: {code, message, details}}
+      // wrapper so genkit-tools can transform into genkitErrorMessage/genkitErrorDetails for the
+      // Dev UI.
+      assertEquals(200, response.statusCode());
 
-      JsonNode error = JsonUtils.parseJson(response.body());
+      JsonNode body = JsonUtils.parseJson(response.body());
+      assertTrue(body.has("error"), "response must wrap status in 'error' field");
+      JsonNode error = body.get("error");
       assertEquals(2, error.get("code").asInt());
       assertEquals("Action execution failed: boom", error.get("message").asText());
       assertTrue(error.has("details"));

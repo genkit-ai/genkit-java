@@ -176,9 +176,11 @@ public class ReflectionServer {
             return true;
           } catch (Exception e) {
             logger.error("Error handling streaming runAction request", e);
-            response.setStatus(500);
+            // Match JS reflection server: HTTP 200 with {error: {...}} wrapper so
+            // genkit-tools can extract genkitErrorMessage/genkitErrorDetails for the Dev UI.
+            response.setStatus(200);
             response.getHeaders().add("Content-Type", "application/json");
-            String errorJson = createErrorStatus(2, e);
+            String errorJson = createErrorResponse(2, e);
             byte[] bytes = errorJson.getBytes(StandardCharsets.UTF_8);
             response.write(true, ByteBuffer.wrap(bytes), callback);
             return true;
@@ -194,8 +196,10 @@ public class ReflectionServer {
             return true;
           } catch (Exception e) {
             logger.error("Error handling runAction request", e);
-            response.setStatus(500);
-            String errorJson = createErrorStatus(2, e);
+            // Match JS reflection server: HTTP 200 with {error: {...}} wrapper so
+            // genkit-tools can extract genkitErrorMessage/genkitErrorDetails for the Dev UI.
+            response.setStatus(200);
+            String errorJson = createErrorResponse(2, e);
             byte[] bytes = errorJson.getBytes(StandardCharsets.UTF_8);
             response.write(true, ByteBuffer.wrap(bytes), callback);
             return true;
@@ -211,9 +215,9 @@ public class ReflectionServer {
           return true;
         } catch (Exception e) {
           logger.error("Error handling streamAction request", e);
-          response.setStatus(500);
+          response.setStatus(200);
           response.getHeaders().add("Content-Type", "application/json");
-          String errorJson = createErrorStatus(2, e);
+          String errorJson = createErrorResponse(2, e);
           byte[] bytes = errorJson.getBytes(StandardCharsets.UTF_8);
           response.write(true, ByteBuffer.wrap(bytes), callback);
           return true;
@@ -287,9 +291,9 @@ public class ReflectionServer {
 
       } catch (Exception e) {
         logger.error("Error handling request", e);
-        response.setStatus(500);
-        // For HTTP 500 errors, send error status directly (no wrapper)
-        String errorJson = createErrorStatus(2, e); // INTERNAL error code = 2
+        // Match JS reflection server: HTTP 200 with {error: {...}} wrapper.
+        response.setStatus(200);
+        String errorJson = createErrorResponse(2, e); // INTERNAL error code = 2
         byte[] bytes = errorJson.getBytes(StandardCharsets.UTF_8);
         response.write(true, ByteBuffer.wrap(bytes), callback);
       }
@@ -332,25 +336,10 @@ public class ReflectionServer {
       return errorDetails;
     }
 
-    private String createErrorStatus(int code, Throwable error) {
-      return createErrorStatus(
-          code, getErrorMessage(error), getStackTraceString(error), getTraceId(error));
-    }
-
-    private String createErrorStatus(int code, String message, String stack, String traceId) {
-      Map<String, Object> errorDetails = buildErrorDetails(stack, traceId);
-
-      Map<String, Object> errorStatus = new HashMap<>();
-      errorStatus.put("code", code);
-      errorStatus.put("message", message);
-      errorStatus.put("details", errorDetails);
-
-      return JsonUtils.toJson(errorStatus);
-    }
-
     /**
      * Creates a wrapped error response JSON string. Format: {error: {code, message, details:
-     * {stack}}} Used for inline errors in 200 OK responses (e.g., action not found).
+     * {stack, traceId}}}. This is the wire format expected by the Genkit Dev UI / genkit-tools,
+     * which transforms it into {data: {genkitErrorMessage, genkitErrorDetails}} for display.
      */
     private String createErrorResponse(int code, String message, String stack) {
       return createErrorResponse(code, message, stack, null);
