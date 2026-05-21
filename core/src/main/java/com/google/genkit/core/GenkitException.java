@@ -26,7 +26,7 @@ public class GenkitException extends RuntimeException {
 
   private final String errorCode;
   private final Object details;
-  private final String traceId;
+  private String traceId;
 
   /**
    * Creates a new GenkitException.
@@ -89,6 +89,19 @@ public class GenkitException extends RuntimeException {
    */
   public String getTraceId() {
     return traceId;
+  }
+
+  /**
+   * Sets the trace ID for this error if it has not already been set. This is intended to be used by
+   * tracing infrastructure to attach the active trace ID when an exception propagates out of a
+   * span, without losing the exception's runtime type.
+   *
+   * @param traceId the trace ID to associate with this exception
+   */
+  public void setTraceId(String traceId) {
+    if (this.traceId == null) {
+      this.traceId = traceId;
+    }
   }
 
   /**
