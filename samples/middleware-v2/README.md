@@ -130,6 +130,21 @@ ModelResponse response = genkit.generate(
         .build());
 ```
 
+## Using middleware from the Dev UI
+
+Register middleware with the `Genkit` builder so they appear in the Dev UI **Middleware** panel:
+
+```java
+Genkit genkit = Genkit.builder()
+    .plugin(OpenAIPlugin.create())
+    .middleware(new MyMiddleware(), new AnotherMiddleware())
+    .build();
+```
+
+In the Dev UI, open the Middleware panel, tick one or more middlewares, then run any model from the **Models** runner. The Dev UI sends the selected middleware names in the `use` field of the `/util/generate` action, which resolves them from the registry and dispatches the full `wrapGenerate` / `wrapModel` / `wrapTool` chain — middleware logs will appear in the server console.
+
+`.middleware(...)` only controls Dev UI visibility; programmatic `GenerateOptions.builder().use(...)` calls do not require registration.
+
 ## Architecture
 
 V2 middleware wraps the generation pipeline at three levels:

@@ -236,18 +236,21 @@ public class MiddlewareV2Sample {
   public static void main(String[] args) throws Exception {
     JettyPlugin jetty = new JettyPlugin(JettyPluginOptions.builder().port(8080).build());
 
-    Genkit genkit =
-        Genkit.builder()
-            .options(GenkitOptions.builder().devMode(true).reflectionPort(3100).build())
-            .plugin(OpenAIPlugin.create())
-            .plugin(jetty)
-            .build();
-
     // Instantiate middleware (templates — newInstance() is called per generate())
     GenerationMiddleware modelLogging = new ModelLoggingMiddleware();
     GenerationMiddleware generateTiming = new GenerateTimingMiddleware();
     GenerationMiddleware toolMonitor = new ToolMonitorMiddleware();
     GenerationMiddleware fullObservability = new FullObservabilityMiddleware();
+
+    Genkit genkit =
+        Genkit.builder()
+            .options(GenkitOptions.builder().devMode(true).reflectionPort(3100).build())
+            .plugin(OpenAIPlugin.create())
+            .plugin(jetty)
+            // Register middlewares so they show up in the Dev UI Middleware panel.
+            // (Middleware is still applied per generate() call via GenerateOptions.use(...).)
+            .middleware(modelLogging, generateTiming, toolMonitor, fullObservability)
+            .build();
 
     // Define a simple tool so the WrapTool hook gets exercised
     @SuppressWarnings("unchecked")

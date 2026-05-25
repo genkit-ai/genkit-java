@@ -35,6 +35,7 @@ public class DefaultRegistry implements Registry {
   private final Map<String, Action<?, ?, ?>> actions = new ConcurrentHashMap<>();
   private final Map<String, Plugin> plugins = new ConcurrentHashMap<>();
   private final Map<String, Object> values = new ConcurrentHashMap<>();
+  private final Map<String, Map<String, Object>> valuesByType = new ConcurrentHashMap<>();
   private final Map<String, Map<String, Object>> schemas = new ConcurrentHashMap<>();
   private final Map<String, String> partials = new ConcurrentHashMap<>();
   private final Map<String, Object> helpers = new ConcurrentHashMap<>();
@@ -91,6 +92,16 @@ public class DefaultRegistry implements Registry {
   }
 
   @Override
+  public void registerValue(String type, String name, Object value) {
+    Map<String, Object> bucket = valuesByType.computeIfAbsent(type, t -> new ConcurrentHashMap<>());
+    if (bucket.containsKey(name)) {
+      throw new IllegalStateException("Value already registered: " + type + "/" + name);
+    }
+    bucket.put(name, value);
+    logger.debug("Registered value: {}/{}", type, name);
+  }
+
+  @Override
   public void registerSchema(String name, Map<String, Object> schema) {
     if (schemas.containsKey(name)) {
       throw new IllegalStateException("Schema already registered: " + name);
@@ -122,6 +133,16 @@ public class DefaultRegistry implements Registry {
     Object value = values.get(name);
     if (value == null && parent != null) {
       value = parent.lookupValue(name);
+    }
+    return value;
+  }
+
+  @Override
+  public Object lookupValue(String type, String name) {
+    Map<String, Object> bucket = valuesByType.get(type);
+    Object value = bucket != null ? bucket.get(name) : null;
+    if (value == null && parent != null) {
+      value = parent.lookupValue(type, name);
     }
     return value;
   }
@@ -249,6 +270,19 @@ public class DefaultRegistry implements Registry {
     // Then add/override with local values
     allValues.putAll(values);
 
+    return allValues;
+  }
+
+  @Override
+  public Map<String, Object> listValues(String type) {
+    Map<String, Object> allValues = new LinkedHashMap<>();
+    if (parent != null) {
+      allValues.putAll(parent.listValues(type));
+    }
+    Map<String, Object> bucket = valuesByType.get(type);
+    if (bucket != null) {
+      allValues.putAll(bucket);
+    }
     return allValues;
   }
 

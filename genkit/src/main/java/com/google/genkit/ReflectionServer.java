@@ -272,6 +272,16 @@ public class ReflectionServer {
         } else if (target.startsWith("/api/actions/")) {
           String actionKey = target.substring("/api/actions/".length());
           result = handleGetAction(actionKey);
+        } else if ("/api/values".equals(target) && "GET".equals(method)) {
+          String query = request.getHttpURI().getQuery();
+          String type = parseQueryParam(query, "type");
+          if (type == null) {
+            status = 400;
+            result =
+                createErrorResponse(3, "Query parameter \"type\" is required.", null); // 3=INVALID
+          } else {
+            result = handleListValuesByType(type);
+          }
         } else if ("/api/notify".equals(target) && "POST".equals(method)) {
           String body = readRequestBody(request);
           result = handleNotify(body);
@@ -462,6 +472,60 @@ public class ReflectionServer {
       }
 
       return JsonUtils.toJson(actionInfo);
+    }
+
+    /**
+     * Parses a query string and returns the value for the given parameter name, or null if absent.
+     */
+    private String parseQueryParam(String query, String name) {
+      if (query == null || query.isEmpty()) return null;
+      for (String pair : query.split("&")) {
+        int eq = pair.indexOf('=');
+        String k = eq >= 0 ? pair.substring(0, eq) : pair;
+        String v = eq >= 0 ? pair.substring(eq + 1) : "";
+        if (k.equals(name)) {
+          try {
+            return java.net.URLDecoder.decode(v, java.nio.charset.StandardCharsets.UTF_8);
+          } catch (Exception e) {
+            return v;
+          }
+        }
+      }
+      return null;
+    }
+
+    /**
+     * Handles {@code GET /api/values?type=<type>}. Returns a map of name -> value JSON
+     * representation for all values registered under the given type bucket. Mirrors the JS
+     * reflection API used by the Dev UI Middleware panel (type=middleware) and default-model
+     * indicator (type=defaultModel).
+     */
+    private String handleListValuesByType(String type) {
+      Map<String, Object> values = registry.listValues(type);
+      Map<String, Object> mapped = new HashMap<>();
+      if (values != null) {
+        for (Map.Entry<String, Object> e : values.entrySet()) {
+          mapped.put(e.getKey(), serializeValue(e.getValue(), e.getKey()));
+        }
+      }
+      return JsonUtils.toJson(mapped);
+    }
+
+    /**
+     * Serializes a registered value for the reflection API. Special-cases known interfaces (e.g.
+     * {@link com.google.genkit.ai.middleware.GenerationMiddleware}) which can't be JSON-serialized
+     * directly.
+     */
+    private Object serializeValue(Object value, String fallbackName) {
+      if (value == null) return null;
+      if (value instanceof com.google.genkit.ai.middleware.GenerationMiddleware) {
+        com.google.genkit.ai.middleware.GenerationMiddleware mw =
+            (com.google.genkit.ai.middleware.GenerationMiddleware) value;
+        Map<String, Object> json = new HashMap<>();
+        json.put("name", mw.name() != null ? mw.name() : fallbackName);
+        return json;
+      }
+      return value;
     }
 
     private String handleRunAction(String body) throws GenkitException {

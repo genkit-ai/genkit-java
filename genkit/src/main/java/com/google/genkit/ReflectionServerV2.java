@@ -386,9 +386,28 @@ public class ReflectionServerV2 {
   private void handleListValues(String requestId, JsonNode params) {
     if (requestId == null) return;
 
-    // Currently no values to list for Java runtime
+    String type =
+        (params != null && params.hasNonNull("type")) ? params.get("type").asText() : null;
+    Map<String, Object> values = new HashMap<>();
+    if (type != null) {
+      Map<String, Object> raw = registry.listValues(type);
+      if (raw != null) {
+        for (Map.Entry<String, Object> e : raw.entrySet()) {
+          Object v = e.getValue();
+          if (v instanceof com.google.genkit.ai.middleware.GenerationMiddleware) {
+            com.google.genkit.ai.middleware.GenerationMiddleware mw =
+                (com.google.genkit.ai.middleware.GenerationMiddleware) v;
+            Map<String, Object> json = new HashMap<>();
+            json.put("name", mw.name() != null ? mw.name() : e.getKey());
+            values.put(e.getKey(), json);
+          } else {
+            values.put(e.getKey(), v);
+          }
+        }
+      }
+    }
     Map<String, Object> result = new HashMap<>();
-    result.put("values", new HashMap<>());
+    result.put("values", values);
     sendResponse(requestId, result);
   }
 

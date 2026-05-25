@@ -314,6 +314,27 @@ ModelResponse response = genkit.generate(
 
 Middleware order matters — the **first** middleware listed is **outermost** (runs first on the way in, last on the way out).
 
+### Using middleware from the Dev UI
+
+To make middleware selectable from the **Middleware** panel in the Genkit Dev UI, register it with the `Genkit` builder via `.middleware(...)`:
+
+```java
+GenerationMiddleware modelLogging = new ModelLoggingMiddleware();
+GenerationMiddleware timing = new GenerateTimingMiddleware();
+GenerationMiddleware toolMonitor = new ToolMonitorMiddleware();
+
+Genkit genkit = Genkit.builder()
+    .plugin(OpenAIPlugin.create())
+    .middleware(modelLogging, timing, toolMonitor)
+    .build();
+```
+
+Each registered middleware appears in the Dev UI Middleware panel by `name()`. When you select one or more middlewares in the panel and run a model from the **Models** runner, the Dev UI invokes the `/util/generate` action with the selected middleware names in the `use` field. The action resolves each name back to the registered middleware via the registry and runs it through the same `wrapGenerate` / `wrapModel` / `wrapTool` chain that applies to programmatic `generate()` calls.
+
+A fresh middleware instance (via `newInstance()`) is created per Dev UI invocation, so per-request state (counters, timers) is isolated just as it is for code-driven calls.
+
+> **Note:** `.middleware(...)` only controls Dev UI visibility. Middleware attached programmatically with `GenerateOptions.builder().use(...)` does not need to be registered with the builder.
+
 ### Multi-hook middleware
 
 A single middleware can implement all three hooks to observe every stage:

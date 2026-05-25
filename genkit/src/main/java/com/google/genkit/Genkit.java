@@ -678,6 +678,10 @@ public class Genkit {
 
     int maxTurns = options.getMaxTurns() != null ? options.getMaxTurns() : 5;
 
+    // Auto-register any middleware passed via .use(...) so it shows up in the Dev UI
+    // Middleware panel. Registration is idempotent (last write wins for a given name).
+    registerMiddlewareForDevUi(options.getUse());
+
     // Create fresh middleware instances for this invocation
     List<GenerationMiddleware> middlewares = createMiddlewareInstances(options.getUse());
 
@@ -857,6 +861,26 @@ public class Genkit {
       return List.of();
     }
     return use.stream().map(GenerationMiddleware::newInstance).toList();
+  }
+
+  /**
+   * Registers each middleware (by {@link GenerationMiddleware#name()}) in the registry's {@code
+   * middleware} value bucket so the Dev UI Middleware panel can list and dispatch it. The original
+   * template (not a per-call instance) is registered, since {@code newInstance()} is called again
+   * for each Dev UI invocation.
+   */
+  private void registerMiddlewareForDevUi(List<GenerationMiddleware> use) {
+    if (use == null || use.isEmpty()) {
+      return;
+    }
+    for (GenerationMiddleware mw : use) {
+      if (mw == null) continue;
+      String name = mw.name();
+      if (name == null || name.isEmpty()) continue;
+      if (registry.lookupValue("middleware", name) == null) {
+        registry.registerValue("middleware", name, mw);
+      }
+    }
   }
 
   /**
@@ -2424,6 +2448,7 @@ public class Genkit {
   /** Builder for Genkit. */
   public static class Builder {
     private final List<Plugin> plugins = new ArrayList<>();
+    private final List<GenerationMiddleware> middlewares = new ArrayList<>();
     private GenkitOptions options = GenkitOptions.builder().build();
 
     /**
@@ -2445,6 +2470,22 @@ public class Genkit {
      */
     public Builder plugin(Plugin plugin) {
       this.plugins.add(plugin);
+      return this;
+    }
+
+    /**
+     * Optional: pre-registers one or more generation middlewares so they show up in the Genkit Dev
+     * UI Middleware panel <em>before</em> any flow has executed. This is a UX convenience only —
+     * middlewares are also auto-registered the first time they appear in a {@code
+     * GenerateOptions.use(...)} call, so production code does not need to declare them here.
+     *
+     * @param middlewares the middlewares to pre-register
+     * @return this builder
+     */
+    public Builder middleware(GenerationMiddleware... middlewares) {
+      for (GenerationMiddleware mw : middlewares) {
+        this.middlewares.add(mw);
+      }
       return this;
     }
 
@@ -2479,6 +2520,9 @@ public class Genkit {
       Genkit genkit = new Genkit(options);
       genkit.plugins.addAll(plugins);
       genkit.init();
+      // Pre-register any middlewares declared via .middleware(...) so the Dev UI
+      // Middleware panel can list them before any generate() call runs.
+      genkit.registerMiddlewareForDevUi(middlewares);
       return genkit;
     }
   }
