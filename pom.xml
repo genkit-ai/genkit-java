@@ -132,17 +132,17 @@
         <jackson.version>2.22.0</jackson.version>
         <jackson.annotations.version>2.22</jackson.annotations.version>
         <slf4j.version>2.0.18</slf4j.version>
-        <logback.version>1.5.34</logback.version>
+        <logback.version>1.5.37</logback.version>
         <jetty.version>12.1.6</jetty.version>
         <opentelemetry.version>1.63.0</opentelemetry.version>
-        <junit.version>6.1.0</junit.version>
+        <junit.version>6.1.1</junit.version>
         <mockito.version>5.23.0</mockito.version>
         <jsonschema.version>4.38.0</jsonschema.version>
-        <handlebars.version>4.5.1</handlebars.version>
-        <okhttp.version>5.3.2</okhttp.version>
+        <handlebars.version>4.5.2</handlebars.version>
+        <okhttp.version>5.4.0</okhttp.version>
         <fmt.version>2.29</fmt.version>
         <google-java-format.version>1.35.0</google-java-format.version>
-        <checkstyle.version>13.5.0</checkstyle.version>
+        <checkstyle.version>13.7.0</checkstyle.version>
     </properties>
 
     <dependencyManagement>
@@ -227,7 +227,7 @@
             <dependency>
                 <groupId>io.opentelemetry.semconv</groupId>
                 <artifactId>opentelemetry-semconv</artifactId>
-                <version>1.41.1</version>
+                <version>1.42.0</version>
             </dependency>
 
             <!-- Jetty -->
