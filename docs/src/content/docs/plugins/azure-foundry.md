@@ -47,6 +47,23 @@ ModelResponse response = genkit.generate(
 - Claude 4.x via Azure marketplace
 - And many more
 
+## Session store
+
+The plugin also ships `CosmosSessionStore`, an Azure Cosmos DB-backed agent session store. Construct it and pass it to an agent's `.store(...)` to persist server-managed sessions in Cosmos DB:
+
+```java
+import com.google.genkit.plugins.azurefoundry.session.CosmosSessionStore;
+import com.azure.cosmos.CosmosClientBuilder;
+
+CosmosSessionStore<Map<String, Object>> store = new CosmosSessionStore<>(
+    new CosmosClientBuilder()
+        .endpoint(System.getenv("COSMOS_ENDPOINT"))
+        .key(System.getenv("COSMOS_KEY"))
+        .buildClient());
+```
+
+See [Session Stores](../../agents/session-stores#cosmossessionstore) for options and the agents-cosmos-session sample.
+
 ## Sample
 
 See the [azure-foundry sample](https://github.com/genkit-ai/genkit-java/tree/main/samples/azure-foundry).

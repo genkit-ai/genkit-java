@@ -55,8 +55,7 @@ public class AwsBedrockSample {
         Genkit.builder()
             .options(GenkitOptions.builder().devMode(true).reflectionPort(3100).build())
             .plugin(
-                AwsBedrockPlugin.create("us-east-1")
-                    .customModel("us.anthropic.claude-sonnet-4-20250514-v1:0"))
+                AwsBedrockPlugin.create("us-east-1").customModel("us.anthropic.claude-sonnet-5"))
             .plugin(jetty)
             .build();
 
@@ -222,14 +221,14 @@ public class AwsBedrockSample {
             String.class,
             String.class,
             (ctx, prompt) -> {
-              // Using US inference profile for Claude 4 Sonnet
+              // Using US inference profile for Claude Sonnet 5
               // Format: {region-prefix}.{provider}.{model-name}
               ModelResponse response =
                   genkit.generate(
                       GenerateOptions.builder()
-                          .model("aws-bedrock/us.anthropic.claude-sonnet-4-20250514-v1:0")
+                          .model("aws-bedrock/us.anthropic.claude-sonnet-5")
                           .system(
-                              "You are Claude 4 Sonnet running via inference profile for cross-region routing.")
+                              "You are Claude Sonnet 5 running via inference profile for cross-region routing.")
                           .prompt(prompt)
                           .config(
                               GenerationConfig.builder()
@@ -254,14 +253,14 @@ public class AwsBedrockSample {
     System.out.println(
         "  - compareModels: Compare responses from Nova Pro, Nova Lite, and Llama 3.3");
     System.out.println("  - streamingDemo: Demonstrate streaming responses");
-    System.out.println("  - inferenceProfileDemo: Use Claude 4 Sonnet via inference profile");
+    System.out.println("  - inferenceProfileDemo: Use Claude Sonnet 5 via inference profile");
     System.out.println("");
     System.out.println("Models used:");
     System.out.println("  - amazon.nova-pro-v1:0 (ON_DEMAND)");
     System.out.println("  - amazon.nova-lite-v1:0 (ON_DEMAND)");
     System.out.println(
         "  - meta.llama3-3-70b-instruct-v1:0 (requires inference profile in some regions)");
-    System.out.println("  - us.anthropic.claude-sonnet-4-20250514-v1:0 (INFERENCE_PROFILE)");
+    System.out.println("  - us.anthropic.claude-sonnet-5 (INFERENCE_PROFILE)");
     System.out.println("");
     System.out.println(
         "Note: Inference profiles enable cross-region routing for better availability.");

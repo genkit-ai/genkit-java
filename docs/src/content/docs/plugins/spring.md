@@ -42,6 +42,20 @@ You must call `spring.start()` after building the `Genkit` instance and defining
 | `GET /api/flows` | List all registered flows |
 | `POST /api/flows/{flowName}` | Execute a flow |
 
+## Serving agents
+
+Any agent defined with `genkit.beta().defineAgent(...)` / `defineCustomAgent(...)` is mounted automatically once the server starts — just define it before calling `spring.start()`. Agents are served at the **root path** (`/<agentName>`), separate from flows' `/api/flows/...` base:
+
+```bash
+curl -X POST http://localhost:8080/echoAgent \
+  -H "Content-Type: application/json" \
+  -d '{"data":{"message":{"role":"user","content":[{"text":"Hello, agent!"}]}}}'
+```
+
+For server-managed agents (those configured with a `SessionStore`), the companion endpoints `POST /<agentName>/getSnapshot` and `POST /<agentName>/abort` are mounted too. Streaming turns are available via `Accept: text/event-stream` or `?stream=true`.
+
+The same Java client (`RemoteAgent` / `AgentChat`) works against a Spring or Jetty server unchanged. See [Serve over HTTP](../../agents/serve-over-http) for the full request/response contract, calling a served agent from Java, and how request headers reach your agent — and [Background Execution](../../agents/background-execution) for detached (background) turns.
+
 ## Configuration
 
 | Option | Default | Description |

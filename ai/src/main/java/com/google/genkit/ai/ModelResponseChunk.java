@@ -27,6 +27,9 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ModelResponseChunk {
 
+  @JsonProperty("role")
+  private Role role;
+
   @JsonProperty("content")
   private List<Part> content = new ArrayList<>();
 
@@ -76,6 +79,24 @@ public class ModelResponseChunk {
   }
 
   // Getters and setters
+
+  /**
+   * Returns the role of the message this chunk contributes to.
+   *
+   * @return the role, or {@code null} if not set (defaults to {@code model} on the wire)
+   */
+  public Role getRole() {
+    return role;
+  }
+
+  /**
+   * Sets the role of the message this chunk contributes to.
+   *
+   * @param role the role
+   */
+  public void setRole(Role role) {
+    this.role = role;
+  }
 
   public List<Part> getContent() {
     return content;

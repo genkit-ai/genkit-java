@@ -23,6 +23,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.genkit.core.Action;
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.ActionDesc;
+import com.google.genkit.core.BidiAction;
+import com.google.genkit.core.BufferedInputSource;
+import com.google.genkit.core.InputSource;
 import com.google.genkit.core.JsonUtils;
 import com.google.genkit.core.Registry;
 import com.google.genkit.core.tracing.Tracer;
@@ -78,6 +81,21 @@ public class ReflectionServerV2 {
 
   /** Maps traceId → Thread for targeted cancellation of running actions. */
   private final ConcurrentHashMap<String, Thread> activeActions = new ConcurrentHashMap<>();
+
+  /**
+   * Maps a bidi {@code runAction} requestId → its input source. Populated by {@code runAction} with
+   * {@code streamInput:true} and by {@code sendInputStreamChunk}/{@code endInputStream} (via {@code
+   * computeIfAbsent}) so that input chunks arriving before the action handler starts are buffered
+   * rather than dropped.
+   */
+  private final ConcurrentHashMap<String, BufferedInputSource<JsonNode>> bidiSessions =
+      new ConcurrentHashMap<>();
+
+  /**
+   * Optional outbound-message sink, used by tests to capture JSON-RPC messages without a live
+   * WebSocket. When null (production), messages go to {@link #webSocket}.
+   */
+  private volatile java.util.function.Consumer<String> outboundSink;
 
   private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
   private final ExecutorService actionExecutor = Executors.newCachedThreadPool();
@@ -181,10 +199,28 @@ public class ReflectionServerV2 {
   // =========================================================================
 
   private void send(String message) {
+    java.util.function.Consumer<String> sink = this.outboundSink;
+    if (sink != null) {
+      sink.accept(message);
+      return;
+    }
     WebSocket ws = this.webSocket;
     if (ws != null) {
       ws.sendText(message, true);
     }
+  }
+
+  /**
+   * Test seam: routes outbound JSON-RPC messages to {@code sink} instead of the WebSocket, and lets
+   * a test feed inbound messages via {@link #handleMessageForTesting(String)}.
+   */
+  void setOutboundSinkForTesting(java.util.function.Consumer<String> sink) {
+    this.outboundSink = sink;
+  }
+
+  /** Test seam: dispatches a raw inbound JSON-RPC message as if received over the WebSocket. */
+  void handleMessageForTesting(String text) {
+    handleMessage(text);
   }
 
   private void sendResponse(String id, Object result) {
@@ -320,6 +356,12 @@ public class ReflectionServerV2 {
         case "runAction":
           handleRunAction(id, params);
           break;
+        case "sendInputStreamChunk":
+          handleSendInputStreamChunk(params);
+          break;
+        case "endInputStream":
+          handleEndInputStream(params);
+          break;
         case "configure":
           handleConfigure(params);
           break;
@@ -395,6 +437,26 @@ public class ReflectionServerV2 {
   private void handleRunAction(String requestId, JsonNode params) {
     if (requestId == null) return;
 
+    // For bidi actions driven with streamInput, pre-register the input source synchronously
+    // (before dispatching to the executor) so that sendInputStreamChunk/endInputStream
+    // notifications arriving early are buffered rather than dropped.
+    final boolean streamInput =
+        params != null && params.has("streamInput") && params.get("streamInput").asBoolean();
+    if (streamInput) {
+      bidiSessions.computeIfAbsent(requestId, k -> new BufferedInputSource<>());
+    }
+
+    String _key = params != null && params.has("key") ? params.get("key").asText() : null;
+    boolean _stream = params != null && params.has("stream") && params.get("stream").asBoolean();
+    boolean _initPresent = params != null && params.has("init") && !params.get("init").isNull();
+    logger.debug(
+        "→ runAction id={} key={} stream={} streamInput={} initPresent={}",
+        requestId,
+        _key,
+        _stream,
+        streamInput,
+        _initPresent);
+
     // Run action in a separate thread so we don't block the WebSocket message loop
     actionExecutor.submit(
         () -> {
@@ -402,6 +464,7 @@ public class ReflectionServerV2 {
           try {
             String key = params.has("key") ? params.get("key").asText() : null;
             JsonNode input = params.has("input") ? params.get("input") : null;
+            JsonNode init = params.has("init") ? params.get("init") : null;
             boolean stream = params.has("stream") && params.get("stream").asBoolean();
 
             if (key == null) {
@@ -420,6 +483,8 @@ public class ReflectionServerV2 {
             if (stream) {
               streamCallback =
                   (chunk) -> {
+                    logger.debug(
+                        "← streamChunk requestId={} kind={}", requestId, streamChunkKind(chunk));
                     Map<String, Object> chunkParams = new HashMap<>();
                     chunkParams.put("requestId", requestId);
                     chunkParams.put("chunk", chunk);
@@ -427,7 +492,8 @@ public class ReflectionServerV2 {
                   };
             }
 
-            ActionContext context = new ActionContext(registry);
+            ActionContext context =
+                ActionContext.builder().registry(registry).context(parseContext(params)).build();
 
             // Create the telemetry span manually so we can get the traceId
             // BEFORE the action starts producing stream chunks.
@@ -459,7 +525,21 @@ public class ReflectionServerV2 {
                         sendNotification("runActionState", stateParams);
                       }
 
-                      // Now run the action - stream chunks will be sent AFTER traceId
+                      // Now run the action - stream chunks will be sent AFTER traceId.
+                      // Bidi actions driven with streamInput consume their inputs from the
+                      // pre-registered input source rather than the single `input` param.
+                      if (streamInput && action instanceof BidiAction) {
+                        InputSource<JsonNode> inputs = bidiSessions.get(requestId);
+                        if (inputs == null) {
+                          inputs = new BufferedInputSource<>();
+                        }
+                        return ((BidiAction<?, ?, ?, ?>) action)
+                            .runBidiJson(
+                                context.withSpanContext(spanCtx),
+                                init,
+                                inputs,
+                                finalStreamCallback);
+                      }
                       return action.runJson(
                           context.withSpanContext(spanCtx), in, finalStreamCallback);
                     });
@@ -479,6 +559,19 @@ public class ReflectionServerV2 {
               Map<String, Object> telemetry = new HashMap<>();
               telemetry.put("traceId", traceId);
               responseResult.put("telemetry", telemetry);
+            }
+            if (logger.isDebugEnabled()) {
+              String resultKeys =
+                  jsonResult != null
+                      ? String.join(
+                          ",",
+                          java.util.stream.StreamSupport.stream(
+                                  java.util.Spliterators.spliteratorUnknownSize(
+                                      jsonResult.fieldNames(), 0),
+                                  false)
+                              .collect(java.util.stream.Collectors.toList()))
+                      : "null";
+              logger.debug("← result id={} (keys={})", requestId, resultKeys);
             }
             sendResponse(requestId, responseResult);
 
@@ -506,8 +599,68 @@ public class ReflectionServerV2 {
             if (traceId != null) {
               activeActions.remove(traceId);
             }
+            BufferedInputSource<JsonNode> src = bidiSessions.remove(requestId);
+            if (src != null) {
+              src.close();
+            }
           }
         });
+  }
+
+  /**
+   * Handles a {@code sendInputStreamChunk} notification: enqueues one input chunk onto the bidi
+   * session's input source. Uses {@code computeIfAbsent} so a chunk that arrives before the
+   * matching {@code runAction} handler started is still buffered.
+   */
+  private void handleSendInputStreamChunk(JsonNode params) {
+    if (params == null || !params.has("requestId")) {
+      return;
+    }
+    String requestId = params.get("requestId").asText();
+    JsonNode chunk = params.has("chunk") ? params.get("chunk") : null;
+    if (chunk == null) {
+      return;
+    }
+    logger.debug(
+        "→ sendInputStreamChunk requestId={} chunkKeys={}", requestId, chunkFieldNames(chunk));
+    bidiSessions.computeIfAbsent(requestId, k -> new BufferedInputSource<>()).offer(chunk);
+  }
+
+  /** Handles an {@code endInputStream} notification: signals end-of-input for the bidi session. */
+  private void handleEndInputStream(JsonNode params) {
+    if (params == null || !params.has("requestId")) {
+      return;
+    }
+    String requestId = params.get("requestId").asText();
+    logger.debug("→ endInputStream requestId={}", requestId);
+    bidiSessions.computeIfAbsent(requestId, k -> new BufferedInputSource<>()).end();
+  }
+
+  /** Returns a comma-separated list of field names present on a chunk node (null-safe). */
+  private static String chunkFieldNames(JsonNode chunk) {
+    if (chunk == null || !chunk.isObject()) return "null";
+    StringBuilder sb = new StringBuilder();
+    chunk
+        .fieldNames()
+        .forEachRemaining(
+            f -> {
+              if (sb.length() > 0) sb.append(',');
+              sb.append(f);
+            });
+    return sb.length() > 0 ? sb.toString() : "(empty)";
+  }
+
+  /**
+   * Returns the kind of an {@code AgentStreamChunk} for debug logging: whichever of {@code
+   * modelChunk}, {@code customPatch}, {@code artifact}, or {@code turnEnd} is present, else the raw
+   * field names.
+   */
+  private static String streamChunkKind(JsonNode chunk) {
+    if (chunk == null || !chunk.isObject()) return "null";
+    for (String known : new String[] {"turnEnd", "modelChunk", "customPatch", "artifact"}) {
+      if (chunk.has(known)) return known;
+    }
+    return chunkFieldNames(chunk);
   }
 
   private void handleConfigure(JsonNode params) {
@@ -552,6 +705,26 @@ public class ReflectionServerV2 {
     StringWriter sw = new StringWriter();
     e.printStackTrace(new PrintWriter(sw));
     return sw.toString();
+  }
+
+  /**
+   * Parses the optional {@code context} object from runAction params into a {@code
+   * Map<String,Object>}. The Dev UI "Execution context" panel sends this (e.g. {@code {"auth":
+   * {"user": "alice"}}}); it is threaded into the run's ActionContext so tools/flows can read it.
+   *
+   * @param params the JSON-RPC params for runAction
+   * @return the parsed context map, or null if absent/blank
+   */
+  private static Map<String, Object> parseContext(JsonNode params) {
+    if (params == null || !params.has("context") || params.get("context").isNull()) {
+      return null;
+    }
+    JsonNode contextNode = params.get("context");
+    if (!contextNode.isObject()) {
+      return null;
+    }
+    return objectMapper.convertValue(
+        contextNode, new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
   }
 
   // =========================================================================

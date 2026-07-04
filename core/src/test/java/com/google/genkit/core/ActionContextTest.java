@@ -20,6 +20,8 @@ package com.google.genkit.core;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.google.genkit.core.tracing.SpanContext;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -167,5 +169,77 @@ class ActionContextTest {
 
     assertNull(context.getSpanContext());
     assertEquals("testFlow", context.getFlowName());
+  }
+
+  // ── user-context: builder + getter + withContext ─────────────────────────────
+
+  @Test
+  void testBuilderSetsContext() {
+    Map<String, Object> userContext = Map.of("auth", Map.of("user", "alice"));
+
+    ActionContext context = ActionContext.builder().registry(registry).context(userContext).build();
+
+    assertSame(userContext, context.getContext());
+    assertEquals("alice", nestedUser(context));
+  }
+
+  @Test
+  void testWithContext() {
+    Map<String, Object> userContext = Map.of("auth", Map.of("user", "bob"));
+
+    ActionContext context = new ActionContext(registry).withContext(userContext);
+
+    assertSame(userContext, context.getContext());
+  }
+
+  @Test
+  void testContextDefaultsToNull() {
+    ActionContext context = new ActionContext(registry);
+    assertNull(context.getContext());
+
+    ActionContext built = ActionContext.builder().registry(registry).build();
+    assertNull(built.getContext());
+  }
+
+  @Test
+  void testContextSurvivesWithSpanContext() {
+    Map<String, Object> userContext = Map.of("auth", Map.of("user", "alice"));
+    ActionContext context = new ActionContext(registry).withContext(userContext);
+
+    // The run path (BidiActionImpl / ReflectionServerV2) calls withSpanContext — context MUST
+    // survive it, otherwise tools never see the injected execution context.
+    SpanContext spanCtx = new SpanContext("trace-1", "span-1", null);
+    ActionContext withSpan = context.withSpanContext(spanCtx);
+
+    assertSame(spanCtx, withSpan.getSpanContext());
+    assertSame(userContext, withSpan.getContext());
+    assertEquals("alice", nestedUser(withSpan));
+  }
+
+  @Test
+  void testContextSurvivesAllWithers() {
+    Map<String, Object> userContext = Map.of("auth", Map.of("user", "alice"));
+
+    ActionContext context =
+        new ActionContext(registry)
+            .withContext(userContext)
+            .withSpanContext(new SpanContext("t", "s", null))
+            .withFlowName("flow")
+            .withSpanPath("/flow/flow")
+            .withSessionId("session-1")
+            .withThreadName("thread-1");
+
+    assertSame(userContext, context.getContext());
+    assertEquals("flow", context.getFlowName());
+    assertEquals("/flow/flow", context.getSpanPath());
+    assertEquals("session-1", context.getSessionId());
+    assertEquals("thread-1", context.getThreadName());
+    assertEquals("alice", nestedUser(context));
+  }
+
+  @SuppressWarnings("unchecked")
+  private static String nestedUser(ActionContext context) {
+    Map<String, Object> auth = (Map<String, Object>) context.getContext().get("auth");
+    return (String) auth.get("user");
   }
 }

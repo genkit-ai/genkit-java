@@ -27,6 +27,7 @@ Check the Docs: https://genkit-ai.github.io/genkit-java
   - [Evaluations](#evaluations)
     - [Pre-built Evaluators Plugin](#pre-built-evaluators-plugin)
   - [Streaming](#streaming)
+  - [Agents (Beta)](#agents-beta)
   - [Embeddings](#embeddings)
   - [Modules](#modules)
   - [Observability](#observability)
@@ -568,6 +569,60 @@ ModelResponse response = genkit.generateStream(
     });
 ```
 
+## Agents (Beta)
+
+Agents are stateful, multi-turn AI actors that carry conversation history across turns and can call tools. The Agents API requires opting in to experimental features.
+
+```java
+import com.google.genkit.agent.AgentConfig;
+import com.google.genkit.ai.agent.Agent;
+import com.google.genkit.ai.agent.AgentChat;
+import com.google.genkit.ai.agent.AgentResponse;
+import com.google.genkit.ai.agent.FileSessionStore;
+import com.google.genkit.core.ActionContext;
+
+// Enable experimental features
+Genkit genkit = Genkit.builder()
+    .options(GenkitOptions.builder().experimental(true).build())
+    .plugin(OpenAIPlugin.create())
+    .build();
+
+// Define a tool the agent can call
+Tool<WeatherInput, WeatherOutput> getWeather = genkit.defineTool(
+    "getWeather",
+    "Returns current weather for a location",
+    (ctx, input) -> new WeatherOutput("Sunny and 22°C in " + input.getLocation()),
+    WeatherInput.class,
+    WeatherOutput.class);
+
+// Define a server-managed agent (state persisted to ./.snapshots)
+Agent<Map<String, Object>> weatherAgent = genkit.beta().defineAgent(
+    AgentConfig.<Map<String, Object>>builder()
+        .name("weatherAgent")
+        .system("You are a helpful weather assistant. Use the getWeather tool.")
+        .tools(getWeather)
+        .model("openai/gpt-4o-mini")
+        .store(new FileSessionStore<>("./.snapshots")) // omit for client-managed (stateless)
+        .build());
+
+// Multi-turn chat — history carries forward automatically
+ActionContext ctx = new ActionContext(genkit.getRegistry());
+AgentChat<Map<String, Object>> chat = weatherAgent.chat(ctx);
+
+AgentResponse<Map<String, Object>> res1 = chat.send("What is the weather in London?");
+System.out.println(res1.text());
+
+AgentResponse<Map<String, Object>> res2 = chat.send("Now say that in French");
+System.out.println(res2.text());
+
+// Streaming turn
+AgentResponse<Map<String, Object>> res3 = chat.sendStream(
+    "Summarise in one sentence",
+    chunk -> System.out.print(chunk.text()));
+```
+
+See [samples/agents-weather](samples/agents-weather) for a complete runnable example and the [Agents documentation](https://genkit-ai.github.io/genkit-java/agents/overview) for the full API reference.
+
 ## Embeddings
 
 Generate vector embeddings for semantic search:
@@ -705,12 +760,11 @@ The following samples are available in `java/samples/`. See the [samples README]
 | **dotprompt** | DotPrompt files with complex inputs/outputs, variants, and partials |
 | **structured-output** | Type-safe structured output generation |
 | **rag** | RAG application with local vector store |
-| **chat-session** | Multi-turn chat with session persistence |
+| **agents-weather** | Weather assistant demonstrating the beta Agents API (server-managed and client-managed sessions) |
 | **evaluations** | Custom evaluators and evaluation workflows |
 | **evaluators-plugin** | Pre-built RAGAS-style evaluators plugin demo |
 | **complex-io** | Complex nested types, arrays, maps in flow inputs/outputs |
 | **middleware** | Middleware patterns for logging, caching, rate limiting |
-| **multi-agent** | Multi-agent orchestration patterns |
 | **interrupts** | Flow interrupts and human-in-the-loop patterns |
 | **mcp** | Model Context Protocol (MCP) integration |
 | **firebase** | Firebase integration with Firestore RAG and Cloud Functions |
