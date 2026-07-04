@@ -175,4 +175,32 @@ class ActionTypeTest {
     assertEquals(ActionType.FLOW, ActionType.valueOf("FLOW"));
     assertEquals(ActionType.MODEL, ActionType.valueOf("MODEL"));
   }
+
+  @Test
+  void testAgentType() {
+    assertEquals("agent", ActionType.AGENT.getValue());
+    assertEquals("agent", ActionType.AGENT.toString());
+    assertEquals("/agent/weatherAgent", ActionType.AGENT.keyFromName("weatherAgent"));
+  }
+
+  @Test
+  void testAgentSnapshotType() {
+    assertEquals("agent-snapshot", ActionType.AGENT_SNAPSHOT.getValue());
+    assertEquals("agent-snapshot", ActionType.AGENT_SNAPSHOT.toString());
+    assertEquals("/agent-snapshot/x", ActionType.AGENT_SNAPSHOT.keyFromName("x"));
+  }
+
+  @Test
+  void testAgentAbortType() {
+    assertEquals("agent-abort", ActionType.AGENT_ABORT.getValue());
+    assertEquals("agent-abort", ActionType.AGENT_ABORT.toString());
+    assertEquals("/agent-abort/x", ActionType.AGENT_ABORT.keyFromName("x"));
+  }
+
+  @Test
+  void testAgentTypeFromValue() {
+    assertEquals(ActionType.AGENT, ActionType.fromValue("agent"));
+    assertEquals(ActionType.AGENT_SNAPSHOT, ActionType.fromValue("agent-snapshot"));
+    assertEquals(ActionType.AGENT_ABORT, ActionType.fromValue("agent-abort"));
+  }
 }

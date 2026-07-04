@@ -45,6 +45,16 @@
             <artifactId>genkit</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.genkit</groupId>
+            <artifactId>genkit-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.genkit</groupId>
+            <artifactId>genkit-ai</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- AWS SDK for signing requests -->
         <dependency>
@@ -52,16 +62,23 @@
             <artifactId>auth</artifactId>
             <version>${aws.sdk.version}</version>
         </dependency>
-        
+
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>http-client-spi</artifactId>
             <version>${aws.sdk.version}</version>
         </dependency>
-        
+
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>regions</artifactId>
+            <version>${aws.sdk.version}</version>
+        </dependency>
+
+        <!-- DynamoDB (agent session persistence) -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>dynamodb</artifactId>
             <version>${aws.sdk.version}</version>
         </dependency>
 

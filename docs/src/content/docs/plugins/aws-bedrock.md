@@ -57,6 +57,20 @@ ModelResponse response = genkit.generate(
 - INFERENCE_PROFILE support for advanced models
 - Text generation, streaming, tool calling
 
+## Session store
+
+The plugin also ships `DynamoDbSessionStore`, a DynamoDB-backed agent session store. Construct it and pass it to an agent's `.store(...)` to persist server-managed sessions in DynamoDB:
+
+```java
+import com.google.genkit.plugins.awsbedrock.session.DynamoDbSessionStore;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+
+DynamoDbSessionStore<Map<String, Object>> store =
+    new DynamoDbSessionStore<>(DynamoDbClient.create());
+```
+
+See [Session Stores](../../agents/session-stores#dynamodbsessionstore) for options and the agents-dynamodb-session sample.
+
 ## Sample
 
 See the [aws-bedrock sample](https://github.com/genkit-ai/genkit-java/tree/main/samples/aws-bedrock).

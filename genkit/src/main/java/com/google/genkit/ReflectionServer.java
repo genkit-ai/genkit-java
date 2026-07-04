@@ -24,6 +24,8 @@ import com.google.genkit.core.Action;
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.ActionDesc;
 import com.google.genkit.core.ActionRunResult;
+import com.google.genkit.core.BidiAction;
+import com.google.genkit.core.BufferedInputSource;
 import com.google.genkit.core.GenkitException;
 import com.google.genkit.core.JsonUtils;
 import com.google.genkit.core.Registry;
@@ -543,9 +545,11 @@ public class ReflectionServer {
         throw new GenkitException("Action not found: " + key);
       }
 
-      ActionContext context = new ActionContext(registry);
+      ActionContext context =
+          ActionContext.builder().registry(registry).context(parseContext(requestNode)).build();
+      JsonNode init = requestNode.has("init") ? requestNode.get("init") : null;
 
-      ActionRunResult<JsonNode> result = action.runJsonWithTelemetry(context, input, null);
+      ActionRunResult<JsonNode> result = runActionWithInit(action, context, input, init, null);
 
       // Build response according to Genkit reflection API spec:
       // { result: ..., telemetry: { traceId: "..." } }
@@ -605,6 +609,56 @@ public class ReflectionServer {
     }
 
     /**
+     * Runs an action, threading the optional {@code init} (session source) for agent (bidi)
+     * actions. The Dev UI sends {@code init} on each agent turn — client-managed {@code state} or
+     * server {@code snapshotId} — which a plain unary run would drop, breaking multi-turn chat.
+     * Bidi actions are therefore driven one-turn-per-request with the init; non-bidi actions use
+     * the existing unary path unchanged.
+     */
+    /**
+     * Parses the optional {@code context} object from a runAction request body into a {@code
+     * Map<String,Object>} using the shared ObjectMapper. The Dev UI "Execution context" panel sends
+     * this (e.g. {@code {"auth": {"user": "alice"}}}); it is threaded into the run's ActionContext.
+     *
+     * @param requestNode the parsed request body
+     * @return the parsed context map, or null if absent/blank
+     */
+    private Map<String, Object> parseContext(JsonNode requestNode) {
+      if (requestNode == null
+          || !requestNode.has("context")
+          || requestNode.get("context").isNull()) {
+        return null;
+      }
+      JsonNode contextNode = requestNode.get("context");
+      if (!contextNode.isObject()) {
+        return null;
+      }
+      return JsonUtils.getObjectMapper()
+          .convertValue(
+              contextNode,
+              new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
+    }
+
+    private ActionRunResult<JsonNode> runActionWithInit(
+        Action<?, ?, ?> action,
+        ActionContext context,
+        JsonNode input,
+        JsonNode init,
+        java.util.function.Consumer<JsonNode> streamCallback)
+        throws GenkitException {
+      if (action instanceof BidiAction) {
+        BufferedInputSource<JsonNode> inputs = new BufferedInputSource<>();
+        if (input != null) {
+          inputs.offer(input);
+        }
+        inputs.end();
+        return ((BidiAction<?, ?, ?, ?>) action)
+            .runBidiJsonWithTelemetry(context, init, inputs, streamCallback);
+      }
+      return action.runJsonWithTelemetry(context, input, streamCallback);
+    }
+
+    /**
      * Handle runAction with streaming format (when ?stream=true is set). The Dev UI expects: 1.
      * Content-Type: text/plain with Content-Length 2. X-Genkit-Trace-Id and X-Genkit-Version
      * headers 3. JSON response with result and telemetry
@@ -624,8 +678,10 @@ public class ReflectionServer {
         throw new GenkitException("Action not found: " + actionKey);
       }
 
-      ActionContext context = new ActionContext(registry);
-      ActionRunResult<JsonNode> result = action.runJsonWithTelemetry(context, input, null);
+      ActionContext context =
+          ActionContext.builder().registry(registry).context(parseContext(requestNode)).build();
+      JsonNode init = requestNode.has("init") ? requestNode.get("init") : null;
+      ActionRunResult<JsonNode> result = runActionWithInit(action, context, input, init, null);
 
       // Build the final response with result and telemetry
       Map<String, Object> responseData = new HashMap<>();

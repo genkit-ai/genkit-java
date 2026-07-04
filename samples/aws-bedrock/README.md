@@ -126,7 +126,7 @@ curl -X POST http://localhost:8080/streamingDemo \
 This sample uses:
 
 - `amazon.nova-pro-v1:0` - Amazon Nova Pro (multimodal)
-- `anthropic.claude-3-5-sonnet-20241022-v2:0` - Claude 3.5 Sonnet
+- `us.anthropic.claude-sonnet-5` - Claude Sonnet 5 (US inference profile)
 - `meta.llama3-3-70b-instruct-v1:0` - Llama 3.3 70B
 
 See the plugin README for the full list of supported models.

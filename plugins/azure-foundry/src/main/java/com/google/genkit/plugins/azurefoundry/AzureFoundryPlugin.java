@@ -93,6 +93,14 @@ public class AzureFoundryPlugin implements Plugin {
     CompatOAIPluginOptions.Builder compatBuilder =
         CompatOAIPluginOptions.builder().baseUrl(buildBaseUrl(options));
 
+    // Pass api-version as a real query parameter so compat-oai appends it AFTER the
+    // /chat/completions path. Baking it into the base URL string (as buildBaseUrl used to) corrupts
+    // the request URL for non-Azure-OpenAI hosts, e.g. AI Foundry v1 endpoints on
+    // services.ai.azure.com.
+    if (options.getApiVersion() != null) {
+      compatBuilder.queryParams(java.util.Map.of("api-version", options.getApiVersion()));
+    }
+
     // Handle authentication
     if (options.getApiKey() != null) {
       compatBuilder.apiKey(options.getApiKey());
@@ -154,8 +162,8 @@ public class AzureFoundryPlugin implements Plugin {
         options.getEndpoint().contains("openai.azure.com")
             || options.getEndpoint().contains("cognitiveservices.azure.com");
 
-    if (!options.getEndpoint().contains("/inference")
-        && !options.getEndpoint().contains("/openai")) {
+    String path = endpointPath(options.getEndpoint());
+    if (!path.contains("inference") && !path.contains("openai")) {
       if (isAzureOpenAI) {
         // Azure OpenAI Service uses /openai/deployments/{deployment}/ path
         // The deployment name will be added by the model, so we just set the base
@@ -166,12 +174,25 @@ public class AzureFoundryPlugin implements Plugin {
       }
     }
 
-    // Add API version as query parameter
-    if (options.getApiVersion() != null) {
-      url.append("?api-version=").append(options.getApiVersion());
-    }
-
+    // NOTE: api-version is NOT appended here — it is added as a query parameter by the caller so it
+    // lands after the /chat/completions path segment (see the constructor and
+    // buildAzureOpenAIOptions).
     return url.toString();
+  }
+
+  /**
+   * Returns the path component of an endpoint URL (empty string when there is none or it can't be
+   * parsed). Used to detect whether the endpoint already carries the {@code /openai} or {@code
+   * /inference} path, without being fooled by hostnames that contain those words (e.g. a resource
+   * named {@code openai-foo}).
+   */
+  private static String endpointPath(String endpoint) {
+    try {
+      String p = java.net.URI.create(endpoint).getPath();
+      return p == null ? "" : p;
+    } catch (RuntimeException e) {
+      return "";
+    }
   }
 
   /**
@@ -184,8 +205,11 @@ public class AzureFoundryPlugin implements Plugin {
       url.append("/");
     }
 
-    // Azure OpenAI path: /openai/deployments/{deployment-id}
-    if (!options.getEndpoint().contains("/openai")) {
+    // Azure OpenAI path: /openai/deployments/{deployment-id}. Inspect the URL *path* (not the whole
+    // endpoint) so a resource whose host contains "openai" (e.g.
+    // https://openai-foo.openai.azure.com) isn't mistaken for an endpoint that already includes the
+    // /openai path.
+    if (!endpointPath(options.getEndpoint()).contains("openai")) {
       url.append("openai/deployments/").append(deploymentName);
     }
 

@@ -129,9 +129,6 @@ public class Tool<I, O> implements Action<I, O, Void> {
           try {
             O result = handler.apply(ctx.withSpanContext(spanCtx), in);
             return result;
-          } catch (AgentHandoffException e) {
-            // Re-throw agent handoff exceptions for multi-agent pattern
-            throw e;
           } catch (ToolInterruptException e) {
             // Re-throw interrupt exceptions for human-in-the-loop pattern
             throw e;

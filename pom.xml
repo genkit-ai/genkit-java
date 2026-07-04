@@ -84,6 +84,7 @@
         <module>plugins/localvec</module>
         <module>plugins/mcp</module>
         <module>plugins/firebase</module>
+        <module>plugins/middleware</module>
         <module>plugins/weaviate</module>
         <module>plugins/postgresql</module>
         <module>plugins/pinecone</module>
@@ -106,9 +107,15 @@
         <module>samples/middleware</module>
         <module>samples/middleware-v2</module>
         <module>samples/mcp</module>
-        <module>samples/chat-session</module>
-        <module>samples/multi-agent</module>
         <module>samples/interrupts</module>
+        <module>samples/agents-weather</module>
+        <module>samples/agents-orchestrator</module>
+        <module>samples/agents-stateless</module>
+        <module>samples/agents-remote</module>
+        <module>samples/agents-human-in-the-loop</module>
+        <module>samples/agents-firestore-session</module>
+        <module>samples/agents-dynamodb-session</module>
+        <module>samples/agents-cosmos-session</module>
         <module>samples/spring</module>
         <module>samples/firebase</module>
         <module>samples/weaviate</module>
@@ -135,6 +142,10 @@
         <logback.version>1.5.37</logback.version>
         <jetty.version>12.1.6</jetty.version>
         <opentelemetry.version>1.63.0</opentelemetry.version>
+        <!-- Shared google-cloud libs converged so the firebase (Firestore) and google-genai
+             plugins can coexist on one classpath (see dependencyManagement note below). -->
+        <protobuf.version>4.33.2</protobuf.version>
+        <google-auth.version>1.48.0</google-auth.version>
         <junit.version>6.1.1</junit.version>
         <mockito.version>5.23.0</mockito.version>
         <jsonschema.version>4.38.0</jsonschema.version>
@@ -183,6 +194,11 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.datatype</groupId>
                 <artifactId>jackson-datatype-jsr310</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.dataformat</groupId>
+                <artifactId>jackson-dataformat-yaml</artifactId>
                 <version>${jackson.version}</version>
             </dependency>
 
@@ -308,6 +324,31 @@
                 <artifactId>mockwebserver3</artifactId>
                 <version>${okhttp.version}</version>
                 <scope>test</scope>
+            </dependency>
+
+            <!--
+              Converge the ABI-critical google-cloud shared libraries. The google-genai SDK pins
+              older protobuf-java (3.25.x) and google-auth-library (1.33.x) than google-cloud-firestore
+              (used by the firebase plugin's session store + retriever) requires. When both are on one
+              classpath, Maven's nearest-wins picks google-genai's older versions, so Firestore's
+              runtime references classes that are missing (com.google.protobuf.RuntimeVersion,
+              com.google.auth.mtls.*) and fails with NoClassDefFoundError. Pinning the versions
+              Firestore needs here fixes it reactor-wide (they are backward-compatible for google-genai).
+            -->
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>${protobuf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.auth</groupId>
+                <artifactId>google-auth-library-oauth2-http</artifactId>
+                <version>${google-auth.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.auth</groupId>
+                <artifactId>google-auth-library-credentials</artifactId>
+                <version>${google-auth.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
