@@ -21,7 +21,6 @@ package com.google.genkit;
 import com.google.genkit.ai.*;
 import com.google.genkit.ai.evaluation.*;
 import com.google.genkit.ai.middleware.*;
-import com.google.genkit.ai.session.*;
 import com.google.genkit.ai.telemetry.ModelTelemetryHelper;
 import com.google.genkit.core.*;
 import com.google.genkit.core.middleware.Middleware;
@@ -32,7 +31,6 @@ import com.google.genkit.prompt.ExecutablePrompt;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -53,7 +51,6 @@ public class Genkit {
   private final List<Plugin> plugins;
   private final GenkitOptions options;
   private final Map<String, DotPrompt<?>> promptCache;
-  private final Map<String, Agent> agentRegistry;
   private ReflectionServer reflectionServer;
   private ReflectionServerV2 reflectionServerV2;
   private EvaluationManager evaluationManager;
@@ -73,7 +70,6 @@ public class Genkit {
     this.registry = new DefaultRegistry();
     this.plugins = new ArrayList<>();
     this.promptCache = new ConcurrentHashMap<>();
-    this.agentRegistry = new ConcurrentHashMap<>();
   }
 
   /**
@@ -674,7 +670,12 @@ public class Genkit {
   private ModelResponse generateInternal(
       GenerateOptions<?> options, java.util.function.Consumer<ModelResponseChunk> streamCallback)
       throws GenkitException {
-    ActionContext ctx = new ActionContext(registry);
+    // Thread the caller-supplied user context (e.g. {"auth": {...}}) into the ActionContext used
+    // to execute tools during this generate. Tools therefore observe ctx.getContext() ==
+    // options.getContext(). This is additional to (and independent of) the model-grounding use of
+    // options.getContext() at generateObject.
+    ActionContext ctx =
+        ActionContext.builder().registry(registry).context(options.getContext()).build();
 
     int maxTurns = options.getMaxTurns() != null ? options.getMaxTurns() : 5;
 
@@ -713,6 +714,13 @@ public class Genkit {
     // Use an array to hold the reference for recursive WrapGenerate wrapping
     final GenerateNext[] generateRef = new GenerateNext[1];
 
+    // Streaming role/message-index tracking (mirrors Go's wrappedCb in generate.go:337-357 and JS
+    // makeChunk in action.ts:303-334). Model chunks default to role=model; the message index bumps
+    // whenever the streamed role transitions (e.g. model → tool). These are shared across the whole
+    // tool loop so indices stay monotonic across turns.
+    final Role[] streamCurrentRole = {Role.MODEL};
+    final int[] streamCurrentIndex = {0};
+
     // Core generate iteration: resolve options → model call → tool handling → recurse
     GenerateNext rawGenerate =
         (actx, params) -> {
@@ -736,11 +744,19 @@ public class Genkit {
             List<ToolRequest> restarts = new java.util.ArrayList<>(pendingRestarts);
             pendingRestarts.clear();
 
-            // Convert restart requests to tool request parts for middleware execution
-            List<Part> restartParts =
-                restarts.stream()
-                    .map(Part::toolRequest)
-                    .collect(java.util.stream.Collectors.toList());
+            // Convert restart requests to tool request parts for middleware execution, PRESERVING
+            // the request's Part-level metadata (resumed / replacedInput) so the restarted tool
+            // can observe its resumed status via ActionContext.isResumed()/getResumed() (mirrors
+            // Go handleResumedToolRequest → ToolContext.Resumed). The restart directive's metadata
+            // travels on the ToolRequest itself (set by GenkitBeta.toResumeOptions).
+            List<Part> restartParts = new java.util.ArrayList<>();
+            for (ToolRequest restart : restarts) {
+              Part restartPart = Part.toolRequest(restart);
+              if (restart.getMetadata() != null && !restart.getMetadata().isEmpty()) {
+                restartPart.setMetadata(new java.util.HashMap<>(restart.getMetadata()));
+              }
+              restartParts.add(restartPart);
+            }
 
             // Execute through WrapTool chain (fires wrapTool hooks)
             ToolExecutionResult toolResult =
@@ -795,6 +811,16 @@ public class Genkit {
             // Recurse through WrapGenerate hooks for the next turn (propagate onChunk)
             GenerateActionOptions nextOpts = opts.withMessages(updatedMessages);
             int nextMsgIdx = params.getMessageIndex() + 1;
+
+            // Stream the resumed tool-response message as a chunk before recursing (mirrors Go
+            // generate.go:232-241 and JS action.ts:324-327).
+            emitToolResponseChunk(
+                params.getOnChunk(),
+                toolResult.getResponses(),
+                nextMsgIdx,
+                streamCurrentRole,
+                streamCurrentIndex);
+
             return generateRef[0].apply(
                 actx, new GenerateParams(nextOpts, turn + 1, nextMsgIdx, params.getOnChunk()));
           }
@@ -804,8 +830,29 @@ public class Genkit {
           ModelNext wrappedModelCall =
               buildWrappedModelCall(model, opts.getModel(), actx, middlewares);
 
-          // Call model through WrapModel chain (propagate streaming callback from GenerateParams)
-          ModelParams mparams = new ModelParams(req, params.getOnChunk());
+          // Call model through WrapModel chain (propagate streaming callback from GenerateParams).
+          // Wrap the callback so model chunks carry role=model and a monotonic message index,
+          // bumping the index on any role transition (mirrors Go generate.go:337-357).
+          final java.util.function.Consumer<ModelResponseChunk> rawOnChunk = params.getOnChunk();
+          java.util.function.Consumer<ModelResponseChunk> wrappedOnChunk = null;
+          if (rawOnChunk != null) {
+            streamCurrentIndex[0] = params.getMessageIndex();
+            streamCurrentRole[0] = Role.MODEL;
+            wrappedOnChunk =
+                chunk -> {
+                  Role chunkRole = chunk.getRole();
+                  if (chunkRole != null && chunkRole != streamCurrentRole[0]) {
+                    streamCurrentIndex[0]++;
+                    streamCurrentRole[0] = chunkRole;
+                  }
+                  chunk.setIndex(streamCurrentIndex[0]);
+                  if (chunk.getRole() == null) {
+                    chunk.setRole(Role.MODEL);
+                  }
+                  rawOnChunk.accept(chunk);
+                };
+          }
+          ModelParams mparams = new ModelParams(req, wrappedOnChunk);
           ModelResponse response = wrappedModelCall.apply(actx, mparams);
 
           // Check if the model requested tool calls
@@ -840,6 +887,17 @@ public class Genkit {
 
           // Recurse through the wrapped generate function (goes through WrapGenerate hooks)
           int nextMsgIdx = params.getMessageIndex() + 1;
+
+          // Stream the tool-response message as a chunk before recursing (mirrors Go
+          // generate.go:865-874 and JS action.ts:420-425). The chunk carries role=tool, the tool
+          // response parts, and the incremented message index.
+          emitToolResponseChunk(
+              params.getOnChunk(),
+              toolResult.getResponses(),
+              nextMsgIdx,
+              streamCurrentRole,
+              streamCurrentIndex);
+
           return generateRef[0].apply(
               actx, new GenerateParams(nextOpts, turn + 1, nextMsgIdx, params.getOnChunk()));
         };
@@ -849,6 +907,30 @@ public class Genkit {
 
     // Start generation with high-level options (messageIndex starts at 0, propagate streamCallback)
     return generateRef[0].apply(ctx, new GenerateParams(actionOpts, 0, 0, streamCallback));
+  }
+
+  /**
+   * Emits the tool-response message as a streaming chunk before the generate loop recurses into the
+   * next model turn (mirrors Go {@code generate.go} and JS {@code action.ts}: the tool message is
+   * streamed as a {@code role: tool} chunk at the incremented message index). No-op when {@code
+   * onChunk} is null or there are no responses. Advances the shared streaming role/index trackers
+   * so a subsequent model chunk bumps the index correctly.
+   */
+  private static void emitToolResponseChunk(
+      java.util.function.Consumer<ModelResponseChunk> onChunk,
+      List<Part> toolResponseParts,
+      int messageIndex,
+      Role[] streamCurrentRole,
+      int[] streamCurrentIndex) {
+    if (onChunk == null || toolResponseParts == null || toolResponseParts.isEmpty()) {
+      return;
+    }
+    ModelResponseChunk chunk = new ModelResponseChunk(toolResponseParts);
+    chunk.setRole(Role.TOOL);
+    chunk.setIndex(messageIndex);
+    streamCurrentRole[0] = Role.TOOL;
+    streamCurrentIndex[0] = messageIndex;
+    onChunk.accept(chunk);
   }
 
   /** Creates fresh middleware instances for a single generate invocation. */
@@ -1117,9 +1199,24 @@ public class Genkit {
       }
 
       try {
-        // Execute through WrapTool chain
+        // Execute through WrapTool chain. When this tool request is a RESTART (its Part carries
+        // `resumed` metadata attached by Tool.restart(...) / GenkitBeta.toResumeOptions), thread
+        // the
+        // resumed value and original input into the ActionContext so a restart-aware tool handler
+        // can observe ctx.isResumed()/getResumed()/getOriginalInput() (mirrors Go's
+        // handleResumedToolRequest → ToolContext.Resumed and JS ToolRunOptions.resumed).
+        ActionContext toolCtx = ctx;
+        Map<String, Object> partMeta = toolRequestPart.getMetadata();
+        if (partMeta != null && partMeta.containsKey("resumed")) {
+          Object resumedValue = partMeta.get("resumed");
+          Object originalInput =
+              partMeta.containsKey("replacedInput")
+                  ? partMeta.get("replacedInput")
+                  : toolRequest.getInput();
+          toolCtx = ctx.withResumed(resumedValue, originalInput);
+        }
         ToolParams tparams = new ToolParams(toolRequestPart, tool);
-        Part responsePart = wrappedToolCall.apply(ctx, tparams);
+        Part responsePart = wrappedToolCall.apply(toolCtx, tparams);
 
         responseParts.add(responsePart);
 
@@ -1907,6 +2004,40 @@ public class Genkit {
   }
 
   /**
+   * Returns the beta (experimental) API surface for this Genkit instance.
+   *
+   * <p>The beta API exposes experimental features such as the {@code defineAgent}, {@code
+   * definePromptAgent}, and {@code defineCustomAgent} bidi agent actions. These methods are gated
+   * behind the {@code experimental} flag (see {@link GenkitOptions.Builder#experimental} or the
+   * {@code GENKIT_EXPERIMENTAL} environment variable) and throw a {@link GenkitException} if it is
+   * not enabled.
+   *
+   * <pre>{@code
+   * Genkit ai = new Genkit(GenkitOptions.builder().experimental(true).build());
+   * Agent<MyState> agent = ai.beta().defineAgent(
+   *     AgentConfig.<MyState>builder()
+   *         .name("helper")
+   *         .system("You are helpful.")
+   *         .model("googleai/gemini-2.0-flash")
+   *         .build());
+   * }</pre>
+   *
+   * @return the beta API surface
+   */
+  public GenkitBeta beta() {
+    return new GenkitBeta(this);
+  }
+
+  /**
+   * Returns whether experimental features are enabled for this instance.
+   *
+   * @return true if experimental features are enabled
+   */
+  public boolean isExperimental() {
+    return options.isExperimental();
+  }
+
+  /**
    * Gets the registered plugins.
    *
    * @return the plugins
@@ -1972,200 +2103,8 @@ public class Genkit {
   }
 
   // =========================================================================
-  // Session Methods
+  // Interrupt Methods
   // =========================================================================
-
-  /**
-   * Creates a new session with default options.
-   *
-   * <p>Sessions provide stateful multi-turn conversations with automatic history persistence. Each
-   * session can have multiple named conversation threads.
-   *
-   * <p>Example usage:
-   *
-   * <pre>{@code
-   * Session<Void> session = genkit.createSession();
-   * Chat<Void> chat = session.chat(
-   *     ChatOptions.<Void>builder()
-   *         .model("openai/gpt-4o")
-   *         .system("You are a helpful assistant.")
-   *         .build());
-   * chat.send("Hello!");
-   * }</pre>
-   *
-   * @param <S> the session state type
-   * @return a new session
-   */
-  public <S> Session<S> createSession() {
-    return Session.create(registry, SessionOptions.<S>builder().build(), agentRegistry);
-  }
-
-  /**
-   * Creates a new session with the given options.
-   *
-   * <p>Example usage:
-   *
-   * <pre>{@code
-   * // With custom state
-   * Session<MyState> session = genkit.createSession(
-   *     SessionOptions.<MyState>builder().initialState(new MyState("John")).build());
-   *
-   * // With custom store and session ID
-   * Session<MyState> session = genkit.createSession(
-   *     SessionOptions.<MyState>builder()
-   *         .store(new RedisSessionStore<>())
-   *         .sessionId("my-session-123")
-   *         .initialState(new MyState())
-   *         .build());
-   * }</pre>
-   *
-   * @param <S> the session state type
-   * @param options the session options
-   * @return a new session
-   */
-  public <S> Session<S> createSession(SessionOptions<S> options) {
-    return Session.create(registry, options, agentRegistry);
-  }
-
-  /**
-   * Loads an existing session from a store.
-   *
-   * <p>Example usage:
-   *
-   * <pre>{@code
-   * CompletableFuture<Session<MyState>> sessionFuture = genkit.loadSession(
-   *     "session-123",
-   *     SessionOptions.<MyState>builder().store(mySessionStore).build());
-   * Session<MyState> session = sessionFuture.get();
-   * if (session != null) {
-   *   Chat<MyState> chat = session.chat();
-   *   // Continue conversation...
-   * }
-   * }</pre>
-   *
-   * @param <S> the session state type
-   * @param sessionId the session ID to load
-   * @param options the session options (must include store)
-   * @return a CompletableFuture containing the session, or null if not found
-   */
-  public <S> CompletableFuture<Session<S>> loadSession(
-      String sessionId, SessionOptions<S> options) {
-    return Session.load(registry, sessionId, options, agentRegistry);
-  }
-
-  /**
-   * Creates a simple chat without session persistence.
-   *
-   * <p>This is a convenience method for quick interactions without full session management. Use
-   * {@link #createSession()} for persistent multi-turn conversations.
-   *
-   * <p>Example usage:
-   *
-   * <pre>{@code
-   * Chat<Void> chat = genkit.chat(
-   *     ChatOptions.<Void>builder()
-   *         .model("openai/gpt-4o")
-   *         .system("You are a helpful assistant.")
-   *         .build());
-   * ModelResponse response = chat.send("Hello!");
-   * }</pre>
-   *
-   * @param <S> the state type (usually Void for simple chats)
-   * @param options the chat options
-   * @return a new chat instance
-   */
-  public <S> Chat<S> chat(ChatOptions<S> options) {
-    Session<S> session = createSession();
-    return session.chat(options);
-  }
-
-  // =========================================================================
-  // Agent and Interrupt Methods
-  // =========================================================================
-
-  /**
-   * Defines an agent that can be used as a tool in multi-agent systems.
-   *
-   * <p>Agents are specialized conversational components that can be delegated to by other agents.
-   * When an agent is called as a tool, it takes over the conversation with its own system prompt,
-   * model, and tools.
-   *
-   * <p>Example usage:
-   *
-   * <pre>{@code
-   * // Define a specialized agent
-   * Agent reservationAgent = genkit.defineAgent(
-   *     AgentConfig.builder()
-   *         .name("reservationAgent")
-   *         .description("Handles restaurant reservations")
-   *         .system("You are a reservation specialist...")
-   *         .model("openai/gpt-4o")
-   *         .tools(List.of(reservationTool, lookupTool))
-   *         .build());
-   *
-   * // Use in a parent agent
-   * Agent triageAgent = genkit.defineAgent(
-   *     AgentConfig.builder()
-   *         .name("triageAgent")
-   *         .description("Routes customer requests to specialists")
-   *         .system("You route customer requests to the appropriate specialist")
-   *         .agents(List.of(reservationAgent.getConfig()))
-   *         .build());
-   *
-   * // Start chat with triage agent
-   * Chat chat = genkit.chat(
-   *     ChatOptions.builder()
-   *         .model("openai/gpt-4o")
-   *         .system(triageAgent.getSystem())
-   *         .tools(triageAgent.getAllTools(agentRegistry))
-   *         .build());
-   * }</pre>
-   *
-   * @param config the agent configuration
-   * @return the created agent
-   */
-  public Agent defineAgent(AgentConfig config) {
-    Agent agent = new Agent(config);
-    // Register the agent as a tool
-    registry.registerAction(ActionType.TOOL, agent.asTool());
-    // Register in agent registry for getAllTools lookup
-    agentRegistry.put(config.getName(), agent);
-    return agent;
-  }
-
-  /**
-   * Gets an agent by name.
-   *
-   * @param name the agent name
-   * @return the agent, or null if not found
-   */
-  public Agent getAgent(String name) {
-    return agentRegistry.get(name);
-  }
-
-  /**
-   * Gets the agent registry.
-   *
-   * <p>This returns an unmodifiable view of all registered agents.
-   *
-   * @return the agent registry
-   */
-  public Map<String, Agent> getAgentRegistry() {
-    return java.util.Collections.unmodifiableMap(agentRegistry);
-  }
-
-  /**
-   * Gets all tools for an agent, including sub-agent tools.
-   *
-   * <p>This is a convenience method that collects all tools from an agent, including tools from any
-   * sub-agents defined in its configuration.
-   *
-   * @param agent the agent
-   * @return the list of all tools
-   */
-  public List<Tool<?, ?>> getAllToolsForAgent(Agent agent) {
-    return agent.getAllTools(agentRegistry);
-  }
 
   /**
    * Defines an interrupt tool for human-in-the-loop interactions.
@@ -2258,34 +2197,6 @@ public class Genkit {
     // Register the interrupt tool
     registry.registerAction(ActionType.TOOL, interruptTool);
     return interruptTool;
-  }
-
-  /**
-   * Gets the current session from the context.
-   *
-   * <p>This method can be called from within tool execution to access the current session state. It
-   * uses a thread-local context that is set during chat execution.
-   *
-   * <p>Example usage:
-   *
-   * <pre>{@code
-   * Tool<Input, Output> myTool = genkit
-   *     .defineTool("myTool", Input.class, Output.class, (ctx, input) -> {
-   *       Session<?> session = genkit.currentSession();
-   *       if (session != null) {
-   *         Object state = session.getState();
-   *         // Use session state...
-   *       }
-   *       return new Output();
-   *     });
-   * }</pre>
-   *
-   * @param <S> the session state type
-   * @return the current session, or null if not in a session context
-   */
-  @SuppressWarnings("unchecked")
-  public <S> Session<S> currentSession() {
-    return (Session<S>) SessionContext.currentSession();
   }
 
   // =========================================================================

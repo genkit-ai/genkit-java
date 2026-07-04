@@ -46,3 +46,17 @@ curl -X POST http://localhost:8080/api/flows/tellJoke \
   -H "Content-Type: application/json" \
   -d '{"data": "pirates"}'
 ```
+
+## Serving agents
+
+Any agent defined with `genkit.beta().defineAgent(...)` / `defineCustomAgent(...)` is mounted automatically — just define it before calling `jetty.start()`. Agents are served at the **root path** (`/<agentName>`), separate from flows' `/api/flows/...` base:
+
+```bash
+curl -X POST http://localhost:8080/echoAgent \
+  -H "Content-Type: application/json" \
+  -d '{"data":{"message":{"role":"user","content":[{"text":"Hello, agent!"}]}}}'
+```
+
+For server-managed agents (those configured with a `SessionStore`), the companion endpoints `POST /<agentName>/getSnapshot` and `POST /<agentName>/abort` are mounted too. Streaming turns are available via `Accept: text/event-stream` or `?stream=true`.
+
+The same Java client (`RemoteAgent` / `AgentChat`) works against a Jetty or Spring server unchanged. See [Serve over HTTP](../../agents/serve-over-http) for the full request/response contract, calling a served agent from Java, and how request headers reach your agent — and [Background Execution](../../agents/background-execution) for detached (background) turns.

@@ -76,7 +76,16 @@ public enum ActionType {
   CHECK_OPERATION("check-operation"),
 
   /** An action for cancelling operations. */
-  CANCEL_OPERATION("cancel-operation");
+  CANCEL_OPERATION("cancel-operation"),
+
+  /** An agent action representing a bidirectional agent interaction. */
+  AGENT("agent"),
+
+  /** An agent-snapshot action for capturing agent state. */
+  AGENT_SNAPSHOT("agent-snapshot"),
+
+  /** An agent-abort action for stopping agent execution. */
+  AGENT_ABORT("agent-abort");
 
   private final String value;
 

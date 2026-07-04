@@ -42,15 +42,14 @@ genkit start -- ./run.sh
 
 | Sample | Description |
 |--------|-------------|
+| **agents-weather** | Weather assistant agent demonstrating the beta Agents API (server-managed and client-managed sessions) |
 | **dotprompt** | DotPrompt files with complex inputs/outputs, variants, and partials |
 | **structured-output** | Type-safe structured output generation |
 | **rag** | RAG application with local vector store |
-| **chat-session** | Multi-turn chat with session persistence |
 | **evaluations** | Custom evaluators and evaluation workflows |
 | **evaluators-plugin** | Pre-built RAGAS-style evaluators plugin demo |
 | **complex-io** | Complex nested types, arrays, maps in flow inputs/outputs |
 | **middleware** | Middleware patterns for logging, caching, rate limiting |
-| **multi-agent** | Multi-agent orchestration patterns |
 | **interrupts** | Flow interrupts and human-in-the-loop patterns |
 | **mcp** | Model Context Protocol (MCP) integration |
 

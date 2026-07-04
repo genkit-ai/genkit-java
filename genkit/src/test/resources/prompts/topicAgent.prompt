@@ -1,0 +1,4 @@
+---
+model: echoModel
+---
+You are an expert on {{topic}}. Answer questions about {{topic}} for {{userName}}.

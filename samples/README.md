@@ -77,6 +77,10 @@ The Dev UI will be available at `http://localhost:4000` and allows you to:
 | [weaviate](./weaviate) | Weaviate vector database RAG sample | `OPENAI_API_KEY` |
 | [postgresql](./postgresql) | PostgreSQL pgvector RAG sample | `OPENAI_API_KEY` |
 | [pinecone](./pinecone) | Pinecone vector database RAG sample | `OPENAI_API_KEY` + `PINECONE_API_KEY` |
+| [agents-human-in-the-loop](./agents-human-in-the-loop) | Agent interrupts + human-in-the-loop resume | `GEMINI_API_KEY` |
+| [agents-firestore-session](./agents-firestore-session) | Agent session persistence backed by Firestore | `GEMINI_API_KEY` + Firestore |
+| [agents-dynamodb-session](./agents-dynamodb-session) | Agent session persistence backed by DynamoDB | AWS credentials + DynamoDB |
+| [agents-cosmos-session](./agents-cosmos-session) | Agent session persistence backed by Azure Cosmos DB | Azure credentials + Cosmos DB |
 
 ## Sample Details
 
@@ -411,6 +415,59 @@ cd java/samples/pinecone
 export OPENAI_API_KEY=your-key
 export PINECONE_API_KEY=your-key
 ./run.sh
+```
+
+### Agents Human-in-the-Loop Sample
+
+A banking assistant agent that pauses on a money transfer and waits for approval:
+- Interrupt tool via `genkit.defineInterrupt(...)`
+- Detecting `INTERRUPTED` turns and resolving them with `AgentChat.resume(...)`
+- Server-managed state via `FileSessionStore`
+
+```bash
+cd java/samples/agents-human-in-the-loop
+export GEMINI_API_KEY=your-key
+mvn -q exec:java   # CLI demo: prompts you to approve/reject the transfer
+```
+
+### Agents Firestore Session Sample
+
+A server-managed agent whose sessions are persisted in Firestore:
+- `FirestoreSessionStore` wired via `AgentConfig.store(...)`
+- Two-turn conversation, then reads the snapshot back from Firestore
+- Runs against the Firestore emulator or a real project
+
+```bash
+cd java/samples/agents-firestore-session
+export GEMINI_API_KEY=your-key
+export FIRESTORE_EMULATOR_HOST=localhost:8080   # or configure GCLOUD_PROJECT
+mvn -q exec:java -Dexec.args=demo   # or `./run.sh` to serve over HTTP
+```
+
+### Agents DynamoDB Session Sample
+
+A server-managed agent whose sessions are persisted in DynamoDB, using an AWS Bedrock model:
+- `DynamoDbSessionStore` wired via `AgentConfig.store(...)`
+- Runs against DynamoDB Local or real AWS
+
+```bash
+cd java/samples/agents-dynamodb-session
+export DYNAMODB_LOCAL_ENDPOINT=http://localhost:8000   # docker run -p 8000:8000 amazon/dynamodb-local
+export AWS_REGION=us-east-1
+mvn -q exec:java -Dexec.args=demo   # or `./run.sh` to serve over HTTP
+```
+
+### Agents Cosmos DB Session Sample
+
+A server-managed agent whose sessions are persisted in Azure Cosmos DB, using an Azure AI Foundry model:
+- `CosmosSessionStore` wired via `AgentConfig.store(...)`
+- Runs against the Cosmos DB emulator or a real account
+
+```bash
+cd java/samples/agents-cosmos-session
+export COSMOS_ENDPOINT=https://localhost:8081
+export COSMOS_KEY=your-key
+mvn -q exec:java -Dexec.args=demo   # or `./run.sh` to serve over HTTP
 ```
 
 ## Building All Samples

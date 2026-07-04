@@ -77,6 +77,15 @@ public class AwsBedrockPlugin implements Plugin {
           "anthropic.claude-haiku-4-5-20251001-v1:0",
           "anthropic.claude-opus-4-1-20250805-v1:0",
           "anthropic.claude-opus-4-5-20251101-v1:0",
+          // Anthropic Claude 4.6+ / 5 models (INFERENCE_PROFILE; short-form IDs).
+          // In regions without in-region support, use the geo inference profile id instead,
+          // e.g. "aws-bedrock/us.anthropic.claude-opus-4-8".
+          "anthropic.claude-sonnet-5",
+          "anthropic.claude-fable-5",
+          "anthropic.claude-opus-4-8",
+          "anthropic.claude-opus-4-7",
+          "anthropic.claude-opus-4-6-v1",
+          "anthropic.claude-sonnet-4-6",
           // Anthropic Claude 3.x models
           "anthropic.claude-3-7-sonnet-20250219-v1:0",
           "anthropic.claude-3-5-sonnet-20241022-v2:0",

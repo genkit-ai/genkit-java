@@ -22,6 +22,7 @@ package com.google.genkit;
 public class GenkitOptions {
 
   private final boolean devMode;
+  private final boolean experimental;
   private final int reflectionPort;
   private final String projectRoot;
   private final String promptDir;
@@ -29,6 +30,7 @@ public class GenkitOptions {
 
   private GenkitOptions(Builder builder) {
     this.devMode = builder.devMode;
+    this.experimental = builder.experimental;
     this.reflectionPort = builder.reflectionPort;
     this.projectRoot = builder.projectRoot;
     this.promptDir = builder.promptDir;
@@ -51,6 +53,15 @@ public class GenkitOptions {
    */
   public boolean isDevMode() {
     return devMode;
+  }
+
+  /**
+   * Returns whether experimental features (such as the beta agent APIs) are enabled.
+   *
+   * @return true if experimental features are enabled
+   */
+  public boolean isExperimental() {
+    return experimental;
   }
 
   /**
@@ -93,6 +104,7 @@ public class GenkitOptions {
   /** Builder for GenkitOptions. */
   public static class Builder {
     private boolean devMode = isDevModeFromEnv();
+    private boolean experimental = isExperimentalFromEnv();
     private int reflectionPort = getReflectionPortFromEnv();
     private String projectRoot = System.getProperty("user.dir");
     private String promptDir = "/prompts";
@@ -100,6 +112,11 @@ public class GenkitOptions {
 
     private static boolean isDevModeFromEnv() {
       return "dev".equalsIgnoreCase(System.getenv("GENKIT_ENV"));
+    }
+
+    private static boolean isExperimentalFromEnv() {
+      String value = System.getenv("GENKIT_EXPERIMENTAL");
+      return "true".equalsIgnoreCase(value) || "1".equals(value);
     }
 
     private static int getReflectionPortFromEnv() {
@@ -116,6 +133,11 @@ public class GenkitOptions {
 
     public Builder devMode(boolean devMode) {
       this.devMode = devMode;
+      return this;
+    }
+
+    public Builder experimental(boolean experimental) {
+      this.experimental = experimental;
       return this;
     }
 
