@@ -59,6 +59,12 @@ Logs tool execution name and duration. Stateless — `newInstance()` returns `th
 ### 4. FullObservabilityMiddleware (All 3 hooks)
 A single middleware that implements all three hooks, showing how one middleware can observe the entire pipeline with per-invocation counters.
 
+### 5. TaggedLoggingMiddleware (parameterized, shared via a plugin)
+A **parameterized** middleware with a `tag` and `logResponseLength` config. It is shared through the sample's own `SampleMiddlewarePlugin` (a `MiddlewarePlugin`), so it appears in the Dev UI Middleware panel **with a parameters form**.
+
+### Built-in plugin middleware (`GenerationMiddlewarePlugin`)
+The sample also adds `GenerationMiddlewarePlugin.create()`, which contributes three ready-to-use, parameterized middleware — `retry`, `fallback`, and `simulateSystemPrompt` — the Java equivalent of the JS `@genkit-ai/middleware` package. The `v2-resilient` flow uses `retry` (imported from the plugin) programmatically.
+
 ## Available Endpoints
 
 | Endpoint | Description | Middleware |
@@ -67,6 +73,7 @@ A single middleware that implements all three hooks, showing how one middleware 
 | `/v2-observable` | AI chat | Full observability (all 3 hooks) |
 | `/v2-stacked` | AI chat | Three separate middleware stacked |
 | `/v2-baseline` | AI chat | No middleware (baseline) |
+| `/v2-resilient` | AI chat | `retry` (imported from the middleware plugin, configured in code) |
 
 ## Example Requests
 
@@ -129,6 +136,36 @@ ModelResponse response = genkit.generate(
         .use(new MyMiddleware())
         .build());
 ```
+
+## Using middleware from the Dev UI
+
+Register middleware with the `Genkit` builder so they appear in the Dev UI **Middleware** panel:
+
+```java
+Genkit genkit = Genkit.builder()
+    .plugin(OpenAIPlugin.create())
+    .middleware(new MyMiddleware(), new AnotherMiddleware())
+    .build();
+```
+
+In the Dev UI, open the Middleware panel, tick one or more middlewares, then run any model from the **Models** runner. The Dev UI sends the selected middleware in the `use` field of the `/util/generate` action as `{ "name": ..., "config": ... }` entries, which the runtime resolves from the registry and dispatches through the full `wrapGenerate` / `wrapModel` / `wrapTool` chain — middleware logs will appear in the server console.
+
+`.middleware(...)` only controls Dev UI visibility; programmatic `GenerateOptions.builder().use(...)` calls do not require registration.
+
+### Sharing middleware as a plugin (with parameters)
+
+To share reusable, **parameterized** middleware the JS/Go way, implement `MiddlewarePlugin` and return descriptors built with `GenerationMiddlewares.define(...)`. This sample does exactly that with `SampleMiddlewarePlugin` (providing the parameterized `tagged-logging`), and also adds the built-in `GenerationMiddlewarePlugin`:
+
+```java
+Genkit genkit = Genkit.builder()
+    .plugin(OpenAIPlugin.create())
+    .plugin(GenerationMiddlewarePlugin.create())   // retry, fallback, simulateSystemPrompt
+    .plugin(new SampleMiddlewarePlugin())          // this sample's tagged-logging
+    .middleware(modelLogging, generateTiming, ...) // ad-hoc, parameterless
+    .build();
+```
+
+Middleware defined with a config type expose a **parameters form** in the Dev UI panel. When you fill it in and run a model, the values arrive as `use: [{ "name": "tagged-logging", "config": { "tag": "demo", "logResponseLength": true } }]` and are bound to a fresh middleware instance before it runs.
 
 ## Architecture
 

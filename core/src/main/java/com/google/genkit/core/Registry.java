@@ -72,13 +72,27 @@ public interface Registry {
   void registerAction(String key, Action<?, ?, ?> action);
 
   /**
-   * Records an arbitrary value in the registry.
+   * Records an arbitrary value in the registry under the default type bucket.
    *
    * @param name the value name
    * @param value the value to register
    * @throws IllegalStateException if a value with the same name is already registered
    */
   void registerValue(String name, Object value);
+
+  /**
+   * Records an arbitrary value in the registry under the given type bucket.
+   *
+   * <p>This mirrors the JS reflection API which keys values by {@code (type, name)} (e.g. {@code
+   * type="middleware"}, {@code type="defaultModel"}). Values registered here are exposed via the
+   * {@code /api/values?type=...} reflection endpoint and surfaced in the Genkit Dev UI.
+   *
+   * @param type the value type bucket (e.g. {@code "middleware"})
+   * @param name the value name
+   * @param value the value to register
+   * @throws IllegalStateException if a value with the same (type, name) is already registered
+   */
+  void registerValue(String type, String name, Object value);
 
   /**
    * Records a JSON schema in the registry.
@@ -126,6 +140,16 @@ public interface Registry {
    * @return the value, or null if not found
    */
   Object lookupValue(String name);
+
+  /**
+   * Returns the value for the given type bucket and name. It first checks the current registry,
+   * then falls back to the parent if not found.
+   *
+   * @param type the value type bucket (e.g. {@code "middleware"})
+   * @param name the value name
+   * @return the value, or null if not found
+   */
+  Object lookupValue(String type, String name);
 
   /**
    * Returns a JSON schema for the given name. It first checks the current registry, then falls back
@@ -190,11 +214,20 @@ public interface Registry {
   List<Plugin> listPlugins();
 
   /**
-   * Returns a map of all registered values.
+   * Returns a map of all registered values in the default type bucket.
    *
    * @return map of all registered values
    */
   Map<String, Object> listValues();
+
+  /**
+   * Returns a map of all registered values under the given type bucket. This includes values from
+   * both the current registry and its parent hierarchy.
+   *
+   * @param type the value type bucket (e.g. {@code "middleware"})
+   * @return map of values keyed by name, or empty map if none
+   */
+  Map<String, Object> listValues(String type);
 
   /**
    * Registers a partial template for use with prompts.

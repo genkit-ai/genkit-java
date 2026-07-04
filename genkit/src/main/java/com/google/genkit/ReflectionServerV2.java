@@ -428,9 +428,45 @@ public class ReflectionServerV2 {
   private void handleListValues(String requestId, JsonNode params) {
     if (requestId == null) return;
 
-    // Currently no values to list for Java runtime
+    String type =
+        (params != null && params.hasNonNull("type")) ? params.get("type").asText() : null;
+    if (type == null) {
+      sendError(requestId, -32602, "Query parameter \"type\" is required.", null);
+      return;
+    }
+    if (!"middleware".equals(type) && !"defaultModel".equals(type)) {
+      sendError(
+          requestId,
+          -32602,
+          "'type' "
+              + type
+              + " is not supported. Only 'defaultModel' and 'middleware' are supported",
+          null);
+      return;
+    }
+
+    Map<String, Object> values = new HashMap<>();
+    Map<String, Object> raw = registry.listValues(type);
+    if (raw != null) {
+      for (Map.Entry<String, Object> e : raw.entrySet()) {
+        Object v = e.getValue();
+        if (v instanceof com.google.genkit.ai.middleware.GenerationMiddlewareDesc) {
+          // {name, description?, configSchema?, metadata?} — configSchema drives the Dev UI form.
+          values.put(
+              e.getKey(), ((com.google.genkit.ai.middleware.GenerationMiddlewareDesc) v).toJson());
+        } else if (v instanceof com.google.genkit.ai.middleware.GenerationMiddleware) {
+          com.google.genkit.ai.middleware.GenerationMiddleware mw =
+              (com.google.genkit.ai.middleware.GenerationMiddleware) v;
+          Map<String, Object> json = new HashMap<>();
+          json.put("name", mw.name() != null ? mw.name() : e.getKey());
+          values.put(e.getKey(), json);
+        } else {
+          values.put(e.getKey(), v);
+        }
+      }
+    }
     Map<String, Object> result = new HashMap<>();
-    result.put("values", new HashMap<>());
+    result.put("values", values);
     sendResponse(requestId, result);
   }
 

@@ -20,6 +20,7 @@ package com.google.genkit.ai;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -81,6 +82,23 @@ public class GenerateActionOptions {
   @JsonProperty("stepName")
   private String stepName;
 
+  /**
+   * Middleware references. In the JS SDK, this is a list of {@code ModelMiddleware} functions or
+   * name strings. The Dev UI populates this field with the names of middlewares the user has
+   * selected in the Middleware panel (which correspond to middlewares registered via {@code
+   * Genkit.Builder.middleware(...)} under the {@code "middleware"} value bucket).
+   *
+   * <p>At runtime, {@link GenerateAction#run} resolves each name via {@code
+   * registry.lookupValue("middleware", name)} and dispatches the {@code wrapGenerate}/{@code
+   * wrapModel}/{@code wrapTool} hooks around the model invocation.
+   */
+  /**
+   * Each element may be a JSON string (middleware name) or a JSON object with a {@code name} field,
+   * matching the shape sent by the Dev UI's Middleware panel.
+   */
+  @JsonProperty("use")
+  private List<JsonNode> use;
+
   /** Default constructor for JSON deserialization. */
   public GenerateActionOptions() {}
 
@@ -109,6 +127,7 @@ public class GenerateActionOptions {
     copy.returnToolRequests = this.returnToolRequests;
     copy.maxTurns = this.maxTurns;
     copy.stepName = this.stepName;
+    copy.use = this.use;
     return copy;
   }
 
@@ -215,5 +234,13 @@ public class GenerateActionOptions {
 
   public void setStepName(String stepName) {
     this.stepName = stepName;
+  }
+
+  public List<JsonNode> getUse() {
+    return use;
+  }
+
+  public void setUse(List<JsonNode> use) {
+    this.use = use;
   }
 }
