@@ -335,6 +335,93 @@ A fresh middleware instance (via `newInstance()`) is created per Dev UI invocati
 
 > **Note:** `.middleware(...)` only controls Dev UI visibility. Middleware attached programmatically with `GenerateOptions.builder().use(...)` does not need to be registered with the builder.
 
+### Sharing middleware as a plugin
+
+Beyond the ad-hoc `.middleware(...)` method above, middleware can be **shared as a plugin** — the same way it works in the Genkit JS and Go SDKs. A plugin that provides middleware implements `MiddlewarePlugin` (alongside `Plugin`) and returns a list of **middleware descriptors** built with `GenerationMiddlewares.define(...)`:
+
+```java
+public class MyMiddlewarePlugin implements Plugin, MiddlewarePlugin {
+
+    @Override
+    public String getName() { return "my-middleware"; }
+
+    @Override
+    public List<Action<?, ?, ?>> init() { return List.of(); }
+
+    @Override
+    public List<GenerationMiddlewareDesc> middlewares(Registry registry) {
+        return List.of(
+            GenerationMiddlewares.define(
+                "retry",                                   // name
+                "Retry failed model calls.",               // description
+                RetryMiddleware.Options.class,             // config type (schema auto-inferred)
+                RetryMiddleware::new));                     // factory: config -> middleware
+    }
+}
+```
+
+Add the plugin to the builder and every middleware it provides is registered automatically:
+
+```java
+Genkit genkit = Genkit.builder()
+    .plugin(OpenAIPlugin.create())
+    .plugin(new MyMiddlewarePlugin())
+    .build();
+```
+
+### Parameterized middleware (Dev UI parameters form)
+
+A middleware defined with a config type exposes a **parameters form** in the Dev UI. The config type is a plain POJO whose fields become the parameters; the JSON Schema is inferred automatically (use `@JsonPropertyDescription` to document each field):
+
+```java
+public class RetryMiddleware extends BaseGenerationMiddleware {
+
+    private final Options options;
+
+    public RetryMiddleware(Options options) { this.options = options; }
+
+    @Override public String name() { return "retry"; }
+    @Override public GenerationMiddleware newInstance() { return this; }
+
+    @Override
+    public ModelResponse wrapModel(ActionContext ctx, ModelParams params, ModelNext next)
+            throws GenkitException {
+        // ...use options.maxRetries etc...
+        return next.apply(ctx, params);
+    }
+
+    /** These fields render as a form in the Dev UI Middleware panel. */
+    public static class Options {
+        @JsonProperty("maxRetries")
+        @JsonPropertyDescription("Maximum number of retries after the initial attempt.")
+        public int maxRetries = 3;
+
+        public Options() {}
+    }
+}
+```
+
+In the Dev UI, selecting `retry` shows a form for `maxRetries`; the values you enter are sent to the `/util/generate` action as `use: [{ "name": "retry", "config": { "maxRetries": 2 } }]`. The runtime resolves the descriptor by name, binds the `config` onto a fresh `Options` instance (missing fields keep their defaults), and runs the resulting middleware. Config is applied as-is — defaults live in the middleware, so there is no separate validation step.
+
+### Built-in middleware plugin
+
+The `genkit-plugin-middleware` module ships a ready-to-use plugin, `GenerationMiddlewarePlugin`, with parameterized middleware (the Java equivalent of the JS `@genkit-ai/middleware` package):
+
+```java
+Genkit genkit = Genkit.builder()
+    .plugin(OpenAIPlugin.create())
+    .plugin(GenerationMiddlewarePlugin.create())
+    .build();
+```
+
+| Name | Hook | Parameters |
+|------|------|------------|
+| `retry` | `wrapModel` | `maxRetries`, `initialDelayMs`, `maxDelayMs`, `backoffFactor` |
+| `fallback` | `wrapGenerate` | `models` (ordered list of fallback model names) |
+| `simulateSystemPrompt` | `wrapGenerate` | `preface`, `acknowledgement` |
+
+Each appears in the Dev UI Middleware panel with a parameters form, and can also be used programmatically, e.g. `new RetryMiddleware(opts)` passed to `GenerateOptions.builder().use(...)`.
+
 ### Multi-hook middleware
 
 A single middleware can implement all three hooks to observe every stage:

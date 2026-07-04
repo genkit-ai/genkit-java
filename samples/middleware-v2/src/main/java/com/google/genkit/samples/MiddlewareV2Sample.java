@@ -18,6 +18,8 @@
 
 package com.google.genkit.samples;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.google.genkit.Genkit;
 import com.google.genkit.GenkitOptions;
 import com.google.genkit.ai.GenerateOptions;
@@ -29,15 +31,23 @@ import com.google.genkit.ai.middleware.BaseGenerationMiddleware;
 import com.google.genkit.ai.middleware.GenerateNext;
 import com.google.genkit.ai.middleware.GenerateParams;
 import com.google.genkit.ai.middleware.GenerationMiddleware;
+import com.google.genkit.ai.middleware.GenerationMiddlewareDesc;
+import com.google.genkit.ai.middleware.GenerationMiddlewares;
+import com.google.genkit.ai.middleware.MiddlewarePlugin;
 import com.google.genkit.ai.middleware.ModelNext;
 import com.google.genkit.ai.middleware.ModelParams;
 import com.google.genkit.ai.middleware.ToolNext;
 import com.google.genkit.ai.middleware.ToolParams;
+import com.google.genkit.core.Action;
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.Flow;
 import com.google.genkit.core.GenkitException;
+import com.google.genkit.core.Plugin;
+import com.google.genkit.core.Registry;
 import com.google.genkit.plugins.jetty.JettyPlugin;
 import com.google.genkit.plugins.jetty.JettyPluginOptions;
+import com.google.genkit.plugins.middleware.GenerationMiddlewarePlugin;
+import com.google.genkit.plugins.middleware.RetryMiddleware;
 import com.google.genkit.plugins.openai.OpenAIPlugin;
 import java.util.HashMap;
 import java.util.List;
@@ -230,6 +240,91 @@ public class MiddlewareV2Sample {
   }
 
   // =========================================================================
+  // Example 5: Custom PARAMETERIZED middleware shared via a plugin
+  // =========================================================================
+
+  /**
+   * A parameterized middleware: logs each model call tagged with a configurable {@code tag}, and
+   * optionally the response length. Because it is registered through a {@link MiddlewarePlugin}
+   * with a config schema (see {@link SampleMiddlewarePlugin}), the Dev UI renders its parameters
+   * ({@code tag}, {@code logResponseLength}) as a form.
+   */
+  static class TaggedLoggingMiddleware extends BaseGenerationMiddleware {
+
+    private final Options options;
+
+    TaggedLoggingMiddleware(Options options) {
+      this.options = options != null ? options : new Options();
+    }
+
+    @Override
+    public String name() {
+      return "tagged-logging";
+    }
+
+    @Override
+    public GenerationMiddleware newInstance() {
+      return this;
+    }
+
+    @Override
+    public ModelResponse wrapModel(ActionContext ctx, ModelParams params, ModelNext next)
+        throws GenkitException {
+      logger.info("[{}] model call", options.tag);
+      ModelResponse resp = next.apply(ctx, params);
+      if (options.logResponseLength) {
+        logger.info(
+            "[{}] response length: {}",
+            options.tag,
+            resp.getText() != null ? resp.getText().length() : 0);
+      }
+      return resp;
+    }
+
+    /** Configuration parameters — rendered as a form in the Dev UI Middleware panel. */
+    public static class Options {
+      @JsonProperty("tag")
+      @JsonPropertyDescription("Label prefixed to each log line.")
+      public String tag = "tagged";
+
+      @JsonProperty("logResponseLength")
+      @JsonPropertyDescription("Whether to log the model response length.")
+      public boolean logResponseLength = false;
+
+      public Options() {}
+    }
+  }
+
+  /**
+   * The sample's own middleware plugin. Demonstrates how an application (or a third-party library)
+   * shares middleware the JS/Go way: implement {@link MiddlewarePlugin} and return descriptors
+   * built with {@link GenerationMiddlewares#define}. Once added to the builder, {@code
+   * tagged-logging} shows up in the Dev UI Middleware panel with a parameters form and can be
+   * attached by name.
+   */
+  static class SampleMiddlewarePlugin implements Plugin, MiddlewarePlugin {
+    @Override
+    public String getName() {
+      return "sample-middleware";
+    }
+
+    @Override
+    public List<Action<?, ?, ?>> init() {
+      return List.of();
+    }
+
+    @Override
+    public List<GenerationMiddlewareDesc> middlewares(Registry registry) {
+      return List.of(
+          GenerationMiddlewares.define(
+              "tagged-logging",
+              "Logs each model call with a configurable tag.",
+              TaggedLoggingMiddleware.Options.class,
+              TaggedLoggingMiddleware::new));
+    }
+  }
+
+  // =========================================================================
   // Main
   // =========================================================================
 
@@ -247,8 +342,13 @@ public class MiddlewareV2Sample {
             .options(GenkitOptions.builder().devMode(true).reflectionPort(3100).build())
             .plugin(OpenAIPlugin.create())
             .plugin(jetty)
-            // Register middlewares so they show up in the Dev UI Middleware panel.
-            // (Middleware is still applied per generate() call via GenerateOptions.use(...).)
+            // Shared, parameterized middleware imported from the built-in plugin (retry, fallback,
+            // simulateSystemPrompt). These appear in the Dev UI Middleware panel WITH a parameters
+            // form and can be attached to any generate() call by name.
+            .plugin(GenerationMiddlewarePlugin.create())
+            // The sample's OWN middleware, shared as a plugin (parameterized "tagged-logging").
+            .plugin(new SampleMiddlewarePlugin())
+            // Ad-hoc live middleware registered directly (no parameters).
             .middleware(modelLogging, generateTiming, toolMonitor, fullObservability)
             .build();
 
@@ -378,6 +478,37 @@ public class MiddlewareV2Sample {
               return response.getText();
             });
 
+    // =======================================================
+    // Flow 5: Uses the imported plugin middleware programmatically
+    // =======================================================
+
+    // The plugin ships `retry` for Dev-UI use; its RetryMiddleware class can also be used directly.
+    RetryMiddleware.Options retryOpts = new RetryMiddleware.Options();
+    retryOpts.maxRetries = 2;
+    retryOpts.initialDelayMs = 500;
+
+    Flow<String, String, Void> resilientFlow =
+        genkit.defineFlow(
+            "v2-resilient",
+            String.class,
+            String.class,
+            (ctx, userMessage) -> {
+              ModelResponse response =
+                  genkit.generate(
+                      GenerateOptions.builder()
+                          .model("openai/gpt-4o-mini")
+                          .prompt(userMessage)
+                          // Imported from the middleware plugin, configured in code.
+                          .use(new RetryMiddleware(retryOpts), modelLogging)
+                          .config(
+                              GenerationConfig.builder()
+                                  .temperature(0.7)
+                                  .maxOutputTokens(200)
+                                  .build())
+                          .build());
+              return response.getText();
+            });
+
     logger.info("\n========================================");
     logger.info("Genkit Middleware V2 Sample Started!");
     logger.info("========================================\n");
@@ -386,7 +517,18 @@ public class MiddlewareV2Sample {
     logger.info("  - v2-chat:       Model logging + generate timing middleware");
     logger.info("  - v2-observable: Full observability (all 3 hooks in one middleware)");
     logger.info("  - v2-stacked:    Three separate middleware stacked together");
-    logger.info("  - v2-baseline:   No middleware (baseline comparison)\n");
+    logger.info("  - v2-baseline:   No middleware (baseline comparison)");
+    logger.info(
+        "  - v2-resilient:  retry middleware imported from the plugin (configured in code)\n");
+
+    logger.info(
+        "Dev UI Middleware panel now lists (open http://localhost:4000 via `genkit start`):");
+    logger.info("  Parameterized (from plugins, with a config form):");
+    logger.info("    - retry, fallback, simulateSystemPrompt  (genkit-middleware plugin)");
+    logger.info(
+        "    - tagged-logging                         (this sample's SampleMiddlewarePlugin)");
+    logger.info("  Parameterless (registered via .middleware(...)):");
+    logger.info("    - model-logging, generate-timing, tool-monitor, full-observability\n");
 
     logger.info("Server running on http://localhost:8080");
     logger.info("Reflection server running on http://localhost:3100");

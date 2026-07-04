@@ -946,10 +946,9 @@ public class Genkit {
   }
 
   /**
-   * Registers each middleware (by {@link GenerationMiddleware#name()}) in the registry's {@code
-   * middleware} value bucket so the Dev UI Middleware panel can list and dispatch it. The original
-   * template (not a per-call instance) is registered, since {@code newInstance()} is called again
-   * for each Dev UI invocation.
+   * Registers each live middleware in the registry's {@code "middleware"} value bucket (wrapped in
+   * a parameterless {@link GenerationMiddlewareDesc}) so the Dev UI Middleware panel can list and
+   * dispatch it. Registration is idempotent and safe under concurrent {@code generate()} calls.
    */
   private void registerMiddlewareForDevUi(List<GenerationMiddleware> use) {
     if (use == null || use.isEmpty()) {
@@ -959,8 +958,48 @@ public class Genkit {
       if (mw == null) continue;
       String name = mw.name();
       if (name == null || name.isEmpty()) continue;
-      if (registry.lookupValue("middleware", name) == null) {
-        registry.registerValue("middleware", name, mw);
+      registerMiddlewareDesc(GenerationMiddlewares.of(mw));
+    }
+  }
+
+  /**
+   * Registers a middleware descriptor into the {@code "middleware"} value bucket so the Dev UI can
+   * list it (with a parameters form derived from its {@code configSchema}) and resolve it by name
+   * at generate time.
+   *
+   * <p>Idempotent — a descriptor already registered under the same name is kept (first registration
+   * wins). Concurrency-safe — the {@code lookupValue}/{@code registerValue} pair is not atomic, so
+   * a concurrent registration of the same name is caught and ignored rather than crashing the
+   * generation request with the registry's duplicate-key {@link IllegalStateException}.
+   */
+  private void registerMiddlewareDesc(GenerationMiddlewareDesc desc) {
+    if (desc == null) return;
+    String name = desc.name();
+    if (name == null || name.isEmpty()) return;
+    if (registry.lookupValue("middleware", name) != null) {
+      return;
+    }
+    try {
+      registry.registerValue("middleware", name, desc);
+    } catch (IllegalStateException e) {
+      // Another thread registered the same middleware concurrently — safe to ignore.
+    }
+  }
+
+  /**
+   * Registers middleware shared by plugins implementing {@link MiddlewarePlugin} into the {@code
+   * "middleware"} value bucket. Called once during builder {@code build()} after plugin
+   * initialization, mirroring JS {@code GenkitPluginV2.middleware()} and Go {@code
+   * MiddlewarePlugin.Middlewares()}.
+   */
+  private void registerPluginMiddlewares() {
+    for (Plugin plugin : plugins) {
+      if (plugin instanceof MiddlewarePlugin) {
+        List<GenerationMiddlewareDesc> descs = ((MiddlewarePlugin) plugin).middlewares(registry);
+        if (descs == null) continue;
+        for (GenerationMiddlewareDesc desc : descs) {
+          registerMiddlewareDesc(desc);
+        }
       }
     }
   }
@@ -2360,6 +2399,7 @@ public class Genkit {
   public static class Builder {
     private final List<Plugin> plugins = new ArrayList<>();
     private final List<GenerationMiddleware> middlewares = new ArrayList<>();
+    private final List<GenerationMiddlewareDesc> middlewareDescs = new ArrayList<>();
     private GenkitOptions options = GenkitOptions.builder().build();
 
     /**
@@ -2401,6 +2441,23 @@ public class Genkit {
     }
 
     /**
+     * Optional: pre-registers one or more middleware <em>descriptors</em> so they show up in the
+     * Genkit Dev UI Middleware panel — including a parameters form derived from each descriptor's
+     * {@code configSchema}. Use this for parameterized middleware defined via {@link
+     * com.google.genkit.ai.middleware.GenerationMiddlewares#define}. For middleware shared by a
+     * plugin, prefer implementing {@link com.google.genkit.ai.middleware.MiddlewarePlugin} instead.
+     *
+     * @param descriptors the middleware descriptors to pre-register
+     * @return this builder
+     */
+    public Builder middleware(GenerationMiddlewareDesc... descriptors) {
+      for (GenerationMiddlewareDesc desc : descriptors) {
+        this.middlewareDescs.add(desc);
+      }
+      return this;
+    }
+
+    /**
      * Enables dev mode.
      *
      * @return this builder
@@ -2431,9 +2488,16 @@ public class Genkit {
       Genkit genkit = new Genkit(options);
       genkit.plugins.addAll(plugins);
       genkit.init();
-      // Pre-register any middlewares declared via .middleware(...) so the Dev UI
-      // Middleware panel can list them before any generate() call runs.
+      // Register middleware shared by plugins (those implementing MiddlewarePlugin) so it shows up
+      // in the Dev UI Middleware panel and is resolvable by name at generate time. Mirrors the JS
+      // GenkitPluginV2.middleware() / Go MiddlewarePlugin.Middlewares() registration during init.
+      genkit.registerPluginMiddlewares();
+      // Pre-register any middleware declared directly via .middleware(...) so the Dev UI Middleware
+      // panel can list them before any generate() call runs.
       genkit.registerMiddlewareForDevUi(middlewares);
+      for (GenerationMiddlewareDesc desc : middlewareDescs) {
+        genkit.registerMiddlewareDesc(desc);
+      }
       return genkit;
     }
   }

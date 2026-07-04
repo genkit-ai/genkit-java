@@ -281,6 +281,15 @@ public class ReflectionServer {
             status = 400;
             result =
                 createErrorResponse(3, "Query parameter \"type\" is required.", null); // 3=INVALID
+          } else if (!"middleware".equals(type) && !"defaultModel".equals(type)) {
+            status = 400;
+            result =
+                createErrorResponse(
+                    3,
+                    "'type' "
+                        + type
+                        + " is not supported. Only 'defaultModel' and 'middleware' are supported",
+                    null); // 3=INVALID
           } else {
             result = handleListValuesByType(type);
           }
@@ -514,12 +523,17 @@ public class ReflectionServer {
     }
 
     /**
-     * Serializes a registered value for the reflection API. Special-cases known interfaces (e.g.
-     * {@link com.google.genkit.ai.middleware.GenerationMiddleware}) which can't be JSON-serialized
-     * directly.
+     * Serializes a registered value for the reflection API. Middleware descriptors are serialized
+     * to their {@code {name, description?, configSchema?, metadata?}} shape (matching the JS/Go
+     * {@code MiddlewareDesc}), so the Dev UI can render a parameters form from {@code
+     * configSchema}. A bare {@link com.google.genkit.ai.middleware.GenerationMiddleware} (no
+     * descriptor) degrades to just its name.
      */
     private Object serializeValue(Object value, String fallbackName) {
       if (value == null) return null;
+      if (value instanceof com.google.genkit.ai.middleware.GenerationMiddlewareDesc) {
+        return ((com.google.genkit.ai.middleware.GenerationMiddlewareDesc) value).toJson();
+      }
       if (value instanceof com.google.genkit.ai.middleware.GenerationMiddleware) {
         com.google.genkit.ai.middleware.GenerationMiddleware mw =
             (com.google.genkit.ai.middleware.GenerationMiddleware) value;

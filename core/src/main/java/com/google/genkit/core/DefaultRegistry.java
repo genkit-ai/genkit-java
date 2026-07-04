@@ -94,10 +94,11 @@ public class DefaultRegistry implements Registry {
   @Override
   public void registerValue(String type, String name, Object value) {
     Map<String, Object> bucket = valuesByType.computeIfAbsent(type, t -> new ConcurrentHashMap<>());
-    if (bucket.containsKey(name)) {
+    // Atomic check-then-act: putIfAbsent avoids a race where two threads registering the same
+    // (type, name) concurrently could both pass a containsKey check and clobber each other.
+    if (bucket.putIfAbsent(name, value) != null) {
       throw new IllegalStateException("Value already registered: " + type + "/" + name);
     }
-    bucket.put(name, value);
     logger.debug("Registered value: {}/{}", type, name);
   }
 

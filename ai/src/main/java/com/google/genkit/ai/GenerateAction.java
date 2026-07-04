@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.genkit.ai.middleware.GenerateNext;
 import com.google.genkit.ai.middleware.GenerateParams;
 import com.google.genkit.ai.middleware.GenerationMiddleware;
+import com.google.genkit.ai.middleware.GenerationMiddlewareDesc;
 import com.google.genkit.ai.middleware.ModelNext;
 import com.google.genkit.ai.middleware.ModelParams;
 import com.google.genkit.ai.middleware.ToolNext;
@@ -235,11 +236,15 @@ public class GenerateAction
 
   /**
    * Resolves middleware references to fresh per-call middleware instances by looking them up in the
-   * registry's {@code "middleware"} value bucket. Accepts either bare JSON strings or objects with
-   * a {@code name} field (the shape the Dev UI's Middleware panel sends). Unknown names are logged
-   * and skipped.
+   * registry's {@code "middleware"} value bucket. Each reference is a {@code {name, config?}}
+   * object (the {@code MiddlewareRef} shape the Dev UI's Middleware panel sends); a bare JSON
+   * string is also accepted as a name-only reference. The optional {@code config} is passed
+   * opaquely to the descriptor's {@link GenerationMiddlewareDesc#instantiate(JsonNode)} — no
+   * server-side validation is performed; defaults live inside the middleware. Unknown names are
+   * logged and skipped.
    */
-  private List<GenerationMiddleware> resolveMiddlewares(List<JsonNode> refs) {
+  private List<GenerationMiddleware> resolveMiddlewares(List<JsonNode> refs)
+      throws GenkitException {
     if (refs == null || refs.isEmpty()) {
       return List.of();
     }
@@ -247,23 +252,28 @@ public class GenerateAction
     for (JsonNode ref : refs) {
       if (ref == null || ref.isNull()) continue;
       String name;
+      JsonNode config = null;
       if (ref.isTextual()) {
         name = ref.asText();
       } else if (ref.isObject() && ref.hasNonNull("name")) {
         name = ref.get("name").asText();
+        config = ref.get("config"); // may be absent (null) or JSON null
       } else {
         logger.warn("Unrecognized middleware reference shape: {}", ref);
         continue;
       }
       if (name == null || name.isEmpty()) continue;
       Object value = registry.lookupValue("middleware", name);
-      if (value instanceof GenerationMiddleware) {
-        // Use a fresh instance per call so middleware state is per-invocation.
+      if (value instanceof GenerationMiddlewareDesc) {
+        // Bind config -> a fresh hooks instance, so config and per-call state are per-invocation.
+        resolved.add(((GenerationMiddlewareDesc) value).instantiate(config));
+      } else if (value instanceof GenerationMiddleware) {
+        // Legacy: a bare middleware registered without a descriptor. Fresh instance per call.
         resolved.add(((GenerationMiddleware) value).newInstance());
       } else {
         logger.warn(
             "Middleware '{}' was requested but is not registered. "
-                + "Register via Genkit.Builder.middleware(...).",
+                + "Register it via a MiddlewarePlugin or Genkit.Builder.middleware(...).",
             name);
       }
     }
@@ -337,11 +347,13 @@ public class GenerateAction
           ToolRequest toolReq = tparams.getRequest();
           Object toolInput = toolReq.getInput();
 
-          // Convert input if necessary
+          // Convert input if necessary. Use JsonUtils.convert (the centrally configured mapper)
+          // rather than a local ObjectMapper, so custom (de)serializers, date formats, and naming
+          // strategies registered globally are honored — consistent with Genkit.java.
           if (toolInput instanceof Map
               && tool.getInputClass() != null
               && !Map.class.isAssignableFrom(tool.getInputClass())) {
-            toolInput = objectMapper.convertValue(toolInput, tool.getInputClass());
+            toolInput = JsonUtils.convert(toolInput, tool.getInputClass());
           }
 
           @SuppressWarnings("unchecked")
