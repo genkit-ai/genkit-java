@@ -20,6 +20,8 @@ package com.google.genkit.plugins.compatoai;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.google.genkit.core.ActionDesc;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class CompatOAIModelTest {
@@ -77,5 +79,52 @@ class CompatOAIModelTest {
 
     assertNotNull(model);
     assertEquals("test-provider/model-v1", model.getName());
+  }
+
+  private static CompatOAIModel newModel() {
+    CompatOAIPluginOptions options =
+        CompatOAIPluginOptions.builder()
+            .apiKey("test-key")
+            .baseUrl("https://api.test.com/v1")
+            .build();
+    return new CompatOAIModel("test-provider/model-v1", "Test Model", options);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void testModelInfoExposesCustomOptions() {
+    // Regression test for #183: the model playground needs metadata.model.customOptions to render
+    // configuration inputs.
+    CompatOAIModel model = newModel();
+
+    Map<String, Object> customOptions = model.getInfo().getCustomOptions();
+    assertNotNull(customOptions, "customOptions schema should be present");
+    assertEquals("object", customOptions.get("type"));
+
+    Map<String, Object> properties = (Map<String, Object>) customOptions.get("properties");
+    assertNotNull(properties, "customOptions should describe config properties");
+    assertTrue(properties.containsKey("temperature"), "temperature should be configurable");
+    assertTrue(properties.containsKey("topP"), "topP should be configurable");
+    assertTrue(properties.containsKey("maxOutputTokens"), "maxOutputTokens should be configurable");
+  }
+
+  @Test
+  void testModelActionHasInputAndOutputSchemas() {
+    // Regression test for #183: model actions should expose input/output schemas.
+    ActionDesc desc = newModel().getDesc();
+
+    assertNotNull(desc.getInputSchema(), "model action should expose an input schema");
+    assertNotNull(desc.getOutputSchema(), "model action should expose an output schema");
+  }
+
+  @Test
+  void testCustomOptionsSurfacedInMetadata() {
+    // The Dev UI reads customOptions from metadata.model.customOptions.
+    CompatOAIModel model = newModel();
+
+    Map<String, Object> metadata = model.getMetadata();
+    assertTrue(metadata.get("model") instanceof com.google.genkit.ai.ModelInfo);
+    com.google.genkit.ai.ModelInfo info = (com.google.genkit.ai.ModelInfo) metadata.get("model");
+    assertNotNull(info.getCustomOptions());
   }
 }

@@ -27,6 +27,7 @@ import com.google.genkit.core.ActionType;
 import com.google.genkit.core.GenkitException;
 import com.google.genkit.core.JsonUtils;
 import com.google.genkit.core.Registry;
+import com.google.genkit.core.SchemaUtils;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -47,6 +48,7 @@ public class Prompt<I> implements Action<I, ModelRequest, Void> {
   private final String model;
   private final String template;
   private final Map<String, Object> inputSchema;
+  private final Map<String, Object> outputSchema;
   private final GenerationConfig config;
   private final BiFunction<ActionContext, I, ModelRequest> renderer;
   private final Map<String, Object> metadata;
@@ -73,11 +75,43 @@ public class Prompt<I> implements Action<I, ModelRequest, Void> {
       GenerationConfig config,
       Class<I> inputClass,
       BiFunction<ActionContext, I, ModelRequest> renderer) {
+    this(name, variant, model, template, inputSchema, null, config, inputClass, renderer);
+  }
+
+  /**
+   * Creates a new Prompt.
+   *
+   * @param name the prompt name
+   * @param variant the prompt variant
+   * @param model the default model name
+   * @param template the prompt template
+   * @param inputSchema the input JSON schema (if null, inferred from {@code inputClass})
+   * @param outputSchema the output JSON schema
+   * @param config the default generation config
+   * @param inputClass the input class for JSON deserialization and schema inference
+   * @param renderer the function that renders the prompt
+   */
+  public Prompt(
+      String name,
+      String variant,
+      String model,
+      String template,
+      Map<String, Object> inputSchema,
+      Map<String, Object> outputSchema,
+      GenerationConfig config,
+      Class<I> inputClass,
+      BiFunction<ActionContext, I, ModelRequest> renderer) {
     this.name = name;
     this.variant = variant;
     this.model = model;
     this.template = template;
-    this.inputSchema = inputSchema;
+    // Prefer an explicit input schema (e.g. parsed from .prompt frontmatter); otherwise infer it
+    // from the Java input class so the Dev UI prompt runner can render an input form.
+    this.inputSchema =
+        inputSchema != null
+            ? inputSchema
+            : (inputClass != null ? SchemaUtils.inferSchema(inputClass) : null);
+    this.outputSchema = outputSchema;
     this.config = config;
     this.inputClass = inputClass;
     this.renderer = renderer;
@@ -103,8 +137,11 @@ public class Prompt<I> implements Action<I, ModelRequest, Void> {
     }
     promptMetadata.put("model", model);
     promptMetadata.put("template", template);
-    if (inputSchema != null) {
-      promptMetadata.put("input", Map.of("schema", inputSchema));
+    if (this.inputSchema != null) {
+      promptMetadata.put("input", Map.of("schema", this.inputSchema));
+    }
+    if (this.outputSchema != null) {
+      promptMetadata.put("output", Map.of("schema", this.outputSchema));
     }
     if (config != null) {
       promptMetadata.put("config", config);
@@ -147,6 +184,7 @@ public class Prompt<I> implements Action<I, ModelRequest, Void> {
         .type(ActionType.EXECUTABLE_PROMPT)
         .name(name)
         .inputSchema(inputSchema)
+        .outputSchema(outputSchema)
         .metadata(metadata)
         .build();
   }
@@ -189,7 +227,7 @@ public class Prompt<I> implements Action<I, ModelRequest, Void> {
 
   @Override
   public Map<String, Object> getOutputSchema() {
-    return null;
+    return outputSchema;
   }
 
   @Override
@@ -240,6 +278,7 @@ public class Prompt<I> implements Action<I, ModelRequest, Void> {
     private String model;
     private String template;
     private Map<String, Object> inputSchema;
+    private Map<String, Object> outputSchema;
     private GenerationConfig config;
     private Class<I> inputClass;
     private BiFunction<ActionContext, I, ModelRequest> renderer;
@@ -269,6 +308,11 @@ public class Prompt<I> implements Action<I, ModelRequest, Void> {
       return this;
     }
 
+    public Builder<I> outputSchema(Map<String, Object> outputSchema) {
+      this.outputSchema = outputSchema;
+      return this;
+    }
+
     public Builder<I> config(GenerationConfig config) {
       this.config = config;
       return this;
@@ -292,7 +336,7 @@ public class Prompt<I> implements Action<I, ModelRequest, Void> {
         throw new IllegalStateException("Prompt renderer is required");
       }
       return new Prompt<>(
-          name, variant, model, template, inputSchema, config, inputClass, renderer);
+          name, variant, model, template, inputSchema, outputSchema, config, inputClass, renderer);
     }
   }
 }

@@ -46,6 +46,27 @@ public final class SchemaUtils {
     JacksonModule jacksonModule = new JacksonModule(JacksonOption.RESPECT_JSONPROPERTY_REQUIRED);
     configBuilder.with(jacksonModule);
 
+    // Mark non-optional fields as "required" (mirrors Zod/JS behavior in the JS/Go SDKs). This is
+    // what lets the Dev UI build a default input skeleton: its flow/prompt runner only pre-fills
+    // properties that appear in the schema's "required" array. A field is treated as optional only
+    // when it is an Optional<> or annotated with a @Nullable annotation.
+    configBuilder
+        .forFields()
+        .withRequiredCheck(
+            field -> {
+              if (field.getType() != null
+                  && field.getType().getErasedType() == java.util.Optional.class) {
+                return false;
+              }
+              for (java.lang.annotation.Annotation annotation :
+                  field.getRawMember().getAnnotations()) {
+                if ("Nullable".equals(annotation.annotationType().getSimpleName())) {
+                  return false;
+                }
+              }
+              return true;
+            });
+
     SchemaGeneratorConfig config = configBuilder.build();
     schemaGenerator = new SchemaGenerator(config);
   }

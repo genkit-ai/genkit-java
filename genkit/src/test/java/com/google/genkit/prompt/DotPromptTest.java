@@ -75,4 +75,76 @@ class DotPromptTest {
     assertEquals("recipe", promptMetadata.get("name"));
     assertEquals("robot", promptMetadata.get("variant"));
   }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void testParseFrontmatterInputSchema() throws GenkitException {
+    // Regression test for #184: the prompt runner needs an input schema derived from the .prompt
+    // frontmatter so it can render an input box.
+    String content =
+        "---\n"
+            + "model: openai/gpt-4o-mini\n"
+            + "input:\n"
+            + "  schema:\n"
+            + "    code: string\n"
+            + "    language: string\n"
+            + "    analysisType?: string\n"
+            + "---\n"
+            + "Review this {{language}} code: {{code}}";
+    DotPrompt<Map<String, Object>> dotPrompt = DotPrompt.parse("code-review", content);
+
+    Map<String, Object> inputSchema = dotPrompt.getInputSchema();
+    assertNotNull(inputSchema, "input schema should be parsed from frontmatter");
+    assertEquals("object", inputSchema.get("type"));
+
+    Map<String, Object> properties = (Map<String, Object>) inputSchema.get("properties");
+    assertTrue(properties.containsKey("code"));
+    assertTrue(properties.containsKey("language"));
+    assertTrue(properties.containsKey("analysisType"));
+
+    java.util.List<String> required = (java.util.List<String>) inputSchema.get("required");
+    assertTrue(required.contains("code"));
+    assertTrue(required.contains("language"));
+    assertFalse(required.contains("analysisType"), "optional field must not be required");
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void testParseFrontmatterOutputSchema() throws GenkitException {
+    String content =
+        "---\n"
+            + "model: openai/gpt-4o-mini\n"
+            + "output:\n"
+            + "  format: json\n"
+            + "  schema:\n"
+            + "    summary: string\n"
+            + "    score: integer, from 1 to 10\n"
+            + "    issues(array):\n"
+            + "      severity: string\n"
+            + "      line?: integer\n"
+            + "---\n"
+            + "Body";
+    DotPrompt<Map<String, Object>> dotPrompt = DotPrompt.parse("code-review", content);
+
+    Map<String, Object> outputSchema = dotPrompt.getOutputSchema();
+    assertNotNull(outputSchema, "output schema should be parsed from frontmatter");
+    Map<String, Object> properties = (Map<String, Object>) outputSchema.get("properties");
+    assertEquals("integer", ((Map<String, Object>) properties.get("score")).get("type"));
+    assertEquals(
+        "from 1 to 10", ((Map<String, Object>) properties.get("score")).get("description"));
+    // issues(array) -> array of objects
+    Map<String, Object> issues = (Map<String, Object>) properties.get("issues");
+    assertEquals("array", issues.get("type"));
+    Map<String, Object> items = (Map<String, Object>) issues.get("items");
+    assertEquals("object", items.get("type"));
+  }
+
+  @Test
+  void testFrontmatterlessPromptStillParses() throws GenkitException {
+    // Backwards compatibility: a prompt whose frontmatter only has model: must still load.
+    DotPrompt<Map<String, Object>> dotPrompt =
+        DotPrompt.parse("plain", "---\nmodel: openai/gpt-4o\n---\nHello");
+    assertEquals("openai/gpt-4o", dotPrompt.getModel());
+    assertNull(dotPrompt.getInputSchema());
+  }
 }

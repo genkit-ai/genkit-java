@@ -33,6 +33,7 @@ import com.google.genai.types.SafetySetting;
 import com.google.genai.types.Schema;
 import com.google.genai.types.ThinkingConfig;
 import com.google.genai.types.Type;
+import com.google.genkit.ai.GenerationConfig;
 import com.google.genkit.ai.Media;
 import com.google.genkit.ai.Message;
 import com.google.genkit.ai.Model;
@@ -47,6 +48,7 @@ import com.google.genkit.ai.ToolResponse;
 import com.google.genkit.ai.Usage;
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.GenkitException;
+import com.google.genkit.core.SchemaUtils;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -122,6 +124,10 @@ public class GeminiModel implements Model {
     caps.setSystemRole(!isTTSModel());
     caps.setOutput(Set.of("text", "json"));
     info.setSupports(caps);
+
+    // Expose the generation config schema so the Dev UI model playground can render configuration
+    // inputs (temperature, topP, maxOutputTokens, ...).
+    info.setCustomOptions(SchemaUtils.inferSchema(GenerationConfig.class));
 
     return info;
   }

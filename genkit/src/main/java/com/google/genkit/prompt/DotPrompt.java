@@ -18,6 +18,9 @@
 
 package com.google.genkit.prompt;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.github.jknack.handlebars.Context;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.Template;
@@ -35,6 +38,7 @@ import com.google.genkit.core.Action;
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.ActionType;
 import com.google.genkit.core.GenkitException;
+import com.google.genkit.core.JsonUtils;
 import com.google.genkit.core.Registry;
 import java.io.IOException;
 import java.io.InputStream;
@@ -104,11 +108,15 @@ public class DotPrompt<I> {
   /** Shared Handlebars instance with registered partials. */
   private static final Handlebars sharedHandlebars = new Handlebars(partialLoader);
 
+  /** Mapper for parsing the YAML frontmatter of .prompt files. */
+  private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
+
   private final String name;
   private final String variant;
   private final String model;
   private final String template;
   private final Map<String, Object> inputSchema;
+  private final Map<String, Object> outputSchema;
   private final GenerationConfig config;
   private final Handlebars handlebars;
 
@@ -129,11 +137,34 @@ public class DotPrompt<I> {
       String template,
       Map<String, Object> inputSchema,
       GenerationConfig config) {
+    this(name, variant, model, template, inputSchema, null, config);
+  }
+
+  /**
+   * Creates a new DotPrompt.
+   *
+   * @param name the prompt name
+   * @param variant the prompt variant
+   * @param model the default model name
+   * @param template the Handlebars template
+   * @param inputSchema the input JSON schema
+   * @param outputSchema the output JSON schema
+   * @param config the default generation config
+   */
+  public DotPrompt(
+      String name,
+      String variant,
+      String model,
+      String template,
+      Map<String, Object> inputSchema,
+      Map<String, Object> outputSchema,
+      GenerationConfig config) {
     this.name = name;
     this.variant = variant;
     this.model = model;
     this.template = template;
     this.inputSchema = inputSchema;
+    this.outputSchema = outputSchema;
     this.config = config;
     this.handlebars = sharedHandlebars; // Use shared instance with registered partials
   }
@@ -276,6 +307,7 @@ public class DotPrompt<I> {
     String template = content;
     String model = null;
     Map<String, Object> inputSchema = null;
+    Map<String, Object> outputSchema = null;
     GenerationConfig config = null;
 
     if (content.startsWith("---")) {
@@ -284,11 +316,39 @@ public class DotPrompt<I> {
         String frontmatter = content.substring(3, endIndex).trim();
         template = content.substring(endIndex + 3).trim();
 
-        // Simple YAML parsing for common fields
-        for (String line : frontmatter.split("\n")) {
-          line = line.trim();
-          if (line.startsWith("model:")) {
-            model = line.substring(6).trim();
+        try {
+          Map<String, Object> fm =
+              YAML_MAPPER.readValue(frontmatter, new TypeReference<Map<String, Object>>() {});
+          if (fm != null) {
+            Object modelVal = fm.get("model");
+            if (modelVal != null) {
+              model = String.valueOf(modelVal);
+            }
+
+            // Convert the input/output Picoschema (frontmatter) into JSON Schema.
+            Object input = fm.get("input");
+            if (input instanceof Map) {
+              inputSchema = Picoschema.convert(((Map<?, ?>) input).get("schema"));
+            }
+            Object output = fm.get("output");
+            if (output instanceof Map) {
+              outputSchema = Picoschema.convert(((Map<?, ?>) output).get("schema"));
+            }
+
+            Object cfg = fm.get("config");
+            if (cfg instanceof Map) {
+              config = JsonUtils.getObjectMapper().convertValue(cfg, GenerationConfig.class);
+            }
+          }
+        } catch (Exception e) {
+          // Malformed or non-standard frontmatter: fall back to reading just the model line so the
+          // prompt still loads (input/output schemas stay null and can be inferred from the Java
+          // input class in toPrompt()).
+          for (String line : frontmatter.split("\n")) {
+            line = line.trim();
+            if (line.startsWith("model:")) {
+              model = line.substring(6).trim();
+            }
           }
         }
       }
@@ -310,7 +370,7 @@ public class DotPrompt<I> {
       variant = name.substring(dotIndex + 1);
     }
 
-    return new DotPrompt<>(name, variant, model, template, inputSchema, config);
+    return new DotPrompt<>(name, variant, model, template, inputSchema, outputSchema, config);
   }
 
   /**
@@ -380,6 +440,7 @@ public class DotPrompt<I> {
         .model(model)
         .template(template)
         .inputSchema(inputSchema)
+        .outputSchema(outputSchema)
         .config(config)
         .inputClass(inputClass)
         .renderer((ctx, input) -> toModelRequest(input))
@@ -539,6 +600,10 @@ public class DotPrompt<I> {
 
   public Map<String, Object> getInputSchema() {
     return inputSchema;
+  }
+
+  public Map<String, Object> getOutputSchema() {
+    return outputSchema;
   }
 
   public GenerationConfig getConfig() {

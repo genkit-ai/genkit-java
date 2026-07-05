@@ -909,8 +909,26 @@ public class Genkit {
     // Chain WrapGenerate hooks around the core iteration
     generateRef[0] = chainGenerateHooks(middlewares, rawGenerate);
 
+    // Wrap the whole generate operation (tool-calling loop, middleware, output conformance) in its
+    // own "generate" span so traces read flow -> generate -> model, matching the /util/generate
+    // action and the JS/Go SDKs. Because Tracer.runInNewSpan makes the span current (via the
+    // OpenTelemetry context), the per-turn model span(s) created downstream nest under this
+    // generate
+    // span, and this generate span nests under the surrounding flow/agent span when one is present.
+    // Its input/output (GenerateActionOptions / ModelResponse) differ from the raw model
+    // request/response, which is precisely why generate warrants its own span.
+    final GenerateActionOptions spanInput = actionOpts;
+    final ActionContext genCtx = ctx;
+    SpanMetadata generateSpan = SpanMetadata.builder().name("generate").type("util").build();
+
     // Start generation with high-level options (messageIndex starts at 0, propagate streamCallback)
-    return generateRef[0].apply(ctx, new GenerateParams(actionOpts, 0, 0, streamCallback));
+    return Tracer.runInNewSpan(
+        genCtx,
+        generateSpan,
+        spanInput,
+        (spanCtx, opts) ->
+            generateRef[0].apply(
+                genCtx.withSpanContext(spanCtx), new GenerateParams(opts, 0, 0, streamCallback)));
   }
 
   /**

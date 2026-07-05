@@ -27,6 +27,7 @@ import com.google.genkit.core.ActionType;
 import com.google.genkit.core.GenkitException;
 import com.google.genkit.core.JsonUtils;
 import com.google.genkit.core.Registry;
+import com.google.genkit.core.SchemaUtils;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -92,6 +93,8 @@ public interface Model extends Action<ModelRequest, ModelResponse, ModelResponse
     return ActionDesc.builder()
         .type(ActionType.MODEL)
         .name(getName())
+        .inputSchema(getInputSchema())
+        .outputSchema(getOutputSchema())
         .metadata(getMetadata())
         .build();
   }
@@ -117,12 +120,15 @@ public interface Model extends Action<ModelRequest, ModelResponse, ModelResponse
 
   @Override
   default Map<String, Object> getInputSchema() {
-    return null;
+    // The model action accepts a ModelRequest (messages, config, tools, output, ...). Exposing its
+    // schema lets the Dev UI and generic action runners understand the model's input shape.
+    return SchemaUtils.inferSchema(ModelRequest.class);
   }
 
   @Override
   default Map<String, Object> getOutputSchema() {
-    return null;
+    // The model action returns a ModelResponse (message, finishReason, usage, ...).
+    return SchemaUtils.inferSchema(ModelResponse.class);
   }
 
   @Override
