@@ -1,5 +1,9 @@
 ---
 model: openai/gpt-4o-mini
+config:
+  temperature: 0.2
+  topP: 0.5
+  maxOutputTokens: 400
 input:
   schema:
     destination: string
