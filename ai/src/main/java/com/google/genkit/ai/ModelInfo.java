@@ -21,6 +21,7 @@ package com.google.genkit.ai;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /** ModelInfo contains metadata about a model's capabilities. */
@@ -36,6 +37,14 @@ public class ModelInfo {
   @JsonProperty("versions")
   private List<String> versions;
 
+  /**
+   * JSON Schema describing the model's custom generation options (e.g. temperature, topP,
+   * maxOutputTokens). Surfaced to the Dev UI as {@code metadata.model.customOptions} so the model
+   * playground can render configuration inputs.
+   */
+  @JsonProperty("customOptions")
+  private Map<String, Object> customOptions;
+
   /** Default constructor. */
   public ModelInfo() {}
 
@@ -47,6 +56,14 @@ public class ModelInfo {
 
   public void setLabel(String label) {
     this.label = label;
+  }
+
+  public Map<String, Object> getCustomOptions() {
+    return customOptions;
+  }
+
+  public void setCustomOptions(Map<String, Object> customOptions) {
+    this.customOptions = customOptions;
   }
 
   public ModelCapabilities getSupports() {

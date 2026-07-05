@@ -98,11 +98,10 @@
             <artifactId>mockito-core</artifactId>
             <scope>test</scope>
         </dependency>
-        <!-- YAML parsing for the agent conformance spec (tests/specs/agent.yaml) -->
+        <!-- YAML parsing for .prompt frontmatter (DotPrompt) and the agent conformance spec test -->
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-yaml</artifactId>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

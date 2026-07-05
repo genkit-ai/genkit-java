@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.genkit.ai.*;
 import com.google.genkit.core.ActionContext;
 import com.google.genkit.core.GenkitException;
+import com.google.genkit.core.SchemaUtils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -83,6 +84,10 @@ public class OllamaModel implements Model {
     caps.setSystemRole(true);
     caps.setOutput(Set.of("text", "json"));
     info.setSupports(caps);
+
+    // Expose the generation config schema so the Dev UI model playground can render configuration
+    // inputs (temperature, topP, maxOutputTokens, ...).
+    info.setCustomOptions(SchemaUtils.inferSchema(GenerationConfig.class));
 
     return info;
   }

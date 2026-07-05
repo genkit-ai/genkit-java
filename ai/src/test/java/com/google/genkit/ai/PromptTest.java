@@ -95,4 +95,69 @@ class PromptTest {
     assertEquals("recipe", promptMetadata.get("name"));
     assertEquals("robot", promptMetadata.get("variant"));
   }
+
+  /** Sample input POJO used to verify schema inference from the Java input class. */
+  static class ReviewInput {
+    public String code;
+    public String language;
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void testInputSchemaInferredFromInputClass() {
+    // Regression test for #184: when no explicit input schema is given, one is inferred from the
+    // Java input class so the Dev UI can render an input box.
+    Prompt<ReviewInput> prompt =
+        Prompt.<ReviewInput>builder()
+            .name("review")
+            .model("openai/gpt-4o")
+            .template("Review {{code}}")
+            .inputClass(ReviewInput.class)
+            .renderer((ctx, input) -> ModelRequest.builder().addUserMessage(input.code).build())
+            .build();
+
+    Map<String, Object> inputSchema = prompt.getInputSchema();
+    assertNotNull(inputSchema, "input schema should be inferred from the input class");
+    Map<String, Object> properties = (Map<String, Object>) inputSchema.get("properties");
+    assertTrue(properties.containsKey("code"));
+    assertTrue(properties.containsKey("language"));
+    assertNotNull(prompt.getDesc().getInputSchema());
+
+    // The inferred schema is also surfaced in metadata.prompt.input.schema.
+    Map<String, Object> promptMetadata = (Map<String, Object>) prompt.getMetadata().get("prompt");
+    assertNotNull(((Map<String, Object>) promptMetadata.get("input")).get("schema"));
+  }
+
+  @Test
+  void testExplicitInputSchemaWinsOverInputClass() {
+    Map<String, Object> explicit = Map.of("type", "object", "properties", Map.of());
+    Prompt<ReviewInput> prompt =
+        Prompt.<ReviewInput>builder()
+            .name("review")
+            .template("x")
+            .inputSchema(explicit)
+            .inputClass(ReviewInput.class)
+            .renderer((ctx, input) -> ModelRequest.builder().addUserMessage("x").build())
+            .build();
+
+    assertSame(explicit, prompt.getInputSchema());
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void testOutputSchemaPropagated() {
+    Map<String, Object> output = Map.of("type", "object", "properties", Map.of());
+    Prompt<String> prompt =
+        Prompt.<String>builder()
+            .name("p")
+            .template("x")
+            .outputSchema(output)
+            .renderer((ctx, input) -> ModelRequest.builder().addUserMessage("x").build())
+            .build();
+
+    assertSame(output, prompt.getOutputSchema());
+    assertSame(output, prompt.getDesc().getOutputSchema());
+    Map<String, Object> promptMetadata = (Map<String, Object>) prompt.getMetadata().get("prompt");
+    assertNotNull(((Map<String, Object>) promptMetadata.get("output")).get("schema"));
+  }
 }
