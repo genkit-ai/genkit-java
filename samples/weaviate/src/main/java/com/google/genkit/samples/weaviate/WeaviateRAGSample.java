@@ -117,7 +117,7 @@ public class WeaviateRAGSample {
     weaviateBuilder.addCollection(
         WeaviateCollectionConfig.builder()
             .name("Films")
-            .embedderName("googleai/text-embedding-004")
+            .embedderName("googleai/gemini-embedding-001")
             .vectorDimension(768)
             .distanceMeasure(WeaviateCollectionConfig.DistanceMeasure.COSINE)
             .createCollectionIfMissing(true)
@@ -192,7 +192,7 @@ public class WeaviateRAGSample {
               ModelResponse response =
                   genkit.generate(
                       GenerateOptions.builder()
-                          .model("googleai/gemini-2.0-flash")
+                          .model("googleai/gemini-2.5-flash")
                           .system(RAG_SYSTEM_PROMPT)
                           .prompt(question)
                           .docs(docs)

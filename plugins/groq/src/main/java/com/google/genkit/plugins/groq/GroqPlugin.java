@@ -43,11 +43,14 @@ public class GroqPlugin implements Plugin {
           // Meta Llama models
           "llama-3.1-8b-instant",
           "llama-3.3-70b-versatile",
-          "meta-llama/llama-guard-4-12b",
 
           // OpenAI GPT-OSS models
           "openai/gpt-oss-120b",
-          "openai/gpt-oss-20b");
+          "openai/gpt-oss-20b",
+
+          // Groq agentic systems (built-in web search + code execution)
+          "groq/compound",
+          "groq/compound-mini");
 
   private final CompatOAIPluginOptions options;
   private final List<String> customModels = new ArrayList<>();

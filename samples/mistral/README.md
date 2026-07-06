@@ -29,9 +29,6 @@ This sample demonstrates integration with Mistral AI models using Genkit Java.
 - `ministral-8b-2512` - Balanced 8B model (262K context)
 - `ministral-14b-2512` - Advanced 14B model (262K context)
 
-### Vision Models
-- `pixtral-large-2411` - Multimodal with vision (131K context)
-
 ### Code Models
 - `codestral-2508` - Code generation specialist (256K context)
 - `devstral-2512` - Code-agentic model (262K context)

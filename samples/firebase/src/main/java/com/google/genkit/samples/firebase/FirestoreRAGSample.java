@@ -120,7 +120,7 @@ public class FirestoreRAGSample {
                         FirestoreRetrieverConfig.builder()
                             .name("films")
                             .collection("films")
-                            .embedderName("googleai/text-embedding-004")
+                            .embedderName("googleai/gemini-embedding-001")
                             .vectorField("embedding")
                             .contentField("content")
                             .distanceMeasure(FirestoreRetrieverConfig.DistanceMeasure.COSINE)
@@ -129,7 +129,7 @@ public class FirestoreRAGSample {
                                 true) // Auto-create database if it doesn't exist
                             .createVectorIndexIfNotExists(true) // Auto-create vector index if it
                             // doesn't exist
-                            .embedderDimension(768) // text-embedding-004 outputs 768 dimensions
+                            .embedderDimension(768) // gemini-embedding-001 outputs 768 dimensions
                             .build())
                     .build())
             .plugin(jetty)
@@ -198,7 +198,7 @@ public class FirestoreRAGSample {
               ModelResponse response =
                   genkit.generate(
                       GenerateOptions.builder()
-                          .model("googleai/gemini-2.0-flash")
+                          .model("googleai/gemini-2.5-flash")
                           .system(RAG_SYSTEM_PROMPT)
                           .prompt(question)
                           .docs(docs)

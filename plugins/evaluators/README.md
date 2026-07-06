@@ -51,7 +51,7 @@ import com.google.genkit.plugins.evaluators.GenkitMetric;
 Genkit genkit = Genkit.builder()
     .addPlugin(EvaluatorsPlugin.create(
         EvaluatorsPluginOptions.builder()
-            .judge("googleai/gemini-2.0-flash")
+            .judge("googleai/gemini-2.5-flash")
             .metricTypes(List.of(
                 GenkitMetric.FAITHFULNESS,
                 GenkitMetric.ANSWER_RELEVANCY,
@@ -67,7 +67,7 @@ Genkit genkit = Genkit.builder()
 Genkit genkit = Genkit.builder()
     .addPlugin(EvaluatorsPlugin.create(
         EvaluatorsPluginOptions.builder()
-            .judge("googleai/gemini-2.0-flash")
+            .judge("googleai/gemini-2.5-flash")
             .useAllMetrics()
             .build()))
     .build();
@@ -79,8 +79,8 @@ Genkit genkit = Genkit.builder()
 Genkit genkit = Genkit.builder()
     .addPlugin(EvaluatorsPlugin.create(
         EvaluatorsPluginOptions.builder()
-            .judge("googleai/gemini-2.0-flash") // Default judge
-            .embedder("googleai/text-embedding-004") // Default embedder
+            .judge("googleai/gemini-2.5-flash") // Default judge
+            .embedder("googleai/gemini-embedding-001") // Default embedder
             .metrics(List.of(
                 // Use defaults
                 MetricConfig.of(GenkitMetric.FAITHFULNESS),
@@ -201,7 +201,7 @@ for (EvalResponse response : results) {
 
 Any model registered with Genkit can be used as a judge:
 
-- `googleai/gemini-2.0-flash`
+- `googleai/gemini-2.5-flash`
 - `googleai/gemini-1.5-pro`
 - `openai/gpt-4o`
 - `anthropic/claude-3-sonnet`

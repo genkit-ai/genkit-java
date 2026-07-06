@@ -58,7 +58,7 @@ Genkit genkit = Genkit.builder()
     .plugin(WeaviatePlugin.local()
         .addCollection(WeaviateCollectionConfig.builder()
             .name("documents")
-            .embedderName("googleai/text-embedding-004")
+            .embedderName("googleai/gemini-embedding-001")
             .build())
         .build())
     .build();
@@ -76,7 +76,7 @@ Genkit genkit = Genkit.builder()
         .apiKey(System.getenv("WEAVIATE_API_KEY"))
         .addCollection(WeaviateCollectionConfig.builder()
             .name("documents")
-            .embedderName("googleai/text-embedding-004")
+            .embedderName("googleai/gemini-embedding-001")
             .distanceMeasure(WeaviateCollectionConfig.DistanceMeasure.COSINE)
             .createCollectionIfMissing(true)
             .vectorDimension(768)
@@ -137,7 +137,7 @@ Flow<String, String, Void> ragFlow = genkit.defineFlow("ragQuery",
     
     // Generate answer using context
     ModelResponse response = genkit.generate(GenerateOptions.builder()
-        .model("googleai/gemini-2.0-flash")
+        .model("googleai/gemini-2.5-flash")
         .prompt(question)
         .docs(docs)
         .build());

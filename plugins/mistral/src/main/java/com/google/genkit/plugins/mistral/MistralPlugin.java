@@ -20,6 +20,7 @@ package com.google.genkit.plugins.mistral;
 
 import com.google.genkit.core.Action;
 import com.google.genkit.core.Plugin;
+import com.google.genkit.plugins.compatoai.CompatOAIEmbedder;
 import com.google.genkit.plugins.compatoai.CompatOAIModel;
 import com.google.genkit.plugins.compatoai.CompatOAIPluginOptions;
 import java.util.ArrayList;
@@ -42,20 +43,17 @@ public class MistralPlugin implements Plugin {
       Arrays.asList(
           // Flagship models
           "mistral-large-2512",
+          "mistral-medium-2604",
           "mistral-medium-2508",
-          "mistral-small-2506",
+          "mistral-small-2603",
 
           // Reasoning models
           "magistral-medium-2509",
-          "magistral-small-2509",
 
           // Compact models
           "ministral-3b-2512",
           "ministral-8b-2512",
           "ministral-14b-2512",
-
-          // Vision models
-          "pixtral-large-2411",
 
           // Code models
           "codestral-2508",
@@ -64,8 +62,13 @@ public class MistralPlugin implements Plugin {
           // Open source
           "open-mistral-nemo");
 
+  /** Supported Mistral embedding models. */
+  public static final List<String> SUPPORTED_EMBEDDING_MODELS =
+      Arrays.asList("mistral-embed", "codestral-embed");
+
   private final CompatOAIPluginOptions options;
   private final List<String> customModels = new ArrayList<>();
+  private final List<String> customEmbeddingModels = new ArrayList<>();
 
   /** Creates a MistralPlugin with default options (using MISTRAL_API_KEY environment variable). */
   public MistralPlugin() {
@@ -148,8 +151,26 @@ public class MistralPlugin implements Plugin {
       logger.debug("Created custom Mistral model: {}", modelName);
     }
 
+    // Register Mistral embedding models
+    for (String modelName : SUPPORTED_EMBEDDING_MODELS) {
+      CompatOAIEmbedder embedder =
+          new CompatOAIEmbedder("mistral/" + modelName, modelName, "Mistral " + modelName, options);
+      actions.add(embedder);
+      logger.debug("Created Mistral embedder: {}", modelName);
+    }
+
+    // Register custom embedding models added via customEmbeddingModel()
+    for (String modelName : customEmbeddingModels) {
+      CompatOAIEmbedder embedder =
+          new CompatOAIEmbedder("mistral/" + modelName, modelName, "Mistral " + modelName, options);
+      actions.add(embedder);
+      logger.debug("Created custom Mistral embedder: {}", modelName);
+    }
+
     logger.info(
-        "Mistral plugin initialized with {} models", SUPPORTED_MODELS.size() + customModels.size());
+        "Mistral plugin initialized with {} models and {} embedders",
+        SUPPORTED_MODELS.size() + customModels.size(),
+        SUPPORTED_EMBEDDING_MODELS.size() + customEmbeddingModels.size());
 
     return actions;
   }
@@ -164,6 +185,19 @@ public class MistralPlugin implements Plugin {
   public MistralPlugin customModel(String modelName) {
     customModels.add(modelName);
     logger.debug("Added custom model to be registered: {}", modelName);
+    return this;
+  }
+
+  /**
+   * Registers a custom embedding model name. Use this to work with embedding models not in the
+   * default list. Call this method before passing the plugin to Genkit.builder().
+   *
+   * @param modelName the embedding model name (e.g., "mistral-embed-2601")
+   * @return this plugin instance for method chaining
+   */
+  public MistralPlugin customEmbeddingModel(String modelName) {
+    customEmbeddingModels.add(modelName);
+    logger.debug("Added custom embedding model to be registered: {}", modelName);
     return this;
   }
 

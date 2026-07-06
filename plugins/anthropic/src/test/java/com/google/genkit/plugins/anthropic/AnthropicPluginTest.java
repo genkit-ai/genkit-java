@@ -82,7 +82,8 @@ class AnthropicPluginTest {
     assertNotNull(AnthropicPlugin.SUPPORTED_MODELS);
     assertTrue(AnthropicPlugin.SUPPORTED_MODELS.contains("claude-opus-4-5-20251101"));
     assertTrue(AnthropicPlugin.SUPPORTED_MODELS.contains("claude-sonnet-4-5-20250929"));
-    assertTrue(AnthropicPlugin.SUPPORTED_MODELS.contains("claude-3-opus-20240229"));
+    assertTrue(AnthropicPlugin.SUPPORTED_MODELS.contains("claude-opus-4-8"));
+    assertTrue(AnthropicPlugin.SUPPORTED_MODELS.contains("claude-sonnet-5"));
   }
 
   @Test

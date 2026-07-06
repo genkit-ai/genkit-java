@@ -30,15 +30,17 @@ Genkit genkit = Genkit.builder()
 
 ModelResponse response = genkit.generate(
     GenerateOptions.builder()
-        .model("deepseek/deepseek-chat")
+        .model("deepseek/deepseek-v4-pro")
         .prompt("Tell me about AI")
         .build());
 ```
 
 ## Available models
 
-- `deepseek/deepseek-chat` — General chat model
-- `deepseek/deepseek-reasoner` — Reasoning model
+- `deepseek/deepseek-v4-pro` — Flagship V4 model
+- `deepseek/deepseek-v4-flash` — Fast, economical V4 model
+- `deepseek/deepseek-chat` — Legacy alias (deprecated, retires 2026-07-24)
+- `deepseek/deepseek-reasoner` — Legacy reasoning alias (deprecated, retires 2026-07-24)
 
 ## Features
 

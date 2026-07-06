@@ -87,6 +87,10 @@
         <module>plugins/middleware</module>
         <module>plugins/weaviate</module>
         <module>plugins/postgresql</module>
+        <module>plugins/mongodb</module>
+        <module>plugins/chroma</module>
+        <module>plugins/qdrant</module>
+        <module>plugins/milvus</module>
         <module>plugins/pinecone</module>
         <module>plugins/evaluators</module>
         <module>plugins/aws-bedrock</module>
@@ -116,11 +120,17 @@
         <module>samples/agents-firestore-session</module>
         <module>samples/agents-dynamodb-session</module>
         <module>samples/agents-cosmos-session</module>
+        <module>samples/agents-postgres-session</module>
+        <module>samples/agents-mongo-session</module>
         <module>samples/spring</module>
         <module>samples/firebase</module>
         <module>samples/weaviate</module>
         <module>samples/postgresql</module>
         <module>samples/pinecone</module>
+        <module>samples/chroma</module>
+        <module>samples/qdrant</module>
+        <module>samples/milvus</module>
+        <module>samples/mongo-vector</module>
         <module>samples/structured-output</module>
         <module>samples/aws-bedrock</module>
         <module>samples/azure-foundry</module>

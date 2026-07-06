@@ -169,8 +169,8 @@ openai/text-embedding-3-small, openai/text-embedding-3-large
 openai/dall-e-3, openai/dall-e-2, openai/gpt-image-1
 
 # Google Gemini
-googleai/gemini-2.0-flash, googleai/gemini-1.5-pro, googleai/gemini-1.5-flash
-googleai/text-embedding-004, googleai/imagen-3.0-generate-002
+googleai/gemini-2.5-flash, googleai/gemini-1.5-pro, googleai/gemini-1.5-flash
+googleai/gemini-embedding-001, googleai/imagen-3.0-generate-002
 
 # Anthropic
 anthropic/claude-sonnet-4-5-20250929, anthropic/claude-opus-4-5-20251101
@@ -801,7 +801,7 @@ Genkit genkit = Genkit.builder()
         .addRetriever(FirestoreRetrieverConfig.builder()
             .name("my-docs")
             .collection("documents")
-            .embedderName("googleai/text-embedding-004")
+            .embedderName("googleai/gemini-embedding-001")
             .vectorField("embedding")
             .contentField("text")
             .build())
@@ -827,7 +827,7 @@ public class MyFunction implements HttpFunction {
         genkit.defineFlow("myFlow", String.class, String.class,
             (ctx, input) -> genkit.generate(
                 GenerateOptions.builder()
-                    .model("googleai/gemini-2.0-flash")
+                    .model("googleai/gemini-2.5-flash")
                     .prompt(input)
                     .build()).getText());
 
@@ -954,7 +954,7 @@ Genkit is provider-agnostic. Change the model string and plugin:
 // Switch from OpenAI to Gemini — just change plugin + model name
 .plugin(GoogleGenAIPlugin.create())
 // ...
-.model("googleai/gemini-2.0-flash")
+.model("googleai/gemini-2.5-flash")
 
 // Switch to Anthropic
 .plugin(AnthropicPlugin.create())
@@ -987,7 +987,7 @@ genkit.defineFlow("deepAnalysis", String.class, String.class,
 
 genkit.defineFlow("creative", String.class, String.class,
     (ctx, q) -> genkit.generate(GenerateOptions.builder()
-        .model("googleai/gemini-2.0-flash").prompt(q).build()).getText());
+        .model("googleai/gemini-2.5-flash").prompt(q).build()).getText());
 ```
 
 ### Custom OpenAI-Compatible Endpoint

@@ -32,7 +32,7 @@ Genkit genkit = Genkit.builder()
 
 ModelResponse response = genkit.generate(
     GenerateOptions.builder()
-        .model("xai/grok-3")
+        .model("xai/grok-4.3")
         .prompt("Tell me about AI")
         .build());
 ```
@@ -41,10 +41,11 @@ ModelResponse response = genkit.generate(
 
 | Model | Context Window |
 |-------|---------------|
-| `xai/grok-4` | Up to 2M tokens |
-| `xai/grok-4-1-fast` | 131K tokens |
-| `xai/grok-3` | 131K tokens |
-| `xai/grok-3-mini` | 131K tokens |
+| `xai/grok-4.3` | Up to 2M tokens |
+| `xai/grok-4.20-0309-reasoning` | Up to 2M tokens |
+| `xai/grok-4.20-0309-non-reasoning` | Up to 2M tokens |
+| `xai/grok-4.20-multi-agent-0309` | Up to 2M tokens |
+| `xai/grok-build-0.1` | 256K tokens (agentic coding) |
 
 ## Features
 

@@ -39,9 +39,9 @@ class EvaluatorsPluginOptionsTest {
   @Test
   void testBuilderWithJudge() {
     EvaluatorsPluginOptions options =
-        EvaluatorsPluginOptions.builder().judge("googleai/gemini-2.0-flash").build();
+        EvaluatorsPluginOptions.builder().judge("googleai/gemini-2.5-flash").build();
 
-    assertEquals("googleai/gemini-2.0-flash", options.getJudge());
+    assertEquals("googleai/gemini-2.5-flash", options.getJudge());
   }
 
   @Test

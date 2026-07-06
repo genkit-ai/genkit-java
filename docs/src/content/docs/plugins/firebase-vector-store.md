@@ -28,7 +28,7 @@ Genkit genkit = Genkit.builder()
         .addRetriever(FirestoreRetrieverConfig.builder()
             .name("my-docs")
             .collection("documents")
-            .embedderName("googleai/text-embedding-004")
+            .embedderName("googleai/gemini-embedding-001")
             .vectorField("embedding")
             .contentField("content")
             .distanceMeasure(FirestoreRetrieverConfig.DistanceMeasure.COSINE)
@@ -62,7 +62,7 @@ List<Document> results = genkit.retrieve("firebase/my-docs", "What is Genkit?");
 genkit.defineFlow("ragQuery", String.class, String.class, (ctx, question) -> {
     List<Document> context = genkit.retrieve("firebase/my-docs", question);
     return genkit.generate(GenerateOptions.builder()
-        .model("googleai/gemini-2.0-flash")
+        .model("googleai/gemini-2.5-flash")
         .prompt(question)
         .docs(context)
         .build()).getText();
@@ -77,7 +77,7 @@ The plugin can automatically create the Firestore database and the required comp
 FirestoreRetrieverConfig.builder()
     .name("my-docs")
     .collection("documents")
-    .embedderName("googleai/text-embedding-004")
+    .embedderName("googleai/gemini-embedding-001")
     .vectorField("embedding")
     .contentField("content")
     .createDatabaseIfNotExists(true)
@@ -100,7 +100,7 @@ gcloud firestore indexes composite create \
 |--------|---------|-------------|
 | `name` | (required) | Retriever name — used as `firebase/{name}` |
 | `collection` | (required) | Firestore collection name |
-| `embedderName` | (required) | Embedder to use (e.g., `googleai/text-embedding-004`) |
+| `embedderName` | (required) | Embedder to use (e.g., `googleai/gemini-embedding-001`) |
 | `vectorField` | `"embedding"` | Firestore field storing the vector |
 | `contentField` | `"content"` | Firestore field storing the text content |
 | `distanceMeasure` | `COSINE` | `COSINE`, `EUCLIDEAN`, or `DOT_PRODUCT` |

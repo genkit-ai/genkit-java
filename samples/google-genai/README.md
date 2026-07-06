@@ -118,11 +118,11 @@ The Google GenAI plugin provides access to:
 
 | Model | Description |
 |-------|-------------|
-| `googleai/gemini-2.0-flash` | Fast, efficient Gemini model |
-| `googleai/gemini-1.5-pro` | Advanced reasoning capabilities |
-| `googleai/gemini-1.5-flash` | Balanced speed and capability |
-| `googleai/imagen-3.0-generate-002` | Image generation |
-| `googleai/text-embedding-004` | Text embeddings |
+| `googleai/gemini-2.5-flash` | Fast, efficient Gemini model |
+| `googleai/gemini-3.1-pro-preview` | Advanced reasoning capabilities |
+| `googleai/gemini-3.5-flash` | Balanced speed and capability |
+| `googleai/imagen-4.0-fast-generate-001` | Image generation |
+| `googleai/gemini-embedding-001` | Text embeddings |
 
 ## Code Highlights
 
@@ -148,7 +148,7 @@ genkit.defineFlow("textGeneration", String.class, String.class,
     (ctx, prompt) -> {
         ModelResponse response = genkit.generate(
             GenerateOptions.builder()
-                .model("googleai/gemini-2.0-flash")
+                .model("googleai/gemini-2.5-flash")
                 .prompt(prompt)
                 .config(GenerationConfig.builder()
                     .temperature(0.7)
@@ -166,7 +166,7 @@ genkit.defineFlow("imageGeneration", String.class, String.class,
     (ctx, prompt) -> {
         ModelResponse response = genkit.generate(
             GenerateOptions.builder()
-                .model("googleai/imagen-3.0-generate-002")
+                .model("googleai/imagen-4.0-fast-generate-001")
                 .prompt(prompt)
                 .build());
         // Save generated image to file

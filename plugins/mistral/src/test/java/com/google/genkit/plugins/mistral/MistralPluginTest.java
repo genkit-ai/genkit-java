@@ -89,7 +89,27 @@ class MistralPluginTest {
   void testSupportedModels() {
     assertNotNull(MistralPlugin.SUPPORTED_MODELS);
     assertTrue(MistralPlugin.SUPPORTED_MODELS.contains("mistral-large-2512"));
-    assertTrue(MistralPlugin.SUPPORTED_MODELS.contains("mistral-small-2506"));
+    assertTrue(MistralPlugin.SUPPORTED_MODELS.contains("mistral-small-2603"));
+  }
+
+  @Test
+  void testSupportedEmbeddingModels() {
+    assertNotNull(MistralPlugin.SUPPORTED_EMBEDDING_MODELS);
+    assertTrue(MistralPlugin.SUPPORTED_EMBEDDING_MODELS.contains("mistral-embed"));
+  }
+
+  @Test
+  void testRegistersEmbedders() {
+    MistralPlugin plugin =
+        new MistralPlugin(
+            CompatOAIPluginOptions.builder()
+                .apiKey("test-key")
+                .baseUrl("https://api.mistral.ai/v1")
+                .build());
+    List<Action<?, ?, ?>> actions = plugin.init();
+    assertTrue(
+        actions.stream().anyMatch(a -> "mistral/mistral-embed".equals(a.getName())),
+        "Should register the mistral-embed embedder");
   }
 
   @Test

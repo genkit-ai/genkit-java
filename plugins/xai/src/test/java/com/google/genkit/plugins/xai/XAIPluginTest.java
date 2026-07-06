@@ -67,10 +67,9 @@ class XAIPluginTest {
   @Test
   void testSupportedModels() {
     assertNotNull(XAIPlugin.SUPPORTED_MODELS);
-    assertTrue(XAIPlugin.SUPPORTED_MODELS.contains("grok-4"));
-    assertTrue(XAIPlugin.SUPPORTED_MODELS.contains("grok-4-1-fast"));
-    assertTrue(XAIPlugin.SUPPORTED_MODELS.contains("grok-3"));
-    assertTrue(XAIPlugin.SUPPORTED_MODELS.contains("grok-code-fast-1"));
+    assertTrue(XAIPlugin.SUPPORTED_MODELS.contains("grok-4.3"));
+    assertTrue(XAIPlugin.SUPPORTED_MODELS.contains("grok-4.20-0309-reasoning"));
+    assertTrue(XAIPlugin.SUPPORTED_MODELS.contains("grok-build-0.1"));
   }
 
   @Test

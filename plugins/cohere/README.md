@@ -18,6 +18,16 @@ This plugin provides integration with Cohere models.
 - `command-r-08-2024` - Balanced model for complex workflows (128K context)
 - `command-r-plus-08-2024` - Enhanced model for complex RAG and multi-step tool use (128K context)
 
+## Embeddings
+
+Cohere embedding models are available via the OpenAI-compatible endpoint:
+
+- `embed-v4.0` - Latest multimodal embeddings (text + images)
+- `embed-multilingual-v3.0`
+- `embed-english-v3.0`
+
+Register additional embedding models with `customEmbeddingModel(...)`.
+
 ## Using Custom Models
 
 If you need to use a model not in the default list (e.g., a newer model release), register it using `customModel()`:

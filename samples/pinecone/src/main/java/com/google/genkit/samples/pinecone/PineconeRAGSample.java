@@ -118,7 +118,7 @@ public class PineconeRAGSample {
             .addIndex(
                 PineconeIndexConfig.builder()
                     .indexName(finalIndexName)
-                    .embedderName("googleai/text-embedding-004")
+                    .embedderName("googleai/gemini-embedding-001")
                     .dimension(768)
                     .metric(PineconeIndexConfig.Metric.COSINE)
                     .cloud(cloudEnum)
@@ -199,7 +199,7 @@ public class PineconeRAGSample {
               ModelResponse response =
                   genkit.generate(
                       GenerateOptions.builder()
-                          .model("googleai/gemini-2.0-flash")
+                          .model("googleai/gemini-2.5-flash")
                           .system(RAG_SYSTEM_PROMPT)
                           .prompt(question)
                           .docs(docs)

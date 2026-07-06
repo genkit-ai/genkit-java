@@ -19,8 +19,9 @@ This plugin provides integration with Groq's ultra-fast LLM inference.
 - `openai/gpt-oss-120b` - OpenAI GPT-OSS 120B with reasoning (~500 tokens/sec)
 - `openai/gpt-oss-20b` - OpenAI GPT-OSS 20B (~1000 tokens/sec)
 
-### Content Moderation
-- `meta-llama/llama-guard-4-12b` - Content moderation model (~1200 tokens/sec)
+### Agentic Systems
+- `groq/compound` - Agentic system with built-in web search + code execution
+- `groq/compound-mini` - Lightweight agentic system
 
 ## Using Custom Models
 

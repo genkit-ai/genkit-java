@@ -1,6 +1,6 @@
 ---
 title: Session Stores
-description: Persist agent session state with in-memory, file-based, Firestore, DynamoDB, or Cosmos DB session stores.
+description: Persist agent session state with in-memory, file-based, Firestore, DynamoDB, Cosmos DB, PostgreSQL, or MongoDB session stores.
 ---
 
 A `SessionStore<S>` is where a server-managed agent keeps its sessions. Pass one to `.store(...)` when you define an agent to persist snapshots; omit it to run the agent client-managed (stateless). Several implementations ship out of the box, and you can write your own.
@@ -12,8 +12,10 @@ A `SessionStore<S>` is where a server-managed agent keeps its sessions. Pass one
 | `FirestoreSessionStore` | Google Cloud Firestore | Production on Google Cloud (Cloud Run, Firebase Functions) |
 | `DynamoDbSessionStore` | Amazon DynamoDB | Production on AWS |
 | `CosmosSessionStore` | Azure Cosmos DB | Production on Azure |
+| `PostgresSessionStore` | PostgreSQL | Production on any SQL-first stack |
+| `MongoSessionStore` | MongoDB | Production on any document-first stack |
 
-If you plan to use `chat.abort()` or the `/abort` HTTP endpoint, pick a store that supports change notifications: `FileSessionStore`, `FirestoreSessionStore`, `DynamoDbSessionStore`, and `CosmosSessionStore` do; `InMemorySessionStore` does not, so `abort()` is a no-op there. See [Sessions](../sessions#aborting-a-turn).
+If you plan to use `chat.abort()` or the `/abort` HTTP endpoint, pick a store that supports change notifications: `FileSessionStore`, `FirestoreSessionStore`, `DynamoDbSessionStore`, `CosmosSessionStore`, `PostgresSessionStore`, and `MongoSessionStore` do; `InMemorySessionStore` does not, so `abort()` is a no-op there. See [Sessions](../sessions#aborting-a-turn).
 
 ## InMemorySessionStore
 
@@ -198,6 +200,100 @@ CosmosSessionStore<Map<String, Object>> store =
 ```
 
 The default shard size is 1 MiB, kept under Cosmos DB's 2 MB document-size limit. `CosmosSessionStore` supports `onSnapshotStateChange` (via polling), so `chat.abort()` works.
+
+## PostgresSessionStore
+
+Stores snapshots in PostgreSQL. It lives in the PostgreSQL plugin, so add the dependency:
+
+```xml
+<dependency>
+    <groupId>com.google.genkit</groupId>
+    <artifactId>genkit-plugin-postgresql</artifactId>
+    <version>${genkit.version}</version>
+</dependency>
+```
+
+```java
+import com.google.genkit.plugins.postgresql.session.PostgresSessionStore;
+import com.google.genkit.plugins.postgresql.session.PostgresSessionStoreOptions;
+import org.postgresql.ds.PGSimpleDataSource;
+
+PGSimpleDataSource dataSource = new PGSimpleDataSource();
+dataSource.setUrl("jdbc:postgresql://localhost:5432/genkit");
+dataSource.setUser("postgres");
+dataSource.setPassword("postgres");
+
+PostgresSessionStore<Map<String, Object>> store =
+    new PostgresSessionStore<>(dataSource); // uses the default "genkit_sessions" table
+
+Agent<Map<String, Object>> agent = genkit.beta().defineAgent(
+    AgentConfig.<Map<String, Object>>builder()
+        .name("myAgent")
+        .system("You are a helpful assistant.")
+        .store(store)
+        .build());
+```
+
+All records live in a single table keyed by `(pk, id)` with a JSONB `doc` payload and a `version` column for optimistic concurrency. Create the table ahead of time, or let the store create it on first use:
+
+```java
+PostgresSessionStore<Map<String, Object>> store =
+    new PostgresSessionStore<>(
+        dataSource,
+        PostgresSessionStoreOptions.builder()
+            .tableName("genkit_sessions")     // table name (default "genkit_sessions")
+            .createTableIfNotExists(true)     // auto-create the table on first use (default false)
+            .pollIntervalMs(500)              // how often change subscribers are polled (default 2000)
+            .build());
+```
+
+The default shard size is 1 MiB. `PostgresSessionStore` supports `onSnapshotStateChange` (via polling), so `chat.abort()` works.
+
+## MongoSessionStore
+
+Stores snapshots in MongoDB. It lives in the MongoDB plugin, so add the dependency:
+
+```xml
+<dependency>
+    <groupId>com.google.genkit</groupId>
+    <artifactId>genkit-plugin-mongodb</artifactId>
+    <version>${genkit.version}</version>
+</dependency>
+```
+
+```java
+import com.google.genkit.plugins.mongodb.session.MongoSessionStore;
+import com.google.genkit.plugins.mongodb.session.MongoSessionStoreOptions;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+
+MongoClient client = MongoClients.create("mongodb://localhost:27017");
+
+MongoSessionStore<Map<String, Object>> store =
+    new MongoSessionStore<>(client); // uses database "genkit", collection "genkit_sessions"
+
+Agent<Map<String, Object>> agent = genkit.beta().defineAgent(
+    AgentConfig.<Map<String, Object>>builder()
+        .name("myAgent")
+        .system("You are a helpful assistant.")
+        .store(store)
+        .build());
+```
+
+All records live in a single collection whose `_id` is `<prefix>::<recordId>`; each document carries a `version` field for optimistic concurrency. The database and collection are created automatically on first write. Tune it with `MongoSessionStoreOptions`:
+
+```java
+MongoSessionStore<Map<String, Object>> store =
+    new MongoSessionStore<>(
+        client,
+        MongoSessionStoreOptions.builder()
+            .databaseName("genkit")           // database name (default "genkit")
+            .collectionName("genkit_sessions") // collection name (default "genkit_sessions")
+            .pollIntervalMs(500)              // how often change subscribers are polled (default 2000)
+            .build());
+```
+
+The default shard size is 1 MiB, kept under MongoDB's 16 MB document-size limit. `MongoSessionStore` supports `onSnapshotStateChange` (via polling), so `chat.abort()` works.
 
 ## Writing your own store
 

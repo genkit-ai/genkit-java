@@ -283,7 +283,7 @@ public class MistralSample {
     System.out.println("  POST http://localhost:8080/api/flows/quickQA (ministral-3b)");
     System.out.println("  POST http://localhost:8080/api/flows/efficientChat (ministral-8b)");
     System.out.println(
-        "  POST http://localhost:8080/api/flows/creativeWriting (pixtral-large with streaming)");
+        "  POST http://localhost:8080/api/flows/creativeWriting (mistral-large with streaming)");
     System.out.println("");
     System.out.println("Example usage:");
     System.out.println(

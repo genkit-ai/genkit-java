@@ -38,6 +38,21 @@ Genkit genkit = Genkit.builder()
 - Batch indexing
 - Metadata support
 
+## Session store
+
+The plugin also ships `PostgresSessionStore`, a PostgreSQL-backed agent session store. Construct it from a `javax.sql.DataSource` and pass it to an agent's `.store(...)` to persist server-managed sessions in PostgreSQL:
+
+```java
+import com.google.genkit.plugins.postgresql.session.PostgresSessionStore;
+import com.google.genkit.plugins.postgresql.session.PostgresSessionStoreOptions;
+
+PostgresSessionStore<Map<String, Object>> store =
+    new PostgresSessionStore<>(
+        dataSource, PostgresSessionStoreOptions.builder().createTableIfNotExists(true).build());
+```
+
+See [Session Stores](../../agents/session-stores#postgressessionstore) for options and the agents-postgres-session sample.
+
 ## Sample
 
 See the [postgresql sample](https://github.com/genkit-ai/genkit-java/tree/main/samples/postgresql).

@@ -28,7 +28,7 @@ import com.google.genkit.ai.Embedder;
  * <pre>{@code
  * WeaviateCollectionConfig config = WeaviateCollectionConfig.builder()
  *     .name("documents")
- *     .embedderName("googleai/text-embedding-004")
+ *     .embedderName("googleai/gemini-embedding-001")
  *     .distanceMeasure(DistanceMeasure.COSINE)
  *     .createCollectionIfMissing(true)
  *     .build();
@@ -201,7 +201,7 @@ public class WeaviateCollectionConfig {
     /**
      * Sets the embedder name to resolve from registry.
      *
-     * @param embedderName the embedder name (e.g., "googleai/text-embedding-004")
+     * @param embedderName the embedder name (e.g., "googleai/gemini-embedding-001")
      * @return this builder
      */
     public Builder embedderName(String embedderName) {

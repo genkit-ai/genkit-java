@@ -49,7 +49,7 @@ import org.slf4j.LoggerFactory;
  *             .addTable(
  *                 PostgresTableConfig.builder()
  *                     .tableName("documents")
- *                     .embedderName("googleai/text-embedding-004")
+ *                     .embedderName("googleai/gemini-embedding-001")
  *                     .build())
  *             .build())
  *     .build();

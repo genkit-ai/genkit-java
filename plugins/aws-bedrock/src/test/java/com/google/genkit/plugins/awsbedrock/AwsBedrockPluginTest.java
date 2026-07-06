@@ -65,6 +65,24 @@ class AwsBedrockPluginTest {
   }
 
   @Test
+  void testSupportedEmbeddingModels() {
+    assertNotNull(AwsBedrockPlugin.SUPPORTED_EMBEDDING_MODELS);
+    assertTrue(
+        AwsBedrockPlugin.SUPPORTED_EMBEDDING_MODELS.contains("amazon.titan-embed-text-v2:0"));
+  }
+
+  @Test
+  void testRegistersEmbedders() {
+    AwsBedrockPluginOptions options = AwsBedrockPluginOptions.builder().region("us-east-1").build();
+    AwsBedrockPlugin plugin = new AwsBedrockPlugin(options);
+    List<Action<?, ?, ?>> actions = plugin.init();
+    assertTrue(
+        actions.stream()
+            .anyMatch(a -> "aws-bedrock/amazon.titan-embed-text-v2:0".equals(a.getName())),
+        "Should register the Titan embedder");
+  }
+
+  @Test
   void testInitializesActions() {
     AwsBedrockPluginOptions options = AwsBedrockPluginOptions.builder().region("us-east-1").build();
 

@@ -79,16 +79,18 @@ AnthropicPlugin plugin = new AnthropicPlugin(
 - `anthropic/claude-sonnet-4-5-20250929` - Balanced performance (recommended)
 - `anthropic/claude-haiku-4-5-20251001` - Fast and efficient
 
+### Claude 5 Family
+- `anthropic/claude-fable-5` - Most capable widely released model
+- `anthropic/claude-sonnet-5` - Balanced speed and intelligence
+
 ### Claude 4 Family
+- `anthropic/claude-opus-4-8` - Flagship Opus
+- `anthropic/claude-opus-4-7` - Claude Opus 4.7
+- `anthropic/claude-opus-4-6` - Claude Opus 4.6
+- `anthropic/claude-sonnet-4-6` - Claude Sonnet 4.6
 - `anthropic/claude-opus-4-1-20250805` - Claude Opus 4.1
 - `anthropic/claude-opus-4-20250514` - Claude Opus 4
 - `anthropic/claude-sonnet-4-20250514` - Claude Sonnet 4
-
-### Claude 3 Family
-- `anthropic/claude-3-7-sonnet-20250219` - Claude Sonnet 3.7
-- `anthropic/claude-3-5-haiku-20241022` - Claude Haiku 3.5
-- `anthropic/claude-3-opus-20240229` - Claude Opus 3
-- `anthropic/claude-3-haiku-20240307` - Claude Haiku 3
 
 ## Using Custom Models
 

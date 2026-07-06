@@ -30,7 +30,7 @@ Genkit genkit = Genkit.builder()
 
 ModelResponse response = genkit.generate(
     GenerateOptions.builder()
-        .model("mistral/mistral-large-3-25-12")
+        .model("mistral/mistral-large-2512")
         .prompt("Tell me about AI")
         .build());
 ```
@@ -39,15 +39,24 @@ ModelResponse response = genkit.generate(
 
 | Model | Context |
 |-------|---------|
-| `mistral/mistral-large-3-25-12` | 128K |
-| `mistral/mistral-medium-3-1-25-08` | 128K |
-| `mistral/mistral-small-*` | 128K |
-| `mistral/ministral-*` | 128K |
-| `mistral/codestral-25-08` | 256K |
+| `mistral/mistral-large-2512` | 128K |
+| `mistral/mistral-medium-2604` | 128K |
+| `mistral/mistral-small-2603` | 128K |
+| `mistral/ministral-3b-2512`, `mistral/ministral-8b-2512`, `mistral/ministral-14b-2512` | 128K |
+| `mistral/codestral-2508` | 256K |
+
+## Embeddings
+
+- `mistral/mistral-embed`
+- `mistral/codestral-embed`
+
+```java
+EmbedResponse response = genkit.embed("mistral/mistral-embed", documents);
+```
 
 ## Features
 
-- Text generation, streaming, tool calling, RAG
+- Text generation, streaming, tool calling, RAG, embeddings
 
 ## Sample
 

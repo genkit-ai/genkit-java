@@ -33,11 +33,6 @@ import java.util.function.Consumer;
 import okhttp3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
-import software.amazon.awssdk.auth.signer.Aws4Signer;
-import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpMethod;
 
 /**
  * AWS Bedrock model implementation for Genkit.
@@ -170,50 +165,7 @@ public class AwsBedrockModel implements Model {
   }
 
   private Request signRequest(String host, String path, String body) {
-    try {
-      AwsCredentials credentials = options.getCredentialsProvider().resolveCredentials();
-
-      // Build URI and let it handle encoding properly
-      java.net.URI uri = java.net.URI.create(String.format("https://%s%s", host, path));
-
-      SdkHttpFullRequest httpRequest =
-          SdkHttpFullRequest.builder()
-              .uri(uri)
-              .method(SdkHttpMethod.POST)
-              .putHeader("Content-Type", "application/json; charset=utf-8")
-              .contentStreamProvider(
-                  () ->
-                      new java.io.ByteArrayInputStream(
-                          body.getBytes(java.nio.charset.StandardCharsets.UTF_8)))
-              .build();
-
-      Aws4Signer signer = Aws4Signer.create();
-      Aws4SignerParams signerParams =
-          Aws4SignerParams.builder()
-              .awsCredentials(credentials)
-              .signingName("bedrock")
-              .signingRegion(options.getRegion())
-              .build();
-
-      SdkHttpFullRequest signedRequest = signer.sign(httpRequest, signerParams);
-
-      // Use the signed request's URI directly
-      Request.Builder okHttpRequestBuilder =
-          new Request.Builder()
-              .url(signedRequest.getUri().toURL())
-              .post(RequestBody.create(body, JSON_MEDIA_TYPE));
-
-      signedRequest
-          .headers()
-          .forEach(
-              (key, values) -> {
-                values.forEach(value -> okHttpRequestBuilder.addHeader(key, value));
-              });
-
-      return okHttpRequestBuilder.build();
-    } catch (Exception e) {
-      throw new GenkitException("Failed to sign AWS request", e);
-    }
+    return AwsBedrockSigner.signRequest(options, host, path, body);
   }
 
   private ObjectNode buildRequestBody(ModelRequest request, boolean stream) {

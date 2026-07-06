@@ -31,7 +31,7 @@ import java.util.Map;
  * <pre>{@code
  * PineconeIndexConfig config = PineconeIndexConfig.builder()
  *     .indexName("my-index")
- *     .embedderName("googleai/text-embedding-004")
+ *     .embedderName("googleai/gemini-embedding-001")
  *     .namespace("production")
  *     .build();
  * }</pre>

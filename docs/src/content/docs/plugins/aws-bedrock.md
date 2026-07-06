@@ -51,6 +51,19 @@ ModelResponse response = genkit.generate(
 - **OpenAI** — Via Bedrock marketplace
 - And many more...
 
+## Embeddings
+
+Bedrock embedding models (Amazon Titan and Cohere Embed) are available via the `InvokeModel` API:
+
+- `aws-bedrock/amazon.titan-embed-text-v2:0`
+- `aws-bedrock/cohere.embed-english-v3`
+- `aws-bedrock/cohere.embed-multilingual-v3`
+
+```java
+EmbedResponse response =
+    genkit.embed("aws-bedrock/amazon.titan-embed-text-v2:0", documents);
+```
+
 ## Features
 
 - Multi-provider model access

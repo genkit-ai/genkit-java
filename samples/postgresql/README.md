@@ -140,8 +140,8 @@ WITH (lists = 100);
 ## Configuration
 
 The sample uses:
-- **Embedder**: `googleai/text-embedding-004` (768 dimensions)
-- **LLM**: `googleai/gemini-2.0-flash`
+- **Embedder**: `googleai/gemini-embedding-001` (768 dimensions)
+- **LLM**: `googleai/gemini-2.5-flash`
 - **Distance Strategy**: Cosine distance
 - **Table Name**: `films`
 - **Index Type**: IVFFlat with 100 lists
