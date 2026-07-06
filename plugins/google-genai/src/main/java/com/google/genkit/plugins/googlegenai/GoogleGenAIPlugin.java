@@ -32,9 +32,9 @@ import org.slf4j.LoggerFactory;
  * <p>This plugin provides access to Google's Gemini models for:
  *
  * <ul>
- *   <li>Text generation (Gemini 2.0, 2.5, 3.0 series)
+ *   <li>Text generation (Gemini 3.5, 3.1, 2.5 series)
  *   <li>Multimodal content (images, video, audio)
- *   <li>Embeddings (text-embedding-004, gemini-embedding-001)
+ *   <li>Embeddings (gemini-embedding-2, gemini-embedding-001)
  *   <li>Function calling/tools
  * </ul>
  *
@@ -67,7 +67,7 @@ import org.slf4j.LoggerFactory;
  * // Generate content
  * GenerateResponse response = genkit.generate(
  *     GenerateOptions.builder()
- *         .model("googleai/gemini-2.0-flash")
+ *         .model("googleai/gemini-2.5-flash")
  *         .prompt("Hello, world!")
  *         .build());
  * }</pre>
@@ -79,33 +79,26 @@ public class GoogleGenAIPlugin implements Plugin {
   /** Supported Gemini models for text/multimodal generation. */
   public static final List<String> SUPPORTED_MODELS =
       Arrays.asList(
-          // Gemini 3.0 series
-          "gemini-3-pro-preview",
+          // Gemini 3.5 / 3.1 series
+          "gemini-3.5-flash",
+          "gemini-3.1-pro-preview",
+          "gemini-3.1-flash-lite",
           "gemini-3-flash-preview",
           // Gemini 2.5 series
           "gemini-2.5-pro",
           "gemini-2.5-flash",
           "gemini-2.5-flash-lite",
-          // Gemini 2.0 series
-          "gemini-2.0-flash",
-          "gemini-2.0-flash-lite",
-          // Gemini 1.5 series (still widely used)
-          "gemini-1.5-pro",
-          "gemini-1.5-flash",
-          "gemini-1.5-flash-8b",
           // Gemma models
-          "gemma-3-12b-it",
-          "gemma-3-27b-it",
-          "gemma-3-4b-it",
-          "gemma-3-1b-it",
-          "gemma-3n-e4b-it");
+          "gemma-4-31b-it",
+          "gemma-4-26b-a4b-it");
 
   /** Supported embedding models. */
   public static final List<String> SUPPORTED_EMBEDDING_MODELS =
       Arrays.asList(
-          "text-embedding-004",
-          "text-embedding-005",
+          "gemini-embedding-2",
           "gemini-embedding-001",
+          // Vertex AI embedding models
+          "text-embedding-005",
           "text-multilingual-embedding-002");
 
   /**
@@ -113,20 +106,28 @@ public class GoogleGenAIPlugin implements Plugin {
    * Gemini Developer API. imagen-3.0-* models require Vertex AI.
    */
   public static final List<String> SUPPORTED_IMAGE_MODELS =
-      Arrays.asList("imagen-4.0-generate-001", "imagen-4.0-fast-generate-001");
+      Arrays.asList(
+          "imagen-4.0-generate-001",
+          "imagen-4.0-fast-generate-001",
+          "imagen-4.0-ultra-generate-001");
 
   /** Supported TTS models. */
   public static final List<String> SUPPORTED_TTS_MODELS =
-      Arrays.asList("gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts");
+      Arrays.asList(
+          "gemini-3.1-flash-tts-preview",
+          "gemini-2.5-flash-preview-tts",
+          "gemini-2.5-pro-preview-tts");
 
   /** Supported video generation models (Veo). */
   public static final List<String> SUPPORTED_VEO_MODELS =
       Arrays.asList(
-          "veo-2.0-generate-001",
-          "veo-3.0-generate-001",
-          "veo-3.0-fast-generate-001",
           "veo-3.1-generate-preview",
-          "veo-3.1-fast-generate-preview");
+          "veo-3.1-fast-generate-preview",
+          "veo-3.1-lite-generate-preview");
+
+  /** Supported Gemini Omni video generation/editing models (Interactions API). */
+  public static final List<String> SUPPORTED_OMNI_MODELS =
+      Arrays.asList("gemini-omni-flash-preview");
 
   private final GoogleGenAIPluginOptions options;
   private final List<String> customModels = new ArrayList<>();
@@ -134,6 +135,7 @@ public class GoogleGenAIPlugin implements Plugin {
   private final List<String> customImageModels = new ArrayList<>();
   private final List<String> customTtsModels = new ArrayList<>();
   private final List<String> customVeoModels = new ArrayList<>();
+  private final List<String> customOmniModels = new ArrayList<>();
 
   /**
    * Creates a GoogleGenAIPlugin with default options. Reads API key from GOOGLE_API_KEY or
@@ -276,14 +278,30 @@ public class GoogleGenAIPlugin implements Plugin {
       logger.debug("Created custom Veo model: {}", modelName);
     }
 
+    // Register Gemini Omni video generation/editing models (Interactions API)
+    for (String modelName : SUPPORTED_OMNI_MODELS) {
+      OmniModel model = new OmniModel(modelName, options);
+      actions.add(model);
+      logger.debug("Created Omni model: {}", modelName);
+    }
+
+    // Register custom Omni models
+    for (String modelName : customOmniModels) {
+      OmniModel model = new OmniModel(modelName, options);
+      actions.add(model);
+      logger.debug("Created custom Omni model: {}", modelName);
+    }
+
     String backend = options.isVertexAI() ? "Vertex AI" : "Gemini Developer API";
     logger.info(
-        "Google GenAI plugin initialized with {} models, {} embedders, {} image models, {} TTS models, and {} video models using {}",
+        "Google GenAI plugin initialized with {} models, {} embedders, {} image models, {} TTS"
+            + " models, {} video models, and {} omni models using {}",
         SUPPORTED_MODELS.size() + customModels.size(),
         SUPPORTED_EMBEDDING_MODELS.size() + customEmbeddingModels.size(),
         SUPPORTED_IMAGE_MODELS.size() + customImageModels.size(),
         SUPPORTED_TTS_MODELS.size() + customTtsModels.size(),
         SUPPORTED_VEO_MODELS.size() + customVeoModels.size(),
+        SUPPORTED_OMNI_MODELS.size() + customOmniModels.size(),
         backend);
 
     return actions;
@@ -351,6 +369,19 @@ public class GoogleGenAIPlugin implements Plugin {
   public GoogleGenAIPlugin customVeoModel(String modelName) {
     customVeoModels.add(modelName);
     logger.debug("Added custom Veo model to be registered: {}", modelName);
+    return this;
+  }
+
+  /**
+   * Registers a custom Gemini Omni model name. Use this to work with Omni (Interactions API) models
+   * not in the default list. Call this method before passing the plugin to Genkit.builder().
+   *
+   * @param modelName the Omni model name (e.g., "gemini-omni-pro-preview")
+   * @return this plugin instance for method chaining
+   */
+  public GoogleGenAIPlugin customOmniModel(String modelName) {
+    customOmniModels.add(modelName);
+    logger.debug("Added custom Omni model to be registered: {}", modelName);
     return this;
   }
 

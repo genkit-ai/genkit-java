@@ -168,7 +168,7 @@ Either create the index in the Pinecone console or enable auto-creation.
 Vector dimension does not match index dimension
 ```
 
-Ensure your index was created with 768 dimensions to match `text-embedding-004`.
+Ensure your index was created with 768 dimensions to match `gemini-embedding-001`.
 
 ### Rate limiting
 

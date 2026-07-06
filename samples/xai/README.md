@@ -10,27 +10,20 @@ This sample demonstrates integration with XAI (Grok) models using Genkit Java.
 - **Text Generation** - Generate text with latest Grok 4 models
 - **Streaming** - Real-time response streaming
 - **Code Generation** - Generate code with Grok 3
-- **Fast Tool Calling** - Optimized agentic workflows with Grok 4.1 Fast
+- **Fast Tool Calling** - Optimized agentic workflows with Grok 4.3
 
 ## Supported Models
 
 ### Latest Flagship
-- `grok-4` - Latest flagship model (131K context)
-- `grok-4-1-fast` - Optimized for agentic tool calling (2M context)
+- `grok-4.3` - Latest flagship model (2M context)
 
-### Reasoning Variants
-- `grok-4-1-fast-reasoning` - Fast reasoning mode (2M context)
-- `grok-4-1-fast-non-reasoning` - Fast without reasoning (2M context)
-- `grok-4-fast-reasoning` - Standard fast reasoning (2M context)
-- `grok-4-fast-non-reasoning` - Standard fast without reasoning (2M context)
+### Grok 4.20 Variants
+- `grok-4.20-0309-reasoning` - Reasoning mode (2M context)
+- `grok-4.20-0309-non-reasoning` - Non-reasoning mode (2M context)
+- `grok-4.20-multi-agent-0309` - Multi-agent mode (2M context)
 
-### Code Generation
-- `grok-code-fast-1` - Specialized for code generation (256K context)
-
-### Previous Generation
-- `grok-4-0709` - July 2024 version (256K context)
-- `grok-3` - Powerful previous generation (131K context)
-- `grok-3-mini` - Efficient small model (131K context)
+### Agentic Coding
+- `grok-build-0.1` - Specialized for agentic coding (256K context)
 
 ## Prerequisites
 
@@ -74,12 +67,12 @@ The Dev UI will be available at http://localhost:4000
 | Flow | Model | Description |
 |------|-------|-------------|
 | `greeting` | - | Simple greeting flow |
-| `chat` | grok-4 | Chat with latest Grok |
-| `weatherAssistant` | grok-4-1-fast | Fast tool calling for weather |
-| `streamingChat` | grok-4 | Streaming chat responses |
-| `generateCode` | grok-3 | Code generation |
-| `analyze` | grok-3-mini | Fast text analysis |
-| `creativeWriting` | grok-4 | Creative writing with streaming |
+| `chat` | grok-4.3 | Chat with latest Grok |
+| `weatherAssistant` | grok-4.3 | Tool calling for weather |
+| `streamingChat` | grok-4.3 | Streaming chat responses |
+| `generateCode` | grok-build-0.1 | Agentic code generation |
+| `analyze` | grok-4.20-0309-reasoning | Reasoning-based text analysis |
+| `creativeWriting` | grok-4.3 | Creative writing with streaming |
 
 ## Example API Calls
 

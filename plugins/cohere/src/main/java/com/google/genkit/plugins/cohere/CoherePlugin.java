@@ -20,6 +20,7 @@ package com.google.genkit.plugins.cohere;
 
 import com.google.genkit.core.Action;
 import com.google.genkit.core.Plugin;
+import com.google.genkit.plugins.compatoai.CompatOAIEmbedder;
 import com.google.genkit.plugins.compatoai.CompatOAIModel;
 import com.google.genkit.plugins.compatoai.CompatOAIPluginOptions;
 import java.util.ArrayList;
@@ -40,13 +41,23 @@ public class CoherePlugin implements Plugin {
   /** Supported Cohere models. */
   public static final List<String> SUPPORTED_MODELS =
       Arrays.asList(
+          // Command A family
+          "command-a-plus-05-2026",
+          "command-a-reasoning-08-2025",
+          "command-a-vision-07-2025",
           "command-a-03-2025",
+          // Command R family
           "command-r7b-12-2024",
           "command-r-08-2024",
           "command-r-plus-08-2024");
 
+  /** Supported Cohere embedding models (reachable via the OpenAI-compatible endpoint). */
+  public static final List<String> SUPPORTED_EMBEDDING_MODELS =
+      Arrays.asList("embed-v4.0", "embed-multilingual-v3.0", "embed-english-v3.0");
+
   private final CompatOAIPluginOptions options;
   private final List<String> customModels = new ArrayList<>();
+  private final List<String> customEmbeddingModels = new ArrayList<>();
 
   /** Creates a CoherePlugin with default options (using COHERE_API_KEY environment variable). */
   public CoherePlugin() {
@@ -128,8 +139,26 @@ public class CoherePlugin implements Plugin {
       logger.debug("Created custom Cohere model: {}", modelName);
     }
 
+    // Register Cohere embedding models
+    for (String modelName : SUPPORTED_EMBEDDING_MODELS) {
+      CompatOAIEmbedder embedder =
+          new CompatOAIEmbedder("cohere/" + modelName, modelName, "Cohere " + modelName, options);
+      actions.add(embedder);
+      logger.debug("Created Cohere embedder: {}", modelName);
+    }
+
+    // Register custom embedding models added via customEmbeddingModel()
+    for (String modelName : customEmbeddingModels) {
+      CompatOAIEmbedder embedder =
+          new CompatOAIEmbedder("cohere/" + modelName, modelName, "Cohere " + modelName, options);
+      actions.add(embedder);
+      logger.debug("Created custom Cohere embedder: {}", modelName);
+    }
+
     logger.info(
-        "Cohere plugin initialized with {} models", SUPPORTED_MODELS.size() + customModels.size());
+        "Cohere plugin initialized with {} models and {} embedders",
+        SUPPORTED_MODELS.size() + customModels.size(),
+        SUPPORTED_EMBEDDING_MODELS.size() + customEmbeddingModels.size());
 
     return actions;
   }
@@ -144,6 +173,19 @@ public class CoherePlugin implements Plugin {
   public CoherePlugin customModel(String modelName) {
     customModels.add(modelName);
     logger.debug("Added custom model to be registered: {}", modelName);
+    return this;
+  }
+
+  /**
+   * Registers a custom embedding model name. Use this to work with embedding models not in the
+   * default list. Call this method before passing the plugin to Genkit.builder().
+   *
+   * @param modelName the embedding model name (e.g., "embed-english-light-v3.0")
+   * @return this plugin instance for method chaining
+   */
+  public CoherePlugin customEmbeddingModel(String modelName) {
+    customEmbeddingModels.add(modelName);
+    logger.debug("Added custom embedding model to be registered: {}", modelName);
     return this;
   }
 

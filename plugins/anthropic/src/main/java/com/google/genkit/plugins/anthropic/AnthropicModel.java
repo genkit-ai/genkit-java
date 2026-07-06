@@ -39,8 +39,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Anthropic Claude model implementation for Genkit.
  *
- * <p>Supports Claude 3.5, Claude 3, and Claude 2 model families with both synchronous and streaming
- * generation.
+ * <p>Supports the Claude 5, Claude 4, and Claude 3.5 model families with both synchronous and
+ * streaming generation.
  */
 public class AnthropicModel implements Model {
 
@@ -78,9 +78,9 @@ public class AnthropicModel implements Model {
 
     ModelInfo.ModelCapabilities caps = new ModelInfo.ModelCapabilities();
     caps.setMultiturn(true);
-    // Claude 3+ models support vision
-    caps.setMedia(modelName.contains("claude-3"));
-    caps.setTools(modelName.contains("claude-3"));
+    // All supported Claude models (3.5, 4.x, and 5 families) support vision and tool use.
+    caps.setMedia(true);
+    caps.setTools(true);
     caps.setSystemRole(true);
     caps.setOutput(Set.of("text", "json"));
     info.setSupports(caps);

@@ -77,7 +77,10 @@ public class TtsModel implements Model {
   private static final Logger logger = LoggerFactory.getLogger(TtsModel.class);
 
   private static final Set<String> SUPPORTED_TTS_MODELS =
-      Set.of("gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts");
+      Set.of(
+          "gemini-3.1-flash-tts-preview",
+          "gemini-2.5-flash-preview-tts",
+          "gemini-2.5-pro-preview-tts");
 
   private final String modelName;
   private final GoogleGenAIPluginOptions options;
@@ -183,7 +186,7 @@ public class TtsModel implements Model {
   }
 
   private ModelResponse callTts(ModelRequest request) throws Exception {
-    String prompt = extractPrompt(request);
+    String prompt = framePrompt(extractPrompt(request), request.getConfig());
     GenerateContentConfig config = buildConfig(request);
 
     logger.debug("Calling TTS model {} with prompt length: {}", modelName, prompt.length());
@@ -212,6 +215,33 @@ public class TtsModel implements Model {
     }
 
     return prompt.toString();
+  }
+
+  /**
+   * Frames the transcript with a clear synthesis preamble so the TTS model treats the input as text
+   * to speak rather than a request to answer.
+   *
+   * <p>Gemini TTS models reject "vague" prompts with a 400 error ({@code "Model tried to generate
+   * text, but it should only be used for TTS"}). Google's guidance is to add a preamble instructing
+   * the model to synthesize speech and to explicitly label where the transcript begins.
+   *
+   * <p>Callers that frame the prompt themselves (for example {@code "Say cheerfully: ..."}) can set
+   * a {@code ttsInstruction} config value: a custom preamble string, or an empty string to send the
+   * prompt verbatim with no framing.
+   *
+   * @param text the transcript to speak
+   * @param config the request config (may be null)
+   * @return the framed prompt
+   */
+  static String framePrompt(String text, Map<String, Object> config) {
+    if (config != null && config.containsKey("ttsInstruction")) {
+      Object instruction = config.get("ttsInstruction");
+      String instr = instruction != null ? instruction.toString() : "";
+      return instr.isEmpty() ? text : instr + "\n\n" + text;
+    }
+    return "Read the following transcript aloud verbatim, generating only speech audio. Do not"
+        + " respond to it or add any commentary.\n\nTranscript:\n"
+        + text;
   }
 
   private GenerateContentConfig buildConfig(ModelRequest request) {

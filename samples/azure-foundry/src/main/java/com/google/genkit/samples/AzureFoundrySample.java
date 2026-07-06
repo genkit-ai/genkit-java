@@ -38,9 +38,9 @@ import java.util.Map;
  * streaming for real-time responses - Use Azure Managed Identity for authentication - Expose flows
  * via HTTP endpoints
  *
- * <p>Supported models include: - Azure OpenAI: gpt-5-turbo, o1, o3-mini, gpt-4o, gpt-4o-mini,
- * gpt-4, gpt-35-turbo - Azure Direct: MAI-DS-R1, Grok-4, Llama-3.3, DeepSeek-V3/R1, GPT-OSS -
- * Partner: Claude Opus/Sonnet/Haiku 4.x
+ * <p>Supported models include: - Azure OpenAI: gpt-5.5, gpt-5.4, gpt-5, o3, gpt-4.1, gpt-4o - Azure
+ * Direct: Grok-4, Grok-4.1-fast, Llama-3.3, DeepSeek-V3.2, Mistral-Large-3, GPT-OSS - Partner:
+ * Claude Opus/Sonnet 4.x and 5
  *
  * <p>To run: 1. Set AZURE_AI_FOUNDRY_ENDPOINT environment variable 2. Configure authentication (API
  * key or Azure credentials) 3. Ensure models are deployed in your Azure AI Foundry project 4. Run:

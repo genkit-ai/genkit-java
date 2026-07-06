@@ -13,14 +13,21 @@ This plugin provides integration with Mistral AI models.
 
 ## Supported Models
 
-- `mistral-large-3-25-12` - Latest flagship multimodal model (256K context)
-- `mistral-medium-3-1-25-08` - Balanced performance (128K context)
-- `mistral-small-3-2-25-06` - Efficient and fast (128K context)
-- `ministral-3-3b-25-12` - Compact 3B model (128K context)
-- `ministral-3-8b-25-12` - Balanced 8B model (128K context)
-- `ministral-3-14b-25-12` - Advanced 14B model (128K context)
-- `codestral-25-08` - Code generation specialist (256K context)
-- `devstral-2-25-12` - Developer-focused model
+- `mistral-large-2512` - Flagship model (256K context)
+- `mistral-medium-2604` - Mistral Medium 3.5 (128K context)
+- `mistral-small-2603` - Mistral Small 4 (128K context)
+- `magistral-medium-2509`, `magistral-small-2509` - Reasoning models
+- `ministral-3b-2512`, `ministral-8b-2512`, `ministral-14b-2512` - Compact models
+- `codestral-2508` - Code generation specialist (256K context)
+- `devstral-2512` - Developer/agentic coding model
+- `open-mistral-nemo` - Open-source multilingual model
+
+## Embeddings
+
+- `mistral-embed`
+- `codestral-embed`
+
+Register additional embedding models with `customEmbeddingModel(...)`.
 
 ## Using Custom Models
 

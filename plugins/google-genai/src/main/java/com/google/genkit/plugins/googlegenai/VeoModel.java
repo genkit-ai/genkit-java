@@ -61,11 +61,9 @@ import org.slf4j.LoggerFactory;
  * <p>Supported models:
  *
  * <ul>
- *   <li>veo-2.0-generate-001
- *   <li>veo-3.0-generate-001
- *   <li>veo-3.0-fast-generate-001
  *   <li>veo-3.1-generate-preview
  *   <li>veo-3.1-fast-generate-preview
+ *   <li>veo-3.1-lite-generate-preview
  * </ul>
  *
  * <p>Configuration options (via custom config):
@@ -90,11 +88,9 @@ public class VeoModel implements Model {
 
   private static final Set<String> SUPPORTED_VEO_MODELS =
       Set.of(
-          "veo-2.0-generate-001",
-          "veo-3.0-generate-001",
-          "veo-3.0-fast-generate-001",
           "veo-3.1-generate-preview",
-          "veo-3.1-fast-generate-preview");
+          "veo-3.1-fast-generate-preview",
+          "veo-3.1-lite-generate-preview");
 
   private static final long DEFAULT_POLL_INTERVAL_MS = 5000;
   private static final long DEFAULT_TIMEOUT_MS = 300000; // 5 minutes

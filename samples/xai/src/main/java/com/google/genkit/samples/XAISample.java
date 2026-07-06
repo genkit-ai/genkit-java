@@ -66,7 +66,7 @@ public class XAISample {
               ModelResponse response =
                   genkit.generate(
                       GenerateOptions.builder()
-                          .model("xai/grok-4")
+                          .model("xai/grok-4.3")
                           .system("You are Grok, a witty and helpful AI assistant created by xAI.")
                           .prompt(userMessage)
                           .build());
@@ -107,7 +107,7 @@ public class XAISample {
               ModelResponse response =
                   genkit.generate(
                       GenerateOptions.builder()
-                          .model("xai/grok-4-1-fast")
+                          .model("xai/grok-4.3")
                           .system(
                               "You are a helpful weather assistant. Use the getWeather tool to provide weather information.")
                           .prompt(userMessage)
@@ -133,7 +133,7 @@ public class XAISample {
               ModelResponse response =
                   genkit.generateStream(
                       GenerateOptions.builder()
-                          .model("xai/grok-4")
+                          .model("xai/grok-4.3")
                           .system("You are Grok, providing detailed and engaging responses.")
                           .prompt(userMessage)
                           .config(GenerationConfig.builder().maxOutputTokens(1000).build())
@@ -160,7 +160,7 @@ public class XAISample {
               ModelResponse response =
                   genkit.generate(
                       GenerateOptions.builder()
-                          .model("xai/grok-3")
+                          .model("xai/grok-build-0.1")
                           .system(
                               "You are an expert programmer. Write clean, well-documented code with helpful comments.")
                           .prompt(prompt)
@@ -184,7 +184,7 @@ public class XAISample {
               ModelResponse response =
                   genkit.generate(
                       GenerateOptions.builder()
-                          .model("xai/grok-3-mini")
+                          .model("xai/grok-4.20-0309-reasoning")
                           .system(
                               "You are an analytical expert. Provide detailed, insightful analysis.")
                           .prompt("Please analyze the following:\n\n" + text)
@@ -214,7 +214,7 @@ public class XAISample {
               ModelResponse response =
                   genkit.generateStream(
                       GenerateOptions.builder()
-                          .model("xai/grok-4")
+                          .model("xai/grok-4.3")
                           .system(
                               "You are a creative writer with a unique perspective. Write engaging, imaginative content.")
                           .prompt(prompt)

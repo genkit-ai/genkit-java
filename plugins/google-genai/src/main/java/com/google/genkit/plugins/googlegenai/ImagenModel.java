@@ -73,7 +73,7 @@ public class ImagenModel implements Model {
   /**
    * Creates a new ImagenModel.
    *
-   * @param modelName the model name (e.g., "imagen-3.0-generate-002")
+   * @param modelName the model name (e.g., "imagen-4.0-generate-001")
    * @param options the plugin options
    */
   public ImagenModel(String modelName, GoogleGenAIPluginOptions options) {

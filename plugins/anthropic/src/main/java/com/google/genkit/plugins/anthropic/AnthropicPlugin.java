@@ -29,8 +29,8 @@ import org.slf4j.LoggerFactory;
 /**
  * AnthropicPlugin provides Anthropic Claude model integrations for Genkit.
  *
- * <p>This plugin registers Claude models (Claude 3.5, Claude 3, Claude 2) as Genkit actions for
- * text generation with support for streaming.
+ * <p>This plugin registers Claude models (Claude 5, Claude 4, and Claude 3.5 families) as Genkit
+ * actions for text generation with support for streaming.
  */
 public class AnthropicPlugin implements Plugin {
 
@@ -39,6 +39,14 @@ public class AnthropicPlugin implements Plugin {
   /** Supported Claude models. */
   public static final List<String> SUPPORTED_MODELS =
       Arrays.asList(
+          // Claude 5 family
+          "claude-fable-5",
+          "claude-sonnet-5",
+          // Claude 4.8 / 4.7 / 4.6
+          "claude-opus-4-8",
+          "claude-opus-4-7",
+          "claude-opus-4-6",
+          "claude-sonnet-4-6",
           // Claude 4.5 family
           "claude-opus-4-5-20251101",
           "claude-sonnet-4-5-20250929",
@@ -46,12 +54,7 @@ public class AnthropicPlugin implements Plugin {
           // Claude 4.x family
           "claude-opus-4-1-20250805",
           "claude-opus-4-20250514",
-          "claude-sonnet-4-20250514",
-          // Claude 3.x family
-          "claude-3-7-sonnet-20250219",
-          "claude-3-5-haiku-20241022",
-          "claude-3-opus-20240229",
-          "claude-3-haiku-20240307");
+          "claude-sonnet-4-20250514");
 
   private final AnthropicPluginOptions options;
   private final List<String> customModels = new ArrayList<>();

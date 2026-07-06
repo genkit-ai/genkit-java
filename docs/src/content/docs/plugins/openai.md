@@ -39,11 +39,13 @@ ModelResponse response = genkit.generate(
 
 ## Available models
 
-- `openai/gpt-4o` — Most capable model
+- `openai/gpt-5.5` — Most capable flagship (also `gpt-5.5-pro`)
+- `openai/gpt-5.4` — High-performance general model (also `-mini`, `-nano`, `-pro`)
+- `openai/gpt-5` — GPT-5 base (also `gpt-5-mini`, `gpt-5-nano`, `gpt-5-pro`)
+- `openai/gpt-4.1` — Smartest non-reasoning model (also `gpt-4.1-mini`)
+- `openai/gpt-4o` — Multimodal model
 - `openai/gpt-4o-mini` — Fast and cost-effective
-- `openai/gpt-4-turbo` — Previous generation flagship
-- `openai/o1-preview` — Reasoning model
-- `openai/o1-mini` — Fast reasoning model
+- `openai/o3` — Reasoning model (also `o3-pro`)
 
 ## Embeddings
 

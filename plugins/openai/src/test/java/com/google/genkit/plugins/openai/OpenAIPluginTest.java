@@ -97,7 +97,7 @@ class OpenAIPluginTest {
   void testSupportedImageModels() {
     assertNotNull(OpenAIPlugin.SUPPORTED_IMAGE_MODELS);
     assertTrue(OpenAIPlugin.SUPPORTED_IMAGE_MODELS.contains("dall-e-3"));
-    assertTrue(OpenAIPlugin.SUPPORTED_IMAGE_MODELS.contains("dall-e-2"));
+    assertTrue(OpenAIPlugin.SUPPORTED_IMAGE_MODELS.contains("gpt-image-2"));
     assertTrue(OpenAIPlugin.SUPPORTED_IMAGE_MODELS.contains("gpt-image-1"));
   }
 

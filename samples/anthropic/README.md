@@ -21,16 +21,18 @@ The Anthropic plugin supports the following Claude models:
 - `claude-sonnet-4-5-20250929` - Excellent balance of capability and speed
 - `claude-haiku-4-5-20251001` - Fast and efficient
 
+### Claude 5 Family
+- `claude-fable-5` - Most capable widely released model
+- `claude-sonnet-5` - Balanced speed and intelligence
+
 ### Claude 4 Family
+- `claude-opus-4-8` - Flagship Opus
+- `claude-opus-4-7` - Claude Opus 4.7
+- `claude-opus-4-6` - Claude Opus 4.6
+- `claude-sonnet-4-6` - Claude Sonnet 4.6
 - `claude-opus-4-1-20250805` - Claude 4.1 Opus
 - `claude-opus-4-20250514` - Claude 4 Opus
 - `claude-sonnet-4-20250514` - Claude 4 Sonnet
-
-### Claude 3 Family
-- `claude-3-7-sonnet-20250219` - Claude 3.7 Sonnet
-- `claude-3-5-haiku-20241022` - Claude 3.5 Haiku
-- `claude-3-opus-20240229` - Most powerful Claude 3 model
-- `claude-3-haiku-20240307` - Fastest Claude 3 model
 
 ## Prerequisites
 

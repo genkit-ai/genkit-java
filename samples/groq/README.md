@@ -20,7 +20,8 @@ This sample demonstrates integration with Groq's ultra-fast LLM inference using 
 - `llama-3.3-70b-versatile` - Latest Meta Llama 3.3 70B (~280 tokens/sec)
 - `openai/gpt-oss-120b` - OpenAI GPT-OSS 120B with reasoning (~500 tokens/sec)
 - `openai/gpt-oss-20b` - OpenAI GPT-OSS 20B (~1000 tokens/sec)
-- `meta-llama/llama-guard-4-12b` - Content moderation (~1200 tokens/sec)
+- `groq/compound` - Agentic system (web search + code execution)
+- `groq/compound-mini` - Lightweight agentic system
 
 ## Prerequisites
 
@@ -67,9 +68,9 @@ The Dev UI will be available at http://localhost:4000
 | `chat` | llama-3.3-70b-versatile | Chat with most capable model |
 | `timeAssistant` | llama-3.3-70b-versatile | Time zone assistant with tool |
 | `fastStreaming` | llama-3.1-8b-instant | Ultra-fast streaming responses |
-| `qualityChat` | mixtral-8x7b-32768 | High-quality chat with large context |
-| `efficientChat` | gemma2-9b-it | Efficient chat |
-| `realTimeQA` | llama-3.1-70b-versatile | Real-time Q&A with timing |
+| `qualityChat` | openai/gpt-oss-120b | High-quality chat |
+| `efficientChat` | openai/gpt-oss-20b | Efficient chat |
+| `realTimeQA` | llama-3.3-70b-versatile | Real-time Q&A with timing |
 | `speedComparison` | multiple | Benchmark Groq's speed |
 
 ## Example API Calls

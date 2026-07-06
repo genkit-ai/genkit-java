@@ -81,6 +81,27 @@ class GoogleGenAIPluginTest {
   }
 
   @Test
+  void testSupportedOmniModels() {
+    assertNotNull(GoogleGenAIPlugin.SUPPORTED_OMNI_MODELS);
+    assertTrue(GoogleGenAIPlugin.SUPPORTED_OMNI_MODELS.contains("gemini-omni-flash-preview"));
+  }
+
+  @Test
+  void testSupportedTtsModelsIncludesLatest() {
+    assertTrue(GoogleGenAIPlugin.SUPPORTED_TTS_MODELS.contains("gemini-3.1-flash-tts-preview"));
+  }
+
+  @Test
+  void testRegistersOmniModel() {
+    GoogleGenAIPlugin plugin =
+        new GoogleGenAIPlugin(GoogleGenAIPluginOptions.builder().apiKey("test-key").build());
+    List<Action<?, ?, ?>> actions = plugin.init();
+    assertTrue(
+        actions.stream().anyMatch(a -> "googleai/gemini-omni-flash-preview".equals(a.getName())),
+        "Should register the Gemini Omni model");
+  }
+
+  @Test
   void testGetOptions() {
     GoogleGenAIPluginOptions options =
         GoogleGenAIPluginOptions.builder().apiKey("test-key").build();

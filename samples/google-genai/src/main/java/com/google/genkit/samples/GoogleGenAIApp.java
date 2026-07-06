@@ -84,6 +84,7 @@ public class GoogleGenAIApp {
     defineImageGenerationFlow(genkit);
     defineTextToSpeechFlow(genkit);
     defineVideoGenerationFlow(genkit);
+    defineOmniFlow(genkit);
 
     System.out.println("Server started on http://localhost:8080");
     System.out.println("Use Genkit Developer UI at http://localhost:4000 to interact with flows");
@@ -96,6 +97,10 @@ public class GoogleGenAIApp {
     System.out.println("  - textToSpeech: Generate audio with TTS (saves to " + OUTPUT_DIR + "/)");
     System.out.println(
         "  - videoGeneration: Generate videos with Veo (saves to " + OUTPUT_DIR + "/)");
+    System.out.println(
+        "  - omniVideo: Generate + conversationally edit video with Gemini Omni (saves to "
+            + OUTPUT_DIR
+            + "/)");
     System.out.println(
         "\nGenerated media files will be saved to: " + new File(OUTPUT_DIR).getAbsolutePath());
     System.out.println("\nPress Ctrl+C to stop the server.");
@@ -401,7 +406,7 @@ public class GoogleGenAIApp {
           ModelResponse response =
               genkit.generate(
                   GenerateOptions.builder()
-                      .model("googleai/veo-3.0-generate-001")
+                      .model("googleai/veo-3.1-generate-preview")
                       .prompt(prompt)
                       .config(config)
                       .build());
@@ -459,5 +464,89 @@ public class GoogleGenAIApp {
 
           return "No videos generated";
         });
+  }
+
+  /**
+   * Demonstrates Gemini Omni: generate a video, then conversationally edit it by passing the
+   * returned interaction id back as {@code previousInteractionId}.
+   */
+  private static void defineOmniFlow(Genkit genkit) {
+    genkit.defineFlow(
+        "omniVideo",
+        String.class,
+        String.class,
+        (ctx, prompt) -> {
+          StringBuilder result = new StringBuilder();
+
+          // Turn 1: generate a video from the prompt.
+          ModelResponse first =
+              genkit.generate(
+                  GenerateOptions.builder()
+                      .model("googleai/gemini-omni-flash-preview")
+                      .prompt(prompt)
+                      .config(
+                          GenerationConfig.builder()
+                              .custom(Map.of("aspectRatio", "16:9", "duration", "10s"))
+                              .build())
+                      .build());
+          result.append("--- Turn 1 (generate) ---\n");
+          result.append(saveVideosFromResponse(first, "omni"));
+
+          String interactionId =
+              first.getCustom() != null ? (String) first.getCustom().get("interactionId") : null;
+          result.append("Interaction id: ").append(interactionId).append("\n");
+
+          // Turn 2: conversational edit that builds on the previous result.
+          if (interactionId != null) {
+            ModelResponse edited =
+                genkit.generate(
+                    GenerateOptions.builder()
+                        .model("googleai/gemini-omni-flash-preview")
+                        .prompt("Brighten the background and add a slow push-in on the subject.")
+                        .config(
+                            GenerationConfig.builder()
+                                .custom(Map.of("previousInteractionId", interactionId))
+                                .build())
+                        .build());
+            result.append("\n--- Turn 2 (edit) ---\n");
+            result.append(saveVideosFromResponse(edited, "omni_edited"));
+          }
+
+          return result.toString();
+        });
+  }
+
+  /** Saves any video media parts in a model response to disk, returning a summary string. */
+  private static String saveVideosFromResponse(ModelResponse response, String prefix) {
+    if (response.getMessage() == null || response.getMessage().getContent() == null) {
+      return "No video returned.\n";
+    }
+    StringBuilder result = new StringBuilder();
+    int count = 0;
+    for (Part part : response.getMessage().getContent()) {
+      if (part.getMedia() == null) {
+        continue;
+      }
+      count++;
+      String url = part.getMedia().getUrl();
+      if (url.startsWith("data:")) {
+        String base64Data = extractBase64FromDataUrl(url);
+        String filename = prefix + "_" + System.currentTimeMillis() + "_" + count + ".mp4";
+        try {
+          result
+              .append("Video saved to: ")
+              .append(saveBase64ToFile(base64Data, filename))
+              .append("\n");
+        } catch (IOException e) {
+          result.append("Video failed to save: ").append(e.getMessage()).append("\n");
+        }
+      } else {
+        result.append("Video available at: ").append(url).append("\n");
+      }
+    }
+    if (count == 0) {
+      result.append("No video parts in response.\n");
+    }
+    return result.toString();
   }
 }

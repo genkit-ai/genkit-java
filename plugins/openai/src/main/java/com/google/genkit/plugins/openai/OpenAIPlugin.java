@@ -42,19 +42,33 @@ public class OpenAIPlugin implements Plugin {
   /** Supported GPT models. */
   public static final List<String> SUPPORTED_MODELS =
       Arrays.asList(
+          // GPT-5.5 / 5.4 family
+          "gpt-5.5",
+          "gpt-5.5-pro",
+          "gpt-5.4",
+          "gpt-5.4-pro",
+          "gpt-5.4-mini",
+          "gpt-5.4-nano",
+          // GPT-5.2 / 5.1 / 5 family
           "gpt-5.2",
+          "gpt-5.2-pro",
           "gpt-5.1",
           "gpt-5",
+          "gpt-5-mini",
+          "gpt-5-nano",
+          "gpt-5-pro",
+          // o-series reasoning models
+          "o3",
+          "o3-pro",
+          // GPT-4.1 / 4o / 4
+          "gpt-4.1",
+          "gpt-4.1-mini",
           "gpt-4o",
           "gpt-4o-mini",
           "gpt-4-turbo",
           "gpt-4-turbo-preview",
           "gpt-4",
-          "gpt-4-32k",
-          "gpt-3.5-turbo",
-          "gpt-3.5-turbo-16k",
-          "o1-preview",
-          "o1-mini");
+          "gpt-3.5-turbo");
 
   /** Supported embedding models. */
   public static final List<String> SUPPORTED_EMBEDDING_MODELS =
@@ -62,7 +76,7 @@ public class OpenAIPlugin implements Plugin {
 
   /** Supported image generation models. */
   public static final List<String> SUPPORTED_IMAGE_MODELS =
-      Arrays.asList("dall-e-3", "dall-e-2", "gpt-image-1");
+      Arrays.asList("gpt-image-2", "gpt-image-1.5", "gpt-image-1", "dall-e-3");
 
   private final OpenAIPluginOptions legacyOptions;
   private final CompatOAIPluginOptions compatOptions;

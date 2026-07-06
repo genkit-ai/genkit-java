@@ -174,7 +174,7 @@ public class GroqSample {
               ModelResponse response =
                   genkit.generate(
                       GenerateOptions.builder()
-                          .model("groq/mixtral-8x7b-32768")
+                          .model("groq/openai/gpt-oss-120b")
                           .system(
                               "You are a knowledgeable assistant providing detailed, high-quality responses.")
                           .prompt(userMessage)
@@ -188,7 +188,7 @@ public class GroqSample {
               return response.getText();
             });
 
-    // Define an efficient chat flow using Gemma 2
+    // Define an efficient chat flow using GPT-OSS 20B
     Flow<String, String, Void> efficientChatFlow =
         genkit.defineFlow(
             "efficientChat",
@@ -198,7 +198,7 @@ public class GroqSample {
               ModelResponse response =
                   genkit.generate(
                       GenerateOptions.builder()
-                          .model("groq/gemma2-9b-it")
+                          .model("groq/openai/gpt-oss-20b")
                           .system("You are an efficient, helpful assistant.")
                           .prompt(userMessage)
                           .config(
@@ -223,7 +223,7 @@ public class GroqSample {
               ModelResponse response =
                   genkit.generate(
                       GenerateOptions.builder()
-                          .model("groq/llama-3.1-70b-versatile")
+                          .model("groq/llama-3.3-70b-versatile")
                           .system(
                               "You are a real-time Q&A assistant. Provide quick, accurate answers.")
                           .prompt(question)
@@ -288,8 +288,8 @@ public class GroqSample {
     System.out.println("  POST http://localhost:8080/api/flows/timeAssistant (uses tools)");
     System.out.println(
         "  POST http://localhost:8080/api/flows/fastStreaming (llama-3.1-8b ultra-fast)");
-    System.out.println("  POST http://localhost:8080/api/flows/qualityChat (mixtral-8x7b)");
-    System.out.println("  POST http://localhost:8080/api/flows/efficientChat (gemma2-9b)");
+    System.out.println("  POST http://localhost:8080/api/flows/qualityChat (gpt-oss-120b)");
+    System.out.println("  POST http://localhost:8080/api/flows/efficientChat (gpt-oss-20b)");
     System.out.println("  POST http://localhost:8080/api/flows/realTimeQA (real-time Q&A)");
     System.out.println(
         "  POST http://localhost:8080/api/flows/speedComparison (benchmark Groq speed)");

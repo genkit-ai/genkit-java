@@ -41,17 +41,16 @@ System.out.println(response.getText());
 
 ### Amazon Models (ON_DEMAND)
 - **Nova**: `amazon.nova-pro-v1:0`, `amazon.nova-lite-v1:0`, `amazon.nova-micro-v1:0`, `amazon.nova-premier-v1:0`, `amazon.nova-2-lite-v1:0`, `amazon.nova-sonic-v1:0`, `amazon.nova-2-sonic-v1:0`
-- **Titan**: `amazon.titan-tg1-large`, `amazon.titan-text-express-v1`
 
 ### Anthropic Models (INFERENCE_PROFILE required for Claude 4.x and 3.5+)
+- **Claude 5 / 4.6+**: `anthropic.claude-sonnet-5`, `anthropic.claude-fable-5`, `anthropic.claude-opus-4-8`, `anthropic.claude-opus-4-7`, `anthropic.claude-opus-4-6-v1`, `anthropic.claude-sonnet-4-6`
 - **Claude 4**: `anthropic.claude-sonnet-4-20250514-v1:0`, `anthropic.claude-sonnet-4-5-20250929-v1:0`, `anthropic.claude-haiku-4-5-20251001-v1:0`, `anthropic.claude-opus-4-1-20250805-v1:0`, `anthropic.claude-opus-4-5-20251101-v1:0`
 - **Claude 3.x**: `anthropic.claude-3-7-sonnet-20250219-v1:0`, `anthropic.claude-3-5-sonnet-20241022-v2:0`, `anthropic.claude-3-5-sonnet-20240620-v1:0`, `anthropic.claude-3-5-haiku-20241022-v1:0`
-- **Claude 3** (ON_DEMAND): `anthropic.claude-3-opus-20240229-v1:0`, `anthropic.claude-3-sonnet-20240229-v1:0`, `anthropic.claude-3-haiku-20240307-v1:0`
+- **Claude 3** (ON_DEMAND): `anthropic.claude-3-sonnet-20240229-v1:0`, `anthropic.claude-3-haiku-20240307-v1:0`
 
 ### Meta Llama Models (INFERENCE_PROFILE)
 - **Llama 4**: `meta.llama4-scout-17b-instruct-v1:0`, `meta.llama4-maverick-17b-instruct-v1:0`
 - **Llama 3.3**: `meta.llama3-3-70b-instruct-v1:0`
-- **Llama 3.2**: `meta.llama3-2-90b-instruct-v1:0`, `meta.llama3-2-11b-instruct-v1:0`, `meta.llama3-2-3b-instruct-v1:0`, `meta.llama3-2-1b-instruct-v1:0`
 - **Llama 3.1**: `meta.llama3-1-70b-instruct-v1:0`, `meta.llama3-1-8b-instruct-v1:0`
 - **Llama 3** (ON_DEMAND): `meta.llama3-70b-instruct-v1:0`, `meta.llama3-8b-instruct-v1:0`
 
@@ -60,11 +59,12 @@ System.out.println(response.getText());
 - **Mistral Large** (ON_DEMAND): `mistral.mistral-large-3-675b-instruct`, `mistral.mistral-large-2402-v1:0`
 - **Mistral Medium**: `mistral.magistral-small-2509`, `mistral.mistral-small-2402-v1:0`
 - **Ministral**: `mistral.ministral-3-14b-instruct`, `mistral.ministral-3-8b-instruct`, `mistral.ministral-3-3b-instruct`
+- **Devstral** (INFERENCE_PROFILE): `mistral.devstral-2-123b`
 - **Mixtral**: `mistral.mixtral-8x7b-instruct-v0:1`, `mistral.mistral-7b-instruct-v0:2`
 - **Voxtral**: `mistral.voxtral-mini-3b-2507`, `mistral.voxtral-small-24b-2507`
 
 ### Other Providers (ON_DEMAND)
-- **DeepSeek**: `deepseek.r1-v1:0` (INFERENCE_PROFILE)
+- **DeepSeek**: `deepseek.v3.2`, `deepseek.v3-v1:0`, `deepseek.r1-v1:0` (INFERENCE_PROFILE)
 - **Cohere**: `cohere.command-r-plus-v1:0`, `cohere.command-r-v1:0`
 - **AI21 Labs**: `ai21.jamba-1-5-large-v1:0`, `ai21.jamba-1-5-mini-v1:0`
 - **Google Gemma**: `google.gemma-3-27b-it`, `google.gemma-3-12b-it`, `google.gemma-3-4b-it`
@@ -72,9 +72,16 @@ System.out.println(response.getText());
 - **NVIDIA Nemotron**: `nvidia.nemotron-nano-12b-v2`, `nvidia.nemotron-nano-9b-v2`, `nvidia.nemotron-nano-3-30b`
 - **OpenAI**: `openai.gpt-oss-120b-1:0`, `openai.gpt-oss-20b-1:0`, `openai.gpt-oss-safeguard-120b`, `openai.gpt-oss-safeguard-20b`
 - **Writer** (INFERENCE_PROFILE): `writer.palmyra-x5-v1:0`, `writer.palmyra-x4-v1:0`
-- **MiniMax**: `minimax.minimax-m2`
-- **Moonshot**: `moonshot.kimi-k2-thinking`
+- **MiniMax**: `minimax.minimax-m2.5`, `minimax.minimax-m2.1`, `minimax.minimax-m2`
+- **Moonshot**: `moonshotai.kimi-k2.5`, `moonshot.kimi-k2-thinking`
+- **Z.AI**: `zai.glm-5`, `zai.glm-4.7`, `zai.glm-4.7-flash`
 - **TwelveLabs**: `twelvelabs.pegasus-1-2-v1:0`
+
+### Embedding Models (InvokeModel)
+- **Amazon Titan**: `amazon.titan-embed-text-v2:0`
+- **Cohere Embed**: `cohere.embed-english-v3`, `cohere.embed-multilingual-v3`
+
+Register additional embedding models with `customEmbeddingModel(...)`.
 
 **Note**: Models marked with "INFERENCE_PROFILE" require using an AWS Bedrock inference profile ARN instead of the model ID directly. See [AWS Bedrock Inference Profiles](https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference.html) for details.
 

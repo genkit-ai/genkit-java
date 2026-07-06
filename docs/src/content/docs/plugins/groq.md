@@ -41,8 +41,8 @@ ModelResponse response = genkit.generate(
 |-------|-------|
 | `groq/llama-3.1-8b-instant` | ~1200 tokens/sec |
 | `groq/llama-3.3-70b-versatile` | ~560 tokens/sec |
-| `groq/openai/gpt-oss` models | Varies |
-| `groq/meta-llama/llama-guard-4` | Content moderation |
+| `groq/openai/gpt-oss-120b`, `groq/openai/gpt-oss-20b` | Varies |
+| `groq/compound`, `groq/compound-mini` | Agentic systems (web search + code execution) |
 
 ## Features
 

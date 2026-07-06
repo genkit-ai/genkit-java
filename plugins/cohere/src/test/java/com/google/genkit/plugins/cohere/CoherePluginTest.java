@@ -93,6 +93,26 @@ class CoherePluginTest {
   }
 
   @Test
+  void testSupportedEmbeddingModels() {
+    assertNotNull(CoherePlugin.SUPPORTED_EMBEDDING_MODELS);
+    assertTrue(CoherePlugin.SUPPORTED_EMBEDDING_MODELS.contains("embed-v4.0"));
+  }
+
+  @Test
+  void testRegistersEmbedders() {
+    CoherePlugin plugin =
+        new CoherePlugin(
+            CompatOAIPluginOptions.builder()
+                .apiKey("test-key")
+                .baseUrl("https://api.cohere.ai/compatibility/v1")
+                .build());
+    List<Action<?, ?, ?>> actions = plugin.init();
+    assertTrue(
+        actions.stream().anyMatch(a -> "cohere/embed-v4.0".equals(a.getName())),
+        "Should register the embed-v4.0 embedder");
+  }
+
+  @Test
   void testCustomModel() {
     CoherePlugin plugin =
         new CoherePlugin(

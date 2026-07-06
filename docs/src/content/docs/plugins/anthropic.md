@@ -32,25 +32,26 @@ Genkit genkit = Genkit.builder()
 
 ModelResponse response = genkit.generate(
     GenerateOptions.builder()
-        .model("anthropic/claude-sonnet-4-5-20250929")
+        .model("anthropic/claude-sonnet-5")
         .prompt("Tell me about AI")
         .build());
 ```
 
 ## Available models
 
-### Claude 4.5 family
+### Claude 5 family
+- `anthropic/claude-fable-5`
+- `anthropic/claude-sonnet-5`
+
+### Claude 4 family
+- `anthropic/claude-opus-4-8`
+- `anthropic/claude-opus-4-7`
+- `anthropic/claude-opus-4-6`
+- `anthropic/claude-sonnet-4-6`
 - `anthropic/claude-opus-4-5-20251101`
 - `anthropic/claude-sonnet-4-5-20250929`
 - `anthropic/claude-haiku-4-5-20251001`
-
-### Claude 4 family
-- `anthropic/claude-4-*`
-
-### Claude 3 family
-- `anthropic/claude-3-opus-*`
-- `anthropic/claude-3-sonnet-*`
-- `anthropic/claude-3-haiku-*`
+- `anthropic/claude-opus-4-1-20250805`
 
 ## Features
 

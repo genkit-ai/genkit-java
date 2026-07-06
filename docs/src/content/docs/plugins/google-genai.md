@@ -85,7 +85,7 @@ Map<String, Object> embedOptions = Map.of(
 
 ## Text-to-Speech (TTS)
 
-Generate natural-sounding speech from text using Gemini TTS models:
+Generate natural-sounding speech from text using Gemini TTS models (`gemini-3.1-flash-tts-preview`, `gemini-2.5-flash-preview-tts`, `gemini-2.5-pro-preview-tts`):
 
 ```java
 Map<String, Object> ttsOptions = Map.of("voiceName", "Zephyr");
@@ -103,6 +103,12 @@ ModelResponse response = genkit.generate(
 // The response contains audio as a media part (WAV format, base64-encoded)
 String audioDataUrl = response.getMessage().getParts().get(0).getMedia().getUrl();
 // "data:audio/wav;base64,..."
+```
+
+The plugin automatically frames your prompt with a synthesis preamble so the TTS model treats it as a transcript to voice. Without this, TTS models reject "vague" prompts with a `400` error (`Model tried to generate text, but it should only be used for TTS`). To supply your own framing (e.g. `"Say cheerfully: ..."`), set a `ttsInstruction` custom option — a preamble string, or an empty string to send the prompt verbatim:
+
+```java
+Map<String, Object> ttsOptions = Map.of("voiceName", "Zephyr", "ttsInstruction", "");
 ```
 
 ### Saving audio to a file
@@ -131,7 +137,7 @@ GenerationConfig config = GenerationConfig.builder()
 
 ModelResponse response = genkit.generate(
     GenerateOptions.builder()
-        .model("googleai/veo-3.0-generate-001")
+        .model("googleai/veo-3.1-generate-preview")
         .prompt("A serene Japanese garden with cherry blossoms falling")
         .config(config)
         .build());
@@ -166,6 +172,37 @@ ModelResponse response = genkit.generate(
         .build());
 ```
 
+
+## Video generation and editing (Gemini Omni)
+
+Gemini Omni (`googleai/gemini-omni-flash-preview`) generates and iteratively edits video through the Gemini Interactions API. It supports **conversational editing** — each turn can build on the previous result while preserving elements you did not mention.
+
+```java
+// First turn — generate a video
+ModelResponse first = genkit.generate(
+    GenerateOptions.builder()
+        .model("googleai/gemini-omni-flash-preview")
+        .prompt("A marble rolling down a chain-reaction track")
+        .build());
+
+// The returned interaction id lets you continue editing
+String interactionId = (String) first.getCustom().get("interactionId");
+
+// Follow-up turn — edit the previous result
+ModelResponse edited = genkit.generate(
+    GenerateOptions.builder()
+        .model("googleai/gemini-omni-flash-preview")
+        .prompt("Brighten the background and add a slow push-in on the logo")
+        .config(GenerationConfig.builder()
+            .custom(Map.of("previousInteractionId", interactionId))
+            .build())
+        .build());
+
+// The generated video is returned as a media part (data URL by default)
+String videoUrl = edited.getMessage().getParts().get(0).getMedia().getUrl();
+```
+
+Config options: `previousInteractionId` (continue/edit a prior interaction), `aspectRatio` (e.g. `"16:9"`), `duration` (e.g. `"10s"`), `delivery` (`"inline"` (default, base64) | `"uri"`), `task` (`"text_to_video"` | `"image_to_video"`), `thinkingLevel`, and `maxOutputTokens`. Only the Gemini Developer API (API key) is supported — not Vertex AI. The Interactions API is in preview.
 
 ## Sample
 

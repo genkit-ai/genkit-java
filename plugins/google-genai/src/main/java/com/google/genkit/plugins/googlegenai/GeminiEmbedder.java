@@ -46,7 +46,7 @@ public class GeminiEmbedder extends Embedder {
   /**
    * Creates a new GeminiEmbedder.
    *
-   * @param modelName the embedding model name (e.g., "text-embedding-004", "gemini-embedding-001")
+   * @param modelName the embedding model name (e.g., "gemini-embedding-2", "gemini-embedding-001")
    * @param options the plugin options
    */
   public GeminiEmbedder(String modelName, GoogleGenAIPluginOptions options) {

@@ -54,8 +54,16 @@ public class AwsBedrockPlugin implements Plugin {
 
   private static final Logger logger = LoggerFactory.getLogger(AwsBedrockPlugin.class);
 
+  /** Supported AWS Bedrock embedding models (Amazon Titan and Cohere Embed). */
+  public static final List<String> SUPPORTED_EMBEDDING_MODELS =
+      Arrays.asList(
+          "amazon.titan-embed-text-v2:0",
+          "cohere.embed-english-v3",
+          "cohere.embed-multilingual-v3");
+
   private final AwsBedrockPluginOptions options;
   private final List<String> customModels = new ArrayList<>();
+  private final List<String> customEmbeddingModels = new ArrayList<>();
 
   /** Supported AWS Bedrock models with ON_DEMAND or INFERENCE_PROFILE support. */
   public static final List<String> SUPPORTED_MODELS =
@@ -68,9 +76,6 @@ public class AwsBedrockPlugin implements Plugin {
           "amazon.nova-2-lite-v1:0",
           "amazon.nova-sonic-v1:0",
           "amazon.nova-2-sonic-v1:0",
-          // Amazon Titan models
-          "amazon.titan-tg1-large",
-          "amazon.titan-text-express-v1",
           // Anthropic Claude 4 models (INFERENCE_PROFILE)
           "anthropic.claude-sonnet-4-20250514-v1:0",
           "anthropic.claude-sonnet-4-5-20250929-v1:0",
@@ -91,7 +96,6 @@ public class AwsBedrockPlugin implements Plugin {
           "anthropic.claude-3-5-sonnet-20241022-v2:0",
           "anthropic.claude-3-5-sonnet-20240620-v1:0",
           "anthropic.claude-3-5-haiku-20241022-v1:0",
-          "anthropic.claude-3-opus-20240229-v1:0",
           "anthropic.claude-3-sonnet-20240229-v1:0",
           "anthropic.claude-3-haiku-20240307-v1:0",
           // AI21 models
@@ -101,10 +105,6 @@ public class AwsBedrockPlugin implements Plugin {
           "meta.llama4-scout-17b-instruct-v1:0",
           "meta.llama4-maverick-17b-instruct-v1:0",
           "meta.llama3-3-70b-instruct-v1:0",
-          "meta.llama3-2-90b-instruct-v1:0",
-          "meta.llama3-2-11b-instruct-v1:0",
-          "meta.llama3-2-3b-instruct-v1:0",
-          "meta.llama3-2-1b-instruct-v1:0",
           "meta.llama3-1-70b-instruct-v1:0",
           "meta.llama3-1-8b-instruct-v1:0",
           "meta.llama3-70b-instruct-v1:0",
@@ -115,6 +115,7 @@ public class AwsBedrockPlugin implements Plugin {
           // Mistral models
           "mistral.pixtral-large-2502-v1:0",
           "mistral.mistral-large-3-675b-instruct",
+          "mistral.devstral-2-123b",
           "mistral.magistral-small-2509",
           "mistral.mistral-large-2402-v1:0",
           "mistral.mistral-small-2402-v1:0",
@@ -126,6 +127,8 @@ public class AwsBedrockPlugin implements Plugin {
           "mistral.voxtral-mini-3b-2507",
           "mistral.voxtral-small-24b-2507",
           // DeepSeek models
+          "deepseek.v3.2",
+          "deepseek.v3-v1:0",
           "deepseek.r1-v1:0",
           // Google Gemma models
           "google.gemma-3-27b-it",
@@ -149,9 +152,16 @@ public class AwsBedrockPlugin implements Plugin {
           "writer.palmyra-x5-v1:0",
           "writer.palmyra-x4-v1:0",
           // MiniMax models
+          "minimax.minimax-m2.5",
+          "minimax.minimax-m2.1",
           "minimax.minimax-m2",
           // Moonshot models
+          "moonshotai.kimi-k2.5",
           "moonshot.kimi-k2-thinking",
+          // Z.AI models
+          "zai.glm-5",
+          "zai.glm-4.7",
+          "zai.glm-4.7-flash",
           // TwelveLabs models
           "twelvelabs.pegasus-1-2-v1:0");
 
@@ -212,9 +222,24 @@ public class AwsBedrockPlugin implements Plugin {
       logger.debug("Registered custom AWS Bedrock model: {}", modelId);
     }
 
+    // Register AWS Bedrock embedding models
+    for (String modelId : SUPPORTED_EMBEDDING_MODELS) {
+      AwsBedrockEmbedder embedder = new AwsBedrockEmbedder(modelId, options);
+      actions.add(embedder);
+      logger.debug("Registered AWS Bedrock embedder: {}", modelId);
+    }
+
+    // Register custom embedding models added via customEmbeddingModel()
+    for (String modelId : customEmbeddingModels) {
+      AwsBedrockEmbedder embedder = new AwsBedrockEmbedder(modelId, options);
+      actions.add(embedder);
+      logger.debug("Registered custom AWS Bedrock embedder: {}", modelId);
+    }
+
     logger.info(
-        "AWS Bedrock plugin initialized with {} models in region {} (supports inference profiles)",
+        "AWS Bedrock plugin initialized with {} models and {} embedders in region {} (supports inference profiles)",
         SUPPORTED_MODELS.size() + customModels.size(),
+        SUPPORTED_EMBEDDING_MODELS.size() + customEmbeddingModels.size(),
         options.getRegion());
 
     return actions;
@@ -232,6 +257,19 @@ public class AwsBedrockPlugin implements Plugin {
   public AwsBedrockPlugin customModel(String modelId) {
     customModels.add(modelId);
     logger.debug("Added custom model to be registered: {}", modelId);
+    return this;
+  }
+
+  /**
+   * Registers a custom embedding model ID. Use this to work with Bedrock embedding models not in
+   * the default list. Call this method before passing the plugin to Genkit.builder().
+   *
+   * @param modelId the embedding model ID (e.g., "amazon.titan-embed-text-v1")
+   * @return this plugin instance for method chaining
+   */
+  public AwsBedrockPlugin customEmbeddingModel(String modelId) {
+    customEmbeddingModels.add(modelId);
+    logger.debug("Added custom embedding model to be registered: {}", modelId);
     return this;
   }
 

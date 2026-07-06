@@ -39,7 +39,13 @@ public class DeepSeekPlugin implements Plugin {
 
   /** Supported DeepSeek models. */
   public static final List<String> SUPPORTED_MODELS =
-      Arrays.asList("deepseek-chat", "deepseek-reasoner");
+      Arrays.asList(
+          // DeepSeek V4 (current)
+          "deepseek-v4-pro",
+          "deepseek-v4-flash",
+          // Legacy aliases (route to V4; deprecated, scheduled for retirement 2026-07-24)
+          "deepseek-chat",
+          "deepseek-reasoner");
 
   private final CompatOAIPluginOptions options;
   private final List<String> customModels = new ArrayList<>();

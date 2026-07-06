@@ -105,23 +105,23 @@ Genkit genkit = Genkit.builder()
 ## Supported Models
 
 ### Azure OpenAI Models (Global Standard & Provisioned)
-- **GPT-5**: `gpt-5`, `gpt-5-mini`, `gpt-5-turbo`
-- **o1**: `o1`
-- **o3-mini**: `o3-mini-high`, `o3-mini-medium`, `o3-mini-low`
-- **GPT-4o**: `gpt-4o`, `gpt-4o-mini`
-- **GPT-4**: `gpt-4-turbo`, `gpt-4`, `gpt-35-turbo`
+- **GPT-5.5 / 5.4**: `gpt-5.5`, `gpt-5.4`, `gpt-5.4-mini`, `gpt-5.4-nano`, `gpt-5.4-pro`
+- **GPT-5**: `gpt-5.2`, `gpt-5.1`, `gpt-5`, `gpt-5-mini`, `gpt-5-nano`, `gpt-5-pro`, `gpt-5-codex`
+- **o-series**: `o3`, `o3-pro`, `o3-mini`
+- **GPT-4.1**: `gpt-4.1`, `gpt-4.1-mini`
+- **GPT-4o / 4**: `gpt-4o`, `gpt-4o-mini`, `gpt-4`
 
 ### Azure Models (Sold Directly by Azure)
-- **MAI-DS**: `mai-ds-r1` - Deterministic, precision-focused reasoning
-- **Grok**: `grok-4`, `grok-4-fast-reasoning`, `grok-4-fast-non-reasoning`, `grok-3`, `grok-3-mini`
+- **Grok**: `grok-4`, `grok-4-1-fast-reasoning`, `grok-4-1-fast-non-reasoning`, `grok-code-fast-1`
 - **Llama**: `llama-3-3-70b-instruct`, `llama-4-maverick-17b-128e-instruct-fp8`
-- **DeepSeek**: `deepseek-v3-0324`, `deepseek-v3-1`, `deepseek-r1-0528`
+- **DeepSeek**: `DeepSeek-V3.2`, `DeepSeek-V3.2-Speciale`
+- **Mistral**: `Mistral-Large-3`
 - **GPT-OSS**: `gpt-oss-120b`
 
 ### Partner and Community Models
-- **Claude 4.x**: `claude-opus-4-5`, `claude-opus-4-1`, `claude-sonnet-4-5`, `claude-haiku-4-5`
+- **Claude**: `claude-opus-4-8`, `claude-sonnet-5`, `claude-opus-4-7`, `claude-opus-4-6`, `claude-sonnet-4-6`, `claude-opus-4-5`, `claude-opus-4-1`, `claude-sonnet-4-5`, `claude-haiku-4-5`
 
-> **Note:** Model availability varies by region and Azure subscription. Hub-based projects are limited to gpt-4o, gpt-4o-mini, gpt-4, and gpt-35-turbo. See [Azure AI Foundry Model Region Support](https://learn.microsoft.com/en-us/azure/ai-foundry/agents/concepts/model-region-support) for details.
+> **Note:** Model availability varies by region and Azure subscription. Hub-based projects are limited to gpt-4o, gpt-4o-mini, and gpt-4. See [Azure AI Foundry Model Region Support](https://learn.microsoft.com/en-us/azure/ai-foundry/agents/concepts/model-region-support) for details.
 
 ## Usage Examples
 

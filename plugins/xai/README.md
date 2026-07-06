@@ -13,10 +13,11 @@ This plugin provides integration with XAI (x.ai / Grok) models.
 
 ## Supported Models
 
-- `grok-4` - Latest flagship model (131K context)
-- `grok-4-1-fast` - Optimized for agentic tool calling (2M context)
-- `grok-3` - Previous generation (131K context)
-- `grok-3-mini` - Efficient small model (131K context)
+- `grok-4.3` - Latest flagship model (2M context)
+- `grok-4.20-0309-reasoning` - Reasoning mode (2M context)
+- `grok-4.20-0309-non-reasoning` - Non-reasoning mode (2M context)
+- `grok-4.20-multi-agent-0309` - Multi-agent mode (2M context)
+- `grok-build-0.1` - Agentic coding model (256K context)
 
 ## Using Custom Models
 
@@ -56,7 +57,7 @@ Genkit genkit = Genkit.builder()
 // Use the model
 ModelResponse response = genkit.generate(
     GenerateOptions.builder()
-        .model("xai/grok-4")
+        .model("xai/grok-4.3")
         .prompt("Tell me a joke")
         .build()
 );

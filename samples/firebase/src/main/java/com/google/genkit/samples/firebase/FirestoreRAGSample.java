@@ -129,7 +129,7 @@ public class FirestoreRAGSample {
                                 true) // Auto-create database if it doesn't exist
                             .createVectorIndexIfNotExists(true) // Auto-create vector index if it
                             // doesn't exist
-                            .embedderDimension(768) // text-embedding-004 outputs 768 dimensions
+                            .embedderDimension(768) // gemini-embedding-001 outputs 768 dimensions
                             .build())
                     .build())
             .plugin(jetty)
