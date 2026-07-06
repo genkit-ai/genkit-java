@@ -79,6 +79,7 @@ The Dev UI will be available at `http://localhost:4000` and allows you to:
 | [pinecone](./pinecone) | Pinecone vector database RAG sample | `OPENAI_API_KEY` + `PINECONE_API_KEY` |
 | [chroma](./chroma) | Chroma vector database RAG sample | `GEMINI_API_KEY` + Chroma |
 | [qdrant](./qdrant) | Qdrant vector database RAG sample | `GEMINI_API_KEY` + Qdrant |
+| [milvus](./milvus) | Milvus vector database RAG sample | `GEMINI_API_KEY` + Milvus |
 | [mongo-vector](./mongo-vector) | MongoDB Atlas Vector Search RAG sample | `GEMINI_API_KEY` + MongoDB Atlas |
 | [agents-human-in-the-loop](./agents-human-in-the-loop) | Agent interrupts + human-in-the-loop resume | `GEMINI_API_KEY` |
 | [agents-firestore-session](./agents-firestore-session) | Agent session persistence backed by Firestore | `GEMINI_API_KEY` + Firestore |

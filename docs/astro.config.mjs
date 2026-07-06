@@ -144,6 +144,7 @@ export default defineConfig({
             { label: "Pinecone", slug: "plugins/pinecone" },
             { label: "Chroma", slug: "plugins/chroma" },
             { label: "Qdrant", slug: "plugins/qdrant" },
+            { label: "Milvus", slug: "plugins/milvus" },
             { label: "MongoDB", slug: "plugins/mongodb" },
           ],
         },

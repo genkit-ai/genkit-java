@@ -90,6 +90,7 @@
         <module>plugins/mongodb</module>
         <module>plugins/chroma</module>
         <module>plugins/qdrant</module>
+        <module>plugins/milvus</module>
         <module>plugins/pinecone</module>
         <module>plugins/evaluators</module>
         <module>plugins/aws-bedrock</module>
@@ -128,6 +129,7 @@
         <module>samples/pinecone</module>
         <module>samples/chroma</module>
         <module>samples/qdrant</module>
+        <module>samples/milvus</module>
         <module>samples/mongo-vector</module>
         <module>samples/structured-output</module>
         <module>samples/aws-bedrock</module>
