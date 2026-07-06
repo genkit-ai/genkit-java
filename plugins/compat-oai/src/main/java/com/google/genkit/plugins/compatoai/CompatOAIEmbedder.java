@@ -34,8 +34,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import okhttp3.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Embedder implementation for any provider that exposes an OpenAI-compatible {@code /embeddings}
@@ -46,7 +44,6 @@ import org.slf4j.LoggerFactory;
  */
 public class CompatOAIEmbedder extends Embedder {
 
-  private static final Logger logger = LoggerFactory.getLogger(CompatOAIEmbedder.class);
   private static final MediaType JSON_MEDIA_TYPE = MediaType.parse("application/json");
 
   private final String apiModelName;
@@ -128,13 +125,11 @@ public class CompatOAIEmbedder extends Embedder {
     for (Document doc : request.getDocuments()) {
       String text = doc.text();
       if (text == null || text.isEmpty()) {
-        logger.warn("Document has empty text, skipping");
-        continue;
+        // Throw rather than skip: skipping would make the returned embeddings list shorter than the
+        // documents list, breaking the 1-to-1 index mapping the caller relies on.
+        throw new GenkitException("Document text cannot be null or empty");
       }
       input.add(text);
-    }
-    if (input.isEmpty()) {
-      throw new GenkitException("No valid documents to embed - all documents had empty text");
     }
 
     Request.Builder requestBuilder =

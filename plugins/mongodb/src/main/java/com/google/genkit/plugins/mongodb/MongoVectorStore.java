@@ -291,10 +291,21 @@ public final class MongoVectorStore {
       logger.warn("No documents to index");
       return new IndexerResponse();
     }
+    // Batch-generate embeddings for all documents in a single embedder call.
+    EmbedResponse embedResponse = embedder.run(context, new EmbedRequest(documents));
+    if (embedResponse.getEmbeddings() == null
+        || embedResponse.getEmbeddings().size() != documents.size()) {
+      throw new RuntimeException("Failed to generate embeddings: mismatched output size");
+    }
     int indexed = 0;
-    for (Document doc : documents) {
+    for (int i = 0; i < documents.size(); i++) {
+      Document doc = documents.get(i);
       String content = doc.text() != null ? doc.text() : "";
-      List<Double> embedding = generateEmbedding(context, content);
+      float[] values = embedResponse.getEmbeddings().get(i).getValues();
+      List<Double> embedding = new ArrayList<>(values.length);
+      for (float v : values) {
+        embedding.add((double) v);
+      }
       String id = getOrGenerateId(doc);
 
       org.bson.Document stored = new org.bson.Document("_id", id);

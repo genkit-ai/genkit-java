@@ -187,11 +187,23 @@ public final class QdrantVectorStore {
       return new IndexerResponse();
     }
 
+    // Batch-generate embeddings for all documents in a single embedder call.
+    EmbedResponse embedResponse = embedder.run(context, new EmbedRequest(documents));
+    if (embedResponse.getEmbeddings() == null
+        || embedResponse.getEmbeddings().size() != documents.size()) {
+      throw new RuntimeException("Failed to generate embeddings: mismatched output size");
+    }
+
     ObjectNode body = MAPPER.createObjectNode();
     ArrayNode points = body.putArray("points");
-    for (Document doc : documents) {
+    for (int i = 0; i < documents.size(); i++) {
+      Document doc = documents.get(i);
       String content = doc.text() != null ? doc.text() : "";
-      List<Float> embedding = generateEmbedding(context, content);
+      float[] values = embedResponse.getEmbeddings().get(i).getValues();
+      List<Float> embedding = new ArrayList<>(values.length);
+      for (float v : values) {
+        embedding.add(v);
+      }
 
       ObjectNode point = points.addObject();
       point.put("id", getOrGenerateId(doc));

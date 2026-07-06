@@ -623,7 +623,7 @@ public final class MongoSessionStore<S> implements SessionStore<S>, SnapshotSubs
     payload.remove("pk");
     payload.remove("version");
     try {
-      return new Row((ObjectNode) MAPPER.readTree(payload.toJson()), version);
+      return new Row((ObjectNode) MAPPER.valueToTree(payload), version);
     } catch (Exception e) {
       throw new GenkitException("Failed to read session document " + id + ": " + e.getMessage(), e);
     }

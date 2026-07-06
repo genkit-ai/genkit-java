@@ -35,8 +35,6 @@ import java.util.concurrent.TimeUnit;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * AWS Bedrock embedder implementation for Genkit.
@@ -46,8 +44,6 @@ import org.slf4j.LoggerFactory;
  * Cohere Embed models.
  */
 public class AwsBedrockEmbedder extends Embedder {
-
-  private static final Logger logger = LoggerFactory.getLogger(AwsBedrockEmbedder.class);
 
   private final String modelId;
   private final AwsBedrockPluginOptions options;
@@ -109,8 +105,9 @@ public class AwsBedrockEmbedder extends Embedder {
       for (Document doc : request.getDocuments()) {
         String text = doc.text();
         if (text == null || text.isEmpty()) {
-          logger.warn("Document has empty text, skipping");
-          continue;
+          // Throw rather than skip: skipping would make the embeddings list shorter than the
+          // documents list, breaking the 1-to-1 index mapping the caller relies on.
+          throw new GenkitException("Document text cannot be null or empty");
         }
         embeddings.add(embedOne(text));
       }
