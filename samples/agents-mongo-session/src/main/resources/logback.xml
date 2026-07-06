@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Console appender -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %-5level %logger{24} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Quiet the chatty dependencies that otherwise flood the console at DEBUG -->
+    <logger name="org.eclipse.jetty" level="WARN"/>
+    <logger name="com.github.victools" level="WARN"/>           <!-- JSON-schema generation -->
+    <logger name="io.opentelemetry" level="WARN"/>
+    <logger name="io.grpc" level="WARN"/>
+    <logger name="org.mongodb.driver" level="WARN"/>
+    <logger name="com.google.genkit.core.tracing" level="WARN"/> <!-- per-span trace logging -->
+
+    <!-- Genkit at INFO: see agent/flow activity without the internal DEBUG firehose. -->
+    <logger name="com.google.genkit" level="INFO"/>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>

@@ -438,7 +438,7 @@ Genkit genkit = Genkit.builder()
         .addRetriever(FirestoreRetrieverConfig.builder()
             .name("my-docs")
             .collection("documents")
-            .embedderName("googleai/text-embedding-004")
+            .embedderName("googleai/gemini-embedding-001")
             .vectorField("embedding")
             .contentField("content")
             .distanceMeasure(FirestoreRetrieverConfig.DistanceMeasure.COSINE)
@@ -476,7 +476,7 @@ public class MyFunction implements HttpFunction {
 
         genkit.defineFlow("generatePoem", String.class, String.class, (ctx, topic) -> {
             return genkit.generate(GenerateOptions.builder()
-                .model("googleai/gemini-2.0-flash")
+                .model("googleai/gemini-2.5-flash")
                 .prompt("Write a poem about: " + topic)
                 .build()).getText();
         });

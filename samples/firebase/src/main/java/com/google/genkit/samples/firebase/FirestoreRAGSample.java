@@ -120,7 +120,7 @@ public class FirestoreRAGSample {
                         FirestoreRetrieverConfig.builder()
                             .name("films")
                             .collection("films")
-                            .embedderName("googleai/text-embedding-004")
+                            .embedderName("googleai/gemini-embedding-001")
                             .vectorField("embedding")
                             .contentField("content")
                             .distanceMeasure(FirestoreRetrieverConfig.DistanceMeasure.COSINE)
@@ -198,7 +198,7 @@ public class FirestoreRAGSample {
               ModelResponse response =
                   genkit.generate(
                       GenerateOptions.builder()
-                          .model("googleai/gemini-2.0-flash")
+                          .model("googleai/gemini-2.5-flash")
                           .system(RAG_SYSTEM_PROMPT)
                           .prompt(question)
                           .docs(docs)

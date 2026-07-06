@@ -69,7 +69,7 @@ public class GeneratePoemFunction implements HttpFunction {
           ModelResponse response =
               genkit.generate(
                   GenerateOptions.builder()
-                      .model("googleai/gemini-2.0-flash")
+                      .model("googleai/gemini-2.5-flash")
                       .prompt("Write a short, creative poem about: " + topic)
                       .config(
                           GenerationConfig.builder().temperature(0.9).maxOutputTokens(500).build())

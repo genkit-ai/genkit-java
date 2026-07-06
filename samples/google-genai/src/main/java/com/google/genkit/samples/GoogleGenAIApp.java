@@ -145,7 +145,7 @@ public class GoogleGenAIApp {
           ModelResponse response =
               genkit.generate(
                   GenerateOptions.builder()
-                      .model("googleai/gemini-2.0-flash")
+                      .model("googleai/gemini-2.5-flash")
                       .prompt(prompt)
                       .config(config)
                       .build());
@@ -201,7 +201,7 @@ public class GoogleGenAIApp {
           ModelResponse response =
               genkit.generate(
                   GenerateOptions.builder()
-                      .model("googleai/gemini-2.0-flash")
+                      .model("googleai/gemini-2.5-flash")
                       .prompt(prompt)
                       .tools(List.of(weatherTool))
                       .build());
@@ -217,7 +217,7 @@ public class GoogleGenAIApp {
         String.class,
         (ctx, text) -> {
           List<Document> documents = Arrays.asList(Document.fromText(text));
-          EmbedResponse response = genkit.embed("googleai/text-embedding-004", documents);
+          EmbedResponse response = genkit.embed("googleai/gemini-embedding-001", documents);
 
           if (response.getEmbeddings() != null && !response.getEmbeddings().isEmpty()) {
             EmbedResponse.Embedding embedding = response.getEmbeddings().get(0);

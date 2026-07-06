@@ -2099,7 +2099,7 @@ public class Genkit {
    *     AgentConfig.<MyState>builder()
    *         .name("helper")
    *         .system("You are helpful.")
-   *         .model("googleai/gemini-2.0-flash")
+   *         .model("googleai/gemini-2.5-flash")
    *         .build());
    * }</pre>
    *

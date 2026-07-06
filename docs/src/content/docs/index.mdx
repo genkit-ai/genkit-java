@@ -214,6 +214,36 @@ The fastest way to build AI features into your Java apps.
   </TabItem>
 </Tabs>
 
+## Build stateful agents
+
+Define server-managed agents with memory, tools, and multi-agent delegation. Persist conversations in the store of your choice.
+
+```java
+import com.google.genkit.agent.AgentConfig;
+import com.google.genkit.ai.agent.*;
+
+Agent<Map<String, Object>> assistant = genkit.beta().defineAgent(
+    AgentConfig.<Map<String, Object>>builder()
+        .name("assistant")
+        .system("You are a helpful assistant. Remember what the user tells you.")
+        .model("googleai/gemini-3-flash")
+        .store(sessionStore) // persist sessions in Firestore, DynamoDB, Cosmos DB, PostgreSQL, MongoDB, ...
+        .build());
+
+AgentChat<Map<String, Object>> chat = assistant.chat();
+chat.send("My name is Ada Lovelace.");
+String reply = chat.send("What is my name?").text(); // "Your name is Ada Lovelace."
+```
+
+<CardGrid>
+  <LinkCard title="Agents Overview" href="/genkit-java/agents/overview/" />
+  <LinkCard title="Define Agents" href="/genkit-java/agents/define-agents/" />
+  <LinkCard title="Sessions" href="/genkit-java/agents/sessions/" />
+  <LinkCard title="Session Stores" href="/genkit-java/agents/session-stores/" />
+  <LinkCard title="Multi-agent Delegation" href="/genkit-java/agents/multi-agent-delegation/" />
+  <LinkCard title="Serve over HTTP" href="/genkit-java/agents/serve-over-http/" />
+</CardGrid>
+
 ## Supported Providers
 
 <CardGrid>
@@ -238,6 +268,9 @@ The fastest way to build AI features into your Java apps.
   <LinkCard title="Weaviate" href="/genkit-java/plugins/weaviate/" />
   <LinkCard title="PostgreSQL (pgvector)" href="/genkit-java/plugins/postgresql/" />
   <LinkCard title="Pinecone" href="/genkit-java/plugins/pinecone/" />
+  <LinkCard title="Chroma" href="/genkit-java/plugins/chroma/" />
+  <LinkCard title="Qdrant" href="/genkit-java/plugins/qdrant/" />
+  <LinkCard title="MongoDB (Atlas Vector Search)" href="/genkit-java/plugins/mongodb/" />
   <LinkCard title="Local Vector Store" href="/genkit-java/plugins/localvec/" />
 </CardGrid>
 

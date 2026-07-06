@@ -124,7 +124,7 @@ public class App {
             .build();
 
         // All generate/flow/tool calls now export traces and metrics
-        genkit.generate(options -> options.model("googleai/gemini-2.0-flash").prompt("Hi"));
+        genkit.generate(options -> options.model("googleai/gemini-2.5-flash").prompt("Hi"));
     }
 }
 ```

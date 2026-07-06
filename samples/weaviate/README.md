@@ -119,8 +119,8 @@ curl -X POST http://localhost:4000/api/flows/ragQuery \
 ## Configuration
 
 The sample uses:
-- **Embedder**: `googleai/text-embedding-004` (768 dimensions)
-- **LLM**: `googleai/gemini-2.0-flash`
+- **Embedder**: `googleai/gemini-embedding-001` (768 dimensions)
+- **LLM**: `googleai/gemini-2.5-flash`
 - **Distance Metric**: Cosine similarity
 - **Collection Name**: `Films`
 

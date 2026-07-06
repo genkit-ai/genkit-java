@@ -44,7 +44,7 @@ Genkit genkit = Genkit.builder()
 
 ModelResponse response = genkit.generate(
     GenerateOptions.builder()
-        .model("googleai/gemini-2.0-flash")
+        .model("googleai/gemini-2.5-flash")
         .prompt("Tell me about AI")
         .build());
 ```
@@ -62,7 +62,7 @@ List<Document> documents = List.of(
     Document.fromText("Firebase provides cloud services")
 );
 
-EmbedResponse response = genkit.embed("googleai/text-embedding-004", documents);
+EmbedResponse response = genkit.embed("googleai/gemini-embedding-001", documents);
 
 // Access embedding vectors
 float[] vector = response.getEmbeddings().get(0).getValues();

@@ -34,7 +34,7 @@ import java.util.function.Function;
  * FirestoreRetrieverConfig config = FirestoreRetrieverConfig.builder()
  *     .name("my-docs")
  *     .collection("documents")
- *     .embedderName("googleai/text-embedding-004")
+ *     .embedderName("googleai/gemini-embedding-001")
  *     .vectorField("embedding")
  *     .contentField("content")
  *     .distanceMeasure(DistanceMeasure.COSINE)
@@ -328,7 +328,7 @@ public class FirestoreRetrieverConfig {
     /**
      * Sets the embedder name for resolution from registry.
      *
-     * @param embedderName the embedder name (e.g., "googleai/text-embedding-004")
+     * @param embedderName the embedder name (e.g., "googleai/gemini-embedding-001")
      * @return this builder
      */
     public Builder embedderName(String embedderName) {

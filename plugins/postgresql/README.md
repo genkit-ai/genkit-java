@@ -55,7 +55,7 @@ Genkit genkit = Genkit.builder()
         .password("pass")
         .addTable(PostgresTableConfig.builder()
             .tableName("documents")
-            .embedderName("googleai/text-embedding-004")
+            .embedderName("googleai/gemini-embedding-001")
             .vectorDimension(768)
             .build())
         .build())
@@ -150,7 +150,7 @@ var ragFlow = genkit.defineFlow("ragFlow", String.class, String.class, (context,
     
     // Generate response using LLM
     GenerateRequest generateRequest = GenerateRequest.builder()
-        .model("googleai/gemini-2.0-flash")
+        .model("googleai/gemini-2.5-flash")
         .messages(List.of(
             Message.builder()
                 .role(Role.USER)

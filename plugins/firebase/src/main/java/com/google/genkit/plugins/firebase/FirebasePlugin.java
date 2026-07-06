@@ -61,7 +61,7 @@ import org.slf4j.LoggerFactory;
  *                 FirestoreRetrieverConfig.builder()
  *                     .name("my-docs")
  *                     .collection("documents")
- *                     .embedderName("googleai/text-embedding-004")
+ *                     .embedderName("googleai/gemini-embedding-001")
  *                     .vectorField("embedding")
  *                     .contentField("content")
  *                     .build())

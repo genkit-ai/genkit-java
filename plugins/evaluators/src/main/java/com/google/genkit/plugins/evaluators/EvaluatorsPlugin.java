@@ -58,7 +58,7 @@ import org.slf4j.LoggerFactory;
  *     .addPlugin(
  *         EvaluatorsPlugin.create(
  *             EvaluatorsPluginOptions.builder()
- *                 .judge("googleai/gemini-2.0-flash")
+ *                 .judge("googleai/gemini-2.5-flash")
  *                 .metricTypes(List.of(GenkitMetric.FAITHFULNESS, GenkitMetric.ANSWER_RELEVANCY))
  *                 .build()))
  *     .build();

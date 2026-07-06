@@ -116,7 +116,7 @@ public class PostgresRAGSample {
             .addTable(
                 PostgresTableConfig.builder()
                     .tableName("films")
-                    .embedderName("googleai/text-embedding-004")
+                    .embedderName("googleai/gemini-embedding-001")
                     .vectorDimension(768)
                     .distanceStrategy(PostgresTableConfig.DistanceStrategy.L2)
                     .createTableIfNotExists(true)
@@ -194,7 +194,7 @@ public class PostgresRAGSample {
               ModelResponse response =
                   genkit.generate(
                       GenerateOptions.builder()
-                          .model("googleai/gemini-2.0-flash")
+                          .model("googleai/gemini-2.5-flash")
                           .system(RAG_SYSTEM_PROMPT)
                           .prompt(question)
                           .docs(docs)

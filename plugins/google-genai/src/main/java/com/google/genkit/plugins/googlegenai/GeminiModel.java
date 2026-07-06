@@ -63,7 +63,7 @@ public class GeminiModel implements Model {
   /**
    * Creates a new GeminiModel.
    *
-   * @param modelName the model name (e.g., "gemini-2.0-flash", "gemini-2.5-pro")
+   * @param modelName the model name (e.g., "gemini-2.5-flash", "gemini-2.5-pro")
    * @param options the plugin options
    */
   public GeminiModel(String modelName, GoogleGenAIPluginOptions options) {

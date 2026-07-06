@@ -45,7 +45,7 @@ Genkit genkit = Genkit.builder()
         .apiKey(System.getenv("PINECONE_API_KEY"))
         .addIndex(PineconeIndexConfig.builder()
             .indexName("my-index")
-            .embedderName("googleai/text-embedding-004")
+            .embedderName("googleai/gemini-embedding-001")
             .dimension(768)
             .build())
         .build())
@@ -133,12 +133,12 @@ PineconePlugin plugin = PineconePlugin.builder()
     .addIndex(PineconeIndexConfig.builder()
         .indexName("my-index")
         .namespace("production")
-        .embedderName("googleai/text-embedding-004")
+        .embedderName("googleai/gemini-embedding-001")
         .build())
     .addIndex(PineconeIndexConfig.builder()
         .indexName("my-index")
         .namespace("staging")
-        .embedderName("googleai/text-embedding-004")
+        .embedderName("googleai/gemini-embedding-001")
         .build())
     .build();
 
@@ -171,7 +171,7 @@ var ragFlow = genkit.defineFlow("ragFlow", String.class, String.class, (context,
     
     // Generate response using LLM
     GenerateRequest generateRequest = GenerateRequest.builder()
-        .model("googleai/gemini-2.0-flash")
+        .model("googleai/gemini-2.5-flash")
         .messages(List.of(
             Message.builder()
                 .role(Role.USER)
@@ -241,7 +241,7 @@ PineconeIndexConfig.Cloud.AZURE
 ```java
 PineconeIndexConfig.builder()
     .indexName("new-index")
-    .embedderName("googleai/text-embedding-004")
+    .embedderName("googleai/gemini-embedding-001")
     .dimension(768)
     .metric(PineconeIndexConfig.Metric.COSINE)
     .cloud(PineconeIndexConfig.Cloud.AWS)

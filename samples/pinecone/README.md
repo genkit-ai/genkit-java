@@ -131,8 +131,8 @@ curl -X POST http://localhost:4000/api/flows/ragQuery \
 ## Configuration
 
 The sample uses:
-- **Embedder**: `googleai/text-embedding-004` (768 dimensions)
-- **LLM**: `googleai/gemini-2.0-flash`
+- **Embedder**: `googleai/gemini-embedding-001` (768 dimensions)
+- **LLM**: `googleai/gemini-2.5-flash`
 - **Metric**: Cosine similarity
 - **Index Type**: Serverless (AWS us-east-1)
 
@@ -146,7 +146,7 @@ Pinecone supports namespaces for multi-tenant applications. To use namespaces:
 .addIndex(PineconeIndexConfig.builder()
     .indexName("my-index")
     .namespace("production")  // Add namespace
-    .embedderName("googleai/text-embedding-004")
+    .embedderName("googleai/gemini-embedding-001")
     .build())
 ```
 

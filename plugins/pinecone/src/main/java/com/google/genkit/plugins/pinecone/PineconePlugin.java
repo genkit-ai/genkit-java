@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
  *             .addIndex(
  *                 PineconeIndexConfig.builder()
  *                     .indexName("my-index")
- *                     .embedderName("googleai/text-embedding-004")
+ *                     .embedderName("googleai/gemini-embedding-001")
  *                     .build())
  *             .build())
  *     .build();

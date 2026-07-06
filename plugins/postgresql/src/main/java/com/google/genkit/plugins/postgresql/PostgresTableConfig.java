@@ -31,7 +31,7 @@ import java.util.Map;
  * <pre>{@code
  * PostgresTableConfig config = PostgresTableConfig.builder()
  *     .tableName("documents")
- *     .embedderName("googleai/text-embedding-004")
+ *     .embedderName("googleai/gemini-embedding-001")
  *     .vectorDimension(768)
  *     .distanceStrategy(DistanceStrategy.COSINE)
  *     .build();
