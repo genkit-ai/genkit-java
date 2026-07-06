@@ -46,11 +46,9 @@ public class MistralPlugin implements Plugin {
           "mistral-medium-2604",
           "mistral-medium-2508",
           "mistral-small-2603",
-          "mistral-small-2506",
 
           // Reasoning models
           "magistral-medium-2509",
-          "magistral-small-2509",
 
           // Compact models
           "ministral-3b-2512",

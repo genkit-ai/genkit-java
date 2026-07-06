@@ -89,7 +89,7 @@ class MistralPluginTest {
   void testSupportedModels() {
     assertNotNull(MistralPlugin.SUPPORTED_MODELS);
     assertTrue(MistralPlugin.SUPPORTED_MODELS.contains("mistral-large-2512"));
-    assertTrue(MistralPlugin.SUPPORTED_MODELS.contains("mistral-small-2506"));
+    assertTrue(MistralPlugin.SUPPORTED_MODELS.contains("mistral-small-2603"));
   }
 
   @Test

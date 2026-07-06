@@ -16,7 +16,7 @@ This plugin provides integration with Mistral AI models.
 - `mistral-large-2512` - Flagship model (256K context)
 - `mistral-medium-2604` - Mistral Medium 3.5 (128K context)
 - `mistral-small-2603` - Mistral Small 4 (128K context)
-- `magistral-medium-2509`, `magistral-small-2509` - Reasoning models
+- `magistral-medium-2509` - Reasoning model
 - `ministral-3b-2512`, `ministral-8b-2512`, `ministral-14b-2512` - Compact models
 - `codestral-2508` - Code generation specialist (256K context)
 - `devstral-2512` - Developer/agentic coding model
