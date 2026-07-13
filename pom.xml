@@ -156,7 +156,7 @@
              plugins can coexist on one classpath (see dependencyManagement note below). -->
         <protobuf.version>4.35.1</protobuf.version>
         <google-auth.version>1.49.0</google-auth.version>
-        <junit.version>6.1.1</junit.version>
+        <junit.version>6.1.2</junit.version>
         <mockito.version>5.23.0</mockito.version>
         <jsonschema.version>4.38.0</jsonschema.version>
         <handlebars.version>4.5.3</handlebars.version>
