@@ -146,7 +146,7 @@
         <maven.deploy.skip>true</maven.deploy.skip>
 
         <!-- Dependency versions -->
-        <jackson.version>2.22.0</jackson.version>
+        <jackson.version>2.22.1</jackson.version>
         <jackson.annotations.version>2.22</jackson.annotations.version>
         <slf4j.version>2.0.18</slf4j.version>
         <logback.version>1.5.37</logback.version>
