@@ -155,7 +155,7 @@
         <!-- Shared google-cloud libs converged so the firebase (Firestore) and google-genai
              plugins can coexist on one classpath (see dependencyManagement note below). -->
         <protobuf.version>4.35.1</protobuf.version>
-        <google-auth.version>1.48.0</google-auth.version>
+        <google-auth.version>1.49.0</google-auth.version>
         <junit.version>6.1.1</junit.version>
         <mockito.version>5.23.0</mockito.version>
         <jsonschema.version>4.38.0</jsonschema.version>
