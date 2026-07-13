@@ -151,7 +151,7 @@
         <slf4j.version>2.0.18</slf4j.version>
         <logback.version>1.5.37</logback.version>
         <jetty.version>12.1.6</jetty.version>
-        <opentelemetry.version>1.63.0</opentelemetry.version>
+        <opentelemetry.version>1.64.0</opentelemetry.version>
         <!-- Shared google-cloud libs converged so the firebase (Firestore) and google-genai
              plugins can coexist on one classpath (see dependencyManagement note below). -->
         <protobuf.version>4.35.1</protobuf.version>
