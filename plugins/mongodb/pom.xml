@@ -36,7 +36,7 @@
 
     <properties>
         <maven.deploy.skip>false</maven.deploy.skip>
-        <mongodb.version>5.9.0</mongodb.version>
+        <mongodb.version>5.9.1</mongodb.version>
     </properties>
 
     <dependencies>
