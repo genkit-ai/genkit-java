@@ -107,7 +107,7 @@
             <plugin>
                 <groupId>com.google.cloud.functions</groupId>
                 <artifactId>function-maven-plugin</artifactId>
-                <version>1.0.1</version>
+                <version>1.0.2</version>
                 <configuration>
                     <functionTarget>com.google.genkit.samples.firebase.functions.GeneratePoemFunction</functionTarget>
                 </configuration>
