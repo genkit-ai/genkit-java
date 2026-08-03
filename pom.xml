@@ -149,7 +149,7 @@
         <jackson.version>2.22.1</jackson.version>
         <jackson.annotations.version>2.22</jackson.annotations.version>
         <slf4j.version>2.0.18</slf4j.version>
-        <logback.version>1.6.0</logback.version>
+        <logback.version>1.6.1</logback.version>
         <jetty.version>12.1.6</jetty.version>
         <opentelemetry.version>1.64.0</opentelemetry.version>
         <!-- Shared google-cloud libs converged so the firebase (Firestore) and google-genai
