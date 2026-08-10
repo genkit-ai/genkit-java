@@ -162,7 +162,7 @@
         <handlebars.version>4.5.4</handlebars.version>
         <okhttp.version>5.4.0</okhttp.version>
         <fmt.version>2.29</fmt.version>
-        <google-java-format.version>1.35.0</google-java-format.version>
+        <google-java-format.version>1.36.1</google-java-format.version>
         <checkstyle.version>13.9.0</checkstyle.version>
     </properties>
 
