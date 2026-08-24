@@ -163,7 +163,7 @@
         <okhttp.version>5.4.0</okhttp.version>
         <fmt.version>2.29</fmt.version>
         <google-java-format.version>1.36.1</google-java-format.version>
-        <checkstyle.version>13.10.0</checkstyle.version>
+        <checkstyle.version>14.0.0</checkstyle.version>
     </properties>
 
     <dependencyManagement>
