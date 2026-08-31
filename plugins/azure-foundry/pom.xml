@@ -37,7 +37,7 @@
     <properties>
         <maven.deploy.skip>false</maven.deploy.skip>
         <azure.identity.version>1.18.5</azure.identity.version>
-        <azure.cosmos.version>4.81.0</azure.cosmos.version>
+        <azure.cosmos.version>4.82.0</azure.cosmos.version>
     </properties>
 
     <dependencies>
