@@ -39,7 +39,7 @@
         <firebase-admin.version>9.10.0</firebase-admin.version>
         <google-cloud-firestore.version>3.45.0</google-cloud-firestore.version>
         <google-cloud-logging.version>3.37.0</google-cloud-logging.version>
-        <google-cloud-trace.version>2.95.0</google-cloud-trace.version>
+        <google-cloud-trace.version>2.96.0</google-cloud-trace.version>
         <google-cloud-monitoring.version>3.97.0</google-cloud-monitoring.version>
         <functions-framework.version>2.0.2</functions-framework.version>
         <google-cloud-opentelemetry.version>0.37.0</google-cloud-opentelemetry.version>
