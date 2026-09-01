@@ -33,13 +33,11 @@ on:
           - minor
           - major
 
-permissions:
-  contents: write
-  packages: write
-  pull-requests: write
-
 jobs:
   release:
+    permissions:
+      contents: write
+      pull-requests: write
     runs-on: ubuntu-latest
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
@@ -61,6 +59,9 @@ jobs:
           manifest-file: .release-please-manifest.json
 
   publish:
+    permissions:
+      contents: read
+      packages: write
     needs: release
     if: ${{ needs.release.outputs.release_created == 'true' }}
     runs-on: ubuntu-latest
@@ -100,6 +101,9 @@ jobs:
 
   # Snapshot publishing on main branch (without release)
   publish-snapshot:
+    permissions:
+      contents: read
+      packages: write
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     steps:
