@@ -30,3 +30,7 @@ updates:
       - "github-actions"
     commit-message:
       prefix: "chore(ci)"
+    groups:
+      codeql-action:
+        patterns:
+          - "github/codeql-action*"
