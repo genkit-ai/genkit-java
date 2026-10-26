@@ -7,6 +7,8 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "09:00"
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 10
     labels:
       - "dependencies"
@@ -24,9 +26,15 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "09:00"
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 5
     labels:
       - "dependencies"
       - "github-actions"
     commit-message:
       prefix: "chore(ci)"
+    groups:
+      codeql-action:
+        patterns:
+          - "github/codeql-action*"
