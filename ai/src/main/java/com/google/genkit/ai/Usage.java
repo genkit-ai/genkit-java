@@ -20,6 +20,8 @@ package com.google.genkit.ai;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /** Usage represents token usage statistics from a model response. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -63,6 +65,10 @@ public class Usage {
 
   @JsonProperty("cachedContentTokens")
   private Integer cachedContentTokens;
+
+  /** Provider-specific counters beside the standard ones, such as a gateway's cost. */
+  @JsonProperty("custom")
+  private Map<String, Double> custom;
 
   /** Default constructor. */
   public Usage() {}
@@ -184,5 +190,73 @@ public class Usage {
 
   public void setCachedContentTokens(Integer cachedContentTokens) {
     this.cachedContentTokens = cachedContentTokens;
+  }
+
+  /**
+   * Returns provider-specific usage, such as a cost, by key.
+   *
+   * @return the custom usage, or null
+   */
+  public Map<String, Double> getCustom() {
+    return custom;
+  }
+
+  public void setCustom(Map<String, Double> custom) {
+    this.custom = custom;
+  }
+
+  /**
+   * Returns the field-by-field sum of the given usages, adding {@link #getCustom()} key by key.
+   * Null entries are skipped, and the result is null when every entry is. The arguments are never
+   * modified.
+   *
+   * @param usages the usages to add up
+   * @return the sum, or null when every usage is null
+   */
+  public static Usage sum(Usage... usages) {
+    Usage sum = null;
+    if (usages == null) {
+      return null;
+    }
+    for (Usage u : usages) {
+      if (u == null) {
+        continue;
+      }
+      if (sum == null) {
+        sum = new Usage();
+      }
+      sum.inputTokens = add(sum.inputTokens, u.inputTokens);
+      sum.outputTokens = add(sum.outputTokens, u.outputTokens);
+      sum.totalTokens = add(sum.totalTokens, u.totalTokens);
+      sum.inputCharacters = add(sum.inputCharacters, u.inputCharacters);
+      sum.outputCharacters = add(sum.outputCharacters, u.outputCharacters);
+      sum.inputImages = add(sum.inputImages, u.inputImages);
+      sum.outputImages = add(sum.outputImages, u.outputImages);
+      sum.inputAudioFiles = add(sum.inputAudioFiles, u.inputAudioFiles);
+      sum.outputAudioFiles = add(sum.outputAudioFiles, u.outputAudioFiles);
+      sum.inputVideoFiles = add(sum.inputVideoFiles, u.inputVideoFiles);
+      sum.outputVideoFiles = add(sum.outputVideoFiles, u.outputVideoFiles);
+      sum.thoughtsTokens = add(sum.thoughtsTokens, u.thoughtsTokens);
+      sum.cachedContentTokens = add(sum.cachedContentTokens, u.cachedContentTokens);
+      if (u.custom != null) {
+        for (Map.Entry<String, Double> e : u.custom.entrySet()) {
+          if (e.getValue() == null) {
+            continue;
+          }
+          if (sum.custom == null) {
+            sum.custom = new LinkedHashMap<>();
+          }
+          sum.custom.merge(e.getKey(), e.getValue(), Double::sum);
+        }
+      }
+    }
+    return sum;
+  }
+
+  private static Integer add(Integer a, Integer b) {
+    if (b == null) {
+      return a;
+    }
+    return a == null ? b : a + b;
   }
 }

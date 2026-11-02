@@ -63,7 +63,16 @@ A single middleware that implements all three hooks, showing how one middleware 
 A **parameterized** middleware with a `tag` and `logResponseLength` config. It is shared through the sample's own `SampleMiddlewarePlugin` (a `MiddlewarePlugin`), so it appears in the Dev UI Middleware panel **with a parameters form**.
 
 ### Built-in plugin middleware (`GenerationMiddlewarePlugin`)
-The sample also adds `GenerationMiddlewarePlugin.create()`, which contributes three ready-to-use, parameterized middleware — `retry`, `fallback`, and `simulateSystemPrompt` — the Java equivalent of the JS `@genkit-ai/middleware` package. The `v2-resilient` flow uses `retry` (imported from the plugin) programmatically.
+The sample also adds `GenerationMiddlewarePlugin.create()`, which contributes ready-to-use, parameterized middleware — such as `retry`, `fallback`, and `simulateSystemPrompt` — the Java equivalent of the JS `@genkit-ai/middleware` package. The `v2-resilient` flow uses `retry` (imported from the plugin) programmatically.
+
+### Tool approval, file access, and soft tool errors
+`ToolApprovalSample` gives the model a scratch workspace with `Filesystem`, holds `write_file` and `edit_file` calls with `ToolApproval` until they are approved, and uses `SoftToolErrors` and `ToolFailException` so the model can recover from a failing tool:
+
+```bash
+mvn compile exec:java -Dexec.mainClass=com.google.genkit.samples.ToolApprovalSample
+```
+
+The plugin also contributes two experimental middleware: `genkit-middleware-exp/contextCompression` (`ContextCompressionMiddleware`), which keeps long conversations inside a context budget, and `genkit-middleware-exp/budget` (`BudgetMiddleware`), which caps the usage a run may spend. The `v2-guarded` flow uses both.
 
 ## Available Endpoints
 
@@ -74,6 +83,7 @@ The sample also adds `GenerationMiddlewarePlugin.create()`, which contributes th
 | `/v2-stacked` | AI chat | Three separate middleware stacked |
 | `/v2-baseline` | AI chat | No middleware (baseline) |
 | `/v2-resilient` | AI chat | `retry` (imported from the middleware plugin, configured in code) |
+| `/v2-guarded` | AI chat | Experimental context compression + usage budget |
 
 ## Example Requests
 

@@ -1,0 +1,8 @@
+---
+model: typesafe/jev-1.13.0
+config:
+  stateJSON: true
+---
+{
+  "ticket": "{{{ticket}}}"
+}

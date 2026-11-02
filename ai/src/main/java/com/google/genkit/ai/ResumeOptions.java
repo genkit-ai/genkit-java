@@ -150,6 +150,38 @@ public class ResumeOptions {
     }
 
     /**
+     * Adds a part that answers an interrupt, as built by {@link InterruptedCall#restart}, {@link
+     * InterruptedCall#respond}, {@link Tool#restart} or {@link Tool#respond}: a tool request part
+     * restarts the call, keeping the part's metadata, and a tool response part answers it.
+     *
+     * @param part the restart or response part
+     * @return this builder
+     * @throws IllegalArgumentException if the part is neither a tool request nor a tool response
+     */
+    public Builder part(Part part) {
+      if (part != null && part.getToolRequest() != null) {
+        ToolRequest source = part.getToolRequest();
+        ToolRequest request = new ToolRequest(source.getName(), source.getInput());
+        request.setRef(source.getRef());
+        java.util.Map<String, Object> metadata = new java.util.HashMap<>();
+        if (source.getMetadata() != null) {
+          metadata.putAll(source.getMetadata());
+        }
+        if (part.getMetadata() != null) {
+          metadata.putAll(part.getMetadata());
+        }
+        if (!metadata.isEmpty()) {
+          request.setMetadata(metadata);
+        }
+        return restart(request);
+      }
+      if (part != null && part.getToolResponse() != null) {
+        return respond(part.getToolResponse());
+      }
+      throw new IllegalArgumentException("a resume part must be a tool request or a tool response");
+    }
+
+    /**
      * Builds the ResumeOptions.
      *
      * @return the built options

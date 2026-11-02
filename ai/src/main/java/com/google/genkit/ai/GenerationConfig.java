@@ -56,6 +56,21 @@ public class GenerationConfig {
   /** Default constructor. */
   public GenerationConfig() {}
 
+  /**
+   * Collects a field this class does not model, such as a model-specific option in a prompt file's
+   * {@code config}, into {@link #getCustom()}.
+   *
+   * @param name the field name
+   * @param value the field value
+   */
+  @com.fasterxml.jackson.annotation.JsonAnySetter
+  void putCustom(String name, Object value) {
+    if (custom == null) {
+      custom = new java.util.HashMap<>();
+    }
+    custom.put(name, value);
+  }
+
   /** Builder pattern for GenerationConfig. */
   public static Builder builder() {
     return new Builder();

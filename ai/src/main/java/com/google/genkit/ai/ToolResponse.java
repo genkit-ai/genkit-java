@@ -20,6 +20,7 @@ package com.google.genkit.ai;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 import java.util.Map;
 
 /** ToolResponse represents a response from a tool invocation. */
@@ -34,6 +35,9 @@ public class ToolResponse {
 
   @JsonProperty("output")
   private Object output;
+
+  @JsonProperty("content")
+  private List<Part> content;
 
   @JsonProperty("metadata")
   private Map<String, Object> metadata;
@@ -89,6 +93,20 @@ public class ToolResponse {
 
   public void setOutput(Object output) {
     this.output = output;
+  }
+
+  /**
+   * Returns the multipart content of the response (such as media or text a tool returns alongside
+   * its output), or null when the tool returned only an output.
+   *
+   * @return the content parts, or null
+   */
+  public List<Part> getContent() {
+    return content;
+  }
+
+  public void setContent(List<Part> content) {
+    this.content = content;
   }
 
   public Map<String, Object> getMetadata() {

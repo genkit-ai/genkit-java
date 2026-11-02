@@ -27,6 +27,7 @@ import com.google.genkit.ai.GenerationConfig;
 import com.google.genkit.ai.ModelResponse;
 import com.google.genkit.ai.Part;
 import com.google.genkit.ai.Tool;
+import com.google.genkit.ai.Usage;
 import com.google.genkit.ai.middleware.BaseGenerationMiddleware;
 import com.google.genkit.ai.middleware.GenerateNext;
 import com.google.genkit.ai.middleware.GenerateParams;
@@ -46,6 +47,9 @@ import com.google.genkit.core.Plugin;
 import com.google.genkit.core.Registry;
 import com.google.genkit.plugins.jetty.JettyPlugin;
 import com.google.genkit.plugins.jetty.JettyPluginOptions;
+import com.google.genkit.plugins.middleware.BudgetExceededException;
+import com.google.genkit.plugins.middleware.BudgetMiddleware;
+import com.google.genkit.plugins.middleware.ContextCompressionMiddleware;
 import com.google.genkit.plugins.middleware.GenerationMiddlewarePlugin;
 import com.google.genkit.plugins.middleware.RetryMiddleware;
 import com.google.genkit.plugins.openai.OpenAIPlugin;
@@ -509,6 +513,44 @@ public class MiddlewareV2Sample {
               return response.getText();
             });
 
+    // =======================================================
+    // Flow 6: Experimental context compression and usage budget
+    // =======================================================
+
+    // Keep a long conversation inside a context budget: older tool responses are capped and
+    // truncated, and the oldest turns are dropped once the conversation exceeds 20 messages.
+    ContextCompressionMiddleware.Options compressionOpts =
+        new ContextCompressionMiddleware.Options();
+    compressionOpts.maxInputTokens = 8_000;
+    compressionOpts.maxMessages = 20;
+    compressionOpts.toolResponses = new ContextCompressionMiddleware.ToolTruncation(2_000);
+
+    // Stop the run once it has spent 20,000 input tokens across all of its model calls.
+    Usage budgetLimit = new Usage();
+    budgetLimit.setInputTokens(20_000);
+
+    Flow<String, String, Void> guardedFlow =
+        genkit.defineFlow(
+            "v2-guarded",
+            String.class,
+            String.class,
+            (ctx, userMessage) -> {
+              try {
+                ModelResponse response =
+                    genkit.generate(
+                        GenerateOptions.builder()
+                            .model("openai/gpt-4o-mini")
+                            .prompt(userMessage)
+                            .use(
+                                new ContextCompressionMiddleware(compressionOpts),
+                                new BudgetMiddleware(new BudgetMiddleware.Options(budgetLimit)))
+                            .build());
+                return response.getText();
+              } catch (BudgetExceededException e) {
+                return "Stopped: " + e.getMessage();
+              }
+            });
+
     logger.info("\n========================================");
     logger.info("Genkit Middleware V2 Sample Started!");
     logger.info("========================================\n");
@@ -519,7 +561,9 @@ public class MiddlewareV2Sample {
     logger.info("  - v2-stacked:    Three separate middleware stacked together");
     logger.info("  - v2-baseline:   No middleware (baseline comparison)");
     logger.info(
-        "  - v2-resilient:  retry middleware imported from the plugin (configured in code)\n");
+        "  - v2-resilient:  retry middleware imported from the plugin (configured in code)");
+    logger.info(
+        "  - v2-guarded:    experimental context compression and usage budget middleware\n");
 
     logger.info(
         "Dev UI Middleware panel now lists (open http://localhost:4000 via `genkit start`):");

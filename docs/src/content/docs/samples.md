@@ -37,6 +37,7 @@ genkit start -- ./run.sh
 | **mistral** | Mistral AI models integration |
 | **groq** | Groq ultra-fast inference integration |
 | **ollama** | Local Ollama models with Gemma 3n |
+| **systemone** | Decisions with System One models: triage, screening, ranking, routing, enum, runtime questions |
 
 ### Feature samples
 

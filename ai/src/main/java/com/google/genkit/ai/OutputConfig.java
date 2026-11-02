@@ -103,6 +103,42 @@ public class OutputConfig {
    *
    * @return an OutputConfig configured for text
    */
+  /**
+   * Creates an output config whose output is exactly one of the given values.
+   *
+   * @param values the allowed values
+   * @return the output config
+   */
+  public static OutputConfig enums(String... values) {
+    return enums(java.util.Arrays.asList(values));
+  }
+
+  /**
+   * Creates an output config whose output is exactly one of the given values.
+   *
+   * @param values the allowed values
+   * @return the output config
+   */
+  public static OutputConfig enums(java.util.List<String> values) {
+    if (values == null || values.isEmpty()) {
+      throw new IllegalArgumentException("enum output needs at least one value");
+    }
+    OutputConfig config = new OutputConfig();
+    config.format = OutputFormat.ENUM;
+    Map<String, Object> schema = new java.util.LinkedHashMap<>();
+    schema.put("type", "string");
+    schema.put("enum", new java.util.ArrayList<>(values));
+    config.schema = schema;
+    config.constrained = true;
+    config.contentType = "text/enum";
+    config.instructions =
+        "Output should be ONLY one of the following enum values. Do not output any additional"
+            + " information or add quotes.\n\n```"
+            + String.join("\n", values)
+            + "```";
+    return config;
+  }
+
   public static OutputConfig text() {
     OutputConfig config = new OutputConfig();
     config.format = OutputFormat.TEXT;

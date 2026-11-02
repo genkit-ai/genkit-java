@@ -312,6 +312,20 @@ public final class SessionRunner<S> {
               .status(status)
               .message(e.getMessage() != null ? e.getMessage() : e.getClass().getName())
               .build();
+      if ("ABORTED".equals(status)) {
+        // A turn stopped by a limit the caller set (such as a usage budget) is aborted, not
+        // failed. The session is not broken: the snapshot commits what the turn recorded, usage
+        // included, so a later invocation of the session continues from it.
+        lastTurnFinishReason = AgentFinishReason.ABORTED;
+        maybeSnapshot(
+            SnapshotStatus.COMPLETED,
+            AgentFinishReason.ABORTED,
+            lastTurnError,
+            turnSnapshotId,
+            parentId);
+        lastGoodState = session.getState();
+        return;
+      }
       lastTurnFinishReason = AgentFinishReason.FAILED;
       maybeSnapshot(
           SnapshotStatus.FAILED, AgentFinishReason.FAILED, lastTurnError, turnSnapshotId, parentId);

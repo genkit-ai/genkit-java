@@ -21,6 +21,7 @@ package com.google.genkit.ai.agent;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.genkit.ai.Message;
+import com.google.genkit.ai.Usage;
 import com.google.genkit.core.JsonUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,6 +57,9 @@ public final class Session<S> implements ArtifactStore {
   /** Internal artifacts list — never exposed directly. */
   private final List<Artifact> artifacts;
 
+  /** Usage of the session's own model calls across all its turns, or null before any. */
+  private Usage usage;
+
   /** Monotonically increasing mutation counter. */
   private long version;
 
@@ -89,6 +93,8 @@ public final class Session<S> implements ArtifactStore {
     // Deep-copy artifacts
     List<Artifact> srcArtifacts = initialState.getArtifacts();
     this.artifacts = srcArtifacts != null ? deepCopyArtifacts(srcArtifacts) : new ArrayList<>();
+
+    this.usage = Usage.sum(initialState.getUsage());
 
     this.version = 0L;
   }
@@ -129,7 +135,33 @@ public final class Session<S> implements ArtifactStore {
     snapshot.setMessages(new ArrayList<>(messages));
     snapshot.setCustom(deepCopyCustom(custom));
     snapshot.setArtifacts(new ArrayList<>(artifacts));
+    snapshot.setUsage(Usage.sum(usage));
     return snapshot;
+  }
+
+  // ---- Usage ----
+
+  /**
+   * Returns a copy of the usage the session's own model calls have recorded across all its turns
+   * and invocations.
+   *
+   * @return the usage, or null when no model call reported any
+   */
+  public synchronized Usage getUsage() {
+    return Usage.sum(usage);
+  }
+
+  /**
+   * Adds the usage of one of the session's model calls to the session's usage.
+   *
+   * @param u the usage to add; null is ignored
+   */
+  public synchronized void addUsage(Usage u) {
+    if (u == null) {
+      return;
+    }
+    usage = Usage.sum(usage, u);
+    version++;
   }
 
   // ---- Messages ----

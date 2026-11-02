@@ -35,6 +35,11 @@
  *       runs the sub-agent for a single turn and returns its text (plus optional artifacts).
  *   <li>{@link com.google.genkit.plugins.middleware.Artifacts} &mdash; {@code read_artifact} and
  *       {@code write_artifact} tools operating on the active agent session's artifact store.
+ *   <li>{@link com.google.genkit.plugins.middleware.ContextCompressionMiddleware} (experimental)
+ *       &mdash; keeps a conversation inside a context budget by deduplicating, truncating, and
+ *       summarizing older messages.
+ *   <li>{@link com.google.genkit.plugins.middleware.BudgetMiddleware} (experimental) &mdash; caps
+ *       the usage a generate run or agent session may spend.
  * </ul>
  *
  * <p>{@code Agents} and {@code Artifacts} are implemented as <em>tool factories</em>: they return

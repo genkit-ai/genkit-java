@@ -19,6 +19,7 @@
 package com.google.genkit.ai.telemetry;
 
 import com.google.genkit.ai.Message;
+import com.google.genkit.ai.ModelObserver;
 import com.google.genkit.ai.ModelRequest;
 import com.google.genkit.ai.ModelResponse;
 import com.google.genkit.ai.Part;
@@ -57,6 +58,7 @@ public class ModelTelemetryHelper {
       throws GenkitException {
     long startTime = System.currentTimeMillis();
     String error = null;
+    Throwable failure = null;
     ModelResponse response = null;
 
     try {
@@ -76,12 +78,16 @@ public class ModelTelemetryHelper {
       return response;
     } catch (GenkitException e) {
       error = e.getClass().getSimpleName();
+      failure = e;
       throw e;
     } catch (Exception e) {
       error = e.getClass().getSimpleName();
+      failure = e;
       throw new GenkitException("Model execution failed: " + e.getMessage(), e);
     } finally {
       long latencyMs = System.currentTimeMillis() - startTime;
+      ModelObserver.notifyModelDone(
+          new ModelObserver.ModelCall(modelName, request, response, failure));
 
       // Record telemetry metrics
       try {
@@ -180,6 +186,7 @@ public class ModelTelemetryHelper {
       throws GenkitException {
     long startTime = System.currentTimeMillis();
     String error = null;
+    Throwable failure = null;
     ModelResponse response = null;
 
     try {
@@ -199,12 +206,16 @@ public class ModelTelemetryHelper {
       return response;
     } catch (GenkitException e) {
       error = e.getClass().getSimpleName();
+      failure = e;
       throw e;
     } catch (Exception e) {
       error = e.getClass().getSimpleName();
+      failure = e;
       throw new GenkitException("Model execution failed: " + e.getMessage(), e);
     } finally {
       long latencyMs = System.currentTimeMillis() - startTime;
+      ModelObserver.notifyModelDone(
+          new ModelObserver.ModelCall(modelName, request, response, failure));
 
       // Record telemetry metrics
       try {

@@ -44,11 +44,78 @@ public class Part {
   @JsonProperty("data")
   private Object data;
 
+  @JsonProperty("reasoning")
+  private String reasoning;
+
+  @JsonProperty("resource")
+  private Map<String, Object> resource;
+
+  @JsonProperty("custom")
+  private Map<String, Object> custom;
+
   @JsonProperty("metadata")
   private Map<String, Object> metadata;
 
   /** Default constructor. */
   public Part() {}
+
+  /**
+   * Returns a shallow copy of this part: a new part holding the same field values. The metadata map
+   * is shared, so replace it rather than modify it on the copy.
+   *
+   * @return the copy
+   */
+  public Part copy() {
+    Part part = new Part();
+    part.text = text;
+    part.media = media;
+    part.toolRequest = toolRequest;
+    part.toolResponse = toolResponse;
+    part.data = data;
+    part.reasoning = reasoning;
+    part.resource = resource;
+    part.custom = custom;
+    part.metadata = metadata;
+    return part;
+  }
+
+  /**
+   * Creates a reasoning part, which holds a model's reasoning text.
+   *
+   * @param reasoning the reasoning text
+   * @return a new reasoning part
+   */
+  public static Part reasoning(String reasoning) {
+    Part part = new Part();
+    part.reasoning = reasoning;
+    return part;
+  }
+
+  /**
+   * Creates a resource part that references a resource by URI.
+   *
+   * @param uri the resource URI
+   * @return a new resource part
+   */
+  public static Part resource(String uri) {
+    Part part = new Part();
+    Map<String, Object> ref = new java.util.LinkedHashMap<>();
+    ref.put("uri", uri);
+    part.resource = ref;
+    return part;
+  }
+
+  /**
+   * Creates a custom part carrying provider-specific content.
+   *
+   * @param custom the custom content
+   * @return a new custom part
+   */
+  public static Part custom(Map<String, Object> custom) {
+    Part part = new Part();
+    part.custom = custom;
+    return part;
+  }
 
   /**
    * Creates a text part.
@@ -153,6 +220,30 @@ public class Part {
     this.data = data;
   }
 
+  public String getReasoning() {
+    return reasoning;
+  }
+
+  public void setReasoning(String reasoning) {
+    this.reasoning = reasoning;
+  }
+
+  public Map<String, Object> getResource() {
+    return resource;
+  }
+
+  public void setResource(Map<String, Object> resource) {
+    this.resource = resource;
+  }
+
+  public Map<String, Object> getCustom() {
+    return custom;
+  }
+
+  public void setCustom(Map<String, Object> custom) {
+    this.custom = custom;
+  }
+
   public Map<String, Object> getMetadata() {
     return metadata;
   }
@@ -204,5 +295,32 @@ public class Part {
    */
   public boolean isData() {
     return data != null;
+  }
+
+  /**
+   * Returns true if this is a reasoning part.
+   *
+   * @return true if reasoning
+   */
+  public boolean isReasoning() {
+    return reasoning != null;
+  }
+
+  /**
+   * Returns true if this is a resource part.
+   *
+   * @return true if resource
+   */
+  public boolean isResource() {
+    return resource != null;
+  }
+
+  /**
+   * Returns true if this is a custom part.
+   *
+   * @return true if custom
+   */
+  public boolean isCustom() {
+    return custom != null;
   }
 }

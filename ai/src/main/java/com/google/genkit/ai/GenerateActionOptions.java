@@ -19,6 +19,7 @@
 package com.google.genkit.ai;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.ArrayList;
@@ -99,6 +100,15 @@ public class GenerateActionOptions {
   @JsonProperty("use")
   private List<JsonNode> use;
 
+  /**
+   * The resume directives of a generate call that resumes an interrupted one, or null. Middleware
+   * reads it in {@code wrapGenerate} to see which interrupted tool calls the caller restarted or
+   * answered.
+   */
+  @JsonProperty("resume")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  private ResumeOptions resume;
+
   /** Default constructor for JSON deserialization. */
   public GenerateActionOptions() {}
 
@@ -128,6 +138,7 @@ public class GenerateActionOptions {
     copy.maxTurns = this.maxTurns;
     copy.stepName = this.stepName;
     copy.use = this.use;
+    copy.resume = this.resume;
     return copy;
   }
 
@@ -147,6 +158,19 @@ public class GenerateActionOptions {
   // =========================================================================
   // Getters and setters
   // =========================================================================
+
+  /**
+   * Returns the resume directives of a generate call that resumes an interrupted one.
+   *
+   * @return the resume options, or null when the call is not a resume
+   */
+  public ResumeOptions getResume() {
+    return resume;
+  }
+
+  public void setResume(ResumeOptions resume) {
+    this.resume = resume;
+  }
 
   public String getModel() {
     return model;

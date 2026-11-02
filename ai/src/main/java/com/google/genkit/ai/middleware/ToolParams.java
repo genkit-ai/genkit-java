@@ -27,6 +27,7 @@ public class ToolParams {
 
   private final Part requestPart;
   private final Tool<?, ?> tool;
+  private final boolean released;
 
   /**
    * Creates ToolParams.
@@ -35,8 +36,46 @@ public class ToolParams {
    * @param tool the resolved tool being called
    */
   public ToolParams(Part requestPart, Tool<?, ?> tool) {
+    this(requestPart, tool, false);
+  }
+
+  /**
+   * Creates ToolParams.
+   *
+   * @param requestPart the tool request part (includes metadata) about to be executed
+   * @param tool the resolved tool being called
+   * @param released whether this hook already let this call through before it interrupted (see
+   *     {@link #isReleased()})
+   */
+  public ToolParams(Part requestPart, Tool<?, ?> tool, boolean released) {
     this.requestPart = requestPart;
     this.tool = tool;
+    this.released = released;
+  }
+
+  /**
+   * Reports whether the call is a restart that answers a later stage (a hook after this one, or the
+   * tool's own interrupt) and the interrupted call records that this hook let it through. A hook
+   * that holds calls for approval passes such a restart on rather than holding it again.
+   *
+   * <p>False in a fresh call, in the hook the restart answers (which reads the answer from {@link
+   * com.google.genkit.core.ActionContext#getResumed()}), in a hook the interrupted call does not
+   * record, and in every hook when the restart replaced the call's input.
+   *
+   * @return whether this hook already released the call
+   */
+  public boolean isReleased() {
+    return released;
+  }
+
+  /**
+   * Returns a copy of these params with the given released flag.
+   *
+   * @param released the released flag
+   * @return the copy
+   */
+  public ToolParams withReleased(boolean released) {
+    return new ToolParams(requestPart, tool, released);
   }
 
   /** Returns the full tool request part, including part-level metadata. */

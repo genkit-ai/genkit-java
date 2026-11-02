@@ -19,6 +19,7 @@
 package com.google.genkit.ai.agent.internal;
 
 import com.google.genkit.ai.Message;
+import com.google.genkit.ai.ModelObserver;
 import com.google.genkit.ai.agent.Agent;
 import com.google.genkit.ai.agent.AgentAbortRequest;
 import com.google.genkit.ai.agent.AgentAbortResponse;
@@ -36,6 +37,7 @@ import com.google.genkit.ai.agent.ClientTransform;
 import com.google.genkit.ai.agent.CustomAgentConfig;
 import com.google.genkit.ai.agent.GetSnapshotOptions;
 import com.google.genkit.ai.agent.GetSnapshotRequest;
+import com.google.genkit.ai.agent.Session;
 import com.google.genkit.ai.agent.SessionRunner;
 import com.google.genkit.ai.agent.SessionSnapshot;
 import com.google.genkit.ai.agent.SessionState;
@@ -58,6 +60,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * Factory for defining custom agents.
@@ -163,8 +166,7 @@ public final class AgentActions {
                           runner.addMessages(detachInput.getMessage());
                         }
                         AgentResult res =
-                            AgentSessionContext.call(
-                                runner.session(), () -> callFn(fn, runner, detachCtx));
+                            runTracked(runner, serverManaged, () -> callFn(fn, runner, detachCtx));
                         if (res != null) {
                           if (res.getMessage() != null) {
                             runner.addMessages(res.getMessage());
@@ -200,7 +202,7 @@ public final class AgentActions {
                 input,
                 (in, turnCtx) -> {
                   AgentResult res =
-                      AgentSessionContext.call(runner.session(), () -> callFn(fn, runner, fnCtx));
+                      runTracked(runner, serverManaged, () -> callFn(fn, runner, fnCtx));
                   if (res != null) {
                     if (res.getMessage() != null) {
                       runner.addMessages(res.getMessage());
@@ -343,6 +345,29 @@ public final class AgentActions {
    * @param ctx the per-invocation context for this turn
    * @return the agent result returned by {@code fn.run}
    */
+  /**
+   * Runs one turn's body with the session bound to the thread, recording the usage of the session's
+   * own model calls on the session. Calls a nested agent makes under its own session are not
+   * counted. A server-managed session also exposes its usage to middleware through {@link
+   * AgentSessionContext#sessionUsage()}; a client-managed one does not, since its caller could drop
+   * the usage it sends back.
+   */
+  private static <S> AgentResult runTracked(
+      SessionRunner<S> runner, boolean serverManaged, Supplier<AgentResult> body) {
+    Session<S> session = runner.session();
+    ModelObserver recordUsage =
+        call -> {
+          if (call.response() != null
+              && call.response().getUsage() != null
+              && AgentSessionContext.current() == session) {
+            session.addUsage(call.response().getUsage());
+          }
+        };
+    return AgentSessionContext.callWithSessionUsage(
+        serverManaged ? session::getUsage : null,
+        () -> ModelObserver.observe(recordUsage, () -> AgentSessionContext.call(session, body)));
+  }
+
   private static <S> AgentResult callFn(
       AgentFn<S> fn, SessionRunner<S> runner, AgentFnContext ctx) {
     try {

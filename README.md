@@ -654,6 +654,7 @@ EmbedResponse response = genkit.embed("openai/text-embedding-3-small", documents
 | **plugins/groq** | Groq ultra-fast inference (Llama, Mixtral, Gemma) |
 | **plugins/ollama** | Local Ollama models (Gemma, Llama, Mistral, etc.) |
 | **plugins/compat-oai** | OpenAI-compatible API base implementation for custom endpoints |
+| **plugins/systemone** | System One decision models (TypeSafe jev, Liquid d1, Cloudflare Clef): typed decisions with calibrated probabilities (preview) |
 | **plugins/jetty** | HTTP server plugin using Jetty 12 |
 | **plugins/spring** | HTTP server plugin using Spring Boot |
 | **plugins/localvec** | Local file-based vector store for development |
@@ -757,6 +758,7 @@ The following samples are available in `java/samples/`. See the [samples README]
 | **mistral** | Mistral AI models integration |
 | **groq** | Groq ultra-fast inference integration |
 | **ollama** | Local Ollama models with Gemma 3n |
+| **systemone** | Decisions with System One models: triage, screening, ranking, routing, enum, runtime questions |
 | **dotprompt** | DotPrompt files with complex inputs/outputs, variants, and partials |
 | **structured-output** | Type-safe structured output generation |
 | **rag** | RAG application with local vector store |
@@ -907,6 +909,7 @@ com.google.genkit
     ├── groq/                # Groq ultra-fast inference
     ├── ollama/              # Local Ollama models
     ├── compat-oai/          # OpenAI-compatible API base
+    ├── systemone/           # System One decision models (preview)
     ├── jetty/               # Jetty HTTP server
     ├── spring/              # Spring Boot HTTP server
     ├── localvec/            # Local vector store

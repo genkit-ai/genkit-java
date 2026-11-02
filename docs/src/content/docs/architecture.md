@@ -45,6 +45,7 @@ com.google.genkit
     ├── groq/                # Groq inference
     ├── ollama/              # Local Ollama
     ├── compat-oai/          # OpenAI-compatible base
+    ├── systemone/           # System One decision models
     ├── jetty/               # Jetty HTTP server
     ├── spring/              # Spring Boot server
     ├── localvec/            # Local vector store

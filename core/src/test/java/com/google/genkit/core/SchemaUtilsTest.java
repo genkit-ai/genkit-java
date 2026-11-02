@@ -64,4 +64,58 @@ class SchemaUtilsTest {
   void inferSchemaReturnsNullForVoid() {
     assertNull(SchemaUtils.inferSchema(Void.class));
   }
+
+  /** Describes a {@link Labeled} by the simple name of its type argument. */
+  static final class LabeledSchema implements SchemaProvider {
+    @Override
+    public Map<String, Object> jsonSchema(java.lang.reflect.Type type) {
+      String arg = "raw";
+      if (type instanceof java.lang.reflect.ParameterizedType p) {
+        arg = ((Class<?>) p.getActualTypeArguments()[0]).getSimpleName();
+      } else if (type instanceof Class<?> c && c != Labeled.class) {
+        arg = c.getSimpleName();
+      }
+      return Map.of("type", "object", "x-label", arg);
+    }
+  }
+
+  @JsonSchemaProvider(LabeledSchema.class)
+  static class Labeled<T> {
+    public T value;
+  }
+
+  static final class LabeledString extends Labeled<String> {}
+
+  static class WithProvided {
+    @com.fasterxml.jackson.annotation.JsonPropertyDescription("A labeled integer")
+    public Labeled<Integer> count;
+
+    public Labeled<String> name;
+
+    public LabeledString subclass;
+
+    public List<Integer> plain;
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void schemaProviderSuppliesTheSchemaOfAnnotatedTypes() {
+    Map<String, Object> schema = SchemaUtils.inferSchema(WithProvided.class);
+    Map<String, Object> properties = (Map<String, Object>) schema.get("properties");
+
+    // The provider is given the type as it is used, type arguments resolved.
+    Map<String, Object> count = (Map<String, Object>) properties.get("count");
+    assertEquals("Integer", count.get("x-label"));
+    assertEquals("object", count.get("type"));
+    assertFalse(count.containsKey("properties"), "the inferred schema was not replaced");
+    // The property's own attributes still apply.
+    assertEquals("A labeled integer", count.get("description"));
+    assertEquals("String", ((Map<String, Object>) properties.get("name")).get("x-label"));
+    // A non-generic subclass inherits the provider and is given its own class.
+    assertEquals(
+        "LabeledString", ((Map<String, Object>) properties.get("subclass")).get("x-label"));
+    // A type without the annotation keeps its inferred schema.
+    assertEquals("array", ((Map<String, Object>) properties.get("plain")).get("type"));
+    assertTrue(((List<String>) schema.get("required")).contains("count"));
+  }
 }

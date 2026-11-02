@@ -18,16 +18,28 @@
 
 package com.google.genkit.core;
 
+import com.fasterxml.classmate.ResolvedType;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.victools.jsonschema.generator.*;
 import com.github.victools.jsonschema.module.jackson.JacksonModule;
 import com.github.victools.jsonschema.module.jackson.JacksonOption;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 /** SchemaUtils provides utilities for JSON Schema generation and validation. */
 public final class SchemaUtils {
 
   private static final SchemaGenerator schemaGenerator;
+
+  /** The providers named by {@link JsonSchemaProvider}, one instance per class. */
+  private static final Map<Class<? extends SchemaProvider>, SchemaProvider> providers =
+      new ConcurrentHashMap<>();
 
   static {
     SchemaGeneratorConfigBuilder configBuilder =
@@ -67,12 +79,117 @@ public final class SchemaUtils {
               return true;
             });
 
+    // A type annotated with @JsonSchemaProvider supplies its own schema, given the type as it is
+    // used. Only annotated types are affected; every other type keeps the inferred schema. The
+    // property's own attributes, such as its description, still apply.
+    configBuilder.forTypesInGeneral().withCustomDefinitionProvider(SchemaUtils::providedDefinition);
+
     SchemaGeneratorConfig config = configBuilder.build();
     schemaGenerator = new SchemaGenerator(config);
   }
 
   private SchemaUtils() {
     // Utility class
+  }
+
+  /**
+   * The schema of a type annotated with {@link JsonSchemaProvider}, from its provider, or null for
+   * any other type.
+   */
+  private static CustomDefinition providedDefinition(
+      ResolvedType type, SchemaGenerationContext context) {
+    JsonSchemaProvider annotation = type.getErasedType().getAnnotation(JsonSchemaProvider.class);
+    if (annotation == null) {
+      return null;
+    }
+    SchemaProvider provider =
+        providers.computeIfAbsent(annotation.value(), SchemaUtils::newProvider);
+    Map<String, Object> schema = provider.jsonSchema(toType(type));
+    if (schema == null) {
+      return null;
+    }
+    ObjectNode node = context.getGeneratorConfig().getObjectMapper().valueToTree(schema);
+    return new CustomDefinition(
+        node, CustomDefinition.DefinitionType.INLINE, CustomDefinition.AttributeInclusion.YES);
+  }
+
+  private static SchemaProvider newProvider(Class<? extends SchemaProvider> providerClass) {
+    try {
+      java.lang.reflect.Constructor<? extends SchemaProvider> constructor =
+          providerClass.getDeclaredConstructor();
+      constructor.setAccessible(true);
+      return constructor.newInstance();
+    } catch (ReflectiveOperationException e) {
+      throw new IllegalStateException(
+          "schema provider " + providerClass.getName() + " needs a no-argument constructor", e);
+    }
+  }
+
+  /** The reflection type of a resolved type, with its type arguments. */
+  private static Type toType(ResolvedType type) {
+    List<ResolvedType> params = type.getTypeParameters();
+    if (params.isEmpty()) {
+      return type.getErasedType();
+    }
+    Type[] args = new Type[params.size()];
+    for (int i = 0; i < args.length; i++) {
+      args[i] = toType(params.get(i));
+    }
+    return new ResolvedParameterizedType(type.getErasedType(), args);
+  }
+
+  /** A parameterized type built from a resolved one. */
+  private static final class ResolvedParameterizedType implements ParameterizedType {
+    private final Class<?> raw;
+    private final Type[] args;
+
+    ResolvedParameterizedType(Class<?> raw, Type[] args) {
+      this.raw = raw;
+      this.args = args;
+    }
+
+    @Override
+    public Type[] getActualTypeArguments() {
+      return args.clone();
+    }
+
+    @Override
+    public Type getRawType() {
+      return raw;
+    }
+
+    @Override
+    public Type getOwnerType() {
+      return raw.getDeclaringClass();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (!(o instanceof ParameterizedType)) {
+        return false;
+      }
+      ParameterizedType other = (ParameterizedType) o;
+      return raw.equals(other.getRawType())
+          && Arrays.equals(args, other.getActualTypeArguments())
+          && Objects.equals(getOwnerType(), other.getOwnerType());
+    }
+
+    @Override
+    public int hashCode() {
+      return Arrays.hashCode(args) ^ raw.hashCode();
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder(raw.getTypeName()).append('<');
+      for (int i = 0; i < args.length; i++) {
+        if (i > 0) {
+          sb.append(", ");
+        }
+        sb.append(args[i].getTypeName());
+      }
+      return sb.append('>').toString();
+    }
   }
 
   /**

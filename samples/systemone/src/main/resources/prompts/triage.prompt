@@ -1,0 +1,14 @@
+---
+# The triage decision from a prompt file. The questions are still the Triage
+# type, which the flow passes as its output class; the file owns the model,
+# the config, and how the input becomes the state.
+model: openrouter-decisions/~typesafe/jev-latest
+config:
+  # A template renders text. This parses it as JSON, so the state is an
+  # object with named fields, the same state that triageFlow sends.
+  stateJSON: true
+---
+{
+  "ticket": {{{ticket}}},
+  "accountTier": {{{accountTier}}}
+}

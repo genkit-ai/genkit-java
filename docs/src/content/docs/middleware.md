@@ -419,8 +419,133 @@ Genkit genkit = Genkit.builder()
 | `retry` | `wrapModel` | `maxRetries`, `initialDelayMs`, `maxDelayMs`, `backoffFactor` |
 | `fallback` | `wrapGenerate` | `models` (ordered list of fallback model names) |
 | `simulateSystemPrompt` | `wrapGenerate` | `preface`, `acknowledgement` |
+| `genkit-middleware/toolApproval` | `wrapTool` | `allowedTools`, `judge`, `judgePolicy` — see [Tool approval](#tool-approval) |
+| `genkit-middleware/softToolErrors` | tool errors | `tools` — see [Returning tool errors to the model](#returning-tool-errors-to-the-model) |
+| `genkit-middleware/filesystem` | tools | `rootDirectory`, `allowWriteAccess`, `toolNamePrefix` — see [File access](#file-access) |
+| `genkit-middleware/skills` | tools, `wrapGenerate` | `skillPaths`, `preload`, `allowResourceAccess`, `toolNamePrefix` — see [Skills](#skills) |
+| `genkit-middleware-exp/contextCompression` (experimental) | `wrapGenerate`, `wrapModel` | see [Context compression](#context-compression-experimental) |
+| `genkit-middleware-exp/budget` (experimental) | `wrapGenerate`, `wrapTool` | `limit`, `scope`, `interrupt` (see [Usage budget](#usage-budget-experimental)) |
 
 Each appears in the Dev UI Middleware panel with a parameters form, and can also be used programmatically, e.g. `new RetryMiddleware(opts)` passed to `GenerateOptions.builder().use(...)`.
+
+### Context compression (experimental)
+
+:::caution[Experimental]
+`ContextCompressionMiddleware` is experimental and may change in any minor release.
+:::
+
+`ContextCompressionMiddleware` keeps a conversation inside a context budget through long chats and agentic tool loops. Before each tool-loop iteration it checks two triggers: the context is larger than `maxInputTokens` (measured by the input tokens the model reported for the previous call, or estimated from the messages before there is one), or the conversation holds more than `maxMessages` messages. When a trigger fires, it applies its strategies cheapest first:
+
+1. **Deduplication** (`deduplicateToolResponses`) replaces older duplicate tool responses with a short notice.
+2. **Truncation** (`toolResponses`) shortens older tool responses, leaving the newest tool messages intact.
+3. **Summarization** (`summarize`) has a model fold older messages into a summary, unless the first two strategies already saved `skipSummarizationThreshold` of the context and brought it under budget.
+4. **Dropping**: when nothing was summarized and the conversation is still over budget, the oldest messages are dropped, and a notice tells the model that context was removed.
+
+Independently of the triggers, `maxToolResponseChars` caps every tool response on every iteration.
+
+```java
+ContextCompressionMiddleware.Options opts = new ContextCompressionMiddleware.Options();
+opts.maxInputTokens = 80_000;
+opts.deduplicateToolResponses = new ContextCompressionMiddleware.Dedupe();
+opts.toolResponses = new ContextCompressionMiddleware.ToolTruncation(2000);
+opts.summarize = new ContextCompressionMiddleware.Summarizer("googleai/gemini-2.5-flash-lite");
+
+ModelResponse response = genkit.generate(GenerateOptions.builder()
+    .model("googleai/gemini-2.5-flash")
+    .prompt("Research this topic thoroughly.")
+    .tools(List.of(searchTool))
+    .use(new ContextCompressionMiddleware(opts), new RetryMiddleware(null))
+    .build());
+```
+
+List it after middleware that adds context to the conversation, so the compression accounts for what they add, and before retry and fallback middleware, so retried and fallback calls receive the compressed conversation.
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `maxInputTokens` | unset | Compress when the context exceeds this many tokens. |
+| `maxMessages` | unset | Compress when the conversation holds more than this many messages, and cap the messages kept. Without `summarize`, a tight cap drops the turns that record a tool loop's progress, and the model may repeat calls it already made. |
+| `preserveRecent` | 4 | How many of the newest non-system messages are kept when older messages are dropped, and the default window for `summarize`. Shrinks when the context is far over budget: halved beyond 1.5 times `maxInputTokens`, and down to 2 beyond twice. |
+| `maxToolResponseChars` | 400000 | Cap on the characters of any single tool response, output and content together, on every iteration. Negative disables it. |
+| `deduplicateToolResponses.matchBy` | `name-and-input` | Match duplicates by tool name and input, or by tool name alone (`name-only`), for tools that return the latest overall state. |
+| `deduplicateToolResponses.keepRecent` | 1 | How many of the newest responses in each duplicate group stay intact. |
+| `deduplicateToolResponses.notice` | built in | Text that replaces each older duplicate. |
+| `toolResponses.maxChars` | required | Most characters an older tool response keeps. Text content is folded into the output when a response is truncated. |
+| `toolResponses.preserveRecent` | 2 | How many of the newest tool messages stay intact. Negative truncates every tool message. |
+| `summarize.model` | required | The model that writes summaries, typically a smaller, faster model. |
+| `summarize.config` | unset | Config sent to the summarizer as is, such as its output limit. |
+| `summarize.preserveRecent` | `preserveRecent`, else 6 | How many of the newest non-system messages stay out of the summary. |
+| `summarize.prompt` | built in | Custom summarization prompt. Each `{conversation}` is replaced with the messages to summarize; without one, they are appended. |
+| `skipSummarizationThreshold` | unset | Skip summarization when deduplication and truncation saved at least this fraction (0 to 1) of the context and brought it under `maxInputTokens`. |
+| `truncationNotice` | built in | Custom notice inserted when messages are dropped. |
+| `noTruncationNotice` | `false` | Drop messages without telling the model. |
+| `replaceHistory` | `false` | Return the compressed messages as the history instead of the original messages. |
+
+Leading system messages are always kept, and the kept messages never start with a tool response separated from the request it answers. Two kinds of message are never summarized or dropped: the scaffolding an agent's prompt renders on every turn, and the message that carries output-format instructions. If a summary fails (the summarizer errors, returns nothing, or stops early), the call continues with message dropping instead.
+
+**History.** The history you get back from `response.getMessages()` keeps every original message: only the model sees the compressed conversation. The compression is recorded in message metadata under the `contextCompression` key, so when you pass the history to the next `generate()` call, store it in a session, or restore it after a restart, compression continues where it left off. To see what the model receives for a stored history, call:
+
+```java
+List<Message> view = ContextCompressionMiddleware.resolveCompressedHistory(history);
+```
+
+Set `replaceHistory` to get the compressed messages back as the history instead. The middleware never modifies the messages you pass in, so one history can be shared between concurrent calls.
+
+**Stats.** The final response reports the newest compression under `response.getCustom().get("contextCompression")`: whether it was `triggered`, `inputTokensBefore`, `messagesOriginal` and `messagesAfter`, how many tool responses were capped, deduplicated, and truncated, and whether it inserted a notice, `summarized`, or skipped summarization.
+
+### Usage budget (experimental)
+
+:::caution[Experimental]
+`BudgetMiddleware` is experimental and may change in any minor release.
+:::
+
+`BudgetMiddleware` caps the usage a `generate()` run, or an agent session, may spend. Every non-zero field of its `limit` is a cap: `inputTokens`, `outputTokens`, `thoughtsTokens`, `outputImages`, or a provider-reported cost in `custom`, key by key. Usage counts as models report it, so `outputTokens` does not include `thoughtsTokens`: cap both to cap what a model generates.
+
+```java
+Usage limit = new Usage();
+limit.setInputTokens(50_000);
+limit.setCustom(Map.of("cost", 0.25));
+
+ModelResponse response = genkit.generate(GenerateOptions.builder()
+    .model("googleai/gemini-2.5-flash")
+    .prompt("Research this topic thoroughly.")
+    .tools(List.of(searchTool))
+    .use(new BudgetMiddleware(new BudgetMiddleware.Options(limit)))
+    .build());
+```
+
+The limit is checked before each model call of the tool loop. Once a capped field reaches its limit, the run stops with `BudgetExceededException`: its error code is `ABORTED`, and `getResponse()` holds the partial response with finish reason `ABORTED`. A turn already under way finishes, so a run can go over by one turn (several billed calls when a retry middleware is in the chain). The budget counts every model call made under the run: the tool loop, calls other middleware make, `generate()` calls inside tools, and sub-agents the run invokes, so delegation cannot spend around it.
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `limit` | required | The usage the run or session may spend. At least one field must be set; negative and non-finite values are rejected. |
+| `scope` | `run` | `run` counts one `generate()` call. `session` counts the agent session's usage across all its turns and invocations, plus the current run. |
+| `interrupt` | `false` | Pause the run for approval instead of stopping it. Run scope only. |
+
+**Session scope** needs an agent with a session store, because a client-managed session's state, usage included, comes back from the caller. Create the middleware inside the agent's turn; outside such an agent it fails with `FAILED_PRECONDITION`. A session-scoped budget cannot interrupt. When a session budget stops a turn, the agent turn finishes as `ABORTED`, and the next invocation of an over-budget session stops before it calls the model.
+
+**Pausing for approval.** With `interrupt` set, the run pauses instead of stopping: the tool calls that would lead to the next turn are held as interrupts. Claim each hold with `BudgetMiddleware.interrupted(part)`, read what was spent against which limit with `BudgetMiddleware.exceeded(call)`, and resume with a decision:
+
+```java
+ResumeOptions.Builder resume = ResumeOptions.builder();
+for (Part part : response.getInterrupts()) {
+  BudgetMiddleware.interrupted(part).ifPresent(call -> {
+    System.out.println(BudgetMiddleware.exceeded(call).message);
+    resume.part(call.restart(BudgetMiddleware.Decision.approve()));
+  });
+}
+
+ModelResponse resumed = genkit.generate(GenerateOptions.builder()
+    .model("googleai/gemini-2.5-flash")
+    .messages(response.getMessages())
+    .tools(List.of(searchTool))
+    .resume(resume.build())
+    .use(budget)
+    .build());
+```
+
+Approving continues the run with the full limit again. `Decision.refuse(reason)` stops it with `BudgetExceededException` before the held calls run, and so does answering a hold with `call.respond(output)`. The run pauses only when it is over its limit by the time its tool calls start; a run that goes over while its tools run (for example, in a sub-agent) has nothing left to hold, and stops at the next check.
+
+A run-scoped budget counts one run across its resumes: the run's final message records what it spent, so answering another middleware's interrupt continues the count rather than renewing it. Only approving the budget's own hold renews the limit, and a new turn of the conversation starts from zero.
 
 ### Multi-hook middleware
 
@@ -502,6 +627,172 @@ Restart generate:
   ├── wrapModel → model returns final answer
   └── return response
 ```
+
+When a tool interrupts after a restart, the call ends interrupted again (the model is not called), and the calls this resume already resolved are kept, so the next resume only answers the new interrupt.
+
+### Holding a tool call from middleware
+
+A `wrapTool` hook can hold a call before the tool runs by throwing `ToolInterruptException` instead of calling `next`. The hold is the middleware's own question: the interrupt part records the middleware that raised it, and a restart delivers its answer to that middleware alone, through `ctx.getResumed()` in its `wrapTool` hook. The tool never sees that answer; once the middleware lets the call through, the tool runs as a fresh call and may interrupt with a question of its own.
+
+When a later question is answered, a middleware that already let the call through sees `params.isReleased()` return `true`, so it can pass the restart on instead of holding the call again. A restart that replaces the call's input is not released: every middleware decides again.
+
+Applications claim a middleware's holds with `InterruptedCall.ofMiddleware(name, part)`, and answer them with `restart(answer)`. Middleware authors usually wrap that in a method that fixes the name and the answer type, as `ToolApproval.toolApprovalInterrupted(part)` does:
+
+```java
+ResumeOptions.Builder resume = ResumeOptions.builder();
+for (Part part : response.getInterrupts()) {
+    InterruptedCall.<MyAnswer>ofMiddleware("myapp/gate", part)
+        .ifPresent(call -> resume.part(call.restart(new MyAnswer(true))));
+}
+
+ModelResponse resumed = genkit.generate(GenerateOptions.builder()
+    .model("openai/gpt-4o-mini")
+    .messages(response.getMessages())
+    .tools(tools)
+    .use(gate)
+    .resume(resume.build())
+    .build());
+```
+
+Resuming without answering an interrupted call fails with an error that names the call and, for a hold, the middleware that raised it.
+
+A tool, or a `wrapTool` hook, can also answer a call with an error the model reads, rather than one that reaches your code, by throwing `ToolFailException`. The model receives `{"error": "<message>"}` as the tool's result and can correct its input and try again:
+
+```java
+if (!orders.containsKey(input.id)) {
+    throw new ToolFailException("no order with id " + input.id + "; list the orders first");
+}
+```
+
+### Tool approval
+
+`ToolApproval` holds every tool call that isn't on its allowlist until the caller approves it:
+
+```java
+ToolApproval approval = ToolApproval.builder()
+    .allowedTools("listFiles")      // runs without asking
+    .build();
+
+ModelResponse response = genkit.generate(GenerateOptions.builder()
+    .model("openai/gpt-4o-mini")
+    .prompt("Clean up the build directory")
+    .tools(List.of(listFiles, deleteFile))
+    .use(approval)
+    .build());
+```
+
+Each held call comes back as an interrupt. Claim it with `ToolApproval.toolApprovalInterrupted(part)` and answer it with a `ToolCallDecision`:
+
+```java
+ResumeOptions.Builder resume = ResumeOptions.builder();
+for (Part part : response.getInterrupts()) {
+    ToolApproval.toolApprovalInterrupted(part).ifPresent(call -> {
+        boolean ok = askUser(call.getPart().getToolRequest());
+        resume.part(call.restart(ok
+            ? ToolCallDecision.approve()
+            : ToolCallDecision.deny("the user declined")));
+    });
+}
+```
+
+Every restart of a hold decides it. An approved decision runs the tool. Any other restart, including one without a decision, answers the call with an error the model sees (with your reason, when you give one), and the generation continues without it. Answering a hold with `call.respond(output)` does not refuse the call: the output stands in for the tool's result and must match the tool's output schema.
+
+Over the wire, the decision is the restart's `resumed` metadata: `{"toolApproved": true}`, or `{"toolApproved": false, "reason": "..."}`.
+
+**Judge.** With a judge model set, a model decides each call that the allowlist does not approve, instead of holding it unconditionally:
+
+```java
+ToolApproval approval = ToolApproval.builder()
+    .allowedTools("listFiles")
+    .judge("googleai/gemini-2.5-flash-lite")
+    .judgePolicy("Never allow deleting files outside the build directory.")
+    .build();
+```
+
+The judge answers with one of three verdicts:
+
+- `allow` runs the tool.
+- `deny` answers the call with an error the model sees, and the generation continues.
+- `ask` holds the call for the caller, as without a judge.
+
+The judge sees the text the user wrote and the pending call (the tool's name, description, and input) as one JSON document. It does not see model text, tool results, retrieved documents, or file contents added by the `Filesystem` middleware, since injected instructions usually arrive through those. A judge that fails, or answers with anything other than a verdict, holds the call. A hold the judge caused carries a `judge` key in its interrupt data, `"ask"` or `"failed"`, so you can tell a judge that wants the user to confirm from one that could not decide. Your answer to such a hold is final: the judge is not asked again.
+
+The judge is asked through the enum output format, so any model that can answer with one of a list of values works. A smaller, faster model than the one being judged keeps the added latency low; each judged call costs one model call. Pass `judge(modelName, config)` to give the judge its own model configuration.
+
+The allowlist matches tool names exactly, so list the names of tools that other middleware add (such as `read_file` or `use_skill`) if they should run without approval.
+
+### Returning tool errors to the model
+
+`SoftToolErrors` returns tool errors to the model as the tool's result, `{"error": "<message>"}`, instead of failing the generation, so the model can correct its input and try again. It also covers calls to tool names that don't exist.
+
+```java
+genkit.generate(GenerateOptions.builder()
+    .model("openai/gpt-4o-mini")
+    .prompt("What is the weather in Paris?")
+    .tools(List.of(weatherTool))
+    .use(new SoftToolErrors())                  // every tool
+    // .use(SoftToolErrors.forTools("weather"))  // only these tools
+    .build());
+```
+
+With `SoftToolErrors` on a call, an error from a tool it does not cover fails the generation. Several instances combine: a tool covered by any of them returns its errors to the model. Errors that a `wrapTool` hook raises in place of the tool's own, and interrupts, are never turned into results. Other `wrapTool` hooks, such as a retry, still see the tool's error first.
+
+Without any error policy on the call, a tool error is returned to the model as `"Tool execution failed: <message>"`.
+
+### File access
+
+`Filesystem` gives the model tools to work with files under one root directory: `list_files` and `read_file`, plus `write_file` and `edit_file` with `allowWriteAccess`.
+
+```java
+genkit.generate(GenerateOptions.builder()
+    .model("openai/gpt-4o-mini")
+    .prompt("Summarise docs/ and save the summary to out.md")
+    .use(Filesystem.builder()
+        .rootDirectory("./workspace")
+        .allowWriteAccess(true)
+        .build())
+    .build());
+```
+
+- Every path is confined to the root directory. Paths that leave it, through `..`, an absolute path, or a symbolic link, are refused.
+- `read_file` delivers a file's contents as a user message on the next turn, and answers the call with a short summary. Images are delivered as media. Use `offset` and `limit` (1-indexed lines) for files over 256 KB; files over 10 MB can't be read.
+- Re-reading an unchanged file returns a short note instead of the contents again.
+- `edit_file` and overwriting an existing file with `write_file` require a prior `read_file` of that file in the same generation, and fail if the file changed on disk since.
+- A failed file operation answers the call with its error, so the model can correct the path or the edit. Errors of other tools are handled as usual.
+- `toolNamePrefix` prefixes every tool name, so you can attach more than one `Filesystem` to a call.
+
+The messages that carry file contents are marked with the `filesystemMiddlewareTool` metadata key, so other middleware can tell them apart from what the user wrote.
+
+### Skills
+
+`Skills` gives the model a local library of skills, following the [Agent Skills](https://agentskills.io) format. Each skill is a folder containing a `SKILL.md` file that starts with YAML frontmatter carrying a `name` and a `description`.
+
+```java
+Skills skills = Skills.builder()
+    .skillPaths("skills")
+    .allowResourceAccess(true)
+    .build();
+
+ModelResponse resp = genkit.generate(GenerateOptions.builder()
+    .model("googleai/gemini-2.5-flash")
+    .prompt("Use the python skill to compute the first 10 primes")
+    .use(skills)
+    .build());
+```
+
+- A short catalog of the available skills is added to the system prompt.
+- The model loads a skill's full instructions on demand with the `use_skill` tool. A skill already loaded in the conversation is not sent again.
+- With `allowResourceAccess`, each loaded skill also lists the files it bundles, and the model can read them with `read_skill_file`. Reads stay inside that skill's folder.
+- `preload` names skills whose instructions are added up front, without waiting for the model to load them.
+- By default the middleware scans `.agents/skills` and `skills` under the working directory. Skill folders are rescanned on every `generate()` call, and a malformed skill is logged rather than failing the request.
+- To ship skills inside your application, set `skillFs` to a path on any `FileSystem`, such as a zip or jar:
+
+```java
+FileSystem zip = FileSystems.newFileSystem(Path.of("skills.zip"));
+Skills embedded = Skills.builder().skillFs(zip.getPath("/")).build();
+```
+
+Every part that carries a skill's instructions has the `skillActivation` metadata key, valued with the skill name. Treat a skills folder like source code: its instructions are followed by the model.
 
 ### BaseGenerationMiddleware
 

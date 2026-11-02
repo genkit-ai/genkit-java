@@ -124,6 +124,7 @@ export default defineConfig({
             { label: "Groq", slug: "plugins/groq" },
             { label: "Ollama", slug: "plugins/ollama" },
             { label: "OpenAI-Compatible", slug: "plugins/compat-oai" },
+            { label: "System One (Decisions)", slug: "plugins/systemone" },
           ],
         },
         {

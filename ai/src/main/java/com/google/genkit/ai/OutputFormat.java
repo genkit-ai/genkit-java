@@ -29,5 +29,9 @@ public enum OutputFormat {
   JSON,
 
   @JsonProperty("media")
-  MEDIA
+  MEDIA,
+
+  /** A single string value from a fixed list, given as the {@code enum} of the output schema. */
+  @JsonProperty("enum")
+  ENUM
 }
