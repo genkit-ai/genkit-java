@@ -21,6 +21,7 @@ package com.google.genkit.ai.agent;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.genkit.ai.Message;
+import com.google.genkit.ai.Usage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,6 +45,9 @@ public class SessionState<S> {
   @JsonProperty("artifacts")
   private List<Artifact> artifacts;
 
+  @JsonProperty("usage")
+  private Usage usage;
+
   /** Default constructor. */
   public SessionState() {}
 
@@ -52,6 +56,7 @@ public class SessionState<S> {
     this.messages = builder.messages;
     this.custom = builder.custom;
     this.artifacts = builder.artifacts;
+    this.usage = builder.usage;
   }
 
   /**
@@ -141,11 +146,26 @@ public class SessionState<S> {
    *
    * @param <S> the type of custom state
    */
+  /**
+   * Returns the usage of the session's own model calls across all its turns and invocations, summed
+   * field by field. It excludes the usage of sub-agents the session ran.
+   *
+   * @return the usage, or null when no model call reported any
+   */
+  public Usage getUsage() {
+    return usage;
+  }
+
+  public void setUsage(Usage usage) {
+    this.usage = usage;
+  }
+
   public static class Builder<S> {
     private String sessionId;
     private List<Message> messages;
     private S custom;
     private List<Artifact> artifacts;
+    private Usage usage;
 
     public Builder<S> sessionId(String sessionId) {
       this.sessionId = sessionId;
@@ -164,6 +184,11 @@ public class SessionState<S> {
 
     public Builder<S> artifacts(List<Artifact> artifacts) {
       this.artifacts = artifacts;
+      return this;
+    }
+
+    public Builder<S> usage(Usage usage) {
+      this.usage = usage;
       return this;
     }
 

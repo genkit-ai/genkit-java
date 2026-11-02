@@ -107,6 +107,11 @@ public class Genkit {
           String key = action.getType().keyFromName(action.getName());
           registry.registerAction(key, action);
         }
+        // A dynamic plugin is kept in the registry, which asks it for the actions it resolves by
+        // name, such as models it serves by any ID, and for the actions it lists.
+        if (plugin instanceof DynamicPlugin) {
+          registry.registerPlugin(plugin.getName(), plugin);
+        }
         logger.info("Initialized plugin: {}", plugin.getName());
       } catch (Exception e) {
         logger.error("Failed to initialize plugin: {}", plugin.getName(), e);
@@ -489,7 +494,8 @@ public class Genkit {
    * @return the model
    */
   public Model getModel(String name) {
-    Action<?, ?, ?> action = registry.lookupAction(ActionType.MODEL, name);
+    // resolveAction also asks dynamic plugins, which serve models by any ID they know.
+    Action<?, ?, ?> action = registry.resolveAction(ActionType.MODEL, name);
     if (action == null) {
       throw new GenkitException("Model not found: " + name);
     }
@@ -577,7 +583,7 @@ public class Genkit {
       Class<T> outputClass = (Class<T>) options.getOutputClass();
       try {
         String rawOutput = response.getText();
-        String jsonOutput = extractJson(rawOutput);
+        String jsonOutput = extractJson(rawOutput, outputSchema(options));
         T result = JsonUtils.fromJson(jsonOutput, outputClass);
         return result;
       } catch (Exception e) {
@@ -595,13 +601,27 @@ public class Genkit {
     return (T) generateInternal(options);
   }
 
+  /** Whether an object schema declares the named property. */
+  private static boolean declaresProperty(Map<String, Object> schema, String name) {
+    return schema != null
+        && schema.get("properties") instanceof Map<?, ?> properties
+        && properties.containsKey(name);
+  }
+
+  /** The output schema a generate call asks for, or null when it names none. */
+  private static Map<String, Object> outputSchema(GenerateOptions<?> options) {
+    return options.getOutput() != null ? options.getOutput().getSchema() : null;
+  }
+
   /**
    * Extracts JSON from model response text that may contain markdown or extra text.
    *
    * @param text the response text
+   * @param schema the output schema, used to keep a single-key object whose key is a declared
+   *     property rather than unwrapping it
    * @return the extracted JSON string
    */
-  private String extractJson(String text) {
+  private String extractJson(String text, Map<String, Object> schema) {
     if (text == null) {
       return "{}";
     }
@@ -613,12 +633,15 @@ public class Genkit {
       String json = text.substring(start, end + 1);
 
       // Unwrap single-key root objects (e.g., {"menu_item": {...}} -> {...})
-      // This handles cases where the model wraps the response in a descriptive key
+      // This handles cases where the model wraps the response in a descriptive key. A key the
+      // output schema declares is the output's own field, so it is kept.
       try {
         com.fasterxml.jackson.databind.ObjectMapper mapper =
             new com.fasterxml.jackson.databind.ObjectMapper();
         com.fasterxml.jackson.databind.JsonNode rootNode = mapper.readTree(json);
-        if (rootNode.isObject() && rootNode.size() == 1) {
+        if (rootNode.isObject()
+            && rootNode.size() == 1
+            && !declaresProperty(schema, rootNode.fieldNames().next())) {
           com.fasterxml.jackson.databind.JsonNode unwrapped = rootNode.elements().next();
           if (unwrapped.isObject() || unwrapped.isArray()) {
             return mapper.writeValueAsString(unwrapped);
@@ -762,15 +785,30 @@ public class Genkit {
               restartParts.add(restartPart);
             }
 
-            // Execute through WrapTool chain (fires wrapTool hooks)
+            // Execute through WrapTool chain (fires wrapTool hooks). Each restart answers the
+            // interrupted request in history, which records the stages its interrupt passed.
+            int modelIdx = lastModelMessageIndex(opts.getMessages());
+            Map<String, Part> restartOrigins = new java.util.HashMap<>();
+            if (modelIdx >= 0) {
+              for (Part p : opts.getMessages().get(modelIdx).getContent()) {
+                if (p.getToolRequest() != null) {
+                  restartOrigins.put(toolKey(p.getToolRequest()), p);
+                }
+              }
+            }
             ToolExecutionResult toolResult =
-                executeToolsWithMiddleware(actx, restartParts, allTools, middlewares);
+                executeToolsWithMiddleware(
+                    actx, restartParts, allTools, middlewares, restartOrigins);
 
-            // If a restart tool interrupts again, fail
+            // A restarted tool that interrupts again ends the call, interrupted, without calling
+            // the model; the calls resolved in this resume are kept as pending output.
             if (!toolResult.getInterrupts().isEmpty()) {
-              throw new GenkitException(
-                  "Tool triggered an interrupt during restart. "
-                      + "Re-interrupting during restart is not supported.");
+              ModelResponse interrupted =
+                  buildResumeInterruptedResponse(opts.getMessages(), modelIdx, toolResult);
+              List<Message> history =
+                  new java.util.ArrayList<>(opts.getMessages().subList(0, Math.max(modelIdx, 0)));
+              interrupted.setRequest(resolveToModelRequest(opts.withMessages(history), allTools));
+              return interrupted;
             }
 
             // Add restart tool responses to messages (use high-level opts for recursion)
@@ -826,7 +864,7 @@ public class Genkit {
                 streamCurrentIndex);
 
             return generateRef[0].apply(
-                actx, new GenerateParams(nextOpts, turn + 1, nextMsgIdx, params.getOnChunk()));
+                actx, new GenerateParams(nextOpts, turn + 1, nextMsgIdx + 1, params.getOnChunk()));
           }
 
           // Build model call wrapped with WrapModel hooks (resolved per-turn so
@@ -862,7 +900,8 @@ public class Genkit {
           // Check if the model requested tool calls
           List<Part> toolRequestParts = extractToolRequestParts(response);
           if (toolRequestParts.isEmpty()) {
-            return response;
+            // The enum format rewrites the final text as the bare value it names.
+            return EnumFormat.apply(req.getOutput(), response);
           }
 
           // Execute tools through WrapTool chain (includes middleware-provided tools)
@@ -903,7 +942,7 @@ public class Genkit {
               streamCurrentIndex);
 
           return generateRef[0].apply(
-              actx, new GenerateParams(nextOpts, turn + 1, nextMsgIdx, params.getOnChunk()));
+              actx, new GenerateParams(nextOpts, turn + 1, nextMsgIdx + 1, params.getOnChunk()));
         };
 
     // Chain WrapGenerate hooks around the core iteration
@@ -1059,6 +1098,7 @@ public class Genkit {
     opts.setOutput(options.getOutput());
     opts.setDocs(options.getDocs());
     opts.setMaxTurns(options.getMaxTurns());
+    opts.setResume(options.getResume());
     return opts;
   }
 
@@ -1158,29 +1198,38 @@ public class Genkit {
 
           final String spanPath = "/generate/" + modelName;
           final java.util.function.Consumer<ModelResponseChunk> sc = mparams.getStreamCallback();
-          return Tracer.runInNewSpan(
-              actx,
-              modelSpanMetadata,
-              req,
-              (spanCtx, r) -> {
-                if (sc != null) {
-                  // Streaming: use streaming telemetry and pass callback to model
-                  return ModelTelemetryHelper.runWithTelemetryStreaming(
-                      modelName,
-                      flowName,
-                      spanPath,
-                      req,
-                      mr -> model.run(actx.withSpanContext(spanCtx), mr, sc));
-                } else {
-                  // Non-streaming
-                  return ModelTelemetryHelper.runWithTelemetry(
-                      modelName,
-                      flowName,
-                      spanPath,
-                      req,
-                      mr -> model.run(actx.withSpanContext(spanCtx), mr));
-                }
-              });
+          ModelResponse modelResponse =
+              Tracer.runInNewSpan(
+                  actx,
+                  modelSpanMetadata,
+                  req,
+                  (spanCtx, r) -> {
+                    if (sc != null) {
+                      // Streaming: use streaming telemetry and pass callback to model
+                      return ModelTelemetryHelper.runWithTelemetryStreaming(
+                          modelName,
+                          flowName,
+                          spanPath,
+                          req,
+                          mr -> model.run(actx.withSpanContext(spanCtx), mr, sc));
+                    } else {
+                      // Non-streaming
+                      return ModelTelemetryHelper.runWithTelemetry(
+                          modelName,
+                          flowName,
+                          spanPath,
+                          req,
+                          mr -> model.run(actx.withSpanContext(spanCtx), mr));
+                    }
+                  });
+          // Record the request the model received when the model left it unset, outside the
+          // model span (so traces do not repeat the input) and inside every wrapModel hook, so
+          // getMessages() gives back the conversation and a hook that rewrites the request can
+          // restore the caller's messages on the way out.
+          if (modelResponse != null && modelResponse.getRequest() == null) {
+            modelResponse.setRequest(req);
+          }
+          return modelResponse;
         };
 
     return chainModelHooks(middlewares, core);
@@ -1235,28 +1284,38 @@ public class Genkit {
       List<Part> toolRequestParts,
       List<Tool<?, ?>> tools,
       List<GenerationMiddleware> middlewares) {
+    return executeToolsWithMiddleware(
+        ctx, toolRequestParts, tools, middlewares, java.util.Collections.emptyMap());
+  }
 
-    // Build WrapTool chain
-    ToolNext wrappedToolCall =
-        chainToolHooks(
-            middlewares,
-            (actx, tparams) -> {
-              Tool<?, ?> tool = tparams.getTool();
-              ToolRequest toolReq = tparams.getRequest();
+  /**
+   * Executes tools with WrapTool middleware hooks applied.
+   *
+   * <p>Each {@code wrapTool} hook is a stage of the call, identified by its middleware's name (with
+   * a {@code "#n"} suffix when the name repeats in the chain); the tool itself is the stage after
+   * the last hook. An interrupt records the stage that raised it and the stages that let the call
+   * through, and a restart delivers its answer to the stage that raised it: that stage sees the
+   * resume data on its context, a stage before it that let the call through is marked released, and
+   * a stage after it sees a fresh call.
+   *
+   * @param restartOrigins for restart parts, the interrupted request part in history, keyed by
+   *     {@code name#ref}
+   */
+  private ToolExecutionResult executeToolsWithMiddleware(
+      ActionContext ctx,
+      List<Part> toolRequestParts,
+      List<Tool<?, ?>> tools,
+      List<GenerationMiddleware> middlewares,
+      Map<String, Part> restartOrigins) {
 
-              Object toolInput = toolReq.getInput();
-              Class<?> inputClass = tool.getInputClass();
-              if (inputClass != null && toolInput != null && !inputClass.isInstance(toolInput)) {
-                toolInput = JsonUtils.convert(toolInput, inputClass);
-              }
-
-              @SuppressWarnings("unchecked")
-              Tool<Object, Object> typedTool = (Tool<Object, Object>) tool;
-              Object result = typedTool.run(actx, toolInput);
-
-              return Part.toolResponse(
-                  new ToolResponse(toolReq.getRef(), toolReq.getName(), result));
-            });
+    List<String> stageIds = toolStageIds(middlewares);
+    List<SoftToolErrorPolicy> policies = new ArrayList<>();
+    for (GenerationMiddleware mw : middlewares) {
+      if (mw instanceof SoftToolErrorPolicy) {
+        policies.add((SoftToolErrorPolicy) mw);
+      }
+    }
+    boolean strictErrors = policies.stream().anyMatch(SoftToolErrorPolicy::strictToolErrors);
 
     List<Part> responseParts = new java.util.ArrayList<>();
     List<Part> interrupts = new java.util.ArrayList<>();
@@ -1267,56 +1326,77 @@ public class Genkit {
       ToolRequest toolRequest = toolRequestPart.getToolRequest();
       String toolName = toolRequest.getName();
       String key = toolName + "#" + (toolRequest.getRef() != null ? toolRequest.getRef() : "");
+      boolean covered = policies.stream().anyMatch(p -> p.coversToolErrors(toolName));
 
       Tool<?, ?> tool = findTool(toolName, tools);
       if (tool == null) {
-        Part errorPart = new Part();
-        ToolResponse errorResponse =
-            new ToolResponse(
-                toolRequest.getRef(), toolName, Map.of("error", "Tool not found: " + toolName));
-        errorPart.setToolResponse(errorResponse);
-        responseParts.add(errorPart);
+        String notFound = "tool \"" + toolName + "\" not found";
+        if (covered) {
+          responseParts.add(toolErrorPart(toolRequest, notFound));
+        } else if (strictErrors) {
+          throw new GenkitException(notFound);
+        } else {
+          Part errorPart = new Part();
+          errorPart.setToolResponse(
+              new ToolResponse(
+                  toolRequest.getRef(), toolName, Map.of("error", "Tool not found: " + toolName)));
+          responseParts.add(errorPart);
+        }
         continue;
       }
 
+      ToolRestartState restart = ToolRestartState.of(toolRequestPart, restartOrigins.get(key));
+      ToolRun run = new ToolRun();
+      ToolNext chain = buildToolChain(middlewares, stageIds, restart, run);
+
       try {
-        // Execute through WrapTool chain. When this tool request is a RESTART (its Part carries
-        // `resumed` metadata attached by Tool.restart(...) / GenkitBeta.toResumeOptions), thread
-        // the
-        // resumed value and original input into the ActionContext so a restart-aware tool handler
-        // can observe ctx.isResumed()/getResumed()/getOriginalInput() (mirrors Go's
-        // handleResumedToolRequest → ToolContext.Resumed and JS ToolRunOptions.resumed).
-        ActionContext toolCtx = ctx;
-        Map<String, Object> partMeta = toolRequestPart.getMetadata();
-        if (partMeta != null && partMeta.containsKey("resumed")) {
-          Object resumedValue = partMeta.get("resumed");
-          Object originalInput =
-              partMeta.containsKey("replacedInput")
-                  ? partMeta.get("replacedInput")
-                  : toolRequest.getInput();
-          toolCtx = ctx.withResumed(resumedValue, originalInput);
+        Part responsePart;
+        try {
+          responsePart = chain.apply(ctx, new ToolParams(toolRequestPart, tool));
+        } catch (RuntimeException e) {
+          if (!run.ran) {
+            recordToolShortCircuit(ctx, toolName, toolRequest.getInput(), null, e);
+          }
+          throw e;
         }
-        ToolParams tparams = new ToolParams(toolRequestPart, tool);
-        Part responsePart = wrappedToolCall.apply(toolCtx, tparams);
+        if (!run.ran) {
+          recordToolShortCircuit(ctx, toolName, toolRequest.getInput(), responsePart, null);
+        }
 
         responseParts.add(responsePart);
-
         pendingOutputMap.put(key, responsePart.getToolResponse().getOutput());
-
         logger.debug("Executed tool '{}' successfully", toolName);
 
       } catch (ToolInterruptException e) {
-        Map<String, Object> interruptMetadata = e.getMetadata();
-
+        Part origin = restartOrigins.get(key);
+        Part source = origin != null ? origin : toolRequestPart;
         Part interruptPart = new Part();
-        interruptPart.setToolRequest(toolRequest);
+        interruptPart.setToolRequest(source.getToolRequest());
         Map<String, Object> metadata =
-            toolRequestPart.getMetadata() != null
-                ? new java.util.HashMap<>(toolRequestPart.getMetadata())
+            source.getMetadata() != null
+                ? new java.util.HashMap<>(source.getMetadata())
                 : new java.util.HashMap<>();
+        for (String stale :
+            List.of(
+                InterruptedCall.RESUMED_KEY,
+                InterruptedCall.REPLACED_INPUT_KEY,
+                InterruptedCall.RESOLVED_INTERRUPT_KEY,
+                InterruptedCall.INTERRUPTED_BY_KEY,
+                InterruptedCall.RELEASED_BY_KEY,
+                "pendingOutput",
+                "source")) {
+          metadata.remove(stale);
+        }
+        Map<String, Object> interruptMetadata = e.getMetadata();
         metadata.put(
-            "interrupt",
+            InterruptedCall.INTERRUPT_KEY,
             interruptMetadata != null && !interruptMetadata.isEmpty() ? interruptMetadata : true);
+        if (e.getRaisedBy() != null && !e.getRaisedBy().isEmpty()) {
+          metadata.put(InterruptedCall.INTERRUPTED_BY_KEY, e.getRaisedBy());
+        }
+        if (!e.getReleasedBy().isEmpty()) {
+          metadata.put(InterruptedCall.RELEASED_BY_KEY, new ArrayList<>(e.getReleasedBy()));
+        }
         interruptPart.setMetadata(metadata);
 
         interrupts.add(interruptPart);
@@ -1325,19 +1405,277 @@ public class Genkit {
         logger.debug("Tool '{}' triggered interrupt", toolName);
 
       } catch (Exception e) {
-        logger.error("Tool execution failed for '{}': {}", toolName, e.getMessage());
-        Part errorPart = new Part();
-        ToolResponse errorResponse =
-            new ToolResponse(
-                toolRequest.getRef(),
-                toolName,
-                Map.of("error", "Tool execution failed: " + e.getMessage()));
-        errorPart.setToolResponse(errorResponse);
-        responseParts.add(errorPart);
+        ToolFailException fail = ToolFailException.find(e);
+        boolean fromTool = run.error != null && causedBy(e, run.error);
+        String toolMessage = fromTool ? toolErrorMessage(run.error) : e.getMessage();
+        if (fail != null) {
+          logger.debug("Tool '{}' failed, returning the error to the model", toolName);
+          responseParts.add(toolErrorPart(toolRequest, fail.getMessage()));
+        } else if (fromTool && covered) {
+          logger.debug("Tool '{}' failed, returning the error to the model", toolName);
+          responseParts.add(toolErrorPart(toolRequest, toolMessage));
+        } else if (strictErrors) {
+          throw new GenkitException("tool \"" + toolName + "\" failed: " + toolMessage, e);
+        } else {
+          logger.error("Tool execution failed for '{}': {}", toolName, e.getMessage());
+          Part errorPart = new Part();
+          ToolResponse errorResponse =
+              new ToolResponse(
+                  toolRequest.getRef(),
+                  toolName,
+                  Map.of("error", "Tool execution failed: " + e.getMessage()));
+          errorPart.setToolResponse(errorResponse);
+          responseParts.add(errorPart);
+        }
       }
     }
 
     return new ToolExecutionResult(responseParts, interrupts, interruptMap, pendingOutputMap);
+  }
+
+  /** Returns the stage id of each middleware's wrapTool hook, in chain order. */
+  private static List<String> toolStageIds(List<GenerationMiddleware> middlewares) {
+    List<String> ids = new ArrayList<>(middlewares.size());
+    Map<String, Integer> seen = new java.util.HashMap<>();
+    for (GenerationMiddleware mw : middlewares) {
+      String name = mw.name() != null ? mw.name() : "";
+      int n = seen.merge(name, 1, Integer::sum);
+      ids.add(n > 1 ? name + "#" + n : name);
+    }
+    return ids;
+  }
+
+  /** Per-call bookkeeping of whether the tool itself ran, and the error it raised. */
+  private static final class ToolRun {
+    boolean ran;
+    RuntimeException error;
+  }
+
+  /** The restart a tool request part carries, with the stages its interrupt recorded. */
+  private static final class ToolRestartState {
+    final Object resume;
+    final Object originalInput;
+    final Object input;
+    final String raisedBy;
+    final List<String> releasedBy;
+
+    private ToolRestartState(
+        Object resume,
+        Object originalInput,
+        Object input,
+        String raisedBy,
+        List<String> releasedBy) {
+      this.resume = resume;
+      this.originalInput = originalInput;
+      this.input = input;
+      this.raisedBy = raisedBy;
+      this.releasedBy = releasedBy;
+    }
+
+    /** Returns the restart state, or null when {@code part} is not a restart. */
+    static ToolRestartState of(Part part, Part origin) {
+      Map<String, Object> meta = part.getMetadata();
+      boolean restart =
+          origin != null || (meta != null && meta.containsKey(InterruptedCall.RESUMED_KEY));
+      if (!restart) {
+        return null;
+      }
+      Object resume = meta != null ? meta.get(InterruptedCall.RESUMED_KEY) : null;
+      if (resume == null) {
+        resume = Boolean.TRUE;
+      }
+      Object original = meta != null ? meta.get(InterruptedCall.REPLACED_INPUT_KEY) : null;
+      String raisedBy = null;
+      List<String> released = new ArrayList<>();
+      Map<String, Object> originMeta = origin != null ? origin.getMetadata() : null;
+      if (originMeta != null) {
+        Object stage = originMeta.get(InterruptedCall.INTERRUPTED_BY_KEY);
+        if (stage instanceof String && !((String) stage).isEmpty()) {
+          raisedBy = (String) stage;
+        }
+        Object list = originMeta.get(InterruptedCall.RELEASED_BY_KEY);
+        if (list instanceof List) {
+          for (Object id : (List<?>) list) {
+            if (id != null) {
+              released.add(id.toString());
+            }
+          }
+        }
+      }
+      return new ToolRestartState(
+          resume, original, part.getToolRequest().getInput(), raisedBy, released);
+    }
+  }
+
+  /**
+   * Builds the wrapTool chain for one call. Each stage runs with the context and params its stage
+   * derives from the restart, and records itself on an interrupt passing through it.
+   */
+  private ToolNext buildToolChain(
+      List<GenerationMiddleware> middlewares,
+      List<String> stageIds,
+      ToolRestartState restart,
+      ToolRun run) {
+    final int stages = middlewares.size();
+    ToolNext current =
+        (actx, tparams) -> {
+          run.ran = true;
+          Tool<?, ?> tool = tparams.getTool();
+          ToolRequest toolReq = tparams.getRequest();
+          try {
+            Object toolInput = toolReq.getInput();
+            Class<?> inputClass = tool.getInputClass();
+            if (inputClass != null && toolInput != null && !inputClass.isInstance(toolInput)) {
+              toolInput = JsonUtils.convert(toolInput, inputClass);
+            }
+
+            @SuppressWarnings("unchecked")
+            Tool<Object, Object> typedTool = (Tool<Object, Object>) tool;
+            Object result =
+                typedTool.run(stageContext(actx, stages, stageIds, restart, stages), toolInput);
+
+            return Part.toolResponse(new ToolResponse(toolReq.getRef(), toolReq.getName(), result));
+          } catch (ToolInterruptException e) {
+            e.recordRaisedBy("");
+            throw e;
+          } catch (RuntimeException e) {
+            run.error = e;
+            throw e;
+          }
+        };
+    for (int i = stages - 1; i >= 0; i--) {
+      final int index = i;
+      final GenerationMiddleware mw = middlewares.get(i);
+      final String id = stageIds.get(i);
+      final ToolNext next = current;
+      current =
+          (actx, tparams) -> {
+            ActionContext stageCtx = stageContext(actx, stages, stageIds, restart, index);
+            boolean released = isReleased(stageIds, restart, index);
+            ToolInterruptException[] passed = new ToolInterruptException[1];
+            ToolNext guarded =
+                (c, p) -> {
+                  try {
+                    return next.apply(c, p);
+                  } catch (ToolInterruptException e) {
+                    passed[0] = e;
+                    throw e;
+                  }
+                };
+            try {
+              return mw.wrapTool(stageCtx, tparams.withReleased(released), guarded);
+            } catch (ToolInterruptException e) {
+              if (e == passed[0]) {
+                if (!id.equals(e.getRaisedBy())) {
+                  e.recordReleasedBy(id);
+                }
+              } else {
+                e.recordRaisedBy(id);
+              }
+              throw e;
+            }
+          };
+    }
+    return current;
+  }
+
+  /** Returns the index of the stage a restart answers; {@code stages} is the tool itself. */
+  private static int answeredStage(List<String> stageIds, ToolRestartState restart, int stages) {
+    if (restart.raisedBy == null) {
+      return stages;
+    }
+    return stageIds.indexOf(restart.raisedBy);
+  }
+
+  /** Derives the context stage {@code i} runs with. */
+  private static ActionContext stageContext(
+      ActionContext ctx, int stages, List<String> stageIds, ToolRestartState restart, int i) {
+    if (restart == null) {
+      return ctx.withResumed(null, null);
+    }
+    boolean everyStage = restart.raisedBy == null && restart.releasedBy.isEmpty();
+    if (everyStage || i == answeredStage(stageIds, restart, stages)) {
+      Object original = restart.originalInput != null ? restart.originalInput : restart.input;
+      return ctx.withResumed(restart.resume, original);
+    }
+    return ctx.withResumed(null, null);
+  }
+
+  /** Reports whether hook {@code i} let the interrupted call through, for the restart. */
+  private static boolean isReleased(List<String> stageIds, ToolRestartState restart, int i) {
+    if (restart == null || (restart.raisedBy == null && restart.releasedBy.isEmpty())) {
+      return false;
+    }
+    if (i == answeredStage(stageIds, restart, stageIds.size())) {
+      return false;
+    }
+    return restart.originalInput == null && restart.releasedBy.contains(stageIds.get(i));
+  }
+
+  /** Reports whether {@code target} is {@code error} or in its cause chain. */
+  private static boolean causedBy(Throwable error, Throwable target) {
+    for (Throwable t = error; t != null; t = t.getCause()) {
+      if (t == target) {
+        return true;
+      }
+      if (t.getCause() == t) {
+        break;
+      }
+    }
+    return false;
+  }
+
+  /** Returns the message of a tool's own error, without the tool action's wrapper text. */
+  private static String toolErrorMessage(Throwable error) {
+    String prefix = "Tool execution failed: ";
+    if (error instanceof GenkitException
+        && error.getCause() != null
+        && error.getMessage() != null
+        && error.getMessage().startsWith(prefix)) {
+      return error.getCause().getMessage();
+    }
+    return error.getMessage();
+  }
+
+  /** Builds the tool response part that answers a call with an error the model reads. */
+  private static Part toolErrorPart(ToolRequest request, String message) {
+    Map<String, Object> output = new java.util.HashMap<>();
+    output.put("error", message != null ? message : "");
+    Part part = Part.toolResponse(new ToolResponse(request.getRef(), request.getName(), output));
+    Map<String, Object> metadata = new java.util.HashMap<>();
+    metadata.put("isError", true);
+    part.setMetadata(metadata);
+    return part;
+  }
+
+  /**
+   * Records a tool call that a wrapTool hook answered without running the tool as a span named for
+   * the tool, so the trace shows the call exactly once, like a call that ran.
+   */
+  private static void recordToolShortCircuit(
+      ActionContext ctx, String toolName, Object input, Part response, RuntimeException error) {
+    SpanMetadata spanMetadata =
+        SpanMetadata.builder()
+            .name(toolName)
+            .type(ActionType.TOOL.getValue())
+            .subtype("tool")
+            .build();
+    try {
+      Tracer.runInNewSpan(
+          ctx,
+          spanMetadata,
+          input,
+          (spanCtx, in) -> {
+            if (error != null) {
+              throw error;
+            }
+            return response != null && response.getToolResponse() != null
+                ? response.getToolResponse().getOutput()
+                : null;
+          });
+    } catch (RuntimeException ignored) {
+      // The span records the error; the caller handles it.
+    }
   }
 
   /** Handles resume options by processing respond and restart directives. */
@@ -1382,10 +1720,6 @@ public class Genkit {
     boolean hasRespond = resume.getRespond() != null && !resume.getRespond().isEmpty();
     boolean hasRestart = resume.getRestart() != null && !resume.getRestart().isEmpty();
 
-    if (!hasRespond && !hasRestart) {
-      throw new GenkitException("Resume options must contain either respond or restart directives");
-    }
-
     // Collect tool names/refs from restart directives to avoid duplicating their responses
     java.util.Set<String> restartedTools = new java.util.HashSet<>();
     if (resume.getRestart() != null) {
@@ -1395,6 +1729,40 @@ public class Genkit {
                 + "#"
                 + (toolRequest.getRef() != null ? toolRequest.getRef() : ""));
       }
+    }
+
+    // Every interrupted request must be answered by this resume.
+    for (Part part : lastMessage.getContent()) {
+      if (part.getToolRequest() == null
+          || part.getMetadata() == null
+          || part.getMetadata().get(InterruptedCall.INTERRUPT_KEY) == null) {
+        continue;
+      }
+      String key = toolKey(part.getToolRequest());
+      if (respondedTools.contains(key) || restartedTools.contains(key)) {
+        continue;
+      }
+      ToolRequest req = part.getToolRequest();
+      String refStr = req.getName() + (req.getRef() != null ? "#" + req.getRef() : "");
+      String hint = "";
+      Object stage = part.getMetadata().get(InterruptedCall.INTERRUPTED_BY_KEY);
+      if (stage instanceof String && !((String) stage).isEmpty()) {
+        hint =
+            " The interrupt is a hold by middleware \""
+                + stage
+                + "\", which the tool does not handle; answer it with a restart or a response"
+                + " built from the interrupt part.";
+      }
+      throw new GenkitException(
+          "unresolved tool request \""
+              + refStr
+              + "\" was not handled by the resume options; you must supply respond or restart"
+              + " directives, or ensure there is pending output from a previous tool call."
+              + hint);
+    }
+
+    if (!hasRespond && !hasRestart) {
+      throw new GenkitException("Resume options must contain either respond or restart directives");
     }
 
     // Add tool responses for completed tools (pendingOutput metadata) that aren't
@@ -1435,6 +1803,87 @@ public class Genkit {
     }
 
     return actionOpts.withMessages(messages);
+  }
+
+  /** Returns the {@code name#ref} key that matches a tool request to its response. */
+  private static String toolKey(ToolRequest request) {
+    return request.getName() + "#" + (request.getRef() != null ? request.getRef() : "");
+  }
+
+  /** Returns the index of the last model message, or -1 when there is none. */
+  private static int lastModelMessageIndex(List<Message> messages) {
+    for (int i = messages.size() - 1; i >= 0; i--) {
+      if (messages.get(i).getRole() == Role.MODEL) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * Builds the response of a resume whose restarted tools interrupted again: the model message in
+   * history with the new interrupts, and every call this resume resolved stamped as pending output,
+   * so the next resume replays it instead of asking for it again.
+   */
+  private ModelResponse buildResumeInterruptedResponse(
+      List<Message> messages, int modelIdx, ToolExecutionResult toolResult) {
+    Message modelMessage = messages.get(modelIdx);
+    Map<String, Object> resolved = new java.util.HashMap<>();
+    for (int i = modelIdx + 1; i < messages.size(); i++) {
+      if (messages.get(i).getRole() == Role.TOOL && messages.get(i).getContent() != null) {
+        for (Part p : messages.get(i).getContent()) {
+          if (p.getToolResponse() != null) {
+            ToolResponse r = p.getToolResponse();
+            resolved.put(r.getName() + "#" + (r.getRef() != null ? r.getRef() : ""), r.getOutput());
+          }
+        }
+      }
+    }
+    resolved.putAll(toolResult.getPendingOutputMap());
+
+    List<Part> content = new java.util.ArrayList<>();
+    for (Part part : modelMessage.getContent()) {
+      if (part.getToolRequest() == null) {
+        content.add(part);
+        continue;
+      }
+      String key = toolKey(part.getToolRequest());
+      Part interruptPart = toolResult.getInterruptMap().get(key);
+      if (interruptPart != null) {
+        content.add(interruptPart);
+      } else if (resolved.containsKey(key)) {
+        Part pending = new Part();
+        pending.setToolRequest(part.getToolRequest());
+        Map<String, Object> metadata =
+            part.getMetadata() != null
+                ? new java.util.HashMap<>(part.getMetadata())
+                : new java.util.HashMap<>();
+        metadata.remove(InterruptedCall.INTERRUPT_KEY);
+        metadata.remove(InterruptedCall.INTERRUPTED_BY_KEY);
+        metadata.remove(InterruptedCall.RELEASED_BY_KEY);
+        metadata.put("pendingOutput", resolved.get(key));
+        pending.setMetadata(metadata);
+        content.add(pending);
+      } else {
+        content.add(part);
+      }
+    }
+    Message updated = new Message();
+    updated.setRole(modelMessage.getRole());
+    updated.setContent(content);
+    updated.setMetadata(modelMessage.getMetadata());
+
+    Candidate candidate = new Candidate();
+    candidate.setMessage(updated);
+    candidate.setFinishReason(FinishReason.INTERRUPTED);
+    return ModelResponse.builder()
+        .candidates(List.of(candidate))
+        .finishReason(FinishReason.INTERRUPTED)
+        .finishMessage(
+            "One or more tools triggered interrupts while resuming generation. The model was not"
+                + " called.")
+        .interrupts(toolResult.getInterrupts())
+        .build();
   }
 
   /** Builds an interrupted response from the model response and tool execution result. */
@@ -1838,7 +2287,7 @@ public class Genkit {
 
     try {
       String rawOutput = response.getText();
-      String jsonOutput = extractJson(rawOutput);
+      String jsonOutput = extractJson(rawOutput, outputSchema(options));
       return JsonUtils.fromJson(jsonOutput, outputClass);
     } catch (Exception e) {
       throw new GenkitException(

@@ -18,8 +18,10 @@
 
 package com.google.genkit.ai;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -44,6 +46,8 @@ import java.util.Map;
 public class ToolInterruptException extends RuntimeException {
 
   private final Map<String, Object> metadata;
+  private String raisedBy;
+  private final List<String> releasedBy = new ArrayList<>();
 
   /** Creates a new ToolInterruptException with no metadata. */
   public ToolInterruptException() {
@@ -85,5 +89,53 @@ public class ToolInterruptException extends RuntimeException {
    */
   public Map<String, Object> getMetadata() {
     return metadata;
+  }
+
+  /**
+   * Returns the name of the middleware whose {@code wrapTool} hook raised this interrupt, the empty
+   * string when the tool itself raised it, or {@code null} when the generate loop has not recorded
+   * it yet.
+   *
+   * <p>The generate loop records this as the interrupt leaves the hook chain, and stores it on the
+   * interrupted tool request part under the {@code interruptedBy} metadata key, so that a restart
+   * answers the stage that asked.
+   *
+   * @return the stage that raised the interrupt
+   */
+  public String getRaisedBy() {
+    return raisedBy;
+  }
+
+  /**
+   * Records the stage that raised this interrupt. Called by the generate loop; the first recorded
+   * value wins.
+   *
+   * @param stage the middleware name, or the empty string for the tool itself
+   */
+  public void recordRaisedBy(String stage) {
+    if (raisedBy == null) {
+      raisedBy = stage;
+    }
+  }
+
+  /**
+   * Returns, in chain order, the names of the middleware whose {@code wrapTool} hooks let the call
+   * through before it interrupted. Stored on the interrupted part under the {@code releasedBy}
+   * metadata key.
+   *
+   * @return the releasing stages, possibly empty
+   */
+  public List<String> getReleasedBy() {
+    return Collections.unmodifiableList(releasedBy);
+  }
+
+  /**
+   * Records that the named stage let the call through before it interrupted. Called by the generate
+   * loop as the interrupt passes back out through each hook, innermost first.
+   *
+   * @param stage the middleware name
+   */
+  public void recordReleasedBy(String stage) {
+    releasedBy.add(0, stage);
   }
 }

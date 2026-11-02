@@ -158,6 +158,7 @@ curl -X POST http://localhost:8080/ask \
 | Cohere | `genkit-plugin-cohere` | `COHERE_API_KEY` | `CoherePlugin.create()` |
 | xAI | `genkit-plugin-xai` | `XAI_API_KEY` | `XAIPlugin.create()` |
 | Any OpenAI-compatible | `genkit-plugin-compat-oai` | varies | `CompatOAIPlugin.create(options)` |
+| System One decisions (preview) | `genkit-plugin-systemone` | `TYPESAFE_API_KEY`, `OPENROUTER_API_KEY`, or `CLOUDFLARE_API_TOKEN` | `SystemOne.typeSafe()`, `SystemOne.openRouter()`, `SystemOne.ollama()`, `SystemOne.workersAI(accountId)` |
 
 ### Model Names by Provider
 

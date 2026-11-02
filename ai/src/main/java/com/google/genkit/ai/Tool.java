@@ -331,6 +331,11 @@ public class Tool<I, O> implements Action<I, O, Void> {
     } else {
       restartMetadata.put("resumed", true);
     }
+    if (replaceInput != null) {
+      // Keep the original input, so the tool can read it and middleware that approved the
+      // original call decides again.
+      restartMetadata.put("replacedInput", originalRequest.getInput());
+    }
     restartPart.setMetadata(restartMetadata);
 
     return restartPart;

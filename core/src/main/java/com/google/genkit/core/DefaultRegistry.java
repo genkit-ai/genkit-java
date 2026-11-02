@@ -165,21 +165,35 @@ public class DefaultRegistry implements Registry {
       return action;
     }
 
-    // Try dynamic resolution through plugins
+    // Try dynamic resolution through plugins. The key is /<type>/<name>, and the name is
+    // everything after the type, slashes included, as in /model/provider/vendor/model-id.
+    if (key == null || !key.startsWith("/")) {
+      return null;
+    }
+    int typeEnd = key.indexOf('/', 1);
+    if (typeEnd < 0 || typeEnd == key.length() - 1) {
+      return null;
+    }
+    ActionType type;
+    try {
+      type = ActionType.fromValue(key.substring(1, typeEnd));
+    } catch (IllegalArgumentException e) {
+      return null;
+    }
+    String name = key.substring(typeEnd + 1);
     for (Plugin plugin : listPlugins()) {
       if (plugin instanceof DynamicPlugin) {
         DynamicPlugin dynamicPlugin = (DynamicPlugin) plugin;
-        // Parse the key to get type and name
-        String[] parts = key.split("/");
-        if (parts.length >= 3) {
-          ActionType type = ActionType.fromValue(parts[1]);
-          String name = parts[2];
-          action = dynamicPlugin.resolveAction(type, name);
-          if (action != null) {
-            // Register for future lookups
+        action = dynamicPlugin.resolveAction(type, name);
+        if (action != null) {
+          // Register for future lookups; a concurrent resolution may have registered it first.
+          try {
             registerAction(key, action);
-            return action;
+          } catch (IllegalStateException e) {
+            Action<?, ?, ?> registered = lookupAction(key);
+            return registered != null ? registered : action;
           }
+          return action;
         }
       }
     }

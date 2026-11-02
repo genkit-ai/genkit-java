@@ -73,6 +73,23 @@ ExecutablePrompt<DishRequest> prompt = genkit.prompt("italian-dish", DishRequest
 MenuItem dish = prompt.generate(new DishRequest("Italian"), MenuItem.class);
 ```
 
+## One of a list of values
+
+When the answer is one value from a fixed list, ask for the `enum` output
+format. The response's text is exactly one of the values: quotes and
+surrounding whitespace are removed, and a reply that names none of them is an
+error.
+
+```java
+ModelResponse resp = genkit.generate(
+    GenerateOptions.builder()
+        .model("openai/gpt-4o-mini")
+        .prompt("Which team should handle this ticket: billing, technical, or sales? " + ticket)
+        .output(OutputConfig.enums("billing", "technical", "sales"))
+        .build());
+String team = resp.getText(); // "billing", "technical", or "sales"
+```
+
 ## With tools
 
 ```java

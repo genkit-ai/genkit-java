@@ -95,6 +95,7 @@
         <module>plugins/evaluators</module>
         <module>plugins/aws-bedrock</module>
         <module>plugins/azure-foundry</module>
+        <module>plugins/systemone</module>
         <module>samples/openai</module>
         <module>samples/google-genai</module>
         <module>samples/anthropic</module>
@@ -134,6 +135,7 @@
         <module>samples/structured-output</module>
         <module>samples/aws-bedrock</module>
         <module>samples/azure-foundry</module>
+        <module>samples/systemone</module>
     </modules>
 
     <properties>

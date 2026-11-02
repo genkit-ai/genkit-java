@@ -51,7 +51,13 @@ class GenerationMiddlewarePluginTest {
   @Test
   void listsThreeParameterizedMiddleware() {
     Map<String, GenerationMiddlewareDesc> byName = descriptors();
-    assertEquals(3, byName.size());
+    assertEquals(9, byName.size());
+    assertTrue(byName.containsKey(BudgetMiddleware.NAME));
+    assertTrue(byName.containsKey(ContextCompressionMiddleware.NAME));
+    assertTrue(byName.containsKey(ToolApproval.NAME));
+    assertTrue(byName.containsKey(SoftToolErrors.NAME));
+    assertTrue(byName.containsKey(Skills.NAME));
+    assertTrue(byName.containsKey(Filesystem.NAME));
     assertTrue(byName.containsKey("retry"));
     assertTrue(byName.containsKey("fallback"));
     assertTrue(byName.containsKey("simulateSystemPrompt"));

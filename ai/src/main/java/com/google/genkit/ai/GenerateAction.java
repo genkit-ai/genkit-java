@@ -138,7 +138,8 @@ public class GenerateAction
     }
 
     String modelKey = resolveModelKey(modelName);
-    Action<?, ?, ?> action = registry.lookupAction(modelKey);
+    // resolveAction also asks dynamic plugins, which serve models by any ID they know.
+    Action<?, ?, ?> action = registry.resolveAction(modelKey);
     if (action == null) {
       throw new GenkitException("Model not found: " + modelName + " (key: " + modelKey + ")");
     }
@@ -184,13 +185,22 @@ public class GenerateAction
                     (mctx, mparams) -> {
                       ModelRequest mreq = mparams.getRequest();
                       Consumer<ModelResponseChunk> sc = mparams.getStreamCallback();
+                      ModelResponse modelResponse;
                       if (sc != null && model.supportsStreaming()) {
-                        return ModelTelemetryHelper.runWithTelemetryStreaming(
-                            modelName, flowName, spanPath, mreq, r -> model.run(mctx, r, sc));
+                        modelResponse =
+                            ModelTelemetryHelper.runWithTelemetryStreaming(
+                                modelName, flowName, spanPath, mreq, r -> model.run(mctx, r, sc));
                       } else {
-                        return ModelTelemetryHelper.runWithTelemetry(
-                            modelName, flowName, spanPath, mreq, r -> model.run(mctx, r));
+                        modelResponse =
+                            ModelTelemetryHelper.runWithTelemetry(
+                                modelName, flowName, spanPath, mreq, r -> model.run(mctx, r));
                       }
+                      // Record the request the model received when the model left it unset, so
+                      // the response's messages give back the conversation.
+                      if (modelResponse != null && modelResponse.getRequest() == null) {
+                        modelResponse.setRequest(mreq);
+                      }
+                      return modelResponse;
                     };
                 ModelNext wrappedModel = chainModel(middlewares, modelCore);
                 return wrappedModel.apply(newCtx, new ModelParams(currentRequest, streamCallback));
@@ -199,7 +209,11 @@ public class GenerateAction
       // Check if the model requested tool calls
       List<Part> toolRequestParts = extractToolRequestParts(response);
 
-      if (toolRequestParts.isEmpty() || returnToolRequests) {
+      if (toolRequestParts.isEmpty()) {
+        return EnumFormat.apply(currentRequest.getOutput(), response);
+      }
+
+      if (returnToolRequests) {
         return response;
       }
 

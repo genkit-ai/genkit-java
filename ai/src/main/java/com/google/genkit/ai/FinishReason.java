@@ -34,6 +34,9 @@ public enum FinishReason {
   @JsonProperty("interrupted")
   INTERRUPTED,
 
+  @JsonProperty("aborted")
+  ABORTED,
+
   @JsonProperty("other")
   OTHER,
 

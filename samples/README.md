@@ -62,6 +62,7 @@ The Dev UI will be available at `http://localhost:4000` and allows you to:
 | [cohere](./cohere) | Cohere Command models with RAG and tool usage | `COHERE_API_KEY` |
 | [mistral](./mistral) | Mistral AI models including Codestral and Ministral | `MISTRAL_API_KEY` |
 | [groq](./groq) | Ultra-fast Groq inference with Llama and GPT-OSS | `GROQ_API_KEY` |
+| [systemone](./systemone) | Decisions with System One models: triage, screening, ranking, routing | `OPENROUTER_API_KEY` (`GEMINI_API_KEY` for askFlow) |
 | [dotprompt](./dotprompt) | DotPrompt files with complex inputs/outputs, variants, and partials | `OPENAI_API_KEY` |
 | [rag](./rag) | RAG application with local vector store | `OPENAI_API_KEY` |
 | [chat-session](./chat-session) | Multi-turn chat with session persistence | `OPENAI_API_KEY` |
@@ -378,6 +379,19 @@ Local Ollama models demonstrating:
 ```bash
 cd java/samples/ollama
 # Requires Ollama running locally: ollama serve
+./run.sh
+```
+
+### System One Sample
+
+Decisions with System One models demonstrating:
+- Typed questions (`Choice`, `Score`, `Noul`) answered with calibrated probabilities
+- Confidence gates and routing in code
+- The `enum` output format and questions built at run time
+
+```bash
+cd java/samples/systemone
+export OPENROUTER_API_KEY=your-api-key
 ./run.sh
 ```
 
