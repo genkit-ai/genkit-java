@@ -64,20 +64,18 @@ public final class SchemaUtils {
     // when it is an Optional<> or annotated with a @Nullable annotation.
     configBuilder
         .forFields()
-        .withRequiredCheck(
-            field -> {
-              if (field.getType() != null
-                  && field.getType().getErasedType() == java.util.Optional.class) {
-                return false;
-              }
-              for (java.lang.annotation.Annotation annotation :
-                  field.getRawMember().getAnnotations()) {
-                if ("Nullable".equals(annotation.annotationType().getSimpleName())) {
-                  return false;
-                }
-              }
-              return true;
-            });
+        .withRequiredCheck(field -> {
+          if (field.getType() != null
+              && field.getType().getErasedType() == java.util.Optional.class) {
+            return false;
+          }
+          for (java.lang.annotation.Annotation annotation : field.getRawMember().getAnnotations()) {
+            if ("Nullable".equals(annotation.annotationType().getSimpleName())) {
+              return false;
+            }
+          }
+          return true;
+        });
 
     // A type annotated with @JsonSchemaProvider supplies its own schema, given the type as it is
     // used. Only annotated types are affected; every other type keeps the inferred schema. The

@@ -55,25 +55,24 @@ class ReflectionServerV2BidiTest {
             .outputClass(JsonNode.class)
             .streamClass(JsonNode.class)
             .initClass(JsonNode.class)
-            .handler(
-                (ctx, init, inputs, cb) -> {
-                  int n = 0;
-                  while (true) {
-                    var next = inputs.next();
-                    if (next.isEmpty()) {
-                      break;
-                    }
-                    n++;
-                    if (cb != null) {
-                      ObjectNode chunk = MAPPER.createObjectNode();
-                      chunk.set("echo", next.get());
-                      cb.accept(chunk);
-                    }
-                  }
-                  ObjectNode out = MAPPER.createObjectNode();
-                  out.put("count", n);
-                  return out;
-                })
+            .handler((ctx, init, inputs, cb) -> {
+              int n = 0;
+              while (true) {
+                var next = inputs.next();
+                if (next.isEmpty()) {
+                  break;
+                }
+                n++;
+                if (cb != null) {
+                  ObjectNode chunk = MAPPER.createObjectNode();
+                  chunk.set("echo", next.get());
+                  cb.accept(chunk);
+                }
+              }
+              ObjectNode out = MAPPER.createObjectNode();
+              out.put("count", n);
+              return out;
+            })
             .build();
     echo.register(registry);
     return registry;
@@ -106,11 +105,10 @@ class ReflectionServerV2BidiTest {
     long countNotifications(String method, String requestId) {
       return messages.stream()
           .filter(m -> m.has("method") && method.equals(m.get("method").asText()))
-          .filter(
-              m ->
-                  m.has("params")
-                      && m.get("params").has("requestId")
-                      && requestId.equals(m.get("params").get("requestId").asText()))
+          .filter(m ->
+              m.has("params")
+                  && m.get("params").has("requestId")
+                  && requestId.equals(m.get("params").get("requestId").asText()))
           .count();
     }
 
@@ -198,14 +196,13 @@ class ReflectionServerV2BidiTest {
     ReflectionServerV2 server =
         new ReflectionServerV2(registryWithEchoAgent(), "ws://localhost:1", "test");
     AtomicReference<JsonNode> response = new AtomicReference<>();
-    server.setOutboundSinkForTesting(
-        raw -> {
-          try {
-            response.set(MAPPER.readTree(raw));
-          } catch (Exception e) {
-            throw new RuntimeException(e);
-          }
-        });
+    server.setOutboundSinkForTesting(raw -> {
+      try {
+        response.set(MAPPER.readTree(raw));
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
 
     server.handleMessageForTesting(
         "{\"jsonrpc\":\"2.0\",\"method\":\"listActions\",\"id\":\"l1\"}");

@@ -54,7 +54,7 @@ public class AnthropicSample {
 
     // Define a simple greeting flow
     Flow<String, String, Void> greetingFlow =
-        genkit.defineFlow("greeting", String.class, String.class, (name) -> "Hello, " + name + "!");
+        genkit.defineFlow("greeting", String.class, String.class, name -> "Hello, " + name + "!");
 
     // Define a joke generator flow using Claude
     Flow<String, String, Void> jokeFlow =
@@ -157,7 +157,7 @@ public class AnthropicSample {
                           .prompt(userMessage)
                           .config(GenerationConfig.builder().maxOutputTokens(1000).build())
                           .build(),
-                      (chunk) -> {
+                      chunk -> {
                         // Process each chunk as it arrives
                         String text = chunk.getText();
                         if (text != null) {
@@ -195,7 +195,7 @@ public class AnthropicSample {
                           .tools(List.of(weatherTool))
                           .config(GenerationConfig.builder().maxOutputTokens(500).build())
                           .build(),
-                      (chunk) -> {
+                      chunk -> {
                         String text = chunk.getText();
                         if (text != null) {
                           result.append(text);
@@ -259,7 +259,7 @@ public class AnthropicSample {
                                   .temperature(0.9)
                                   .build())
                           .build(),
-                      (chunk) -> {
+                      chunk -> {
                         String text = chunk.getText();
                         if (text != null) {
                           result.append(text);

@@ -182,14 +182,13 @@ public class EvaluatorsPlugin implements Plugin {
             "Measures the factual accuracy of the generated answer against the given context. "
                 + "A higher score indicates better alignment with the context.")
         .isBilled(true)
-        .evaluatorFn(
-            (dataPoint, opts) -> {
-              try {
-                return metric.evaluate(dataPoint);
-              } catch (Exception e) {
-                throw new RuntimeException("Faithfulness evaluation failed", e);
-              }
-            })
+        .evaluatorFn((dataPoint, opts) -> {
+          try {
+            return metric.evaluate(dataPoint);
+          } catch (Exception e) {
+            throw new RuntimeException("Faithfulness evaluation failed", e);
+          }
+        })
         .build();
   }
 
@@ -208,14 +207,13 @@ public class EvaluatorsPlugin implements Plugin {
             "Assesses how well the generated answer pertains to the given question. "
                 + "Higher scores indicate more relevant answers.")
         .isBilled(true)
-        .evaluatorFn(
-            (dataPoint, opts) -> {
-              try {
-                return metric.evaluate(dataPoint);
-              } catch (Exception e) {
-                throw new RuntimeException("Answer relevancy evaluation failed", e);
-              }
-            })
+        .evaluatorFn((dataPoint, opts) -> {
+          try {
+            return metric.evaluate(dataPoint);
+          } catch (Exception e) {
+            throw new RuntimeException("Answer relevancy evaluation failed", e);
+          }
+        })
         .build();
   }
 
@@ -230,14 +228,13 @@ public class EvaluatorsPlugin implements Plugin {
             "Measures the accuracy of the generated answer against a reference answer. "
                 + "Uses bidirectional comparison for semantic equivalence.")
         .isBilled(true)
-        .evaluatorFn(
-            (dataPoint, opts) -> {
-              try {
-                return metric.evaluate(dataPoint);
-              } catch (Exception e) {
-                throw new RuntimeException("Answer accuracy evaluation failed", e);
-              }
-            })
+        .evaluatorFn((dataPoint, opts) -> {
+          try {
+            return metric.evaluate(dataPoint);
+          } catch (Exception e) {
+            throw new RuntimeException("Answer accuracy evaluation failed", e);
+          }
+        })
         .build();
   }
 
@@ -252,14 +249,13 @@ public class EvaluatorsPlugin implements Plugin {
             "Detects whether the output contains harmful, misleading, or deceptive content. "
                 + "Returns FAIL if malicious content is detected.")
         .isBilled(true)
-        .evaluatorFn(
-            (dataPoint, opts) -> {
-              try {
-                return metric.evaluate(dataPoint);
-              } catch (Exception e) {
-                throw new RuntimeException("Maliciousness evaluation failed", e);
-              }
-            })
+        .evaluatorFn((dataPoint, opts) -> {
+          try {
+            return metric.evaluate(dataPoint);
+          } catch (Exception e) {
+            throw new RuntimeException("Maliciousness evaluation failed", e);
+          }
+        })
         .build();
   }
 

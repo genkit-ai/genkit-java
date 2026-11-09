@@ -268,21 +268,21 @@ public class EvaluationsSample {
               try {
                 String prompt =
                     """
-                You are evaluating how delicious and appetizing a food description sounds.
+                    You are evaluating how delicious and appetizing a food description sounds.
 
-                Food description to evaluate:
-                \"\"\"
-                %s
-                \"\"\"
+                    Food description to evaluate:
+                    \"\"\"
+                    %s
+                    \"\"\"
 
-                Rate this description on a scale of 0.0 to 1.0 where:
-                - 0.0 = Not appetizing at all
-                - 0.5 = Somewhat appetizing
-                - 1.0 = Extremely appetizing, makes you want to eat it
+                    Rate this description on a scale of 0.0 to 1.0 where:
+                    - 0.0 = Not appetizing at all
+                    - 0.5 = Somewhat appetizing
+                    - 1.0 = Extremely appetizing, makes you want to eat it
 
-                Respond with ONLY a JSON object in this format:
-                {"score": 0.X, "reasoning": "brief explanation"}
-                """
+                    Respond with ONLY a JSON object in this format:
+                    {"score": 0.X, "reasoning": "brief explanation"}
+                    """
                         .formatted(output);
 
                 ModelResponse response =

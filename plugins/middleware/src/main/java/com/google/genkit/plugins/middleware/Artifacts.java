@@ -98,20 +98,19 @@ public final class Artifacts {
                 + "it was found.")
         .inputClass(ReadInput.class)
         .outputClass(ReadOutput.class)
-        .handler(
-            (ctx, in) -> {
-              String name = in != null ? in.name : null;
-              ArtifactStore store = AgentSessionContext.currentArtifactStore();
-              if (store == null || name == null) {
-                return new ReadOutput(name, null, false);
-              }
-              for (Artifact a : store.getArtifacts()) {
-                if (name.equals(a.getName())) {
-                  return new ReadOutput(name, textOf(a), true);
-                }
-              }
-              return new ReadOutput(name, null, false);
-            })
+        .handler((ctx, in) -> {
+          String name = in != null ? in.name : null;
+          ArtifactStore store = AgentSessionContext.currentArtifactStore();
+          if (store == null || name == null) {
+            return new ReadOutput(name, null, false);
+          }
+          for (Artifact a : store.getArtifacts()) {
+            if (name.equals(a.getName())) {
+              return new ReadOutput(name, textOf(a), true);
+            }
+          }
+          return new ReadOutput(name, null, false);
+        })
         .build();
   }
 
@@ -123,26 +122,25 @@ public final class Artifacts {
                 + "content.")
         .inputClass(WriteInput.class)
         .outputClass(WriteOutput.class)
-        .handler(
-            (ctx, in) -> {
-              String name = in != null ? in.name : null;
-              String content = in != null ? in.content : null;
-              ArtifactStore store = AgentSessionContext.currentArtifactStore();
-              if (store == null) {
-                return new WriteOutput("no active session");
-              }
-              if (name == null || name.isEmpty()) {
-                return new WriteOutput("error: artifact name is required");
-              }
-              Artifact artifact =
-                  Artifact.builder()
-                      .name(name)
-                      .parts(Collections.singletonList(Part.text(content != null ? content : "")))
-                      .build();
-              // addArtifacts deduplicates by name, replacing any existing artifact with this name.
-              store.addArtifacts(artifact);
-              return new WriteOutput("ok");
-            })
+        .handler((ctx, in) -> {
+          String name = in != null ? in.name : null;
+          String content = in != null ? in.content : null;
+          ArtifactStore store = AgentSessionContext.currentArtifactStore();
+          if (store == null) {
+            return new WriteOutput("no active session");
+          }
+          if (name == null || name.isEmpty()) {
+            return new WriteOutput("error: artifact name is required");
+          }
+          Artifact artifact =
+              Artifact.builder()
+                  .name(name)
+                  .parts(Collections.singletonList(Part.text(content != null ? content : "")))
+                  .build();
+          // addArtifacts deduplicates by name, replacing any existing artifact with this name.
+          store.addArtifacts(artifact);
+          return new WriteOutput("ok");
+        })
         .build();
   }
 

@@ -164,19 +164,17 @@ public class ReflectionServerV2 {
       httpClient
           .newWebSocketBuilder()
           .buildAsync(uri, new ReflectionWebSocketListener())
-          .thenAccept(
-              ws -> {
-                this.webSocket = ws;
-                reconnectCount.set(0);
-                logger.debug("Connected to Reflection V2 server.");
-                register();
-              })
-          .exceptionally(
-              ex -> {
-                logger.error("Failed to connect to Reflection V2 server: {}", ex.getMessage());
-                scheduleReconnect();
-                return null;
-              });
+          .thenAccept(ws -> {
+            this.webSocket = ws;
+            reconnectCount.set(0);
+            logger.debug("Connected to Reflection V2 server.");
+            register();
+          })
+          .exceptionally(ex -> {
+            logger.error("Failed to connect to Reflection V2 server: {}", ex.getMessage());
+            scheduleReconnect();
+            return null;
+          });
     } catch (Exception e) {
       logger.error("Error creating WebSocket connection: {}", e.getMessage());
       scheduleReconnect();
@@ -283,23 +281,21 @@ public class ReflectionServerV2 {
     params.put("envs", List.of("dev"));
 
     sendRequest("register", params)
-        .thenAccept(
-            response -> {
-              if (response != null && response.has("telemetryServerUrl")) {
-                String telemetryUrl = response.get("telemetryServerUrl").asText();
-                if (telemetryUrl != null
-                    && !telemetryUrl.isEmpty()
-                    && System.getenv("GENKIT_TELEMETRY_SERVER") == null) {
-                  Tracer.configureTelemetryServer(telemetryUrl);
-                  logger.debug("Connected to telemetry server on {} via handshake", telemetryUrl);
-                }
-              }
-            })
-        .exceptionally(
-            ex -> {
-              logger.error("Failed to register with CLI: {}", ex.getMessage());
-              return null;
-            });
+        .thenAccept(response -> {
+          if (response != null && response.has("telemetryServerUrl")) {
+            String telemetryUrl = response.get("telemetryServerUrl").asText();
+            if (telemetryUrl != null
+                && !telemetryUrl.isEmpty()
+                && System.getenv("GENKIT_TELEMETRY_SERVER") == null) {
+              Tracer.configureTelemetryServer(telemetryUrl);
+              logger.debug("Connected to telemetry server on {} via handshake", telemetryUrl);
+            }
+          }
+        })
+        .exceptionally(ex -> {
+          logger.error("Failed to register with CLI: {}", ex.getMessage());
+          return null;
+        });
   }
 
   // =========================================================================
@@ -494,153 +490,145 @@ public class ReflectionServerV2 {
         _initPresent);
 
     // Run action in a separate thread so we don't block the WebSocket message loop
-    actionExecutor.submit(
-        () -> {
-          String traceId = null;
-          try {
-            String key = params.has("key") ? params.get("key").asText() : null;
-            JsonNode input = params.has("input") ? params.get("input") : null;
-            JsonNode init = params.has("init") ? params.get("init") : null;
-            boolean stream = params.has("stream") && params.get("stream").asBoolean();
+    actionExecutor.submit(() -> {
+      String traceId = null;
+      try {
+        String key = params.has("key") ? params.get("key").asText() : null;
+        JsonNode input = params.has("input") ? params.get("input") : null;
+        JsonNode init = params.has("init") ? params.get("init") : null;
+        boolean stream = params.has("stream") && params.get("stream").asBoolean();
 
-            if (key == null) {
-              sendError(requestId, -32602, "Missing 'key' in params", null);
-              return;
-            }
+        if (key == null) {
+          sendError(requestId, -32602, "Missing 'key' in params", null);
+          return;
+        }
 
-            Action<?, ?, ?> action = registry.lookupAction(key);
-            if (action == null) {
-              sendError(requestId, 404, "Action not found: " + key, null);
-              return;
-            }
+        Action<?, ?, ?> action = registry.lookupAction(key);
+        if (action == null) {
+          sendError(requestId, 404, "Action not found: " + key, null);
+          return;
+        }
 
-            // Build stream callback if streaming is requested
-            java.util.function.Consumer<JsonNode> streamCallback = null;
-            if (stream) {
-              streamCallback =
-                  (chunk) -> {
-                    logger.debug(
-                        "← streamChunk requestId={} kind={}", requestId, streamChunkKind(chunk));
-                    Map<String, Object> chunkParams = new HashMap<>();
-                    chunkParams.put("requestId", requestId);
-                    chunkParams.put("chunk", chunk);
-                    sendNotification("streamChunk", chunkParams);
-                  };
-            }
+        // Build stream callback if streaming is requested
+        java.util.function.Consumer<JsonNode> streamCallback = null;
+        if (stream) {
+          streamCallback =
+              chunk -> {
+                logger.debug(
+                    "← streamChunk requestId={} kind={}", requestId, streamChunkKind(chunk));
+                Map<String, Object> chunkParams = new HashMap<>();
+                chunkParams.put("requestId", requestId);
+                chunkParams.put("chunk", chunk);
+                sendNotification("streamChunk", chunkParams);
+              };
+        }
 
-            ActionContext context =
-                ActionContext.builder().registry(registry).context(parseContext(params)).build();
+        ActionContext context =
+            ActionContext.builder().registry(registry).context(parseContext(params)).build();
 
-            // Create the telemetry span manually so we can get the traceId
-            // BEFORE the action starts producing stream chunks.
-            // This ensures runActionState is sent before any streamChunk notifications.
-            ActionDesc desc = action.getDesc();
-            com.google.genkit.core.tracing.SpanMetadata spanMetadata =
-                com.google.genkit.core.tracing.SpanMetadata.builder()
-                    .name(desc.getName())
-                    .type(desc.getType().getValue())
-                    .build();
+        // Create the telemetry span manually so we can get the traceId
+        // BEFORE the action starts producing stream chunks.
+        // This ensures runActionState is sent before any streamChunk notifications.
+        ActionDesc desc = action.getDesc();
+        com.google.genkit.core.tracing.SpanMetadata spanMetadata =
+            com.google.genkit.core.tracing.SpanMetadata.builder()
+                .name(desc.getName())
+                .type(desc.getType().getValue())
+                .build();
 
-            final java.util.function.Consumer<JsonNode> finalStreamCallback = streamCallback;
-            JsonNode jsonResult =
-                Tracer.runInNewSpan(
-                    context,
-                    spanMetadata,
-                    input,
-                    (spanCtx, in) -> {
-                      // Capture traceId and send state notification before action runs
-                      String spanTraceId = spanCtx.getTraceId();
-                      if (spanTraceId != null) {
-                        activeActions.put(spanTraceId, Thread.currentThread());
+        final java.util.function.Consumer<JsonNode> finalStreamCallback = streamCallback;
+        JsonNode jsonResult =
+            Tracer.runInNewSpan(
+                context,
+                spanMetadata,
+                input,
+                (spanCtx, in) -> {
+                  // Capture traceId and send state notification before action runs
+                  String spanTraceId = spanCtx.getTraceId();
+                  if (spanTraceId != null) {
+                    activeActions.put(spanTraceId, Thread.currentThread());
 
-                        Map<String, Object> stateParams = new HashMap<>();
-                        stateParams.put("requestId", requestId);
-                        Map<String, Object> state = new HashMap<>();
-                        state.put("traceId", spanTraceId);
-                        stateParams.put("state", state);
-                        sendNotification("runActionState", stateParams);
-                      }
+                    Map<String, Object> stateParams = new HashMap<>();
+                    stateParams.put("requestId", requestId);
+                    Map<String, Object> state = new HashMap<>();
+                    state.put("traceId", spanTraceId);
+                    stateParams.put("state", state);
+                    sendNotification("runActionState", stateParams);
+                  }
 
-                      // Now run the action - stream chunks will be sent AFTER traceId.
-                      // Bidi actions driven with streamInput consume their inputs from the
-                      // pre-registered input source rather than the single `input` param.
-                      if (streamInput && action instanceof BidiAction) {
-                        InputSource<JsonNode> inputs = bidiSessions.get(requestId);
-                        if (inputs == null) {
-                          inputs = new BufferedInputSource<>();
-                        }
-                        return ((BidiAction<?, ?, ?, ?>) action)
-                            .runBidiJson(
-                                context.withSpanContext(spanCtx),
-                                init,
-                                inputs,
-                                finalStreamCallback);
-                      }
-                      return action.runJson(
-                          context.withSpanContext(spanCtx), in, finalStreamCallback);
-                    });
+                  // Now run the action - stream chunks will be sent AFTER traceId.
+                  // Bidi actions driven with streamInput consume their inputs from the
+                  // pre-registered input source rather than the single `input` param.
+                  if (streamInput && action instanceof BidiAction) {
+                    InputSource<JsonNode> inputs = bidiSessions.get(requestId);
+                    if (inputs == null) {
+                      inputs = new BufferedInputSource<>();
+                    }
+                    return ((BidiAction<?, ?, ?, ?>) action)
+                        .runBidiJson(
+                            context.withSpanContext(spanCtx), init, inputs, finalStreamCallback);
+                  }
+                  return action.runJson(context.withSpanContext(spanCtx), in, finalStreamCallback);
+                });
 
-            // Get traceId that was stored in activeActions during span execution
-            for (Map.Entry<String, Thread> entry : activeActions.entrySet()) {
-              if (entry.getValue() == Thread.currentThread()) {
-                traceId = entry.getKey();
-                break;
-              }
-            }
-
-            // Send final result
-            Map<String, Object> responseResult = new HashMap<>();
-            responseResult.put("result", jsonResult);
-            if (traceId != null) {
-              Map<String, Object> telemetry = new HashMap<>();
-              telemetry.put("traceId", traceId);
-              responseResult.put("telemetry", telemetry);
-            }
-            if (logger.isDebugEnabled()) {
-              String resultKeys =
-                  jsonResult != null
-                      ? String.join(
-                          ",",
-                          java.util.stream.StreamSupport.stream(
-                                  java.util.Spliterators.spliteratorUnknownSize(
-                                      jsonResult.fieldNames(), 0),
-                                  false)
-                              .collect(java.util.stream.Collectors.toList()))
-                      : "null";
-              logger.debug("← result id={} (keys={})", requestId, resultKeys);
-            }
-            sendResponse(requestId, responseResult);
-
-          } catch (Exception e) {
-            boolean isInterrupt =
-                e instanceof InterruptedException
-                    || (e.getCause() != null && e.getCause() instanceof InterruptedException);
-
-            Map<String, Object> errorData = new HashMap<>();
-            errorData.put("code", isInterrupt ? 1 : 13); // CANCELLED : INTERNAL
-            errorData.put("message", isInterrupt ? "Action was cancelled" : e.getMessage());
-            Map<String, Object> details = new HashMap<>();
-            details.put("stack", getStackTraceString(e));
-            if (traceId != null) {
-              details.put("traceId", traceId);
-            }
-            errorData.put("details", details);
-
-            sendError(
-                requestId,
-                -32000,
-                isInterrupt ? "Action was cancelled" : e.getMessage(),
-                errorData);
-          } finally {
-            if (traceId != null) {
-              activeActions.remove(traceId);
-            }
-            BufferedInputSource<JsonNode> src = bidiSessions.remove(requestId);
-            if (src != null) {
-              src.close();
-            }
+        // Get traceId that was stored in activeActions during span execution
+        for (Map.Entry<String, Thread> entry : activeActions.entrySet()) {
+          if (entry.getValue() == Thread.currentThread()) {
+            traceId = entry.getKey();
+            break;
           }
-        });
+        }
+
+        // Send final result
+        Map<String, Object> responseResult = new HashMap<>();
+        responseResult.put("result", jsonResult);
+        if (traceId != null) {
+          Map<String, Object> telemetry = new HashMap<>();
+          telemetry.put("traceId", traceId);
+          responseResult.put("telemetry", telemetry);
+        }
+        if (logger.isDebugEnabled()) {
+          String resultKeys =
+              jsonResult != null
+                  ? String.join(
+                      ",",
+                      java.util.stream.StreamSupport.stream(
+                              java.util.Spliterators.spliteratorUnknownSize(
+                                  jsonResult.fieldNames(), 0),
+                              false)
+                          .collect(java.util.stream.Collectors.toList()))
+                  : "null";
+          logger.debug("← result id={} (keys={})", requestId, resultKeys);
+        }
+        sendResponse(requestId, responseResult);
+
+      } catch (Exception e) {
+        boolean isInterrupt =
+            e instanceof InterruptedException
+                || (e.getCause() != null && e.getCause() instanceof InterruptedException);
+
+        Map<String, Object> errorData = new HashMap<>();
+        errorData.put("code", isInterrupt ? 1 : 13); // CANCELLED : INTERNAL
+        errorData.put("message", isInterrupt ? "Action was cancelled" : e.getMessage());
+        Map<String, Object> details = new HashMap<>();
+        details.put("stack", getStackTraceString(e));
+        if (traceId != null) {
+          details.put("traceId", traceId);
+        }
+        errorData.put("details", details);
+
+        sendError(
+            requestId, -32000, isInterrupt ? "Action was cancelled" : e.getMessage(), errorData);
+      } finally {
+        if (traceId != null) {
+          activeActions.remove(traceId);
+        }
+        BufferedInputSource<JsonNode> src = bidiSessions.remove(requestId);
+        if (src != null) {
+          src.close();
+        }
+      }
+    });
   }
 
   /**
@@ -678,11 +666,10 @@ public class ReflectionServerV2 {
     StringBuilder sb = new StringBuilder();
     chunk
         .fieldNames()
-        .forEachRemaining(
-            f -> {
-              if (sb.length() > 0) sb.append(',');
-              sb.append(f);
-            });
+        .forEachRemaining(f -> {
+          if (sb.length() > 0) sb.append(',');
+          sb.append(f);
+        });
     return sb.length() > 0 ? sb.toString() : "(empty)";
   }
 

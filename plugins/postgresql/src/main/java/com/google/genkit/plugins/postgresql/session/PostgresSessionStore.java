@@ -132,12 +132,11 @@ public final class PostgresSessionStore<S> implements SessionStore<S>, SnapshotS
       ensureTable();
     }
     this.scheduler =
-        Executors.newSingleThreadScheduledExecutor(
-            r -> {
-              Thread t = new Thread(r, "genkit-postgres-session-store-poll");
-              t.setDaemon(true);
-              return t;
-            });
+        Executors.newSingleThreadScheduledExecutor(r -> {
+          Thread t = new Thread(r, "genkit-postgres-session-store-poll");
+          t.setDaemon(true);
+          return t;
+        });
   }
 
   private void ensureTable() {

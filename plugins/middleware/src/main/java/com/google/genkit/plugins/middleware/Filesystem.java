@@ -416,27 +416,26 @@ public class Filesystem extends BaseGenerationMiddleware implements SoftToolErro
                 + " type.")
         .inputClass(ListFilesInput.class)
         .outputSchema(Map.of("type", "array"))
-        .handler(
-            (ctx, in) -> {
-              String dir = normalizeRel(in != null ? in.dirPath : null);
-              try {
-                Path base = resolve("open", dir);
-                if (!stat(base, dir).isDirectory()) {
-                  throw new IOException("readdirent " + dir + ": not a directory");
-                }
-                List<FileEntry> out = new ArrayList<>();
-                if (in == null || !in.recursive) {
-                  for (Path p : sortedChildren(base)) {
-                    out.add(entry(p, p.getFileName().toString()));
-                  }
-                  return out;
-                }
-                walk(base, "", out);
-                return out;
-              } catch (IOException e) {
-                throw fail(e);
+        .handler((ctx, in) -> {
+          String dir = normalizeRel(in != null ? in.dirPath : null);
+          try {
+            Path base = resolve("open", dir);
+            if (!stat(base, dir).isDirectory()) {
+              throw new IOException("readdirent " + dir + ": not a directory");
+            }
+            List<FileEntry> out = new ArrayList<>();
+            if (in == null || !in.recursive) {
+              for (Path p : sortedChildren(base)) {
+                out.add(entry(p, p.getFileName().toString()));
               }
-            })
+              return out;
+            }
+            walk(base, "", out);
+            return out;
+          } catch (IOException e) {
+            throw fail(e);
+          }
+        })
         .build();
   }
 
@@ -502,16 +501,15 @@ public class Filesystem extends BaseGenerationMiddleware implements SoftToolErro
                 + " the next turn. Use offset and limit (1-indexed lines) for large files.")
         .inputClass(ReadFileInput.class)
         .outputClass(String.class)
-        .handler(
-            (ctx, in) -> {
-              String filePath = in != null ? in.filePath : null;
-              requireFilePath(filePath);
-              try {
-                return readFile(in);
-              } catch (IOException e) {
-                throw fail(e);
-              }
-            })
+        .handler((ctx, in) -> {
+          String filePath = in != null ? in.filePath : null;
+          requireFilePath(filePath);
+          try {
+            return readFile(in);
+          } catch (IOException e) {
+            throw fail(e);
+          }
+        })
         .build();
   }
 
@@ -729,16 +727,15 @@ public class Filesystem extends BaseGenerationMiddleware implements SoftToolErro
                 + " read_file in this session.")
         .inputClass(WriteFileInput.class)
         .outputClass(String.class)
-        .handler(
-            (ctx, in) -> {
-              String filePath = in != null ? in.filePath : null;
-              requireFilePath(filePath);
-              try {
-                return writeFile(in);
-              } catch (IOException e) {
-                throw fail(e);
-              }
-            })
+        .handler((ctx, in) -> {
+          String filePath = in != null ? in.filePath : null;
+          requireFilePath(filePath);
+          try {
+            return writeFile(in);
+          } catch (IOException e) {
+            throw fail(e);
+          }
+        })
         .build();
   }
 
@@ -839,19 +836,18 @@ public class Filesystem extends BaseGenerationMiddleware implements SoftToolErro
                 + " edit to rename across all occurrences.")
         .inputClass(EditFileInput.class)
         .outputClass(String.class)
-        .handler(
-            (ctx, in) -> {
-              String filePath = in != null ? in.filePath : null;
-              requireFilePath(filePath);
-              if (in.edits == null || in.edits.isEmpty()) {
-                throw new IllegalArgumentException("edits is required");
-              }
-              try {
-                return editFile(in);
-              } catch (IOException e) {
-                throw fail(e);
-              }
-            })
+        .handler((ctx, in) -> {
+          String filePath = in != null ? in.filePath : null;
+          requireFilePath(filePath);
+          if (in.edits == null || in.edits.isEmpty()) {
+            throw new IllegalArgumentException("edits is required");
+          }
+          try {
+            return editFile(in);
+          } catch (IOException e) {
+            throw fail(e);
+          }
+        })
         .build();
   }
 

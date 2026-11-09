@@ -162,17 +162,16 @@ public class HumanInTheLoopAgentApp {
                             Map.of("type", "string", "description", "Reason for transfer")),
                         "required",
                         List.of("recipient", "amount")))
-                .requestMetadata(
-                    input ->
-                        Map.of(
-                            "type",
-                            "transfer_confirmation",
-                            "recipient",
-                            input.getRecipient() != null ? input.getRecipient() : "",
-                            "amount",
-                            input.getAmount(),
-                            "reason",
-                            input.getReason() != null ? input.getReason() : ""))
+                .requestMetadata(input ->
+                    Map.of(
+                        "type",
+                        "transfer_confirmation",
+                        "recipient",
+                        input.getRecipient() != null ? input.getRecipient() : "",
+                        "amount",
+                        input.getAmount(),
+                        "reason",
+                        input.getReason() != null ? input.getReason() : ""))
                 .build());
 
     // ── 3. Define a server-managed agent that uses the interrupt tool ───────

@@ -121,12 +121,11 @@ public final class FileSessionStore<S> implements SessionStore<S>, SnapshotSubsc
     this.rejectBranchingSessions = rejectBranchingSessions;
     this.snapshotWatchPollIntervalMs = snapshotWatchPollIntervalMs;
     this.scheduler =
-        Executors.newSingleThreadScheduledExecutor(
-            r -> {
-              Thread t = new Thread(r, "genkit-file-session-store-poll");
-              t.setDaemon(true);
-              return t;
-            });
+        Executors.newSingleThreadScheduledExecutor(r -> {
+          Thread t = new Thread(r, "genkit-file-session-store-poll");
+          t.setDaemon(true);
+          return t;
+        });
 
     // Ensure base directory exists
     try {
@@ -562,13 +561,12 @@ public final class FileSessionStore<S> implements SessionStore<S>, SnapshotSubsc
       files
           .filter(p -> p.getFileName().toString().endsWith(".json"))
           .filter(p -> !Files.isDirectory(p))
-          .forEach(
-              p -> {
-                SessionSnapshot<S> snap = readSnapshotFile(p);
-                if (snap != null && sessionId.equals(effectiveSessionId(snap))) {
-                  matching.add(snap);
-                }
-              });
+          .forEach(p -> {
+            SessionSnapshot<S> snap = readSnapshotFile(p);
+            if (snap != null && sessionId.equals(effectiveSessionId(snap))) {
+              matching.add(snap);
+            }
+          });
     } catch (IOException e) {
       return null;
     }
@@ -613,13 +611,12 @@ public final class FileSessionStore<S> implements SessionStore<S>, SnapshotSubsc
             .filter(p -> p.getFileName().toString().endsWith(".json"))
             .filter(p -> !Files.isDirectory(p))
             .filter(p -> !p.getParent().getFileName().toString().equals(".pointers"))
-            .forEach(
-                p -> {
-                  SessionSnapshot<?> s = readSnapshotFileUnsafe(p);
-                  if (s != null && s.getSnapshotId() != null) {
-                    parentOf.put(s.getSnapshotId(), s.getParentId()); // parentId may be null
-                  }
-                });
+            .forEach(p -> {
+              SessionSnapshot<?> s = readSnapshotFileUnsafe(p);
+              if (s != null && s.getSnapshotId() != null) {
+                parentOf.put(s.getSnapshotId(), s.getParentId()); // parentId may be null
+              }
+            });
       } catch (IOException e) {
         return; // best effort
       }

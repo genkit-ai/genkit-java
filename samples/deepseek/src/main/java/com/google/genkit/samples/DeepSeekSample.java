@@ -55,7 +55,7 @@ public class DeepSeekSample {
     // Define a simple greeting flow
     Flow<String, String, Void> greetingFlow =
         genkit.defineFlow(
-            "greeting", String.class, String.class, (name) -> "Hello from DeepSeek, " + name + "!");
+            "greeting", String.class, String.class, name -> "Hello from DeepSeek, " + name + "!");
 
     // Define a chat flow using DeepSeek-Chat
     Flow<String, String, Void> chatFlow =
@@ -185,7 +185,7 @@ public class DeepSeekSample {
                           .prompt(userMessage)
                           .config(GenerationConfig.builder().maxOutputTokens(1000).build())
                           .build(),
-                      (chunk) -> {
+                      chunk -> {
                         String text = chunk.getText();
                         if (text != null) {
                           result.append(text);
@@ -273,7 +273,7 @@ public class DeepSeekSample {
                                   .temperature(0.8)
                                   .build())
                           .build(),
-                      (chunk) -> {
+                      chunk -> {
                         String text = chunk.getText();
                         if (text != null) {
                           result.append(text);

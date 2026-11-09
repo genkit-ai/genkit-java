@@ -182,40 +182,38 @@ public final class DetachController {
             TimeUnit.MILLISECONDS);
 
     // Step 4: run the turn body in the background, then finalize.
-    BACKGROUND_EXECUTOR.execute(
-        () -> {
-          SnapshotStatus terminalStatus = SnapshotStatus.COMPLETED;
-          AgentFinishReason finishReason = AgentFinishReason.STOP;
-          RuntimeError error = null;
-          try {
-            finishReason = turnBody.run();
-            if (finishReason == null) {
-              finishReason = AgentFinishReason.STOP;
-            }
-          } catch (Throwable t) {
-            terminalStatus = SnapshotStatus.FAILED;
-            finishReason = AgentFinishReason.FAILED;
-            error =
-                RuntimeError.builder()
-                    .status("INTERNAL")
-                    .message(t.getMessage() != null ? t.getMessage() : t.getClass().getName())
-                    .build();
-          } finally {
-            try {
-              finalizePending(
-                  runner, store, options, snapshotId, terminalStatus, finishReason, error);
-            } finally {
-              ScheduledFuture<?> handle = heartbeatHandle[0];
-              if (handle != null) {
-                handle.cancel(false);
-              }
-              // Always remove the registration once the turn is no longer running, whatever the
-              // outcome, so entries never leak and a later abort() call for a reused/unknown id
-              // cannot spuriously flip a stale signal.
-              PendingAbortRegistry.unregister(snapshotId);
-            }
+    BACKGROUND_EXECUTOR.execute(() -> {
+      SnapshotStatus terminalStatus = SnapshotStatus.COMPLETED;
+      AgentFinishReason finishReason = AgentFinishReason.STOP;
+      RuntimeError error = null;
+      try {
+        finishReason = turnBody.run();
+        if (finishReason == null) {
+          finishReason = AgentFinishReason.STOP;
+        }
+      } catch (Throwable t) {
+        terminalStatus = SnapshotStatus.FAILED;
+        finishReason = AgentFinishReason.FAILED;
+        error =
+            RuntimeError.builder()
+                .status("INTERNAL")
+                .message(t.getMessage() != null ? t.getMessage() : t.getClass().getName())
+                .build();
+      } finally {
+        try {
+          finalizePending(runner, store, options, snapshotId, terminalStatus, finishReason, error);
+        } finally {
+          ScheduledFuture<?> handle = heartbeatHandle[0];
+          if (handle != null) {
+            handle.cancel(false);
           }
-        });
+          // Always remove the registration once the turn is no longer running, whatever the
+          // outcome, so entries never leak and a later abort() call for a reused/unknown id
+          // cannot spuriously flip a stale signal.
+          PendingAbortRegistry.unregister(snapshotId);
+        }
+      }
+    });
 
     // Step 5: caller returns AgentOutput{finishReason=DETACHED, snapshotId} immediately.
     return snapshotId;

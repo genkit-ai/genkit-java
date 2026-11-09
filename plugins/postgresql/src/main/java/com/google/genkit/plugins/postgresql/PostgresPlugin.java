@@ -155,10 +155,9 @@ public class PostgresPlugin implements Plugin {
     }
 
     // Apply custom properties
-    hikariProperties.forEach(
-        (key, value) -> {
-          hikariConfig.addDataSourceProperty(key, value);
-        });
+    hikariProperties.forEach((key, value) -> {
+      hikariConfig.addDataSourceProperty(key, value);
+    });
 
     // Set sensible defaults
     if (!hikariProperties.containsKey("maximumPoolSize")) {

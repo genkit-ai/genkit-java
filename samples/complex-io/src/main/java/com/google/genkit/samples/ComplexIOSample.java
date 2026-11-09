@@ -56,7 +56,7 @@ public class ComplexIOSample {
             "processOrder",
             OrderRequest.class,
             OrderResponse.class,
-            (request) -> {
+            request -> {
               // This flow demonstrates processing complex nested input
               // and generating a complex nested response
 
@@ -157,7 +157,7 @@ public class ComplexIOSample {
             "generateAnalytics",
             AnalyticsRequest.class,
             AnalyticsResponse.class,
-            (request) -> {
+            request -> {
               // This flow demonstrates processing complex analytics requests
               // with filters, grouping, and metrics
 
@@ -310,7 +310,7 @@ public class ComplexIOSample {
             "processBatch",
             (Class<List<String>>) (Class<?>) List.class,
             (Class<Map<String, Object>>) (Class<?>) Map.class,
-            (items) -> {
+            items -> {
               Map<String, Object> result = new HashMap<>();
               result.put("processed", items.size());
               result.put("items", items);
@@ -332,7 +332,7 @@ public class ComplexIOSample {
             "simplifyOrder",
             OrderRequest.class,
             (Class<Map<String, Object>>) (Class<?>) Map.class,
-            (order) -> {
+            order -> {
               Map<String, Object> simplified = new HashMap<>();
 
               if (order.getCustomer() != null) {
@@ -366,7 +366,7 @@ public class ComplexIOSample {
             "validateOrder",
             OrderRequest.class,
             ValidationResult.class,
-            (order) -> {
+            order -> {
               ValidationResult result = new ValidationResult();
               result.setValid(true);
 

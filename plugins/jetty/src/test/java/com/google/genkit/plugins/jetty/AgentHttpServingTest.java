@@ -74,24 +74,23 @@ class AgentHttpServingTest {
             .outputClass(JsonNode.class)
             .streamClass(JsonNode.class)
             .initClass(JsonNode.class)
-            .handler(
-                (ctx, init, inputs, cb) -> {
-                  Optional<JsonNode> first = inputs.next();
-                  JsonNode data = first.orElse(MAPPER.nullNode());
-                  // The AgentInput envelope carries the turn message under "message".
-                  JsonNode message = data.path("message");
-                  // Emit one streamed chunk.
-                  if (cb != null) {
-                    ObjectNode chunk = MAPPER.createObjectNode();
-                    chunk.put("text", "thinking...");
-                    cb.accept(chunk);
-                  }
-                  // Final output echoes the message back.
-                  ObjectNode result = MAPPER.createObjectNode();
-                  result.put("snapshotId", "s1");
-                  result.set("message", message);
-                  return result;
-                })
+            .handler((ctx, init, inputs, cb) -> {
+              Optional<JsonNode> first = inputs.next();
+              JsonNode data = first.orElse(MAPPER.nullNode());
+              // The AgentInput envelope carries the turn message under "message".
+              JsonNode message = data.path("message");
+              // Emit one streamed chunk.
+              if (cb != null) {
+                ObjectNode chunk = MAPPER.createObjectNode();
+                chunk.put("text", "thinking...");
+                cb.accept(chunk);
+              }
+              // Final output echoes the message back.
+              ObjectNode result = MAPPER.createObjectNode();
+              result.put("snapshotId", "s1");
+              result.set("message", message);
+              return result;
+            })
             .build();
     agent.register(registry);
 
@@ -117,14 +116,13 @@ class AgentHttpServingTest {
     plugin.init(registry);
 
     Thread serverThread =
-        new Thread(
-            () -> {
-              try {
-                plugin.start();
-              } catch (Exception e) {
-                // Server stopped.
-              }
-            });
+        new Thread(() -> {
+          try {
+            plugin.start();
+          } catch (Exception e) {
+            // Server stopped.
+          }
+        });
     serverThread.setDaemon(true);
     serverThread.start();
 

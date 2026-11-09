@@ -130,12 +130,11 @@ public final class MongoSessionStore<S> implements SessionStore<S>, SnapshotSubs
     this.collection =
         client.getDatabase(options.getDatabaseName()).getCollection(options.getCollectionName());
     this.scheduler =
-        Executors.newSingleThreadScheduledExecutor(
-            r -> {
-              Thread t = new Thread(r, "genkit-mongo-session-store-poll");
-              t.setDaemon(true);
-              return t;
-            });
+        Executors.newSingleThreadScheduledExecutor(r -> {
+          Thread t = new Thread(r, "genkit-mongo-session-store-poll");
+          t.setDaemon(true);
+          return t;
+        });
   }
 
   // ──────────────────────────────────────────────────────────────────────────

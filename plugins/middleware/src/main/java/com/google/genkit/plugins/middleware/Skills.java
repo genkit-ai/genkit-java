@@ -518,29 +518,28 @@ public class Skills extends BaseGenerationMiddleware {
         .inputSchema(objectSchema(props))
         .outputSchema(Map.of("type", "string"))
         .inputClass(UseSkillInput.class)
-        .handler(
-            (ctx, in) -> {
-              String requested = in != null && in.skillName != null ? in.skillName : "";
-              SkillInfo si = lookupSkill(info, requested);
-              if (si == null) {
-                return unknownSkillMessage(requested, available);
-              }
-              if (!act.claim(si.name)) {
-                return String.format(SKILL_ALREADY_LOADED_STUB, goQuote(si.name));
-              }
-              String content;
-              try {
-                content = renderSkill(si);
-              } catch (IOException e) {
-                act.release(si.name);
-                throw new SkillToolException(e.getMessage(), e);
-              } catch (RuntimeException e) {
-                act.release(si.name);
-                throw e;
-              }
-              pendingActivation.set(activationMetadata(si.name));
-              return content;
-            })
+        .handler((ctx, in) -> {
+          String requested = in != null && in.skillName != null ? in.skillName : "";
+          SkillInfo si = lookupSkill(info, requested);
+          if (si == null) {
+            return unknownSkillMessage(requested, available);
+          }
+          if (!act.claim(si.name)) {
+            return String.format(SKILL_ALREADY_LOADED_STUB, goQuote(si.name));
+          }
+          String content;
+          try {
+            content = renderSkill(si);
+          } catch (IOException e) {
+            act.release(si.name);
+            throw new SkillToolException(e.getMessage(), e);
+          } catch (RuntimeException e) {
+            act.release(si.name);
+            throw e;
+          }
+          pendingActivation.set(activationMetadata(si.name));
+          return content;
+        })
         .build();
   }
 
@@ -563,52 +562,51 @@ public class Skills extends BaseGenerationMiddleware {
         .inputSchema(objectSchema(props))
         .outputSchema(Map.of("type", "string"))
         .inputClass(ReadSkillFileInput.class)
-        .handler(
-            (ctx, in) -> {
-              String skillName = in != null && in.skillName != null ? in.skillName : "";
-              String filePath = in != null && in.filePath != null ? in.filePath : "";
-              // An unknown name is an answer, not a failure, the same as for use_skill.
-              SkillInfo si = lookupSkill(info, skillName);
-              if (si == null) {
-                return unknownSkillMessage(skillName, available);
-              }
-              if (goTrimSpace(filePath).isEmpty()) {
-                throw new SkillToolException("filePath is required", null);
-              }
-              String rel = normalizeRel(filePath);
-              if (hiddenPath(rel)) {
-                throw new SkillToolException(
-                    rel
-                        + " is not readable: skills expose no path with a segment starting with"
-                        + " \".\"",
-                    null);
-              }
-              byte[] data;
-              try {
-                data = si.store.readResource(si.dir, rel);
-              } catch (IOException e) {
-                throw new SkillToolException(
-                    "read "
-                        + goQuote(rel)
-                        + " from skill "
-                        + goQuote(skillName)
-                        + ": "
-                        + e.getMessage(),
-                    e);
-              }
-              // The result is a string, so bytes that are not UTF-8 would reach the model as
-              // replacement characters. Saying what the file is costs a line instead.
-              String text = decodeUtf8(data);
-              if (text == null) {
-                return catalogText(rel)
-                    + " is a binary file ("
-                    + data.length
-                    + " bytes); "
-                    + toolName(SKILL_RESOURCE_TOOL_NAME)
-                    + " returns text files only.";
-              }
-              return text;
-            })
+        .handler((ctx, in) -> {
+          String skillName = in != null && in.skillName != null ? in.skillName : "";
+          String filePath = in != null && in.filePath != null ? in.filePath : "";
+          // An unknown name is an answer, not a failure, the same as for use_skill.
+          SkillInfo si = lookupSkill(info, skillName);
+          if (si == null) {
+            return unknownSkillMessage(skillName, available);
+          }
+          if (goTrimSpace(filePath).isEmpty()) {
+            throw new SkillToolException("filePath is required", null);
+          }
+          String rel = normalizeRel(filePath);
+          if (hiddenPath(rel)) {
+            throw new SkillToolException(
+                rel
+                    + " is not readable: skills expose no path with a segment starting with"
+                    + " \".\"",
+                null);
+          }
+          byte[] data;
+          try {
+            data = si.store.readResource(si.dir, rel);
+          } catch (IOException e) {
+            throw new SkillToolException(
+                "read "
+                    + goQuote(rel)
+                    + " from skill "
+                    + goQuote(skillName)
+                    + ": "
+                    + e.getMessage(),
+                e);
+          }
+          // The result is a string, so bytes that are not UTF-8 would reach the model as
+          // replacement characters. Saying what the file is costs a line instead.
+          String text = decodeUtf8(data);
+          if (text == null) {
+            return catalogText(rel)
+                + " is a binary file ("
+                + data.length
+                + " bytes); "
+                + toolName(SKILL_RESOURCE_TOOL_NAME)
+                + " returns text files only.";
+          }
+          return text;
+        })
         .build();
   }
 

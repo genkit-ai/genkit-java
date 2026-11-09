@@ -86,14 +86,13 @@ class AgentChatTest {
                   .modelChunk(ModelResponseChunk.text("chunk: " + userText))
                   .build());
       // Mutate custom state -> produces a customPatch chunk.
-      sess.updateCustom(
-          cur -> {
-            Map<String, Object> next = cur != null ? new HashMap<>(cur) : new HashMap<>();
-            int count =
-                next.get("count") instanceof Number ? ((Number) next.get("count")).intValue() : 0;
-            next.put("count", count + 1);
-            return next;
-          });
+      sess.updateCustom(cur -> {
+        Map<String, Object> next = cur != null ? new HashMap<>(cur) : new HashMap<>();
+        int count =
+            next.get("count") instanceof Number ? ((Number) next.get("count")).intValue() : 0;
+        next.put("count", count + 1);
+        return next;
+      });
       return AgentResult.builder()
           .message(Message.model("echo: " + userText))
           .finishReason(AgentFinishReason.STOP)
@@ -508,11 +507,10 @@ class AgentChatTest {
     assertEquals(AgentFinishReason.FAILED, resp.finishReason());
     boolean sawFailedTurnEnd =
         chunks.stream()
-            .anyMatch(
-                c ->
-                    c.raw() != null
-                        && c.raw().getTurnEnd() != null
-                        && c.raw().getTurnEnd().getFinishReason() == AgentFinishReason.FAILED);
+            .anyMatch(c ->
+                c.raw() != null
+                    && c.raw().getTurnEnd() != null
+                    && c.raw().getTurnEnd().getFinishReason() == AgentFinishReason.FAILED);
     assertTrue(sawFailedTurnEnd, "expected a turnEnd chunk with finishReason FAILED");
   }
 

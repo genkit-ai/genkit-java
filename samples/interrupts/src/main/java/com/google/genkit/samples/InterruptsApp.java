@@ -180,17 +180,16 @@ public class InterruptsApp {
                         "required",
                         new String[] {"recipient", "amount"}))
                 // requestMetadata extracts info from input for the interrupt request
-                .requestMetadata(
-                    input ->
-                        Map.of(
-                            "type",
-                            "transfer_confirmation",
-                            "recipient",
-                            input.getRecipient(),
-                            "amount",
-                            input.getAmount(),
-                            "reason",
-                            input.getReason() != null ? input.getReason() : ""))
+                .requestMetadata(input ->
+                    Map.of(
+                        "type",
+                        "transfer_confirmation",
+                        "recipient",
+                        input.getRecipient(),
+                        "amount",
+                        input.getAmount(),
+                        "reason",
+                        input.getReason() != null ? input.getReason() : ""))
                 .build());
   }
 

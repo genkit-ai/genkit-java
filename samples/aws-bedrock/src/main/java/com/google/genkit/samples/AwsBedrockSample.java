@@ -61,7 +61,7 @@ public class AwsBedrockSample {
 
     // Define a simple greeting flow
     Flow<String, String, Void> greetingFlow =
-        genkit.defineFlow("greeting", String.class, String.class, (name) -> "Hello, " + name + "!");
+        genkit.defineFlow("greeting", String.class, String.class, name -> "Hello, " + name + "!");
 
     // Define a joke generator flow using Amazon Nova
     Flow<String, String, Void> jokeFlow =

@@ -339,14 +339,13 @@ class ClientTest {
     Client c = newClient(rec, testEndpoint());
     GenkitException[] error = new GenkitException[1];
     Thread caller =
-        new Thread(
-            () -> {
-              try {
-                c.decide("jev-latest", request(null));
-              } catch (GenkitException e) {
-                error[0] = e;
-              }
-            });
+        new Thread(() -> {
+          try {
+            c.decide("jev-latest", request(null));
+          } catch (GenkitException e) {
+            error[0] = e;
+          }
+        });
     long start = System.nanoTime();
     caller.start();
     Thread.sleep(200);

@@ -157,23 +157,21 @@ public class LocalFileEvalStore implements EvalStore {
     loadIndex();
 
     return indexCache.values().stream()
-        .filter(
-            key -> {
-              if (actionRef != null && !actionRef.equals(key.getActionRef())) {
-                return false;
-              }
-              if (datasetId != null && !datasetId.equals(key.getDatasetId())) {
-                return false;
-              }
-              return true;
-            })
-        .sorted(
-            (a, b) -> {
-              // Sort by createdAt descending
-              if (a.getCreatedAt() == null) return 1;
-              if (b.getCreatedAt() == null) return -1;
-              return b.getCreatedAt().compareTo(a.getCreatedAt());
-            })
+        .filter(key -> {
+          if (actionRef != null && !actionRef.equals(key.getActionRef())) {
+            return false;
+          }
+          if (datasetId != null && !datasetId.equals(key.getDatasetId())) {
+            return false;
+          }
+          return true;
+        })
+        .sorted((a, b) -> {
+          // Sort by createdAt descending
+          if (a.getCreatedAt() == null) return 1;
+          if (b.getCreatedAt() == null) return -1;
+          return b.getCreatedAt().compareTo(a.getCreatedAt());
+        })
         .collect(Collectors.toList());
   }
 

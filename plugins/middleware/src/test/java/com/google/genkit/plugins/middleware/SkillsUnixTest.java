@@ -78,19 +78,17 @@ class SkillsUnixTest {
    */
   private static Throwable mustNotBlock(String what, Call fn) throws InterruptedException {
     ExecutorService exec =
-        Executors.newSingleThreadExecutor(
-            r -> {
-              Thread t = new Thread(r, "must-not-block");
-              t.setDaemon(true);
-              return t;
-            });
+        Executors.newSingleThreadExecutor(r -> {
+          Thread t = new Thread(r, "must-not-block");
+          t.setDaemon(true);
+          return t;
+        });
     try {
       Future<?> f =
-          exec.submit(
-              () -> {
-                fn.run();
-                return null;
-              });
+          exec.submit(() -> {
+            fn.run();
+            return null;
+          });
       f.get(10, TimeUnit.SECONDS);
       return null;
     } catch (ExecutionException e) {

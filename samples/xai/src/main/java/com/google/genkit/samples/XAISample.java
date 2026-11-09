@@ -54,7 +54,7 @@ public class XAISample {
     // Define a simple greeting flow
     Flow<String, String, Void> greetingFlow =
         genkit.defineFlow(
-            "greeting", String.class, String.class, (name) -> "Hello from Grok, " + name + "!");
+            "greeting", String.class, String.class, name -> "Hello from Grok, " + name + "!");
 
     // Define a chat flow using Grok
     Flow<String, String, Void> chatFlow =
@@ -138,7 +138,7 @@ public class XAISample {
                           .prompt(userMessage)
                           .config(GenerationConfig.builder().maxOutputTokens(1000).build())
                           .build(),
-                      (chunk) -> {
+                      chunk -> {
                         String text = chunk.getText();
                         if (text != null) {
                           result.append(text);
@@ -224,7 +224,7 @@ public class XAISample {
                                   .temperature(0.9)
                                   .build())
                           .build(),
-                      (chunk) -> {
+                      chunk -> {
                         String text = chunk.getText();
                         if (text != null) {
                           result.append(text);

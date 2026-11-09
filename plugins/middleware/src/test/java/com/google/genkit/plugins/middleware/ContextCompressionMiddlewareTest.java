@@ -135,11 +135,10 @@ class ContextCompressionMiddlewareTest {
     Fixture f = new Fixture(textReply("response", 50));
     ModelResponse resp =
         f.generate(
-            mw(
-                o -> {
-                  o.maxInputTokens = 50;
-                  o.toolResponses = trunc(100, -1);
-                }),
+            mw(o -> {
+              o.maxInputTokens = 50;
+              o.toolResponses = trunc(100, -1);
+            }),
             List.of(
                 // Reasoning and data parts count toward the estimate.
                 message(
@@ -158,25 +157,23 @@ class ContextCompressionMiddlewareTest {
   @Test
   void truncatesOlderToolResponsesInToolLoop() {
     Fixture f =
-        new Fixture(
-            (call, req) -> {
-              if (call <= 2) {
-                return toolTurn(
-                    toolCallMsg(req("heavyTool", null, map("query", "call" + call))),
-                    new int[] {200, 500}[call - 1]);
-              }
-              return response(modelMsg("finished"), 100);
-            });
+        new Fixture((call, req) -> {
+          if (call <= 2) {
+            return toolTurn(
+                toolCallMsg(req("heavyTool", null, map("query", "call" + call))),
+                new int[] {200, 500}[call - 1]);
+          }
+          return response(modelMsg("finished"), 100);
+        });
     Tool<Map<String, Object>, Object> heavy =
         f.tool("heavyTool", in -> "Result for " + in.get("query") + ": " + repeat("X", 300));
 
     ModelResponse resp =
         f.generate(
-            mw(
-                o -> {
-                  o.maxInputTokens = 400;
-                  o.toolResponses = trunc(50, 1);
-                }),
+            mw(o -> {
+              o.maxInputTokens = 400;
+              o.toolResponses = trunc(50, 1);
+            }),
             List.of(userMsg("Run tool calls")),
             b -> b.tools(List.of(heavy)));
     assertEquals("finished", resp.getText());
@@ -190,18 +187,16 @@ class ContextCompressionMiddlewareTest {
   @Test
   void capsOversizedToolResponses() {
     Fixture f =
-        new Fixture(
-            (call, req) ->
-                call == 1
-                    ? response(toolCallMsg(req("hugeTool", null, map())), 200)
-                    : response(modelMsg("done"), 100));
+        new Fixture((call, req) ->
+            call == 1
+                ? response(toolCallMsg(req("hugeTool", null, map())), 200)
+                : response(modelMsg("done"), 100));
     Tool<Map<String, Object>, Object> huge = f.tool("hugeTool", in -> repeat("x", 1000));
     f.generate(
-        mw(
-            o -> {
-              o.maxInputTokens = 100;
-              o.maxToolResponseChars = 100;
-            }),
+        mw(o -> {
+          o.maxInputTokens = 100;
+          o.maxToolResponseChars = 100;
+        }),
         List.of(userMsg("Call huge tool")),
         b -> b.tools(List.of(huge)));
     assertTrue(
@@ -251,11 +246,10 @@ class ContextCompressionMiddlewareTest {
     @Test
     void usesACustomNotice() {
       assertView(
-          mw(
-              o -> {
-                o.maxMessages = 2;
-                o.truncationNotice = "Custom drop notice";
-              }),
+          mw(o -> {
+            o.maxMessages = 2;
+            o.truncationNotice = "Custom drop notice";
+          }),
           List.of(userMsg("1"), modelMsg("2"), userMsg("3")),
           List.of("system:Custom drop notice", "user:3"));
     }
@@ -263,11 +257,10 @@ class ContextCompressionMiddlewareTest {
     @Test
     void keepsSystemMessages() {
       assertView(
-          mw(
-              o -> {
-                o.maxMessages = 2;
-                o.noTruncationNotice = true;
-              }),
+          mw(o -> {
+            o.maxMessages = 2;
+            o.noTruncationNotice = true;
+          }),
           List.of(
               systemMsg("System Instructions"),
               userMsg("msg 1"),
@@ -279,11 +272,10 @@ class ContextCompressionMiddlewareTest {
     @Test
     void neverKeepsAnOrphanedToolResponse() {
       assertView(
-          mw(
-              o -> {
-                o.maxMessages = 3;
-                o.noTruncationNotice = true;
-              }),
+          mw(o -> {
+            o.maxMessages = 3;
+            o.noTruncationNotice = true;
+          }),
           List.of(
               userMsg("hello"),
               toolCallMsg(req("tool", null, map())),
@@ -296,11 +288,10 @@ class ContextCompressionMiddlewareTest {
     @Test
     void dropsALeadingToolMessage() {
       assertView(
-          mw(
-              o -> {
-                o.maxMessages = 2;
-                o.noTruncationNotice = true;
-              }),
+          mw(o -> {
+            o.maxMessages = 2;
+            o.noTruncationNotice = true;
+          }),
           List.of(
               userMsg("msg 1"),
               toolCallMsg(req("myTool", null, map())),
@@ -431,11 +422,10 @@ class ContextCompressionMiddlewareTest {
             Part.text("System prompt"),
             Part.text("\n\n" + notice));
     f.generate(
-        mw(
-            o -> {
-              o.maxMessages = 2;
-              o.truncationNotice = notice;
-            }),
+        mw(o -> {
+          o.maxMessages = 2;
+          o.truncationNotice = notice;
+        }),
         List.of(sys, userMsg("user 1"), modelMsg("model 1"), userMsg("user 2")));
     assertEquals(2, f.sent().get(0).getContent().size());
   }
@@ -448,11 +438,10 @@ class ContextCompressionMiddlewareTest {
     part.setMetadata(map(CompressionHistory.KEY, map(CompressionHistory.TRUNCATED, true)));
     ModelResponse resp =
         f.generate(
-            mw(
-                o -> {
-                  o.maxInputTokens = 100;
-                  o.toolResponses = trunc(5, -1);
-                }),
+            mw(o -> {
+              o.maxInputTokens = 100;
+              o.toolResponses = trunc(5, -1);
+            }),
             List.of(
                 userMsg("run tool"),
                 toolCallMsg(req("myTool", null, map())),
@@ -473,11 +462,10 @@ class ContextCompressionMiddlewareTest {
             userMsg("next"));
     ModelResponse resp =
         f.generate(
-            mw(
-                o -> {
-                  o.maxInputTokens = 50;
-                  o.toolResponses = trunc(50, -1);
-                }),
+            mw(o -> {
+              o.maxInputTokens = 50;
+              o.toolResponses = trunc(50, -1);
+            }),
             history);
 
     Message sentTool = toolMessages(f.sent()).get(0);
@@ -498,12 +486,11 @@ class ContextCompressionMiddlewareTest {
   @Test
   void cappedPartBecomesTruncatable() {
     ContextCompressionMiddleware m =
-        mw(
-            o -> {
-              o.maxInputTokens = 140;
-              o.maxToolResponseChars = 200;
-              o.toolResponses = trunc(50, 1);
-            });
+        mw(o -> {
+          o.maxInputTokens = 140;
+          o.maxToolResponseChars = 200;
+          o.toolResponses = trunc(50, 1);
+        });
     Fixture f = new Fixture(textReply("ok", 50));
     f.generate(
         m,
@@ -539,11 +526,10 @@ class ContextCompressionMiddlewareTest {
   void preservesNewestToolMessageWithParallelParts() {
     Fixture f = new Fixture(textReply("done", 50));
     f.generate(
-        mw(
-            o -> {
-              o.maxInputTokens = 300;
-              o.toolResponses = trunc(20, 1);
-            }),
+        mw(o -> {
+          o.maxInputTokens = 300;
+          o.toolResponses = trunc(20, 1);
+        }),
         List.of(
             userMsg("fetch reports"),
             toolCallMsg(req("fetch", null, map("id", "1")), req("fetch", null, map("id", "2"))),
@@ -570,11 +556,10 @@ class ContextCompressionMiddlewareTest {
   @Test
   void inputTokensStampTriggersLaterCalls() {
     ContextCompressionMiddleware m =
-        mw(
-            o -> {
-              o.maxInputTokens = 500;
-              o.toolResponses = trunc(20, -1);
-            });
+        mw(o -> {
+          o.maxInputTokens = 500;
+          o.toolResponses = trunc(20, -1);
+        });
     Fixture f = new Fixture(textReply("reply", 800));
     ModelResponse first = f.generate(m, List.of(userMsg("hi")));
     assertEquals(800, cc(first.getMessage().getMetadata()).get(CompressionHistory.INPUT_TOKENS));
@@ -605,11 +590,10 @@ class ContextCompressionMiddlewareTest {
   void cutsWholeCharacters() {
     Fixture f = new Fixture(textReply("ok", 50));
     f.generate(
-        mw(
-            o -> {
-              o.maxInputTokens = 10;
-              o.toolResponses = trunc(5, -1);
-            }),
+        mw(o -> {
+          o.maxInputTokens = 10;
+          o.toolResponses = trunc(5, -1);
+        }),
         List.of(userMsg("q"), toolResultMsg(res("emojiTool", null, "abcd😀" + repeat("Z", 200)))));
     String out = output(toolMessages(f.sent()).get(0), 0);
     // Characters are counted as code points, so the emoji is the fifth character.
@@ -622,29 +606,27 @@ class ContextCompressionMiddlewareTest {
     void replacesOlderResponsesToTheSameCallInAToolLoop() {
       for (boolean withRef : new boolean[] {false, true}) {
         Fixture f =
-            new Fixture(
-                (call, req) -> {
-                  if (call <= 2) {
-                    return response(
-                        toolCallMsg(
-                            req(
-                                "search",
-                                withRef ? "call_unique_" + call : null,
-                                map("query", "same-query"))),
-                        new int[] {200, 500}[call - 1]);
-                  }
-                  return response(modelMsg("finished"), 100);
-                });
+            new Fixture((call, req) -> {
+              if (call <= 2) {
+                return response(
+                    toolCallMsg(
+                        req(
+                            "search",
+                            withRef ? "call_unique_" + call : null,
+                            map("query", "same-query"))),
+                    new int[] {200, 500}[call - 1]);
+              }
+              return response(modelMsg("finished"), 100);
+            });
         Tool<Map<String, Object>, Object> search =
             f.tool("search", in -> "Result for " + in.get("query") + ": " + repeat("A", 500));
         f.generate(
-            mw(
-                o -> {
-                  o.maxInputTokens = 300;
-                  o.deduplicateToolResponses =
-                      dedupe(ContextCompressionMiddleware.MATCH_NAME_AND_INPUT, 0);
-                  o.toolResponses = trunc(50, -1);
-                }),
+            mw(o -> {
+              o.maxInputTokens = 300;
+              o.deduplicateToolResponses =
+                  dedupe(ContextCompressionMiddleware.MATCH_NAME_AND_INPUT, 0);
+              o.toolResponses = trunc(50, -1);
+            }),
             List.of(userMsg("Search multiple times")),
             b -> b.tools(List.of(search)));
         assertTrue(
@@ -657,24 +639,22 @@ class ContextCompressionMiddlewareTest {
     @Test
     void keepsCallsWithDifferentInputs() {
       Fixture f =
-          new Fixture(
-              (call, req) -> {
-                if (call <= 2) {
-                  String q = new String[] {"first-query", "second-query"}[call - 1];
-                  return response(
-                      toolCallMsg(req("search", null, map("query", q))),
-                      new int[] {200, 500}[call - 1]);
-                }
-                return response(modelMsg("finished"), 100);
-              });
+          new Fixture((call, req) -> {
+            if (call <= 2) {
+              String q = new String[] {"first-query", "second-query"}[call - 1];
+              return response(
+                  toolCallMsg(req("search", null, map("query", q))),
+                  new int[] {200, 500}[call - 1]);
+            }
+            return response(modelMsg("finished"), 100);
+          });
       Tool<Map<String, Object>, Object> search =
           f.tool("search", in -> "Result for " + in.get("query") + ": " + repeat("B", 50));
       f.generate(
-          mw(
-              o -> {
-                o.maxInputTokens = 150;
-                o.deduplicateToolResponses = new ContextCompressionMiddleware.Dedupe();
-              }),
+          mw(o -> {
+            o.maxInputTokens = 150;
+            o.deduplicateToolResponses = new ContextCompressionMiddleware.Dedupe();
+          }),
           List.of(userMsg("Search with distinct queries")),
           b -> b.tools(List.of(search)));
       for (Message m : toolMessages(f.requests.get(2).getMessages())) {
@@ -686,11 +666,10 @@ class ContextCompressionMiddlewareTest {
     void replacesOnlyTheDuplicateAmongParallelParts() {
       Fixture f = new Fixture(textReply("done", 50));
       f.generate(
-          mw(
-              o -> {
-                o.maxInputTokens = 220;
-                o.deduplicateToolResponses = new ContextCompressionMiddleware.Dedupe();
-              }),
+          mw(o -> {
+            o.maxInputTokens = 220;
+            o.deduplicateToolResponses = new ContextCompressionMiddleware.Dedupe();
+          }),
           List.of(
               userMsg("run parallel tools"),
               toolCallMsg(
@@ -711,11 +690,10 @@ class ContextCompressionMiddlewareTest {
     void matchesReflessResponsesByPositionPastReasoningParts() {
       Fixture f = new Fixture(textReply("done", 50));
       f.generate(
-          mw(
-              o -> {
-                o.maxMessages = 2;
-                o.deduplicateToolResponses = dedupe(null, 1);
-              }),
+          mw(o -> {
+            o.maxMessages = 2;
+            o.deduplicateToolResponses = dedupe(null, 1);
+          }),
           List.of(
               userMsg("fetch both reports"),
               message(
@@ -736,12 +714,11 @@ class ContextCompressionMiddlewareTest {
     void matchesReflessResponsesAcrossTurns() {
       Fixture f = new Fixture(textReply("done", 50));
       f.generate(
-          mw(
-              o -> {
-                o.maxInputTokens = 150;
-                o.preserveRecent = 10;
-                o.deduplicateToolResponses = dedupe(null, 1);
-              }),
+          mw(o -> {
+            o.maxInputTokens = 150;
+            o.preserveRecent = 10;
+            o.deduplicateToolResponses = dedupe(null, 1);
+          }),
           List.of(
               userMsg("fetch reports"),
               message(
@@ -770,12 +747,11 @@ class ContextCompressionMiddlewareTest {
     void doesNotMatchReusedRefsMixedOrderingOrOrphans() {
       Fixture f = new Fixture(textReply("done", 50));
       f.generate(
-          mw(
-              o -> {
-                o.maxInputTokens = 100;
-                o.preserveRecent = 10;
-                o.deduplicateToolResponses = dedupe(null, 1);
-              }),
+          mw(o -> {
+            o.maxInputTokens = 100;
+            o.preserveRecent = 10;
+            o.deduplicateToolResponses = dedupe(null, 1);
+          }),
           List.of(
               userMsg("run"),
               toolResultMsg(res("orphan", null, "Orphan 1"), res("orphan", null, "Orphan 2")),
@@ -799,11 +775,10 @@ class ContextCompressionMiddlewareTest {
       Fixture f = new Fixture(textReply("done", 50));
       Part newMedia = Part.media("image/png", "data:image/png;base64,NEW_SCREENSHOT");
       f.generate(
-          mw(
-              o -> {
-                o.maxInputTokens = 500;
-                o.deduplicateToolResponses = new ContextCompressionMiddleware.Dedupe();
-              }),
+          mw(o -> {
+            o.maxInputTokens = 500;
+            o.deduplicateToolResponses = new ContextCompressionMiddleware.Dedupe();
+          }),
           List.of(
               userMsg("take screenshots"),
               toolCallMsg(req("screenshot", "shot_1", map("page", "home"))),
@@ -832,11 +807,10 @@ class ContextCompressionMiddlewareTest {
     void neverReplacesASoleResponse() {
       Fixture f = new Fixture(textReply("done", 50));
       f.generate(
-          mw(
-              o -> {
-                o.maxInputTokens = 10;
-                o.deduplicateToolResponses = new ContextCompressionMiddleware.Dedupe();
-              }),
+          mw(o -> {
+            o.maxInputTokens = 10;
+            o.deduplicateToolResponses = new ContextCompressionMiddleware.Dedupe();
+          }),
           List.of(
               userMsg("check single tool call"),
               toolCallMsg(req("fetch", "call_1", map("id", "1"))),
@@ -848,21 +822,19 @@ class ContextCompressionMiddlewareTest {
   @Test
   void summarizes() {
     Fixture f =
-        new Fixture(
-            (call, req) ->
-                call <= 3
-                    ? response(toolCallMsg(req("step", null, map("step", call))), 500)
-                    : response(modelMsg("all done"), 200));
+        new Fixture((call, req) ->
+            call <= 3
+                ? response(toolCallMsg(req("step", null, map("step", call))), 500)
+                : response(modelMsg("all done"), 200));
     f.defineSummarizer("test/summarizer", "Summary of past events: steps were executed.");
     Tool<Map<String, Object>, Object> step = f.tool("step", in -> "output " + in.get("step"));
 
     ModelResponse resp =
         f.generate(
-            mw(
-                o -> {
-                  o.maxInputTokens = 100;
-                  o.summarize = summarizer("test/summarizer", 2);
-                }),
+            mw(o -> {
+              o.maxInputTokens = 100;
+              o.summarize = summarizer("test/summarizer", 2);
+            }),
             List.of(systemMsg("System instructions"), userMsg("Run multi turn steps")),
             b -> b.tools(List.of(step)));
 
@@ -881,11 +853,10 @@ class ContextCompressionMiddlewareTest {
     ContextCompressionMiddleware.Summarizer s = summarizer("test/summarizer", 1);
     s.prompt = "TLDR THIS: {conversation}\nEND TLDR";
     f.generate(
-        mw(
-            o -> {
-              o.maxInputTokens = 10;
-              o.summarize = s;
-            }),
+        mw(o -> {
+          o.maxInputTokens = 10;
+          o.summarize = s;
+        }),
         List.of(
             userMsg("A long discussion part 1"),
             modelMsg("A long discussion response 1"),
@@ -910,13 +881,12 @@ class ContextCompressionMiddlewareTest {
     List<String> prompts = f.defineSummarizer("test/summarizer", "Summary");
     ModelResponse resp =
         f.generate(
-            mw(
-                o -> {
-                  o.maxInputTokens = 100;
-                  o.toolResponses = trunc(100, -1);
-                  o.summarize = summarizer("test/summarizer", 1);
-                  o.skipSummarizationThreshold = 0.25;
-                }),
+            mw(o -> {
+              o.maxInputTokens = 100;
+              o.toolResponses = trunc(100, -1);
+              o.summarize = summarizer("test/summarizer", 1);
+              o.skipSummarizationThreshold = 0.25;
+            }),
             history);
     assertEquals(0, prompts.size());
     assertEquals(true, stats(resp).get("summarizationSkipped"));
@@ -926,13 +896,12 @@ class ContextCompressionMiddlewareTest {
     List<String> prompts2 = f2.defineSummarizer("test/summarizer", "Summary");
     resp =
         f2.generate(
-            mw(
-                o -> {
-                  o.maxInputTokens = 150;
-                  o.toolResponses = trunc(100, -1);
-                  o.summarize = summarizer("test/summarizer", 1);
-                  o.skipSummarizationThreshold = 0.25;
-                }),
+            mw(o -> {
+              o.maxInputTokens = 150;
+              o.toolResponses = trunc(100, -1);
+              o.summarize = summarizer("test/summarizer", 1);
+              o.skipSummarizationThreshold = 0.25;
+            }),
             List.of(
                 toolResultMsg(res("heavy", "1", repeat("T", 700))),
                 userMsg(repeat("U", 350)),
@@ -958,14 +927,13 @@ class ContextCompressionMiddlewareTest {
     List<String> prompts = f.defineSummarizer("test/summarizer", "Summary");
     ModelResponse resp =
         f.generate(
-            mw(
-                o -> {
-                  o.maxInputTokens = 500;
-                  o.preserveRecent = 2;
-                  o.toolResponses = trunc(50, -1);
-                  o.summarize = new ContextCompressionMiddleware.Summarizer("test/summarizer");
-                  o.skipSummarizationThreshold = 0.3;
-                }),
+            mw(o -> {
+              o.maxInputTokens = 500;
+              o.preserveRecent = 2;
+              o.toolResponses = trunc(50, -1);
+              o.summarize = new ContextCompressionMiddleware.Summarizer("test/summarizer");
+              o.skipSummarizationThreshold = 0.3;
+            }),
             history);
     Map<String, Object> s = stats(resp);
     assertEquals(0, prompts.size());
@@ -978,12 +946,11 @@ class ContextCompressionMiddlewareTest {
     // Without a summarizer, cheap truncation that meets the budget keeps the messages too.
     resp =
         f.generate(
-            mw(
-                o -> {
-                  o.maxInputTokens = 500;
-                  o.preserveRecent = 2;
-                  o.toolResponses = trunc(50, -1);
-                }),
+            mw(o -> {
+              o.maxInputTokens = 500;
+              o.preserveRecent = 2;
+              o.toolResponses = trunc(50, -1);
+            }),
             history);
     s = stats(resp);
     assertEquals(1, s.get("toolResponsesTruncated"));
@@ -992,14 +959,13 @@ class ContextCompressionMiddlewareTest {
 
     // A stamped token count that stays over budget after scaling does not skip summarization.
     f.generate(
-        mw(
-            o -> {
-              o.maxInputTokens = 500;
-              o.preserveRecent = 2;
-              o.toolResponses = trunc(50, -1);
-              o.summarize = summarizer("test/summarizer", 2);
-              o.skipSummarizationThreshold = 0.3;
-            }),
+        mw(o -> {
+          o.maxInputTokens = 500;
+          o.preserveRecent = 2;
+          o.toolResponses = trunc(50, -1);
+          o.summarize = summarizer("test/summarizer", 2);
+          o.skipSummarizationThreshold = 0.3;
+        }),
         List.of(
             userMsg("u1"),
             toolCallMsg(req("bigTool", "t1", map())),
@@ -1023,13 +989,12 @@ class ContextCompressionMiddlewareTest {
     }
     Fixture f = new Fixture(textReply("done", 50));
     f.generate(
-        mw(
-            o -> {
-              o.maxInputTokens = 50;
-              o.maxMessages = 6;
-              o.preserveRecent = 4;
-              o.noTruncationNotice = true;
-            }),
+        mw(o -> {
+          o.maxInputTokens = 50;
+          o.maxMessages = 6;
+          o.preserveRecent = 4;
+          o.noTruncationNotice = true;
+        }),
         history);
     assertEquals(2, f.sent().size());
   }
@@ -1059,11 +1024,10 @@ class ContextCompressionMiddlewareTest {
     Fixture f = new Fixture(textReply("done", 50));
     ModelResponse resp =
         f.generate(
-            mw(
-                o -> {
-                  o.maxMessages = 6;
-                  o.toolResponses = trunc(10, -1);
-                }),
+            mw(o -> {
+              o.maxMessages = 6;
+              o.toolResponses = trunc(10, -1);
+            }),
             history);
 
     List<Message> sent = f.sent();
@@ -1093,11 +1057,10 @@ class ContextCompressionMiddlewareTest {
     f.defineSummarizer("test/summarizer", "MOCK_SUMMARY_TEXT");
     ModelResponse resp =
         f.generate(
-            mw(
-                o -> {
-                  o.maxInputTokens = 100;
-                  o.summarize = summarizer("test/summarizer", 1);
-                }),
+            mw(o -> {
+              o.maxInputTokens = 100;
+              o.summarize = summarizer("test/summarizer", 1);
+            }),
             List.of(
                 userMsg(longPrompt),
                 toolCallMsg(req("tool1", null, map())),
@@ -1123,13 +1086,12 @@ class ContextCompressionMiddlewareTest {
     Fixture f = new Fixture(textReply("done", 50));
     ModelResponse resp =
         f.generate(
-            mw(
-                o -> {
-                  o.maxInputTokens = 50;
-                  o.replaceHistory = true;
-                  o.maxMessages = 1;
-                  o.noTruncationNotice = true;
-                }),
+            mw(o -> {
+              o.maxInputTokens = 50;
+              o.replaceHistory = true;
+              o.maxMessages = 1;
+              o.noTruncationNotice = true;
+            }),
             List.of(userMsg(repeat("A", 500)), modelMsg("response 1"), userMsg("user 2")));
     assertEquals(true, stats(resp).get("triggered"));
     assertEquals(1, f.sent().size());
@@ -1150,11 +1112,10 @@ class ContextCompressionMiddlewareTest {
         },
         new ArrayList<>());
     ContextCompressionMiddleware m =
-        mw(
-            o -> {
-              o.maxInputTokens = 50;
-              o.summarize = summarizer("test/summarizer", 1);
-            });
+        mw(o -> {
+          o.maxInputTokens = 50;
+          o.summarize = summarizer("test/summarizer", 1);
+        });
 
     ModelResponse first =
         f.generate(
@@ -1259,20 +1220,18 @@ class ContextCompressionMiddlewareTest {
   @Test
   void reportsNewestStats() {
     Fixture f =
-        new Fixture(
-            (call, req) ->
-                call == 1
-                    ? response(toolCallMsg(req("big", null, map())), 50)
-                    : response(modelMsg("done"), 50));
+        new Fixture((call, req) ->
+            call == 1
+                ? response(toolCallMsg(req("big", null, map())), 50)
+                : response(modelMsg("done"), 50));
     Tool<Map<String, Object>, Object> big = f.tool("big", in -> repeat("N", 300));
     // Both iterations exceed the budget and truncate a tool response.
     ModelResponse resp =
         f.generate(
-            mw(
-                o -> {
-                  o.maxInputTokens = 20;
-                  o.toolResponses = trunc(10, -1);
-                }),
+            mw(o -> {
+              o.maxInputTokens = 20;
+              o.toolResponses = trunc(10, -1);
+            }),
             List.of(
                 userMsg("go"),
                 toolCallMsg(req("big", "old", map("page", 1))),
@@ -1288,14 +1247,13 @@ class ContextCompressionMiddlewareTest {
     f.defineSummarizer("test/summarizer", "SUMMARIZED_PREFIX");
     ModelResponse first =
         f.generate(
-            mw(
-                o -> {
-                  o.maxInputTokens = 350;
-                  o.maxToolResponseChars = 100;
-                  o.deduplicateToolResponses = dedupe(null, 1);
-                  o.toolResponses = trunc(30, 1);
-                  o.summarize = summarizer("test/summarizer", 6);
-                }),
+            mw(o -> {
+              o.maxInputTokens = 350;
+              o.maxToolResponseChars = 100;
+              o.deduplicateToolResponses = dedupe(null, 1);
+              o.toolResponses = trunc(30, 1);
+              o.summarize = summarizer("test/summarizer", 6);
+            }),
             List.of(
                 userMsg(repeat("Old user prompt ", 20)),
                 modelMsg(repeat("Old model reply ", 20)),
@@ -1322,11 +1280,10 @@ class ContextCompressionMiddlewareTest {
     next.add(userMsg("Next turn question"));
     ModelResponse second =
         f.generate(
-            mw(
-                o -> {
-                  o.maxInputTokens = 100000;
-                  o.maxToolResponseChars = 100;
-                }),
+            mw(o -> {
+              o.maxInputTokens = 100000;
+              o.maxToolResponseChars = 100;
+            }),
             next);
     assertNull(stats(second));
     for (Message m : toolMessages(f.sent())) {
@@ -1342,11 +1299,10 @@ class ContextCompressionMiddlewareTest {
     f.defineSummarizer("test/summarizer", "SUMMARY_OF_TURN_1");
     ModelResponse first =
         f.generate(
-            mw(
-                o -> {
-                  o.maxInputTokens = 50;
-                  o.summarize = summarizer("test/summarizer", 1);
-                }),
+            mw(o -> {
+              o.maxInputTokens = 50;
+              o.summarize = summarizer("test/summarizer", 1);
+            }),
             List.of(
                 systemMsg("System state: Date is Monday"),
                 userMsg(repeat("User turn 1 ", 30)),
@@ -1359,11 +1315,10 @@ class ContextCompressionMiddlewareTest {
     next.addAll(first.getMessages().subList(1, first.getMessages().size()));
     next.add(userMsg("What day is it?"));
     f.generate(
-        mw(
-            o -> {
-              o.maxInputTokens = 10000;
-              o.summarize = summarizer("test/summarizer", 1);
-            }),
+        mw(o -> {
+          o.maxInputTokens = 10000;
+          o.summarize = summarizer("test/summarizer", 1);
+        }),
         next);
     List<Message> sent = f.sent();
     assertEquals("System state: Date is Tuesday", text(sent.get(0)));
@@ -1464,11 +1419,10 @@ class ContextCompressionMiddlewareTest {
       Fixture f = new Fixture(textReply("done", 50));
       ModelResponse resp =
           f.generate(
-              mw(
-                  o -> {
-                    o.maxMessages = 8;
-                    o.noTruncationNotice = true;
-                  }),
+              mw(o -> {
+                o.maxMessages = 8;
+                o.noTruncationNotice = true;
+              }),
               history(0));
       List<Message> sent = check(f, resp);
       List<String> want = new ArrayList<>();
@@ -1483,11 +1437,10 @@ class ContextCompressionMiddlewareTest {
       f.defineSummarizer("test/summarizer", "S2");
       ModelResponse resp =
           f.generate(
-              mw(
-                  o -> {
-                    o.maxInputTokens = 100;
-                    o.summarize = summarizer("test/summarizer", 7);
-                  }),
+              mw(o -> {
+                o.maxInputTokens = 100;
+                o.summarize = summarizer("test/summarizer", 7);
+              }),
               history(120));
       List<Message> sent = check(f, resp);
       assertTrue(sent.size() >= 2 && text(sent.get(1)).contains("S2"), texts(sent).toString());
@@ -1501,11 +1454,10 @@ class ContextCompressionMiddlewareTest {
     Fixture f = new Fixture(textReply("ok", 50));
     List<String> prompts = f.defineSummarizer("test/summarizer", "Rich summary");
     f.generate(
-        mw(
-            o -> {
-              o.maxInputTokens = 20;
-              o.summarize = summarizer("test/summarizer", 1);
-            }),
+        mw(o -> {
+          o.maxInputTokens = 20;
+          o.summarize = summarizer("test/summarizer", 1);
+        }),
         List.of(
             message(
                 Role.USER,
@@ -1545,11 +1497,10 @@ class ContextCompressionMiddlewareTest {
     Fixture f = new Fixture(textReply("done", 50));
     f.defineSummarizer("test/summarizer", "Prior tool returned config values.");
     f.generate(
-        mw(
-            o -> {
-              o.maxInputTokens = 20;
-              o.summarize = summarizer("test/summarizer", 1);
-            }),
+        mw(o -> {
+          o.maxInputTokens = 20;
+          o.summarize = summarizer("test/summarizer", 1);
+        }),
         List.of(
             userMsg("u1 " + repeat("X", 200)), modelMsg("m1 " + repeat("X", 200)), userMsg("u2")));
     Message summary = f.sent().get(0);
@@ -1567,11 +1518,10 @@ class ContextCompressionMiddlewareTest {
     Fixture f = new Fixture(textReply("done", 50));
     f.defineSummarizer("test/summarizer", "Summarized earlier turns");
     f.generate(
-        mw(
-            o -> {
-              o.maxInputTokens = 80;
-              o.summarize = summarizer("test/summarizer", 2);
-            }),
+        mw(o -> {
+          o.maxInputTokens = 80;
+          o.summarize = summarizer("test/summarizer", 2);
+        }),
         List.of(
             userMsg("user1 " + repeat("X", 200)),
             modelMsg("model1 " + repeat("X", 200)),
@@ -1594,11 +1544,10 @@ class ContextCompressionMiddlewareTest {
     ContextCompressionMiddleware.Summarizer s = summarizer("test/summarizer", 1);
     s.prompt = "Custom prompt without placeholder.";
     f.generate(
-        mw(
-            o -> {
-              o.maxInputTokens = 100;
-              o.summarize = s;
-            }),
+        mw(o -> {
+          o.maxInputTokens = 100;
+          o.summarize = s;
+        }),
         List.of(
             userMsg(repeat("H", 250_000)),
             modelMsg(repeat("T", 250_000)),
@@ -1659,11 +1608,10 @@ class ContextCompressionMiddlewareTest {
     ContextCompressionMiddleware.Summarizer s = summarizer("test/summarizer", 1);
     s.config = config;
     f.generate(
-        mw(
-            o -> {
-              o.maxInputTokens = 20;
-              o.summarize = s;
-            }),
+        mw(o -> {
+          o.maxInputTokens = 20;
+          o.summarize = s;
+        }),
         List.of(
             userMsg("u1 " + repeat("X", 200)), modelMsg("m1 " + repeat("X", 200)), userMsg("u2")));
     assertEquals(1, requests.size());
@@ -1671,11 +1619,10 @@ class ContextCompressionMiddlewareTest {
 
     // The summarizer runs with the caller's action context.
     f.generate(
-        mw(
-            o -> {
-              o.maxInputTokens = 20;
-              o.summarize = summarizer("test/ctxSummarizer", 1);
-            }),
+        mw(o -> {
+          o.maxInputTokens = 20;
+          o.summarize = summarizer("test/ctxSummarizer", 1);
+        }),
         List.of(
             userMsg("u1 " + repeat("X", 200)), modelMsg("m1 " + repeat("X", 200)), userMsg("u2")),
         b -> b.context(map("auth", map("uid", "user-123"))));
@@ -1702,13 +1649,12 @@ class ContextCompressionMiddlewareTest {
           new ArrayList<>());
       ModelResponse resp =
           f.generate(
-              mw(
-                  o -> {
-                    o.maxInputTokens = 100;
-                    o.preserveRecent = 3;
-                    o.noTruncationNotice = true;
-                    o.summarize = summarizer("test/summarizer", 3);
-                  }),
+              mw(o -> {
+                o.maxInputTokens = 100;
+                o.preserveRecent = 3;
+                o.noTruncationNotice = true;
+                o.summarize = summarizer("test/summarizer", 3);
+              }),
               List.of(
                   userMsg("u1 " + repeat("X", 200)),
                   modelMsg("m1 " + repeat("X", 200)),
@@ -1735,13 +1681,11 @@ class ContextCompressionMiddlewareTest {
           GenkitException.class,
           () ->
               f.generate(
-                  mw(
-                      o -> {
-                        o.maxInputTokens = 200;
-                        o.summarize =
-                            new ContextCompressionMiddleware.Summarizer(
-                                "test/cancellingSummarizer");
-                      }),
+                  mw(o -> {
+                    o.maxInputTokens = 200;
+                    o.summarize =
+                        new ContextCompressionMiddleware.Summarizer("test/cancellingSummarizer");
+                  }),
                   fiveMessageHistory()));
       assertEquals(0, f.requests.size(), "the main model was called after the cancellation");
     } finally {
@@ -1765,11 +1709,10 @@ class ContextCompressionMiddlewareTest {
     List<String> prompts = f.defineSummarizer("test/summarizer", "Summary of turn 1");
     ModelResponse resp =
         f.generate(
-            mw(
-                o -> {
-                  o.maxInputTokens = 200;
-                  o.summarize = new ContextCompressionMiddleware.Summarizer("test/summarizer");
-                }),
+            mw(o -> {
+              o.maxInputTokens = 200;
+              o.summarize = new ContextCompressionMiddleware.Summarizer("test/summarizer");
+            }),
             fiveMessageHistory());
     Map<String, Object> s = stats(resp);
     assertEquals(1, prompts.size());
@@ -1790,12 +1733,11 @@ class ContextCompressionMiddlewareTest {
     Fixture f = new Fixture(textReply("done", 50));
     f.defineSummarizer("test/summarizer", "Preserved summary text");
     f.generate(
-        mw(
-            o -> {
-              o.maxInputTokens = 150;
-              o.maxMessages = 6;
-              o.summarize = summarizer("test/summarizer", 6);
-            }),
+        mw(o -> {
+          o.maxInputTokens = 150;
+          o.maxMessages = 6;
+          o.summarize = summarizer("test/summarizer", 6);
+        }),
         history);
     List<Message> sent = f.sent();
     assertEquals(6, sent.size());
@@ -1806,12 +1748,11 @@ class ContextCompressionMiddlewareTest {
   void truncatesToPreserveRecentWithoutOtherStrategies() {
     Fixture f = new Fixture(textReply("done", 50));
     f.generate(
-        mw(
-            o -> {
-              o.maxInputTokens = 100;
-              o.preserveRecent = 3;
-              o.noTruncationNotice = true;
-            }),
+        mw(o -> {
+          o.maxInputTokens = 100;
+          o.preserveRecent = 3;
+          o.noTruncationNotice = true;
+        }),
         List.of(
             userMsg("u1 " + repeat("X", 100)),
             modelMsg("m1 " + repeat("X", 100)),
@@ -1845,20 +1786,18 @@ class ContextCompressionMiddlewareTest {
     assertEquals(
         want,
         view.apply(
-            mw(
-                o -> {
-                  o.maxInputTokens = 300;
-                  o.deduplicateToolResponses = new ContextCompressionMiddleware.Dedupe();
-                })),
+            mw(o -> {
+              o.maxInputTokens = 300;
+              o.deduplicateToolResponses = new ContextCompressionMiddleware.Dedupe();
+            })),
         "with deduplication");
     assertEquals(
         want,
         view.apply(
-            mw(
-                o -> {
-                  o.maxInputTokens = 300;
-                  o.toolResponses = new ContextCompressionMiddleware.ToolTruncation(50);
-                })),
+            mw(o -> {
+              o.maxInputTokens = 300;
+              o.toolResponses = new ContextCompressionMiddleware.ToolTruncation(50);
+            })),
         "with truncation");
   }
 
@@ -1919,12 +1858,11 @@ class ContextCompressionMiddlewareTest {
       String large = repeat("X", 200_000);
       ModelResponse resp =
           run(
-              mw(
-                  o -> {
-                    o.maxInputTokens = 1000;
-                    o.maxToolResponseChars = 500;
-                    o.toolResponses = trunc(100, -1);
-                  }),
+              mw(o -> {
+                o.maxInputTokens = 1000;
+                o.maxToolResponseChars = 500;
+                o.toolResponses = trunc(100, -1);
+              }),
               "ok",
               Part.text(large));
       String want = "ok\n\n" + repeat("X", 96) + "\n\n[Truncated 199904 characters]";
@@ -1956,11 +1894,10 @@ class ContextCompressionMiddlewareTest {
     void capsUnderBudget() {
       ModelResponse resp =
           run(
-              mw(
-                  o -> {
-                    o.maxInputTokens = 100_000;
-                    o.maxToolResponseChars = 500;
-                  }),
+              mw(o -> {
+                o.maxInputTokens = 100_000;
+                o.maxToolResponseChars = 500;
+              }),
               "ok",
               Part.text(repeat("A", 100)),
               Part.text(repeat("B", 1000)),
@@ -1979,12 +1916,11 @@ class ContextCompressionMiddlewareTest {
     @Test
     void dropsContentWhenTheOutputAloneExceedsTheLimit() {
       run(
-          mw(
-              o -> {
-                o.maxInputTokens = 50;
-                o.maxToolResponseChars = 500;
-                o.toolResponses = trunc(100, -1);
-              }),
+          mw(o -> {
+            o.maxInputTokens = 50;
+            o.maxToolResponseChars = 500;
+            o.toolResponses = trunc(100, -1);
+          }),
           repeat("O", 200),
           Part.text(repeat("C", 300)));
       assertEquals(repeat("O", 100) + "\n\n[Truncated 400 characters]", sentResponse().getOutput());
@@ -2002,11 +1938,10 @@ class ContextCompressionMiddlewareTest {
 
       resp =
           run(
-              mw(
-                  o -> {
-                    o.maxInputTokens = 100;
-                    o.toolResponses = trunc(100, -1);
-                  }),
+              mw(o -> {
+                o.maxInputTokens = 100;
+                o.toolResponses = trunc(100, -1);
+              }),
               "ok",
               media);
       String want =
@@ -2023,11 +1958,10 @@ class ContextCompressionMiddlewareTest {
       String url = "https://example.com/assets/" + repeat("img", 100) + ".jpg";
       Part media = Part.media("image/jpeg", url);
       run(
-          mw(
-              o -> {
-                o.maxInputTokens = 20;
-                o.toolResponses = trunc(50, -1);
-              }),
+          mw(o -> {
+            o.maxInputTokens = 20;
+            o.toolResponses = trunc(50, -1);
+          }),
           "ok",
           media);
       String want =
@@ -2038,11 +1972,10 @@ class ContextCompressionMiddlewareTest {
       assertNull(sentResponse().getContent());
 
       run(
-          mw(
-              o -> {
-                o.maxInputTokens = 20;
-                o.toolResponses = trunc(10, -1);
-              }),
+          mw(o -> {
+            o.maxInputTokens = 20;
+            o.toolResponses = trunc(10, -1);
+          }),
           "ok",
           media);
       assertEquals("ok\n\n[Truncated " + url.length() + " characters]", sentResponse().getOutput());
@@ -2052,11 +1985,10 @@ class ContextCompressionMiddlewareTest {
     void keepsAStructuredPartThatFitsExactly() {
       Part data = Part.data(map("status", "ready"));
       run(
-          mw(
-              o -> {
-                o.maxInputTokens = 20;
-                o.toolResponses = trunc(20, -1);
-              }),
+          mw(o -> {
+            o.maxInputTokens = 20;
+            o.toolResponses = trunc(20, -1);
+          }),
           "ok",
           data,
           Part.text(repeat("X", 200)));
@@ -2107,13 +2039,12 @@ class ContextCompressionMiddlewareTest {
     Fixture f = new Fixture(textReply("done", 50));
     ViewRecorder rec = new ViewRecorder();
     ContextCompressionMiddleware m =
-        mw(
-            o -> {
-              o.maxMessages = 6;
-              o.maxToolResponseChars = 1000;
-              o.deduplicateToolResponses = new ContextCompressionMiddleware.Dedupe();
-              o.toolResponses = trunc(50, 1);
-            });
+        mw(o -> {
+          o.maxMessages = 6;
+          o.maxToolResponseChars = 1000;
+          o.deduplicateToolResponses = new ContextCompressionMiddleware.Dedupe();
+          o.toolResponses = trunc(50, 1);
+        });
     try {
       f.genkit.generate(
           com.google.genkit.ai.GenerateOptions.<Void>builder()
@@ -2167,11 +2098,10 @@ class ContextCompressionMiddlewareTest {
       Fixture f = new Fixture(textReply("done", 50));
       ModelResponse resp =
           f.generate(
-              mw(
-                  o -> {
-                    o.maxMessages = 2;
-                    o.noTruncationNotice = true;
-                  }),
+              mw(o -> {
+                o.maxMessages = 2;
+                o.noTruncationNotice = true;
+              }),
               List.of(userMsg("hello"), modelMsg("response 1"), userMsg("world")));
       Map<String, Object> s = stats(resp);
       assertEquals(true, s.get("triggered"));
@@ -2182,19 +2112,17 @@ class ContextCompressionMiddlewareTest {
     @Test
     void reportsACompressionInALaterIteration() {
       Fixture f =
-          new Fixture(
-              (call, req) ->
-                  call == 1
-                      ? response(toolCallMsg(req("step", null, map())), 500)
-                      : response(modelMsg("done"), 100));
+          new Fixture((call, req) ->
+              call == 1
+                  ? response(toolCallMsg(req("step", null, map())), 500)
+                  : response(modelMsg("done"), 100));
       Tool<Map<String, Object>, Object> step = f.tool("step", in -> "tool result");
       ModelResponse resp =
           f.generate(
-              mw(
-                  o -> {
-                    o.maxInputTokens = 200;
-                    o.toolResponses = trunc(5, -1);
-                  }),
+              mw(o -> {
+                o.maxInputTokens = 200;
+                o.toolResponses = trunc(5, -1);
+              }),
               List.of(userMsg("test metadata")),
               b -> b.tools(List.of(step)));
       assertEquals(true, stats(resp).get("triggered"));
@@ -2205,12 +2133,11 @@ class ContextCompressionMiddlewareTest {
     void keepsPerCallStateApartAcrossConcurrentCalls() throws Exception {
       Fixture f = new Fixture(textReply("done", 50));
       ContextCompressionMiddleware m =
-          mw(
-              o -> {
-                o.maxInputTokens = 100;
-                o.maxMessages = 2;
-                o.noTruncationNotice = true;
-              });
+          mw(o -> {
+            o.maxInputTokens = 100;
+            o.maxMessages = 2;
+            o.noTruncationNotice = true;
+          });
       List<List<Message>> histories =
           List.of(
               List.of(
@@ -2224,14 +2151,13 @@ class ContextCompressionMiddlewareTest {
       for (int i = 0; i < histories.size(); i++) {
         int idx = i;
         Thread t =
-            new Thread(
-                () -> {
-                  try {
-                    resps[idx] = f.generate(m, histories.get(idx));
-                  } catch (Throwable e) {
-                    errors.add(e);
-                  }
-                });
+            new Thread(() -> {
+              try {
+                resps[idx] = f.generate(m, histories.get(idx));
+              } catch (Throwable e) {
+                errors.add(e);
+              }
+            });
         threads.add(t);
         t.start();
       }
@@ -2248,12 +2174,11 @@ class ContextCompressionMiddlewareTest {
     void sharesOneHistoryBetweenConcurrentCalls() throws Exception {
       Fixture f = new Fixture(textReply("done", 50));
       ContextCompressionMiddleware m =
-          mw(
-              o -> {
-                o.maxInputTokens = 50;
-                o.maxMessages = 4;
-                o.toolResponses = trunc(10, -1);
-              });
+          mw(o -> {
+            o.maxInputTokens = 50;
+            o.maxMessages = 4;
+            o.toolResponses = trunc(10, -1);
+          });
       List<Message> history =
           List.of(
               withCallerMetadata(userMsg("q")),
@@ -2266,14 +2191,13 @@ class ContextCompressionMiddlewareTest {
       List<Thread> threads = new ArrayList<>();
       for (int i = 0; i < 4; i++) {
         Thread t =
-            new Thread(
-                () -> {
-                  try {
-                    f.generate(m, history);
-                  } catch (Throwable e) {
-                    errors.add(e);
-                  }
-                });
+            new Thread(() -> {
+              try {
+                f.generate(m, history);
+              } catch (Throwable e) {
+                errors.add(e);
+              }
+            });
         threads.add(t);
         t.start();
       }
@@ -2307,11 +2231,10 @@ class ContextCompressionMiddlewareTest {
       List<String> prompts = f.defineSummarizer("test/summarizer", "SUMMARY");
       ModelResponse resp =
           f.generate(
-              mw(
-                  o -> {
-                    o.maxInputTokens = 50;
-                    o.summarize = summarizer("test/summarizer", 2);
-                  }),
+              mw(o -> {
+                o.maxInputTokens = 50;
+                o.summarize = summarizer("test/summarizer", 2);
+              }),
               List.of(
                   userMsg("old question " + repeat("X", 200)),
                   modelMsg("old answer " + repeat("X", 200)),
@@ -2343,11 +2266,10 @@ class ContextCompressionMiddlewareTest {
       Fixture f = new Fixture(textReply("done", 50));
       f.defineSummarizer("test/summarizer", "SUMMARY");
       f.generate(
-          mw(
-              o -> {
-                o.maxMessages = 6;
-                o.summarize = new ContextCompressionMiddleware.Summarizer("test/summarizer");
-              }),
+          mw(o -> {
+            o.maxMessages = 6;
+            o.summarize = new ContextCompressionMiddleware.Summarizer("test/summarizer");
+          }),
           List.of(
               systemMsg("Sys"),
               scaffold(userMsg("Task")),
@@ -2421,11 +2343,10 @@ class ContextCompressionMiddlewareTest {
       f.defineSummarizer("test/summarizer", "SUMMARY");
       ModelResponse resp =
           f.generate(
-              mw(
-                  o -> {
-                    o.maxInputTokens = 50;
-                    o.summarize = summarizer("test/summarizer", 2);
-                  }),
+              mw(o -> {
+                o.maxInputTokens = 50;
+                o.summarize = summarizer("test/summarizer", 2);
+              }),
               List.of(
                   userMsg("history " + repeat("X", 300)),
                   modelMsg("reply " + repeat("X", 300)),
@@ -2553,13 +2474,12 @@ class ContextCompressionMiddlewareTest {
   @Test
   void historyRoundTripsThroughJson() {
     ContextCompressionMiddleware m =
-        mw(
-            o -> {
-              o.maxInputTokens = 100;
-              o.deduplicateToolResponses = new ContextCompressionMiddleware.Dedupe();
-              o.toolResponses = trunc(30, -1);
-              o.maxMessages = 5;
-            });
+        mw(o -> {
+          o.maxInputTokens = 100;
+          o.deduplicateToolResponses = new ContextCompressionMiddleware.Dedupe();
+          o.toolResponses = trunc(30, -1);
+          o.maxMessages = 5;
+        });
     Fixture f = new Fixture(textReply("done", 50));
     ModelResponse resp =
         f.generate(
@@ -2645,10 +2565,8 @@ class ContextCompressionMiddlewareTest {
             GenkitException.class,
             () ->
                 f.generate(
-                    mw(
-                        o ->
-                            o.summarize =
-                                new ContextCompressionMiddleware.Summarizer("test/missing")),
+                    mw(o ->
+                        o.summarize = new ContextCompressionMiddleware.Summarizer("test/missing")),
                     List.of(userMsg("hi"))));
     assertEquals("NOT_FOUND", e.getErrorCode());
     assertEquals(0, f.requests.size());

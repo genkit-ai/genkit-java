@@ -54,7 +54,7 @@ public class OpenAISample {
 
     // Define a simple greeting flow
     Flow<String, String, Void> greetingFlow =
-        genkit.defineFlow("greeting", String.class, String.class, (name) -> "Hello, " + name + "!");
+        genkit.defineFlow("greeting", String.class, String.class, name -> "Hello, " + name + "!");
 
     // Define a joke generator flow using OpenAI
     Flow<String, String, Void> jokeFlow =
@@ -157,7 +157,7 @@ public class OpenAISample {
                           .prompt(userMessage)
                           .config(GenerationConfig.builder().maxOutputTokens(1000).build())
                           .build(),
-                      (chunk) -> {
+                      chunk -> {
                         // Process each chunk as it arrives
                         String text = chunk.getText();
                         if (text != null) {
@@ -195,7 +195,7 @@ public class OpenAISample {
                           .tools(List.of(weatherTool))
                           .config(GenerationConfig.builder().maxOutputTokens(500).build())
                           .build(),
-                      (chunk) -> {
+                      chunk -> {
                         // Stream chunks as they arrive
                         String text = chunk.getText();
                         if (text != null) {

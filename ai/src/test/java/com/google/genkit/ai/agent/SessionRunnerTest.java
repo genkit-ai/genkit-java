@@ -128,13 +128,12 @@ class SessionRunnerTest {
     AgentInput input = AgentInput.builder().message(userMessage("hello")).build();
 
     // Should NOT throw even though turnBody throws
-    assertDoesNotThrow(
-        () ->
-            runner.runTurn(
-                input,
-                (inp, ctx) -> {
-                  throw new RuntimeException("simulated turn failure");
-                }));
+    assertDoesNotThrow(() ->
+        runner.runTurn(
+            input,
+            (inp, ctx) -> {
+              throw new RuntimeException("simulated turn failure");
+            }));
 
     // turnIndex advances even on failure
     assertEquals(1, runner.turnIndex());
@@ -168,14 +167,13 @@ class SessionRunnerTest {
 
     AgentInput input = AgentInput.builder().message(userMessage("hi")).build();
 
-    assertDoesNotThrow(
-        () ->
-            runner.runTurn(
-                input,
-                (inp, ctx) -> {
-                  runner.addMessages(modelMessage("hello"));
-                  return AgentFinishReason.STOP;
-                }));
+    assertDoesNotThrow(() ->
+        runner.runTurn(
+            input,
+            (inp, ctx) -> {
+              runner.addMessages(modelMessage("hello"));
+              return AgentFinishReason.STOP;
+            }));
 
     assertEquals(1, runner.turnIndex());
     // Client-managed: lastSnapshotId is "" (empty string)
@@ -254,7 +252,7 @@ class SessionRunnerTest {
             .status(SnapshotStatus.COMPLETED)
             .build();
 
-    SnapshotMutator<Map<String, Object>> inner = (e) -> toWrite;
+    SnapshotMutator<Map<String, Object>> inner = e -> toWrite;
     SnapshotMutator<Map<String, Object>> wrapped = AbortAwareMutator.wrap(inner);
 
     // When existing is ABORTED, wrapped mutator must return null (no-op)
@@ -277,7 +275,7 @@ class SessionRunnerTest {
             .status(SnapshotStatus.COMPLETED)
             .build();
 
-    SnapshotMutator<Map<String, Object>> inner = (e) -> toWrite;
+    SnapshotMutator<Map<String, Object>> inner = e -> toWrite;
     SnapshotMutator<Map<String, Object>> wrapped = AbortAwareMutator.wrap(inner);
 
     // When existing is not ABORTED, wrapped mutator delegates to inner
@@ -295,7 +293,7 @@ class SessionRunnerTest {
             .status(SnapshotStatus.COMPLETED)
             .build();
 
-    SnapshotMutator<Map<String, Object>> inner = (e) -> toWrite;
+    SnapshotMutator<Map<String, Object>> inner = e -> toWrite;
     SnapshotMutator<Map<String, Object>> wrapped = AbortAwareMutator.wrap(inner);
 
     // When existing is null (no prior snapshot), wrapped mutator delegates to inner
@@ -313,13 +311,12 @@ class SessionRunnerTest {
     AgentInput input = AgentInput.builder().message(userMessage("hello")).build();
 
     // Should NOT throw even though turnBody throws InterruptedException
-    assertDoesNotThrow(
-        () ->
-            runner.runTurn(
-                input,
-                (inp, ctx) -> {
-                  throw new InterruptedException("aborted by user");
-                }));
+    assertDoesNotThrow(() ->
+        runner.runTurn(
+            input,
+            (inp, ctx) -> {
+              throw new InterruptedException("aborted by user");
+            }));
 
     assertEquals(1, runner.turnIndex());
     // For InterruptedException, status should be ABORTED, not FAILED

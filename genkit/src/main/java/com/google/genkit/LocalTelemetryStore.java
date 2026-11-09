@@ -139,10 +139,9 @@ public class LocalTelemetryStore implements SpanProcessor {
     Map<String, Object> attributes = new HashMap<>();
     otelSpan
         .getAttributes()
-        .forEach(
-            (key, value) -> {
-              attributes.put(key.getKey(), value);
-            });
+        .forEach((key, value) -> {
+          attributes.put(key.getKey(), value);
+        });
     span.setAttributes(attributes);
 
     // Convert status

@@ -55,7 +55,7 @@ public class MistralSample {
     // Define a simple greeting flow
     Flow<String, String, Void> greetingFlow =
         genkit.defineFlow(
-            "greeting", String.class, String.class, (name) -> "Hello from Mistral, " + name + "!");
+            "greeting", String.class, String.class, name -> "Hello from Mistral, " + name + "!");
 
     // Define a chat flow using Mistral Large
     Flow<String, String, Void> chatFlow =
@@ -149,7 +149,7 @@ public class MistralSample {
                           .prompt(userMessage)
                           .config(GenerationConfig.builder().maxOutputTokens(1000).build())
                           .build(),
-                      (chunk) -> {
+                      chunk -> {
                         String text = chunk.getText();
                         if (text != null) {
                           result.append(text);
@@ -258,7 +258,7 @@ public class MistralSample {
                                   .temperature(0.9)
                                   .build())
                           .build(),
-                      (chunk) -> {
+                      chunk -> {
                         String text = chunk.getText();
                         if (text != null) {
                           result.append(text);

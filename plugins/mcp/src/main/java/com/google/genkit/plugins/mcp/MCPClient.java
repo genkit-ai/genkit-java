@@ -339,10 +339,9 @@ public class MCPClient {
             .description(mcpTool.description() != null ? mcpTool.description() : "")
             .inputSchema(inputSchema != null ? inputSchema : new HashMap<>())
             .inputClass((Class<Map<String, Object>>) (Class<?>) Map.class)
-            .handler(
-                (ctx, input) -> {
-                  return callTool(mcpTool.name(), input);
-                })
+            .handler((ctx, input) -> {
+              return callTool(mcpTool.name(), input);
+            })
             .build();
 
     // Register the tool

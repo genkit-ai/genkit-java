@@ -459,29 +459,27 @@ public final class FirestoreSessionStore<S> implements SessionStore<S>, Snapshot
     String prefix = prefix(options);
     ListenerRegistration registration =
         snapshotDoc(prefix, snapshotId)
-            .addSnapshotListener(
-                (doc, error) -> {
-                  if (error != null) {
-                    logger.warn(
-                        "Snapshot listener error for {}: {}", snapshotId, error.getMessage());
-                    return;
-                  }
-                  if (doc == null || !doc.exists()) {
-                    return;
-                  }
-                  try {
-                    SessionSnapshot<S> snap =
-                        getSnapshot(GetSnapshotOptions.builder().snapshotId(snapshotId).build());
-                    if (snap != null) {
-                      cb.accept(snap);
-                    }
-                  } catch (Exception e) {
-                    logger.warn(
-                        "Failed to reconstruct snapshot {} in listener: {}",
-                        snapshotId,
-                        e.getMessage());
-                  }
-                });
+            .addSnapshotListener((doc, error) -> {
+              if (error != null) {
+                logger.warn("Snapshot listener error for {}: {}", snapshotId, error.getMessage());
+                return;
+              }
+              if (doc == null || !doc.exists()) {
+                return;
+              }
+              try {
+                SessionSnapshot<S> snap =
+                    getSnapshot(GetSnapshotOptions.builder().snapshotId(snapshotId).build());
+                if (snap != null) {
+                  cb.accept(snap);
+                }
+              } catch (Exception e) {
+                logger.warn(
+                    "Failed to reconstruct snapshot {} in listener: {}",
+                    snapshotId,
+                    e.getMessage());
+              }
+            });
     return registration::remove;
   }
 

@@ -384,10 +384,9 @@ public class MCPSample {
     // Add shutdown hook to cleanup MCP connections
     Runtime.getRuntime()
         .addShutdownHook(
-            new Thread(
-                () -> {
-                  logger.info("Shutting down...");
-                  mcpPlugin.disconnect();
-                }));
+            new Thread(() -> {
+              logger.info("Shutting down...");
+              mcpPlugin.disconnect();
+            }));
   }
 }

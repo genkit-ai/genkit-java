@@ -198,12 +198,11 @@ final class QuestionSchemas implements SchemaProvider {
       Map<String, Object> s, Map<K, Object> guidance, Function<K, String> key) {
     Map<String, Object> wire = new LinkedHashMap<>();
     if (guidance != null) {
-      guidance.forEach(
-          (k, v) -> {
-            if (v != null) {
-              wire.put(key.apply(k), Wire.plain(v));
-            }
-          });
+      guidance.forEach((k, v) -> {
+        if (v != null) {
+          wire.put(key.apply(k), Wire.plain(v));
+        }
+      });
     }
     if (!wire.isEmpty()) {
       s.put(Wire.GUIDANCE_KEYWORD, wire);

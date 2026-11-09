@@ -76,37 +76,35 @@ public final class StreamEmitter<S> {
    * @param session the session to attach to
    */
   public void attach(Session<S> session) {
-    session.setOnCustomChanged(
-        () -> {
-          if (suppressed) {
-            return;
-          }
-          S custom = session.getCustom();
-          JsonNode cur = mapper.valueToTree(custom);
+    session.setOnCustomChanged(() -> {
+      if (suppressed) {
+        return;
+      }
+      S custom = session.getCustom();
+      JsonNode cur = mapper.valueToTree(custom);
 
-          if (firstCustomPatchInTurn) {
-            // First patch of this turn: whole-document replace
-            JsonNode patch = JsonPatch.wholeDocumentReplace(cur);
-            sink.accept(AgentStreamChunk.builder().customPatch(patch).build());
-            firstCustomPatchInTurn = false;
-          } else {
-            // Subsequent patches: incremental diff
-            JsonNode patch = JsonPatch.diff(lastCustomJson, cur);
-            if (patch.size() > 0) {
-              sink.accept(AgentStreamChunk.builder().customPatch(patch).build());
-            }
-            // Skip emitting if the diff is empty (no-op update)
-          }
-          lastCustomJson = cur;
-        });
+      if (firstCustomPatchInTurn) {
+        // First patch of this turn: whole-document replace
+        JsonNode patch = JsonPatch.wholeDocumentReplace(cur);
+        sink.accept(AgentStreamChunk.builder().customPatch(patch).build());
+        firstCustomPatchInTurn = false;
+      } else {
+        // Subsequent patches: incremental diff
+        JsonNode patch = JsonPatch.diff(lastCustomJson, cur);
+        if (patch.size() > 0) {
+          sink.accept(AgentStreamChunk.builder().customPatch(patch).build());
+        }
+        // Skip emitting if the diff is empty (no-op update)
+      }
+      lastCustomJson = cur;
+    });
 
-    session.setOnArtifactChanged(
-        (Artifact artifact) -> {
-          if (suppressed) {
-            return;
-          }
-          sink.accept(AgentStreamChunk.builder().artifact(artifact).build());
-        });
+    session.setOnArtifactChanged((Artifact artifact) -> {
+      if (suppressed) {
+        return;
+      }
+      sink.accept(AgentStreamChunk.builder().artifact(artifact).build());
+    });
   }
 
   /**

@@ -169,31 +169,30 @@ public final class Agents {
                 + "' sub-agent and return its text response.")
         .inputClass(DelegateInput.class)
         .outputClass(DelegateOutput.class)
-        .handler(
-            (ctx, in) -> {
-              if (maxDelegations > 0 && counter.incrementAndGet() > maxDelegations) {
-                return DelegateOutput.text(
-                    "Delegation limit reached ("
-                        + maxDelegations
-                        + "). Answer using the information already gathered.");
-              }
-              String task = in != null ? in.task : null;
-              Delegation.Result result =
-                  Delegation.run(ctx, agentName, task, includeContent, options.getHistoryLength());
+        .handler((ctx, in) -> {
+          if (maxDelegations > 0 && counter.incrementAndGet() > maxDelegations) {
+            return DelegateOutput.text(
+                "Delegation limit reached ("
+                    + maxDelegations
+                    + "). Answer using the information already gathered.");
+          }
+          String task = in != null ? in.task : null;
+          Delegation.Result result =
+              Delegation.run(ctx, agentName, task, includeContent, options.getHistoryLength());
 
-              DelegateOutput out = new DelegateOutput();
-              out.response = result.response;
-              if (result.artifacts != null && !result.artifacts.isEmpty()) {
-                out.artifacts = new ArrayList<>();
-                for (Delegation.NamedArtifact na : result.artifacts) {
-                  ArtifactRef ref = new ArtifactRef();
-                  ref.name = na.name;
-                  ref.content = na.content;
-                  out.artifacts.add(ref);
-                }
-              }
-              return out;
-            })
+          DelegateOutput out = new DelegateOutput();
+          out.response = result.response;
+          if (result.artifacts != null && !result.artifacts.isEmpty()) {
+            out.artifacts = new ArrayList<>();
+            for (Delegation.NamedArtifact na : result.artifacts) {
+              ArtifactRef ref = new ArtifactRef();
+              ref.name = na.name;
+              ref.content = na.content;
+              out.artifacts.add(ref);
+            }
+          }
+          return out;
+        })
         .build();
   }
 
