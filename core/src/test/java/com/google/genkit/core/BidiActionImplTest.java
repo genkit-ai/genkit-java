@@ -60,16 +60,15 @@ class BidiActionImplTest {
             .outputClass(Integer.class)
             .streamClass(Integer.class)
             .initClass(Void.class)
-            .handler(
-                (handlerCtx, init, inputs, cb) -> {
-                  int count = 0;
-                  Optional<Integer> next;
-                  while ((next = inputs.next()).isPresent()) {
-                    count++;
-                    cb.accept(next.get());
-                  }
-                  return count;
-                })
+            .handler((handlerCtx, init, inputs, cb) -> {
+              int count = 0;
+              Optional<Integer> next;
+              while ((next = inputs.next()).isPresent()) {
+                count++;
+                cb.accept(next.get());
+              }
+              return count;
+            })
             .build();
 
     List<Integer> chunks = new ArrayList<>();
@@ -78,18 +77,17 @@ class BidiActionImplTest {
     // Feed inputs from a separate thread
     ExecutorService exec = Executors.newSingleThreadExecutor();
     CountDownLatch latch = new CountDownLatch(1);
-    exec.submit(
-        () -> {
-          try {
-            latch.await(); // Wait until runBidi starts
-            source.offer(10);
-            source.offer(20);
-            source.offer(30);
-            source.end();
-          } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-          }
-        });
+    exec.submit(() -> {
+      try {
+        latch.await(); // Wait until runBidi starts
+        source.offer(10);
+        source.offer(20);
+        source.offer(30);
+        source.end();
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
+    });
 
     // Use a latch to signal producer after runBidi is called
     latch.countDown();
@@ -165,16 +163,15 @@ class BidiActionImplTest {
             .outputClass(Integer.class)
             .streamClass(Integer.class)
             .initClass(Void.class)
-            .handler(
-                (handlerCtx, init, inputs, cb) -> {
-                  int count = 0;
-                  Optional<Integer> next;
-                  while ((next = inputs.next()).isPresent()) {
-                    count++;
-                    cb.accept(next.get());
-                  }
-                  return count;
-                })
+            .handler((handlerCtx, init, inputs, cb) -> {
+              int count = 0;
+              Optional<Integer> next;
+              while ((next = inputs.next()).isPresent()) {
+                count++;
+                cb.accept(next.get());
+              }
+              return count;
+            })
             .build();
 
     List<Integer> chunks = new ArrayList<>();
@@ -198,15 +195,14 @@ class BidiActionImplTest {
             .outputClass(Integer.class)
             .streamClass(Integer.class)
             .initClass(Void.class)
-            .handler(
-                (handlerCtx, init, inputs, cb) -> {
-                  int count = 0;
-                  Optional<Integer> next;
-                  while ((next = inputs.next()).isPresent()) {
-                    count++;
-                  }
-                  return count;
-                })
+            .handler((handlerCtx, init, inputs, cb) -> {
+              int count = 0;
+              Optional<Integer> next;
+              while ((next = inputs.next()).isPresent()) {
+                count++;
+              }
+              return count;
+            })
             .build();
 
     // null input → 0 inputs seen
@@ -226,16 +222,15 @@ class BidiActionImplTest {
             .outputClass(Integer.class)
             .streamClass(Integer.class)
             .initClass(Void.class)
-            .handler(
-                (handlerCtx, init, inputs, cb) -> {
-                  int count = 0;
-                  Optional<Integer> next;
-                  while ((next = inputs.next()).isPresent()) {
-                    count++;
-                    cb.accept(next.get() * 2); // emit doubled value as chunk
-                  }
-                  return count;
-                })
+            .handler((handlerCtx, init, inputs, cb) -> {
+              int count = 0;
+              Optional<Integer> next;
+              while ((next = inputs.next()).isPresent()) {
+                count++;
+                cb.accept(next.get() * 2); // emit doubled value as chunk
+              }
+              return count;
+            })
             .build();
 
     BufferedInputSource<JsonNode> jsonSource = new BufferedInputSource<>();
@@ -310,13 +305,12 @@ class BidiActionImplTest {
             .outputClass(JsonNode.class)
             .streamClass(JsonNode.class)
             .initClass(JsonNode.class)
-            .handler(
-                (handlerCtx, init, inputs, cb) -> {
-                  inputs.next(); // drain the single input
-                  var out = MAPPER.createObjectNode();
-                  out.set("initSeen", init == null ? MAPPER.nullNode() : init);
-                  return out;
-                })
+            .handler((handlerCtx, init, inputs, cb) -> {
+              inputs.next(); // drain the single input
+              var out = MAPPER.createObjectNode();
+              out.set("initSeen", init == null ? MAPPER.nullNode() : init);
+              return out;
+            })
             .build();
 
     JsonNode initJson = MAPPER.readTree("{\"state\":{\"messages\":[{\"role\":\"user\"}]}}");

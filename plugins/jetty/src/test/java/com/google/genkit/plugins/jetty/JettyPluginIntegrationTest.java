@@ -106,14 +106,13 @@ class JettyPluginIntegrationTest {
 
     // Start in background thread
     Thread serverThread =
-        new Thread(
-            () -> {
-              try {
-                plugin.start();
-              } catch (Exception e) {
-                // Server was stopped
-              }
-            });
+        new Thread(() -> {
+          try {
+            plugin.start();
+          } catch (Exception e) {
+            // Server was stopped
+          }
+        });
     serverThread.setDaemon(true);
     serverThread.start();
 
@@ -146,14 +145,13 @@ class JettyPluginIntegrationTest {
     Flow.define(registry, "echoFlow", String.class, String.class, (ctx, input) -> "Echo: " + input);
 
     Thread serverThread =
-        new Thread(
-            () -> {
-              try {
-                plugin.start();
-              } catch (Exception e) {
-                // Server was stopped
-              }
-            });
+        new Thread(() -> {
+          try {
+            plugin.start();
+          } catch (Exception e) {
+            // Server was stopped
+          }
+        });
     serverThread.setDaemon(true);
     serverThread.start();
 
@@ -184,14 +182,13 @@ class JettyPluginIntegrationTest {
         (ctx, input) -> "Got key: " + input.get("key"));
 
     Thread serverThread =
-        new Thread(
-            () -> {
-              try {
-                plugin.start();
-              } catch (Exception e) {
-                // Server was stopped
-              }
-            });
+        new Thread(() -> {
+          try {
+            plugin.start();
+          } catch (Exception e) {
+            // Server was stopped
+          }
+        });
     serverThread.setDaemon(true);
     serverThread.start();
 

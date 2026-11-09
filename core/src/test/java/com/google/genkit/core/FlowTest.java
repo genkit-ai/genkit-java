@@ -187,7 +187,7 @@ class FlowTest {
     ActionContext ctx = new ActionContext(registry);
 
     // Flow.run (step) should throw when not called from within a flow
-    java.util.function.Function<Void, String> stepFn = (v) -> "result";
+    java.util.function.Function<Void, String> stepFn = v -> "result";
     assertThrows(GenkitException.class, () -> Flow.run(ctx, "stepName", stepFn));
   }
 }

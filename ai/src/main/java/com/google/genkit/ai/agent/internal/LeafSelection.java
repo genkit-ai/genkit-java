@@ -109,12 +109,11 @@ public final class LeafSelection {
     // Pick the most recent leaf; null createdAt treated as epoch (earliest).
     return leaves.stream()
         .max(LeafSelection::compareByCreatedAtThenId)
-        .orElseThrow(
-            () ->
-                GenkitException.builder()
-                    .message("Unexpected empty leaves stream.")
-                    .errorCode("FAILED_PRECONDITION")
-                    .build());
+        .orElseThrow(() ->
+            GenkitException.builder()
+                .message("Unexpected empty leaves stream.")
+                .errorCode("FAILED_PRECONDITION")
+                .build());
   }
 
   /**

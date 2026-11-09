@@ -272,11 +272,10 @@ public class LocalVecDocStore {
     String name = LocalVecPlugin.PROVIDER + "/" + config.getIndexName();
     return Indexer.builder()
         .name(name)
-        .handler(
-            (ctx, request) -> {
-              index(ctx, request.getDocuments());
-              return new IndexerResponse();
-            })
+        .handler((ctx, request) -> {
+          index(ctx, request.getDocuments());
+          return new IndexerResponse();
+        })
         .build();
   }
 

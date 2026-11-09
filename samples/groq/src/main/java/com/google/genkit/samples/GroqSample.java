@@ -55,7 +55,7 @@ public class GroqSample {
     // Define a simple greeting flow
     Flow<String, String, Void> greetingFlow =
         genkit.defineFlow(
-            "greeting", String.class, String.class, (name) -> "Hello from Groq, " + name + "!");
+            "greeting", String.class, String.class, name -> "Hello from Groq, " + name + "!");
 
     // Define a chat flow using Llama 3.3 70B (most capable)
     Flow<String, String, Void> chatFlow =
@@ -151,7 +151,7 @@ public class GroqSample {
                           .prompt(userMessage)
                           .config(GenerationConfig.builder().maxOutputTokens(1000).build())
                           .build(),
-                      (chunk) -> {
+                      chunk -> {
                         String text = chunk.getText();
                         if (text != null) {
                           result.append(text);

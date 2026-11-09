@@ -89,7 +89,7 @@ public class AzureFoundrySample {
 
     // Define a simple greeting flow
     Flow<String, String, Void> greetingFlow =
-        genkit.defineFlow("greeting", String.class, String.class, (name) -> "Hello, " + name + "!");
+        genkit.defineFlow("greeting", String.class, String.class, name -> "Hello, " + name + "!");
 
     // Define a joke generator flow using GPT-4
     Flow<String, String, Void> jokeFlow =

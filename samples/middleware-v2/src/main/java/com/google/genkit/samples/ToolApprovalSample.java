@@ -70,15 +70,13 @@ public class ToolApprovalSample {
             .description("Looks up an order's status by id.")
             .inputClass(OrderInput.class)
             .outputClass(String.class)
-            .handler(
-                (ctx, in) -> {
-                  if (!"42".equals(in.id)) {
-                    // The model reads this and can try again.
-                    throw new ToolFailException(
-                        "no order with id " + in.id + "; the only order is 42");
-                  }
-                  return "Order 42: delivered";
-                })
+            .handler((ctx, in) -> {
+              if (!"42".equals(in.id)) {
+                // The model reads this and can try again.
+                throw new ToolFailException("no order with id " + in.id + "; the only order is 42");
+              }
+              return "Order 42: delivered";
+            })
             .build();
 
     Filesystem files =
@@ -103,15 +101,11 @@ public class ToolApprovalSample {
       ResumeOptions.Builder resume = ResumeOptions.builder();
       for (Part part : response.getInterrupts()) {
         ToolApproval.toolApprovalInterrupted(part)
-            .ifPresent(
-                call -> {
-                  System.out.println(
-                      "Approving "
-                          + call.getPart().getToolRequest().getName()
-                          + " "
-                          + call.getInput());
-                  resume.part(call.restart(ToolCallDecision.approve()));
-                });
+            .ifPresent(call -> {
+              System.out.println(
+                  "Approving " + call.getPart().getToolRequest().getName() + " " + call.getInput());
+              resume.part(call.restart(ToolCallDecision.approve()));
+            });
       }
       response =
           genkit.generate(

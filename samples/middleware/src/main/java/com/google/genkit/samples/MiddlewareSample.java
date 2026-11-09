@@ -121,35 +121,32 @@ public class MiddlewareSample {
 
     // Middleware that sanitizes input (removes extra whitespace, trims)
     Middleware<String, String> sanitizeMiddleware =
-        CommonMiddleware.transformRequest(
-            input -> {
-              if (input == null) {
-                return "";
-              }
-              return input.trim().replaceAll("\\s+", " ");
-            });
+        CommonMiddleware.transformRequest(input -> {
+          if (input == null) {
+            return "";
+          }
+          return input.trim().replaceAll("\\s+", " ");
+        });
 
     // Middleware that formats output
     Middleware<String, String> formatMiddleware =
-        CommonMiddleware.transformResponse(
-            output -> {
-              return "[" + Instant.now() + "] " + output;
-            });
+        CommonMiddleware.transformResponse(output -> {
+          return "[" + Instant.now() + "] " + output;
+        });
 
     // =======================================================
     // Example 4: Validation middleware
     // =======================================================
 
     Middleware<String, String> validationMiddleware =
-        CommonMiddleware.validate(
-            input -> {
-              if (input == null || input.trim().isEmpty()) {
-                throw new GenkitException("Input cannot be empty");
-              }
-              if (input.length() > 1000) {
-                throw new GenkitException("Input too long (max 1000 characters)");
-              }
-            });
+        CommonMiddleware.validate(input -> {
+          if (input == null || input.trim().isEmpty()) {
+            throw new GenkitException("Input cannot be empty");
+          }
+          if (input.length() > 1000) {
+            throw new GenkitException("Input too long (max 1000 characters)");
+          }
+        });
 
     // =======================================================
     // Example 5: Chat flow with multiple middleware
@@ -280,10 +277,9 @@ public class MiddlewareSample {
                 (response, ctx) ->
                     logger.info(
                         "✅ Analysis complete, response length: {} chars", response.length())),
-            CommonMiddleware.timing(
-                duration -> {
-                  logger.info("⏱️ Analysis took {}ms", duration);
-                }));
+            CommonMiddleware.timing(duration -> {
+              logger.info("⏱️ Analysis took {}ms", duration);
+            }));
 
     Flow<String, String, Void> analyzeFlow =
         genkit.defineFlow(
@@ -307,11 +303,10 @@ public class MiddlewareSample {
     // =======================================================
 
     Middleware<String, String> errorHandling =
-        CommonMiddleware.errorHandler(
-            e -> {
-              logger.error("Flow failed with error: {}", e.getMessage());
-              return "Sorry, I encountered an error: " + e.getMessage();
-            });
+        CommonMiddleware.errorHandler(e -> {
+          logger.error("Flow failed with error: {}", e.getMessage());
+          return "Sorry, I encountered an error: " + e.getMessage();
+        });
 
     List<Middleware<String, String>> safeMiddleware =
         List.of(
@@ -346,22 +341,20 @@ public class MiddlewareSample {
               sb.append("=== Middleware Sample Metrics ===\n\n");
 
               sb.append("Request Counts:\n");
-              requestCounts.forEach(
-                  (flow, count) ->
-                      sb.append("  ").append(flow).append(": ").append(count).append("\n"));
+              requestCounts.forEach((flow, count) ->
+                  sb.append("  ").append(flow).append(": ").append(count).append("\n"));
 
               sb.append("\nAverage Response Times:\n");
-              responseTimes.forEach(
-                  (flow, times) -> {
-                    if (!times.isEmpty()) {
-                      double avg = times.stream().mapToLong(Long::longValue).average().orElse(0);
-                      sb.append("  ")
-                          .append(flow)
-                          .append(": ")
-                          .append(String.format("%.2f", avg))
-                          .append("ms\n");
-                    }
-                  });
+              responseTimes.forEach((flow, times) -> {
+                if (!times.isEmpty()) {
+                  double avg = times.stream().mapToLong(Long::longValue).average().orElse(0);
+                  sb.append("  ")
+                      .append(flow)
+                      .append(": ")
+                      .append(String.format("%.2f", avg))
+                      .append("ms\n");
+                }
+              });
 
               return sb.toString();
             });

@@ -246,18 +246,16 @@ final class Fixtures {
             false,
             (sess, ctx) -> {
               sess.updateCustom(prev -> mapOf("counter", 1, "status", "working"));
-              sess.updateCustom(
-                  prev -> {
-                    Map<String, Object> out = new HashMap<>(prev);
-                    out.put("counter", 2);
-                    return out;
-                  });
-              sess.updateCustom(
-                  prev -> {
-                    Map<String, Object> out = new HashMap<>(prev);
-                    out.put("status", "done");
-                    return out;
-                  });
+              sess.updateCustom(prev -> {
+                Map<String, Object> out = new HashMap<>(prev);
+                out.put("counter", 2);
+                return out;
+              });
+              sess.updateCustom(prev -> {
+                Map<String, Object> out = new HashMap<>(prev);
+                out.put("status", "done");
+                return out;
+              });
               return done();
             }));
 

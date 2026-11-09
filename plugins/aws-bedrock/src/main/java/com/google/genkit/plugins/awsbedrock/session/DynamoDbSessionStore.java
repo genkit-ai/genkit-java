@@ -134,12 +134,11 @@ public final class DynamoDbSessionStore<S> implements SessionStore<S>, SnapshotS
     this.db = db;
     this.options = options;
     this.scheduler =
-        Executors.newSingleThreadScheduledExecutor(
-            r -> {
-              Thread t = new Thread(r, "genkit-dynamodb-session-store-poll");
-              t.setDaemon(true);
-              return t;
-            });
+        Executors.newSingleThreadScheduledExecutor(r -> {
+          Thread t = new Thread(r, "genkit-dynamodb-session-store-poll");
+          t.setDaemon(true);
+          return t;
+        });
     if (options.isCreateTableIfNotExists()) {
       ensureTable();
     }

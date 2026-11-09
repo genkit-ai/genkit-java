@@ -117,22 +117,20 @@ class QuestionsTest {
   void preambleLeadsEveryQuestion() {
     Map<String, WireQuestion> got =
         Questions.compile(triageSchema(), "The state is a support ticket.");
-    got.forEach(
-        (id, q) ->
-            assertEquals(
-                "The state is a support ticket.\n\n" + triageQuestions().get(id).instructions,
-                q.instructions));
+    got.forEach((id, q) ->
+        assertEquals(
+            "The state is a support ticket.\n\n" + triageQuestions().get(id).instructions,
+            q.instructions));
 
     // The schema's own description follows the system text.
     Map<String, Object> schema = new LinkedHashMap<>(triageSchema());
     schema.put("description", "Triage a ticket for the support queue.");
     got = Questions.compile(schema, "The state is a support ticket.");
-    got.forEach(
-        (id, q) ->
-            assertEquals(
-                "The state is a support ticket.\n\nTriage a ticket for the support queue.\n\n"
-                    + triageQuestions().get(id).instructions,
-                q.instructions));
+    got.forEach((id, q) ->
+        assertEquals(
+            "The state is a support ticket.\n\nTriage a ticket for the support queue.\n\n"
+                + triageQuestions().get(id).instructions,
+            q.instructions));
   }
 
   @Test

@@ -325,12 +325,11 @@ final class Client {
       a.error = Wire.error("INVALID_ARGUMENT", endpoint.name() + ": " + e.getMessage(), e);
       return a;
     }
-    headers.forEach(
-        (name, values) -> {
-          for (String value : values) {
-            builder.addHeader(name, value);
-          }
-        });
+    headers.forEach((name, values) -> {
+      for (String value : values) {
+        builder.addHeader(name, value);
+      }
+    });
     if (apiKey != null && !apiKey.isEmpty()) {
       builder.header("Authorization", "Bearer " + apiKey);
     }

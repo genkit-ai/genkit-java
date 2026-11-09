@@ -71,12 +71,11 @@ class SessionTest {
     Session<Map<String, Object>> session = new Session<>(state);
     long versionBefore = session.getVersion();
 
-    session.updateCustom(
-        c -> {
-          Map<String, Object> next = new HashMap<>(c);
-          next.put("count", 1);
-          return next;
-        });
+    session.updateCustom(c -> {
+      Map<String, Object> next = new HashMap<>(c);
+      next.put("count", 1);
+      return next;
+    });
 
     assertEquals(
         versionBefore + 1, session.getVersion(), "version must increment after updateCustom");
@@ -96,12 +95,11 @@ class SessionTest {
     AtomicInteger callCount = new AtomicInteger(0);
     session.setOnCustomChanged(() -> callCount.incrementAndGet());
 
-    session.updateCustom(
-        c -> {
-          Map<String, Object> next = new HashMap<>(c);
-          next.put("value", "changed");
-          return next;
-        });
+    session.updateCustom(c -> {
+      Map<String, Object> next = new HashMap<>(c);
+      next.put("value", "changed");
+      return next;
+    });
 
     assertEquals(1, callCount.get(), "onCustomChanged must be called once");
   }

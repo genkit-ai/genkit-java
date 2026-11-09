@@ -368,11 +368,10 @@ public class MCPServerSample {
     // Add shutdown hook for cleanup
     Runtime.getRuntime()
         .addShutdownHook(
-            new Thread(
-                () -> {
-                  logger.info("Shutting down MCP server...");
-                  mcpServer.stop();
-                }));
+            new Thread(() -> {
+              logger.info("Shutting down MCP server...");
+              mcpServer.stop();
+            }));
 
     // Start the server (blocks until client disconnects)
     mcpServer.start();

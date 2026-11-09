@@ -55,7 +55,7 @@ public class CohereSample {
     // Define a simple greeting flow
     Flow<String, String, Void> greetingFlow =
         genkit.defineFlow(
-            "greeting", String.class, String.class, (name) -> "Hello from Cohere, " + name + "!");
+            "greeting", String.class, String.class, name -> "Hello from Cohere, " + name + "!");
 
     // Define a chat flow using Command A
     Flow<String, String, Void> chatFlow =
@@ -148,7 +148,7 @@ public class CohereSample {
                           .prompt(userMessage)
                           .config(GenerationConfig.builder().maxOutputTokens(1000).build())
                           .build(),
-                      (chunk) -> {
+                      chunk -> {
                         String text = chunk.getText();
                         if (text != null) {
                           result.append(text);
@@ -258,7 +258,7 @@ public class CohereSample {
                                   .temperature(0.9)
                                   .build())
                           .build(),
-                      (chunk) -> {
+                      chunk -> {
                         String text = chunk.getText();
                         if (text != null) {
                           result.append(text);

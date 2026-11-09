@@ -543,24 +543,22 @@ public class SystemOneSample {
             List<Future<RankedPassage>> futures = new ArrayList<>();
             for (String passage : passages) {
               futures.add(
-                  inFlight.submit(
-                      () -> {
-                        Relevance relevance =
-                            genkit.generate(
-                                GenerateOptions.builder()
-                                    .model(MODEL)
-                                    .messages(
-                                        List.of(
-                                            userData(
-                                                Map.of(
-                                                    "query", input.query(), "passage", passage))))
-                                    .outputClass(Relevance.class)
-                                    .build());
-                        boolean kept =
-                            relevance.injection().probability() < 0.7
-                                && relevance.relevant().probability() >= 0.45;
-                        return new RankedPassage(passage, relevance, kept);
-                      }));
+                  inFlight.submit(() -> {
+                    Relevance relevance =
+                        genkit.generate(
+                            GenerateOptions.builder()
+                                .model(MODEL)
+                                .messages(
+                                    List.of(
+                                        userData(
+                                            Map.of("query", input.query(), "passage", passage))))
+                                .outputClass(Relevance.class)
+                                .build());
+                    boolean kept =
+                        relevance.injection().probability() < 0.7
+                            && relevance.relevant().probability() >= 0.45;
+                    return new RankedPassage(passage, relevance, kept);
+                  }));
             }
             List<RankedPassage> ranked = new ArrayList<>();
             for (int i = 0; i < futures.size(); i++) {

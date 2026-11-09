@@ -107,38 +107,36 @@ class RemoteAgentTest {
             .outputClass(JsonNode.class)
             .streamClass(JsonNode.class)
             .initClass(JsonNode.class)
-            .handler(
-                (ctx, init, inputs, cb) -> {
-                  Optional<JsonNode> first = inputs.next();
-                  JsonNode data = first.orElse(MAPPER.nullNode());
-                  JsonNode messageNode = data.path("message");
+            .handler((ctx, init, inputs, cb) -> {
+              Optional<JsonNode> first = inputs.next();
+              JsonNode data = first.orElse(MAPPER.nullNode());
+              JsonNode messageNode = data.path("message");
 
-                  int turn = turnCounter.incrementAndGet();
+              int turn = turnCounter.incrementAndGet();
 
-                  // Emit one streamed chunk.
-                  if (cb != null) {
-                    ObjectNode chunk = MAPPER.createObjectNode();
-                    chunk.put("text", "streaming...");
-                    cb.accept(chunk);
-                  }
+              // Emit one streamed chunk.
+              if (cb != null) {
+                ObjectNode chunk = MAPPER.createObjectNode();
+                chunk.put("text", "streaming...");
+                cb.accept(chunk);
+              }
 
-                  // Build final output.
-                  ObjectNode result = MAPPER.createObjectNode();
-                  result.put("snapshotId", "snap-" + turn);
-                  result.put("sessionId", "session-1");
-                  result.put("finishReason", AgentFinishReason.STOP.getValue());
-                  // Echo message back.
-                  ObjectNode message = MAPPER.createObjectNode();
-                  message.put("role", "model");
-                  ObjectNode part = MAPPER.createObjectNode();
-                  // Echo the first text part of the user message.
-                  String userText =
-                      messageNode.path("content").path(0).path("text").asText("(empty)");
-                  part.put("text", "echo: " + userText);
-                  message.putArray("content").add(part);
-                  result.set("message", message);
-                  return result;
-                })
+              // Build final output.
+              ObjectNode result = MAPPER.createObjectNode();
+              result.put("snapshotId", "snap-" + turn);
+              result.put("sessionId", "session-1");
+              result.put("finishReason", AgentFinishReason.STOP.getValue());
+              // Echo message back.
+              ObjectNode message = MAPPER.createObjectNode();
+              message.put("role", "model");
+              ObjectNode part = MAPPER.createObjectNode();
+              // Echo the first text part of the user message.
+              String userText = messageNode.path("content").path(0).path("text").asText("(empty)");
+              part.put("text", "echo: " + userText);
+              message.putArray("content").add(part);
+              result.set("message", message);
+              return result;
+            })
             .build();
     agent.register(registry);
 
@@ -169,14 +167,13 @@ class RemoteAgentTest {
     plugin.init(registry);
 
     Thread serverThread =
-        new Thread(
-            () -> {
-              try {
-                plugin.start();
-              } catch (Exception e) {
-                // Server stopped.
-              }
-            });
+        new Thread(() -> {
+          try {
+            plugin.start();
+          } catch (Exception e) {
+            // Server stopped.
+          }
+        });
     serverThread.setDaemon(true);
     serverThread.start();
 
@@ -300,14 +297,13 @@ class RemoteAgentTest {
     plugin.init(registry);
 
     Thread serverThread =
-        new Thread(
-            () -> {
-              try {
-                plugin.start();
-              } catch (Exception e) {
-                // Server stopped.
-              }
-            });
+        new Thread(() -> {
+          try {
+            plugin.start();
+          } catch (Exception e) {
+            // Server stopped.
+          }
+        });
     serverThread.setDaemon(true);
     serverThread.start();
 
@@ -349,14 +345,13 @@ class RemoteAgentTest {
     plugin.init(registry);
 
     Thread serverThread =
-        new Thread(
-            () -> {
-              try {
-                plugin.start();
-              } catch (Exception e) {
-                // Server stopped.
-              }
-            });
+        new Thread(() -> {
+          try {
+            plugin.start();
+          } catch (Exception e) {
+            // Server stopped.
+          }
+        });
     serverThread.setDaemon(true);
     serverThread.start();
 

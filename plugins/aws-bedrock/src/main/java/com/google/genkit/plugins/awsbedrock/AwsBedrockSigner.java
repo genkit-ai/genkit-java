@@ -68,10 +68,9 @@ final class AwsBedrockSigner {
               .method(SdkHttpMethod.POST)
               .putHeader("Content-Type", "application/json")
               .putHeader("Accept", "application/json")
-              .contentStreamProvider(
-                  () ->
-                      new java.io.ByteArrayInputStream(
-                          body.getBytes(java.nio.charset.StandardCharsets.UTF_8)))
+              .contentStreamProvider(() ->
+                  new java.io.ByteArrayInputStream(
+                      body.getBytes(java.nio.charset.StandardCharsets.UTF_8)))
               .build();
 
       Aws4Signer signer = Aws4Signer.create();

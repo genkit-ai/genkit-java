@@ -87,14 +87,13 @@ class AgentDetachHttpTest {
     plugin.init(registry);
 
     Thread serverThread =
-        new Thread(
-            () -> {
-              try {
-                plugin.start();
-              } catch (Exception e) {
-                // Server stopped.
-              }
-            });
+        new Thread(() -> {
+          try {
+            plugin.start();
+          } catch (Exception e) {
+            // Server stopped.
+          }
+        });
     serverThread.setDaemon(true);
     serverThread.start();
 

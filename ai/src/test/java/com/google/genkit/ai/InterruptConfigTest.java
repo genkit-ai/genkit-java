@@ -79,13 +79,12 @@ class InterruptConfigTest {
             .description("Confirm action")
             .inputType(TestInput.class)
             .outputType(TestOutput.class)
-            .requestMetadata(
-                input -> {
-                  Map<String, Object> metadata = new HashMap<>();
-                  metadata.put("action", input.action);
-                  metadata.put("amount", input.amount);
-                  return metadata;
-                })
+            .requestMetadata(input -> {
+              Map<String, Object> metadata = new HashMap<>();
+              metadata.put("action", input.action);
+              metadata.put("amount", input.amount);
+              return metadata;
+            })
             .build();
 
     TestInput input = new TestInput();

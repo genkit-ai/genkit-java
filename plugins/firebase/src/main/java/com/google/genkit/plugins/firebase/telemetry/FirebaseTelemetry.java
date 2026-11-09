@@ -213,13 +213,12 @@ public class FirebaseTelemetry {
     // Register shutdown hook
     Runtime.getRuntime()
         .addShutdownHook(
-            new Thread(
-                () -> {
-                  logger.debug("Shutting down Firebase telemetry...");
-                  if (meterProvider != null) {
-                    meterProvider.close();
-                  }
-                }));
+            new Thread(() -> {
+              logger.debug("Shutting down Firebase telemetry...");
+              if (meterProvider != null) {
+                meterProvider.close();
+              }
+            }));
 
     logger.info(
         "Google Cloud telemetry initialized - traces to Cloud Trace, metrics to Cloud Monitoring");

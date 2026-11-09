@@ -121,15 +121,14 @@ public final class InMemorySessionStore<S> implements SessionStore<S>, SnapshotS
         String targetSessionId = opts.getSessionId();
         List<SessionSnapshot<S>> matching =
             snapshots.values().stream()
-                .filter(
-                    s -> {
-                      // sessionId can be on the snapshot itself or on its state
-                      String sid = s.getSessionId();
-                      if (sid == null && s.getState() != null) {
-                        sid = s.getState().getSessionId();
-                      }
-                      return targetSessionId.equals(sid);
-                    })
+                .filter(s -> {
+                  // sessionId can be on the snapshot itself or on its state
+                  String sid = s.getSessionId();
+                  if (sid == null && s.getState() != null) {
+                    sid = s.getState().getSessionId();
+                  }
+                  return targetSessionId.equals(sid);
+                })
                 .map(s -> (SessionSnapshot<S>) s)
                 .collect(Collectors.toList());
 

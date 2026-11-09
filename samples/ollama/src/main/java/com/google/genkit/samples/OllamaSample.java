@@ -60,7 +60,7 @@ public class OllamaSample {
 
     // Define a simple greeting flow
     Flow<String, String, Void> greetingFlow =
-        genkit.defineFlow("greeting", String.class, String.class, (name) -> "Hello, " + name + "!");
+        genkit.defineFlow("greeting", String.class, String.class, name -> "Hello, " + name + "!");
 
     // Define a chat flow using Gemma 3n
     Flow<String, String, Void> chatFlow =
@@ -129,7 +129,7 @@ public class OllamaSample {
                           .prompt(userMessage)
                           .config(GenerationConfig.builder().maxOutputTokens(1000).build())
                           .build(),
-                      (chunk) -> {
+                      chunk -> {
                         // Process each chunk as it arrives
                         String text = chunk.getText();
                         if (text != null) {
@@ -169,7 +169,7 @@ public class OllamaSample {
                                   .temperature(0.3)
                                   .build())
                           .build(),
-                      (chunk) -> {
+                      chunk -> {
                         String text = chunk.getText();
                         if (text != null) {
                           result.append(text);
@@ -231,7 +231,7 @@ public class OllamaSample {
                                   .temperature(0.9)
                                   .build())
                           .build(),
-                      (chunk) -> {
+                      chunk -> {
                         String text = chunk.getText();
                         if (text != null) {
                           result.append(text);

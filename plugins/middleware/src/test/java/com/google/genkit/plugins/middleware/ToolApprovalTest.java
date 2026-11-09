@@ -321,15 +321,14 @@ class ToolApprovalTest {
             .description("moves money")
             .inputClass(TransferInput.class)
             .outputClass(String.class)
-            .handler(
-                (ctx, in) -> {
-                  resumes.add(ctx.getResumed());
-                  if (!ctx.isResumed()) {
-                    throw new ToolInterruptException();
-                  }
-                  Object approved = ((Map<?, ?>) ctx.getResumed()).get("approved");
-                  return Boolean.TRUE.equals(approved) ? "completed" : "cancelled";
-                })
+            .handler((ctx, in) -> {
+              resumes.add(ctx.getResumed());
+              if (!ctx.isResumed()) {
+                throw new ToolInterruptException();
+              }
+              Object approved = ((Map<?, ?>) ctx.getResumed()).get("approved");
+              return Boolean.TRUE.equals(approved) ? "completed" : "cancelled";
+            })
             .build();
     List<Tool<?, ?>> tools = List.of(transfer);
     ToolApproval ta = new ToolApproval(); // deny all

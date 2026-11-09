@@ -76,28 +76,25 @@ class StreamEmitterTest {
     emitter.beginTurn();
 
     // Update 1: counter 0 → 1
-    session.updateCustom(
-        s -> {
-          Map<String, Object> next = new HashMap<>(s);
-          next.put("counter", 1);
-          return next;
-        });
+    session.updateCustom(s -> {
+      Map<String, Object> next = new HashMap<>(s);
+      next.put("counter", 1);
+      return next;
+    });
 
     // Update 2: counter 1 → 2
-    session.updateCustom(
-        s -> {
-          Map<String, Object> next = new HashMap<>(s);
-          next.put("counter", 2);
-          return next;
-        });
+    session.updateCustom(s -> {
+      Map<String, Object> next = new HashMap<>(s);
+      next.put("counter", 2);
+      return next;
+    });
 
     // Update 3: counter 2 → 3
-    session.updateCustom(
-        s -> {
-          Map<String, Object> next = new HashMap<>(s);
-          next.put("counter", 3);
-          return next;
-        });
+    session.updateCustom(s -> {
+      Map<String, Object> next = new HashMap<>(s);
+      next.put("counter", 3);
+      return next;
+    });
 
     assertEquals(3, emitted.size(), "exactly 3 chunks must be emitted");
 
@@ -141,22 +138,20 @@ class StreamEmitterTest {
 
     // Turn 1
     emitter.beginTurn();
-    session.updateCustom(
-        s -> {
-          Map<String, Object> next = new HashMap<>(s);
-          next.put("counter", 1);
-          return next;
-        });
+    session.updateCustom(s -> {
+      Map<String, Object> next = new HashMap<>(s);
+      next.put("counter", 1);
+      return next;
+    });
     // One chunk emitted (whole-doc replace), counter is now at 1
 
     // Turn 2
     emitter.beginTurn();
-    session.updateCustom(
-        s -> {
-          Map<String, Object> next = new HashMap<>(s);
-          next.put("counter", 2);
-          return next;
-        });
+    session.updateCustom(s -> {
+      Map<String, Object> next = new HashMap<>(s);
+      next.put("counter", 2);
+      return next;
+    });
 
     assertEquals(2, emitted.size(), "one chunk per turn");
 
@@ -200,12 +195,11 @@ class StreamEmitterTest {
     emitter.setSuppressed(true);
 
     // updateCustom must not emit
-    session.updateCustom(
-        s -> {
-          Map<String, Object> next = new HashMap<>(s);
-          next.put("counter", 99);
-          return next;
-        });
+    session.updateCustom(s -> {
+      Map<String, Object> next = new HashMap<>(s);
+      next.put("counter", 99);
+      return next;
+    });
 
     // addArtifacts must not emit
     session.addArtifacts(Artifact.builder().name("ignored").build());
@@ -223,21 +217,19 @@ class StreamEmitterTest {
     emitter.beginTurn();
 
     // First update: whole-doc replace emitted
-    session.updateCustom(
-        s -> {
-          Map<String, Object> next = new HashMap<>(s);
-          next.put("counter", 10);
-          return next;
-        });
+    session.updateCustom(s -> {
+      Map<String, Object> next = new HashMap<>(s);
+      next.put("counter", 10);
+      return next;
+    });
     assertEquals(1, emitted.size(), "first update emits one chunk");
 
     // Second update: same value as previous → empty diff → no chunk
-    session.updateCustom(
-        s -> {
-          Map<String, Object> next = new HashMap<>(s);
-          next.put("counter", 10); // same value
-          return next;
-        });
+    session.updateCustom(s -> {
+      Map<String, Object> next = new HashMap<>(s);
+      next.put("counter", 10); // same value
+      return next;
+    });
     assertEquals(1, emitted.size(), "no-op update must not emit a chunk");
   }
 }

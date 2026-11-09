@@ -193,10 +193,9 @@ public class TelemetryServerExporter implements SpanProcessor {
     Map<String, Object> attributes = new HashMap<>();
     otelSpan
         .getAttributes()
-        .forEach(
-            (key, value) -> {
-              attributes.put(key.getKey(), value);
-            });
+        .forEach((key, value) -> {
+          attributes.put(key.getKey(), value);
+        });
     span.setAttributes(attributes);
 
     // Convert status
@@ -232,10 +231,9 @@ public class TelemetryServerExporter implements SpanProcessor {
         Map<String, Object> eventAttrs = new HashMap<>();
         event
             .getAttributes()
-            .forEach(
-                (key, value) -> {
-                  eventAttrs.put(key.getKey(), value);
-                });
+            .forEach((key, value) -> {
+              eventAttrs.put(key.getKey(), value);
+            });
         annotation.setAttributes(eventAttrs);
 
         timeEvent.setAnnotation(annotation);
@@ -262,10 +260,9 @@ public class TelemetryServerExporter implements SpanProcessor {
 
         Map<String, Object> linkAttrs = new HashMap<>();
         link.getAttributes()
-            .forEach(
-                (key, value) -> {
-                  linkAttrs.put(key.getKey(), value);
-                });
+            .forEach((key, value) -> {
+              linkAttrs.put(key.getKey(), value);
+            });
         l.setAttributes(linkAttrs);
         l.setDroppedAttributesCount(link.getTotalAttributeCount() - link.getAttributes().size());
 

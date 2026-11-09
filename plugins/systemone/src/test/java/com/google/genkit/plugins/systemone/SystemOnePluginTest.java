@@ -192,14 +192,13 @@ class SystemOnePluginTest {
     assertEquals(Map.of("ticket", "hi", "tier", "business"), fake.last().body().get("state"));
 
     // history: the system message is instructions, not a record of the state.
-    run.accept(
-        b ->
-            b.messages(
-                List.of(
-                    Message.system("Be terse."),
-                    Message.user("Hi"),
-                    Message.model("Hello. How can I help?"),
-                    Message.user("My card was charged twice."))));
+    run.accept(b ->
+        b.messages(
+            List.of(
+                Message.system("Be terse."),
+                Message.user("Hi"),
+                Message.model("Hello. How can I help?"),
+                Message.user("My card was charged twice."))));
     assertEquals(
         List.of(
             Map.of("role", "user", "content", "Hi"),
@@ -211,14 +210,12 @@ class SystemOnePluginTest {
     // reach neither the state nor the questions.
     Part plumbing = Part.text("Output should be in JSON format.");
     plumbing.setMetadata(Map.of("purpose", "output"));
-    run.accept(
-        b ->
-            b.messages(
-                List.of(
-                    new Message(
-                        com.google.genkit.ai.Role.SYSTEM, new ArrayList<>(List.of(plumbing))),
-                    user(Part.text("My card was charged twice."), plumbing),
-                    Message.model("{\"refund\": true}"))));
+    run.accept(b ->
+        b.messages(
+            List.of(
+                new Message(com.google.genkit.ai.Role.SYSTEM, new ArrayList<>(List.of(plumbing))),
+                user(Part.text("My card was charged twice."), plumbing),
+                Message.model("{\"refund\": true}"))));
     assertEquals(
         List.of(
             Map.of("role", "user", "content", "My card was charged twice."),
@@ -227,16 +224,14 @@ class SystemOnePluginTest {
     assertFalse(Wire.json(fake.last().body().get("questions")).contains("JSON format"));
 
     // documents
-    run.accept(
-        b ->
-            b.prompt("Is the refund policy 30 days?")
-                .docs(
-                    List.of(
-                        Document.fromText("Refunds within 30 days.", Map.of("id", "policy-1")),
-                        Document.fromText("Shipping takes a week."),
-                        new Document(
-                            new ArrayList<>(
-                                List.of(Part.data(Map.of("sku", "A-1", "stock", 3))))))));
+    run.accept(b ->
+        b.prompt("Is the refund policy 30 days?")
+            .docs(
+                List.of(
+                    Document.fromText("Refunds within 30 days.", Map.of("id", "policy-1")),
+                    Document.fromText("Shipping takes a week."),
+                    new Document(
+                        new ArrayList<>(List.of(Part.data(Map.of("sku", "A-1", "stock", 3))))))));
     assertEquals(
         Map.of(
             "messages",
@@ -251,30 +246,26 @@ class SystemOnePluginTest {
     // document with media
     assertRefused(
         () ->
-            run.accept(
-                b ->
-                    b.prompt("Is this the product?")
-                        .docs(
-                            List.of(
-                                new Document(
-                                    new ArrayList<>(
-                                        List.of(
-                                            Part.media(
-                                                "image/png", "data:image/png;base64,AAAA"))))))),
+            run.accept(b ->
+                b.prompt("Is this the product?")
+                    .docs(
+                        List.of(
+                            new Document(
+                                new ArrayList<>(
+                                    List.of(
+                                        Part.media("image/png", "data:image/png;base64,AAAA"))))))),
         "media");
 
     // stateJSON
-    run.accept(
-        b ->
-            b.prompt("{\"ticket\": \"hi\"}")
-                .config(Config.builder().stateJson(true).build().toGenerationConfig()));
+    run.accept(b ->
+        b.prompt("{\"ticket\": \"hi\"}")
+            .config(Config.builder().stateJson(true).build().toGenerationConfig()));
     assertEquals(Map.of("ticket", "hi"), fake.last().body().get("state"));
 
     // extra
-    run.accept(
-        b ->
-            b.prompt("hi")
-                .config(Config.builder().extra("session_id", "s-1").build().toGenerationConfig()));
+    run.accept(b ->
+        b.prompt("hi")
+            .config(Config.builder().extra("session_id", "s-1").build().toGenerationConfig()));
     assertEquals("s-1", fake.last().body().get("session_id"));
   }
 
@@ -396,12 +387,11 @@ class SystemOnePluginTest {
     Map<String, Object> body = fake.last().body();
     assertEquals("My card was charged twice.", body.get("state"));
     Wire.map(body.get("questions"))
-        .forEach(
-            (id, raw) ->
-                assertEquals(
-                    "The state is a support ticket.\n\n"
-                        + TestTypes.triageQuestions().get(id).instructions,
-                    Wire.map(raw).get("instructions")));
+        .forEach((id, raw) ->
+            assertEquals(
+                "The state is a support ticket.\n\n"
+                    + TestTypes.triageQuestions().get(id).instructions,
+                Wire.map(raw).get("instructions")));
 
     // system alone is not state
     assertRefused(
@@ -624,11 +614,10 @@ class SystemOnePluginTest {
                     .provider("wrapped")
                     .baseUrl(fake.url())
                     .path("/run")
-                    .route(
-                        (model, body) -> {
-                          body.remove("model");
-                          return new SystemOne.Routed("/" + model, Map.of("input", body));
-                        })
+                    .route((model, body) -> {
+                      body.remove("model");
+                      return new SystemOne.Routed("/" + model, Map.of("input", body));
+                    })
                     .unwrap(body -> MAPPER.readTree(body).get("result").toString()))
             .build();
     Triage out = output(decide(g, "wrapped/d1", b -> b.prompt("hi")), Triage.class);

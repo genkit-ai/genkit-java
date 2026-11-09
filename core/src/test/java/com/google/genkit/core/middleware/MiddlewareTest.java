@@ -178,12 +178,11 @@ class MiddlewareTest {
   @Test
   void testValidationMiddleware() {
     Middleware<String, String> validationMiddleware =
-        CommonMiddleware.validate(
-            request -> {
-              if (request == null || request.isEmpty()) {
-                throw new GenkitException("Request cannot be empty");
-              }
-            });
+        CommonMiddleware.validate(request -> {
+          if (request == null || request.isEmpty()) {
+            throw new GenkitException("Request cannot be empty");
+          }
+        });
 
     MiddlewareChain<String, String> chain = new MiddlewareChain<>();
     chain.use(validationMiddleware);

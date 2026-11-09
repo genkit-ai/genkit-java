@@ -141,12 +141,11 @@ public final class CosmosSessionStore<S> implements SessionStore<S>, SnapshotSub
           client.getDatabase(options.getDatabaseName()).getContainer(options.getContainerName());
     }
     this.scheduler =
-        Executors.newSingleThreadScheduledExecutor(
-            r -> {
-              Thread t = new Thread(r, "genkit-cosmos-session-store-poll");
-              t.setDaemon(true);
-              return t;
-            });
+        Executors.newSingleThreadScheduledExecutor(r -> {
+          Thread t = new Thread(r, "genkit-cosmos-session-store-poll");
+          t.setDaemon(true);
+          return t;
+        });
   }
 
   // ──────────────────────────────────────────────────────────────────────────
