@@ -18,6 +18,12 @@ updates:
     commit-message:
       prefix: "chore(deps)"
       include: "scope"
+    # One pull request for the whole weekly update instead of one per
+    # dependency, each of which ran every workflow on its own.
+    groups:
+      maven-dependencies:
+        patterns:
+          - "*"
 
   # Enable version updates for GitHub Actions
   - package-ecosystem: "github-actions"
@@ -35,6 +41,6 @@ updates:
     commit-message:
       prefix: "chore(ci)"
     groups:
-      codeql-action:
+      github-actions:
         patterns:
-          - "github/codeql-action*"
+          - "*"
