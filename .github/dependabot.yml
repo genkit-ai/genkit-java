@@ -15,15 +15,23 @@ updates:
       - "maven"
     assignees:
       - "xavidop"
+    # "include: scope" appends "(deps)" itself, so the prefix is the bare type;
+    # "chore(deps)" produced "chore(deps)(deps):", which is not a valid
+    # conventional commit and which Release Please cannot parse.
     commit-message:
-      prefix: "chore(deps)"
+      prefix: "chore"
       include: "scope"
-    # One pull request for the whole weekly update instead of one per
-    # dependency, each of which ran every workflow on its own.
+    # One pull request for the weekly minor and patch updates instead of one
+    # per dependency, each of which ran every workflow on its own. A major
+    # update gets its own pull request, so a breaking upgrade cannot hold the
+    # routine ones back.
     groups:
       maven-dependencies:
         patterns:
           - "*"
+        update-types:
+          - "minor"
+          - "patch"
 
   # Enable version updates for GitHub Actions
   - package-ecosystem: "github-actions"
