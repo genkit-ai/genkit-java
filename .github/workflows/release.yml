@@ -33,14 +33,16 @@ on:
           - minor
           - major
 
-permissions:
-  contents: write
-  packages: write
-  pull-requests: write
+# Each job asks for exactly what it needs.
+permissions: {}
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    # Release Please pushes the release branch, tags and opens the release PR.
+    permissions:
+      contents: write
+      pull-requests: write
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       version: ${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}.${{ steps.release.outputs.patch }}
@@ -64,6 +66,9 @@ jobs:
     needs: release
     if: ${{ needs.release.outputs.release_created == 'true' }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout Repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -102,6 +107,9 @@ jobs:
   publish-snapshot:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout Repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
