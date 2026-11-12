@@ -32,6 +32,15 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    ignore:
+      # io.weaviate:client 5.6.0 is a relocation stub on Maven Central: a POM
+      # with no jar that points at io.weaviate:client6 without a version, so
+      # Maven looks for client6:5.6.0, which does not exist. The artifact has
+      # moved to client6 (6.x, a different API); taking it is a migration of
+      # the Weaviate plugin, not a version bump.
+      - dependency-name: "io.weaviate:client"
+        versions:
+          - ">= 5.6.0"
 
   # Enable version updates for GitHub Actions
   - package-ecosystem: "github-actions"
