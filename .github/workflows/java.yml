@@ -21,6 +21,14 @@ on:
   push:
     branches:
       - main
+
+# A new push to a pull request (or a Dependabot rebase) cancels the run it
+# replaces instead of stacking another one behind it. Every other trigger is
+# keyed by commit, so each commit on main still gets its own run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
