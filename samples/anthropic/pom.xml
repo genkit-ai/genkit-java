@@ -63,7 +63,7 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.6.6</version>
+            <version>1.6.7</version>
         </dependency>
     </dependencies>
 
@@ -81,7 +81,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>3.6.4</version>
+                <version>3.7.0</version>
                 <configuration>
                     <mainClass>com.google.genkit.samples.AnthropicSample</mainClass>
                 </configuration>
